@@ -67,9 +67,12 @@ $$ LANGUAGE plpgsql SECURITY DEFINER;
 CREATE OR REPLACE FUNCTION get_available_planeaciones_for_events(user_uuid UUID)
 RETURNS TABLE (
     id UUID,
-    titulo TEXT,
-    materia TEXT,
-    grado TEXT
+    titulo VARCHAR(255),
+    materia VARCHAR(100),
+    grado VARCHAR(50),
+    grupo VARCHAR(50),
+    fecha_inicio TEXT,
+    fecha_fin TEXT
 ) AS $$
 BEGIN
     RETURN QUERY
@@ -77,7 +80,10 @@ BEGIN
         p.id,
         p.titulo,
         p.materia,
-        p.grado
+        p.grado,
+        p.grupo,
+        p.fecha_inicio::TEXT,
+        p.fecha_fin::TEXT
     FROM planeaciones p
     WHERE p.user_id = user_uuid
     AND p.deleted_at IS NULL
@@ -90,15 +96,23 @@ $$ LANGUAGE plpgsql SECURITY DEFINER;
 CREATE OR REPLACE FUNCTION get_available_examenes_for_events(user_uuid UUID)
 RETURNS TABLE (
     id UUID,
-    titulo TEXT,
-    materia TEXT
+    titulo VARCHAR(255),
+    materia VARCHAR(100),
+    grado VARCHAR(50),
+    grupo VARCHAR(50),
+    fecha_examen TEXT,
+    duracion_minutos INTEGER
 ) AS $$
 BEGIN
     RETURN QUERY
     SELECT 
         e.id,
         e.title as titulo,
-        e.subject as materia
+        e.subject as materia,
+        e.grade as grado,
+        e.group_name as grupo,
+        e.exam_date::TEXT as fecha_examen,
+        e.duration_minutes as duracion_minutos
     FROM examenes e
     WHERE e.owner_id = user_uuid
     ORDER BY e.created_at DESC, e.title ASC;
