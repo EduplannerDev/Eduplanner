@@ -1,0 +1,486 @@
+openapi: 3.0.3
+info:
+  title: EduPlanner API
+  description: API para la plataforma educativa EduPlanner - Planeaciones didácticas con IA
+  version: 1.0.0
+  contact:
+    name: EduPlanner Support
+    email: support@eduplanner.com
+  license:
+    name: MIT
+    url: https://opensource.org/licenses/MIT
+
+servers:
+  - url: http://localhost:3000/api
+    description: Servidor de desarrollo
+  - url: https://eduplanner.vercel.app/api
+    description: Servidor de producción
+
+paths:
+  /chat:
+    post:
+      tags:
+        - Chat IA
+      summary: Chat con asistente de IA especializado en educación
+      description: Endpoint para interactuar con el asistente de IA que ayuda a crear planeaciones didácticas
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                messages:
+                  type: array
+                  items:
+                    type: object
+                    properties:
+                      role:
+                        type: string
+                        enum: [user, assistant, system]
+                      content:
+                        type: string
+              required:
+                - messages
+      responses:
+        '200':
+          description: Respuesta exitosa del chat
+          content:
+            text/plain:
+              schema:
+                type: string
+        '400':
+          description: Solicitud inválida
+        '500':
+          description: Error del servidor
+
+  /generate-exam:
+    post:
+      tags:
+        - Exámenes
+      summary: Generar examen basado en planeaciones
+      description: Genera un examen completo con preguntas variadas basado en las planeaciones didácticas proporcionadas
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                messages:
+                  type: array
+                  items:
+                    type: object
+                    properties:
+                      role:
+                        type: string
+                        enum: [user, assistant, system]
+                      content:
+                        type: string
+              required:
+                - messages
+      responses:
+        '200':
+          description: Examen generado exitosamente
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  examen_contenido:
+                    type: string
+                    description: Contenido del examen en formato Markdown
+                  hoja_de_respuestas:
+                    type: string
+                    description: Clave de respuestas en formato Markdown
+        '400':
+          description: No se proporcionaron mensajes
+        '500':
+          description: Error del servidor
+
+  /generate-messages:
+    post:
+      tags:
+        - Mensajes
+      summary: Generar mensajes educativos
+      description: Genera mensajes personalizados para comunicación educativa
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                messages:
+                  type: array
+                  items:
+                    type: object
+                    properties:
+                      role:
+                        type: string
+                      content:
+                        type: string
+      responses:
+        '200':
+          description: Mensajes generados exitosamente
+          content:
+            text/plain:
+              schema:
+                type: string
+        '500':
+          description: Error del servidor
+
+  /generate-presentation:
+    post:
+      tags:
+        - Presentaciones
+      summary: Generar presentación educativa
+      description: Genera contenido para presentaciones educativas
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                messages:
+                  type: array
+                  items:
+                    type: object
+      responses:
+        '200':
+          description: Presentación generada exitosamente
+        '500':
+          description: Error del servidor
+
+  /generate-pptx:
+    post:
+      tags:
+        - Presentaciones
+      summary: Generar archivo PowerPoint
+      description: Genera un archivo PPTX basado en el contenido proporcionado
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                content:
+                  type: string
+                  description: Contenido para la presentación
+      responses:
+        '200':
+          description: Archivo PPTX generado exitosamente
+          content:
+            application/octet-stream:
+              schema:
+                type: string
+                format: binary
+        '500':
+          description: Error del servidor
+
+  /messages:
+    get:
+      tags:
+        - Mensajes
+      summary: Obtener mensajes del usuario
+      description: Recupera todos los mensajes asociados a un usuario específico
+      parameters:
+        - name: user_id
+          in: query
+          required: true
+          schema:
+            type: string
+          description: ID del usuario
+      responses:
+        '200':
+          description: Lista de mensajes obtenida exitosamente
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    id:
+                      type: string
+                    user_id:
+                      type: string
+                    content:
+                      type: string
+                    created_at:
+                      type: string
+                      format: date-time
+                    updated_at:
+                      type: string
+                      format: date-time
+        '400':
+          description: User ID es requerido
+        '500':
+          description: Error del servidor
+
+  /save-message:
+    post:
+      tags:
+        - Mensajes
+      summary: Guardar mensaje
+      description: Guarda un nuevo mensaje en la base de datos
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                user_id:
+                  type: string
+                content:
+                  type: string
+                type:
+                  type: string
+              required:
+                - user_id
+                - content
+      responses:
+        '200':
+          description: Mensaje guardado exitosamente
+        '400':
+          description: Datos requeridos faltantes
+        '500':
+          description: Error del servidor
+
+  /delete-message:
+    delete:
+      tags:
+        - Mensajes
+      summary: Eliminar mensaje
+      description: Elimina un mensaje específico de la base de datos
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                message_id:
+                  type: string
+              required:
+                - message_id
+      responses:
+        '200':
+          description: Mensaje eliminado exitosamente
+        '400':
+          description: ID del mensaje es requerido
+        '500':
+          description: Error del servidor
+
+  /feedback:
+    post:
+      tags:
+        - Feedback
+      summary: Enviar retroalimentación
+      description: Permite a los usuarios enviar comentarios y sugerencias
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                user_id:
+                  type: string
+                feedback:
+                  type: string
+                rating:
+                  type: integer
+                  minimum: 1
+                  maximum: 5
+              required:
+                - feedback
+      responses:
+        '200':
+          description: Feedback enviado exitosamente
+        '400':
+          description: Datos inválidos
+        '500':
+          description: Error del servidor
+
+  /quality-feedback:
+    post:
+      tags:
+        - Feedback
+      summary: Feedback de calidad
+      description: Endpoint para retroalimentación específica sobre la calidad del contenido
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                content_id:
+                  type: string
+                quality_score:
+                  type: integer
+                  minimum: 1
+                  maximum: 10
+                comments:
+                  type: string
+      responses:
+        '200':
+          description: Feedback de calidad registrado
+        '500':
+          description: Error del servidor
+
+  /adapt-whatsapp:
+    post:
+      tags:
+        - Integración
+      summary: Adaptar contenido para WhatsApp
+      description: Adapta el contenido educativo para ser enviado por WhatsApp
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                content:
+                  type: string
+                format:
+                  type: string
+                  enum: [text, image, document]
+      responses:
+        '200':
+          description: Contenido adaptado exitosamente
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  adapted_content:
+                    type: string
+                  format:
+                    type: string
+        '500':
+          description: Error del servidor
+
+  /stripe/webhook:
+    post:
+      tags:
+        - Pagos
+      summary: Webhook de Stripe
+      description: Endpoint para recibir eventos de Stripe
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+      responses:
+        '200':
+          description: Webhook procesado exitosamente
+        '400':
+          description: Webhook inválido
+
+  /stripe/cancel-subscription:
+    post:
+      tags:
+        - Pagos
+      summary: Cancelar suscripción
+      description: Cancela la suscripción activa del usuario
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                subscription_id:
+                  type: string
+              required:
+                - subscription_id
+      responses:
+        '200':
+          description: Suscripción cancelada exitosamente
+        '400':
+          description: ID de suscripción requerido
+        '500':
+          description: Error del servidor
+
+components:
+  schemas:
+    Message:
+      type: object
+      properties:
+        id:
+          type: string
+        user_id:
+          type: string
+        content:
+          type: string
+        type:
+          type: string
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+
+    ChatMessage:
+      type: object
+      properties:
+        role:
+          type: string
+          enum: [user, assistant, system]
+        content:
+          type: string
+      required:
+        - role
+        - content
+
+    ExamResponse:
+      type: object
+      properties:
+        examen_contenido:
+          type: string
+          description: Contenido del examen en formato Markdown
+        hoja_de_respuestas:
+          type: string
+          description: Clave de respuestas en formato Markdown
+
+    Error:
+      type: object
+      properties:
+        error:
+          type: string
+        message:
+          type: string
+
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: Token de autenticación JWT de Supabase
+
+security:
+  - BearerAuth: []
+
+tags:
+  - name: Chat IA
+    description: Endpoints para interacción con IA educativa
+  - name: Exámenes
+    description: Generación y gestión de exámenes
+  - name: Mensajes
+    description: Gestión de mensajes del usuario
+  - name: Presentaciones
+    description: Generación de presentaciones educativas
+  - name: Feedback
+    description: Sistema de retroalimentación
+  - name: Integración
+    description: Integraciones con servicios externos
+  - name: Pagos
+    description: Gestión de pagos y suscripciones
