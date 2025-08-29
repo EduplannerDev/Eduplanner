@@ -148,12 +148,12 @@ export function NuevaPlaneacion({ onCreateClass }: NuevaPlaneacionProps) {
         </Card>
 
         {/* Sección adicional para mostrar el progreso del MVP */}
-        <Card className="bg-gradient-to-r from-blue-50 to-indigo-50 border-blue-200">
+        <Card className="bg-muted/50 border-border">
           <CardHeader>
-            <CardTitle className="flex items-center gap-2 text-blue-800">
+            <CardTitle className="flex items-center gap-2 text-foreground">
               🚧 Estamos construyendo EduPlanner paso a paso para brindarte la mejor experiencia
             </CardTitle>
-            <CardDescription className="text-blue-600">
+            <CardDescription className="text-muted-foreground">
               Estás utilizando una versión alfa, por lo que algunas funciones pueden cambiar o no estar disponibles temporalmente.
             </CardDescription>
           </CardHeader>
@@ -161,27 +161,27 @@ export function NuevaPlaneacion({ onCreateClass }: NuevaPlaneacionProps) {
           <CardContent>
             <div className="space-y-3">
               <div className="flex items-center justify-between">
-                <span className="text-sm font-medium text-blue-700">✅ Autenticación y Perfil</span>
+                <span className="text-sm font-medium text-foreground">✅ Autenticación y Perfil</span>
                 <span className="text-xs bg-green-100 text-green-800 px-2 py-1 rounded-full">Completado</span>
               </div>
               <div className="flex items-center justify-between">
-                <span className="text-sm font-medium text-blue-700">✅ Crear Planeaciones con IA</span>
+                <span className="text-sm font-medium text-foreground">✅ Crear Planeaciones con IA</span>
                 <span className="text-xs bg-green-100 text-green-800 px-2 py-1 rounded-full">Completado</span>
               </div>
               <div className="flex items-center justify-between">
-                <span className="text-sm font-medium text-blue-700">✅ Crear Mensajes con IA</span>
+                <span className="text-sm font-medium text-foreground">✅ Crear Mensajes con IA</span>
                 <span className="text-xs bg-green-100 text-green-800 px-2 py-1 rounded-full">Completado</span>
               </div>
               <div className="flex items-center justify-between">
-                <span className="text-sm font-medium text-blue-700">🔄 Crear Examenes con IA</span>
+                <span className="text-sm font-medium text-foreground">🔄 Crear Examenes con IA</span>
                 <span className="text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded-full">Completado</span>
               </div>
               <div className="flex items-center justify-between">
-                <span className="text-sm font-medium text-blue-700">⏳ Planeación Semanal</span>
+                <span className="text-sm font-medium text-foreground">⏳ Planeación Semanal</span>
                 <span className="text-xs bg-gray-100 text-gray-600 px-2 py-1 rounded-full">Próximamente</span>
               </div>
               <div className="flex items-center justify-between">
-                <span className="text-sm font-medium text-blue-700">⏳ Proyectos Grupales</span>
+                <span className="text-sm font-medium text-foreground">⏳ Proyectos Grupales</span>
                 <span className="text-xs bg-gray-100 text-gray-600 px-2 py-1 rounded-full">Próximamente</span>
               </div>
             </div>

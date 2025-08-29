@@ -21,6 +21,7 @@ import {
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog"
 
+
 interface MisMensajesProps {
   onCreateNew: () => void
 }
@@ -38,6 +39,7 @@ export function MisMensajes({ onCreateNew }: MisMensajesProps) {
   const indexOfFirstMessage = indexOfLastMessage - messagesPerPage
   const currentMessages = messages.slice(indexOfFirstMessage, indexOfLastMessage)
   const totalPages = Math.ceil(messages.length / messagesPerPage)
+  const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
     const fetchMessages = async () => {
@@ -112,6 +114,11 @@ export function MisMensajes({ onCreateNew }: MisMensajesProps) {
 
   return (
     <div className="space-y-6">
+      {error && (
+        <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded relative">
+          {error}
+        </div>
+      )}
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100 flex items-center gap-2">
@@ -128,141 +135,143 @@ export function MisMensajes({ onCreateNew }: MisMensajesProps) {
         </Button>
       </div>
 
-      {isLoading ? (
-        <div className="flex items-center justify-center h-64">
-          <Loader2 className="h-8 w-8 animate-spin text-gray-400" />
-        </div>
-      ) : messages.length === 0 ? (
-        <Card>
-          <CardContent className="flex flex-col items-center justify-center h-64 space-y-4">
-            <MessageSquare className="h-12 w-12 text-gray-400" />
-            <div className="text-center">
-              <h3 className="text-lg font-medium text-gray-900 dark:text-gray-100">
-                No hay mensajes guardados
-              </h3>
-              <p className="text-gray-600 dark:text-gray-400 mt-1">
-                Comienza creando un nuevo mensaje
-              </p>
+        <Card className="text-center py-12">
+        <CardContent className="p-6">
+          {isLoading ? (
+            <div className="flex items-center justify-center h-64">
+              <Loader2 className="h-8 w-8 animate-spin text-gray-400" />
             </div>
-            <Button onClick={onCreateNew}>
-              <Plus className="h-4 w-4 mr-2" />
-              Crear Mensaje
-            </Button>
-          </CardContent>
-        </Card>
-      ) : (
-        <>
-          <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-            {currentMessages.map((message) => (
-              <Card key={message.id} className="flex flex-col">
-                <CardHeader className="flex-shrink-0">
-                  <div className="flex items-center justify-between">
-                    <Badge className={getCategoryColor(message.category)}>
-                      {message.category.charAt(0).toUpperCase() + message.category.slice(1)}
-                    </Badge>
-                    <div className="flex gap-1">
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => copyToClipboard(message.content)}
-                      >
-                        <Copy className="h-4 w-4" />
-                      </Button>
-                      <AlertDialog>
-                        <AlertDialogTrigger asChild>
+          ) : messages.length === 0 ? (
+            <div className="flex flex-col items-center justify-center h-64 space-y-4">
+              <MessageSquare className="h-12 w-12 text-gray-400" />
+              <div className="text-center">
+                <h3 className="text-lg font-medium text-gray-900 dark:text-gray-100">
+                  No hay mensajes guardados
+                </h3>
+                <p className="text-gray-600 dark:text-gray-400 mt-1">
+                  Comienza creando un nuevo mensaje
+                </p>
+              </div>
+              <Button onClick={onCreateNew}>
+                <Plus className="h-4 w-4 mr-2" />
+                Crear Mensaje
+              </Button>
+            </div>
+          ) : (
+            <>
+              <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+                {currentMessages.map((message) => (
+                  <Card key={message.id} className="flex flex-col">
+                    <CardHeader className="flex-shrink-0">
+                      <div className="flex items-center justify-between">
+                        <Badge className={getCategoryColor(message.category)}>
+                          {message.category.charAt(0).toUpperCase() + message.category.slice(1)}
+                        </Badge>
+                        <div className="flex gap-1">
                           <Button
                             variant="ghost"
                             size="sm"
-                            disabled={isDeleting === message.id}
+                            onClick={() => copyToClipboard(message.content)}
                           >
-                            {isDeleting === message.id ? (
-                              <Loader2 className="h-4 w-4 animate-spin" />
-                            ) : (
-                              <Trash2 className="h-4 w-4 text-red-500" />
-                            )}
+                            <Copy className="h-4 w-4" />
                           </Button>
-                        </AlertDialogTrigger>
-                        <AlertDialogContent>
-                          <AlertDialogHeader>
-                            <AlertDialogTitle>¿Eliminar mensaje?</AlertDialogTitle>
-                            <AlertDialogDescription>
-                              Esta acción no se puede deshacer. El mensaje será eliminado permanentemente.
-                            </AlertDialogDescription>
-                          </AlertDialogHeader>
-                          <AlertDialogFooter>
-                            <AlertDialogCancel>Cancelar</AlertDialogCancel>
-                            <AlertDialogAction
-                              onClick={() => deleteMessage(message.id!)}
-                              className="bg-red-600 hover:bg-red-700"
-                            >
-                              Eliminar
-                            </AlertDialogAction>
-                          </AlertDialogFooter>
-                        </AlertDialogContent>
-                      </AlertDialog>
-                    </div>
-                  </div>
-                  <CardTitle className="text-lg mt-2">{message.title}</CardTitle>
-                  <CardDescription>
-                    {new Date(message.created_at!).toLocaleDateString()}
-                  </CardDescription>
-                </CardHeader>
-                <CardContent className="flex-1">
-                  <ScrollArea className="h-[200px]">
-                    <div className="whitespace-pre-wrap text-sm">
-                      {message.content}
-                    </div>
-                  </ScrollArea>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
-
-          {/* Paginación */}
-          {totalPages > 1 && (
-            <div className="flex items-center justify-center space-x-2 mt-8">
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
-                disabled={currentPage === 1}
-              >
-                <ChevronLeft className="h-4 w-4" />
-                Anterior
-              </Button>
-              
-              <div className="flex items-center space-x-1">
-                {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
-                  <Button
-                    key={page}
-                    variant={currentPage === page ? "default" : "outline"}
-                    size="sm"
-                    onClick={() => setCurrentPage(page)}
-                    className="w-8 h-8 p-0"
-                  >
-                    {page}
-                  </Button>
+                          <AlertDialog>
+                            <AlertDialogTrigger asChild>
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                disabled={isDeleting === message.id}
+                              >
+                                {isDeleting === message.id ? (
+                                  <Loader2 className="h-4 w-4 animate-spin" />
+                                ) : (
+                                  <Trash2 className="h-4 w-4 text-red-500" />
+                                )}
+                              </Button>
+                            </AlertDialogTrigger>
+                            <AlertDialogContent>
+                              <AlertDialogHeader>
+                                <AlertDialogTitle>¿Eliminar mensaje?</AlertDialogTitle>
+                                <AlertDialogDescription>
+                                  Esta acción no se puede deshacer. El mensaje será eliminado permanentemente.
+                                </AlertDialogDescription>
+                              </AlertDialogHeader>
+                              <AlertDialogFooter>
+                                <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                                <AlertDialogAction
+                                  onClick={() => deleteMessage(message.id!)}
+                                  className="bg-red-600 hover:bg-red-700"
+                                >
+                                  Eliminar
+                                </AlertDialogAction>
+                              </AlertDialogFooter>
+                            </AlertDialogContent>
+                          </AlertDialog>
+                        </div>
+                      </div>
+                      <CardTitle className="text-lg mt-2">{message.title}</CardTitle>
+                      <CardDescription>
+                        {new Date(message.created_at!).toLocaleDateString()}
+                      </CardDescription>
+                    </CardHeader>
+                    <CardContent className="flex-1">
+                      <ScrollArea className="h-[200px]">
+                        <div className="whitespace-pre-wrap text-sm">
+                          {message.content}
+                        </div>
+                      </ScrollArea>
+                    </CardContent>
+                  </Card>
                 ))}
               </div>
 
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
-                disabled={currentPage === totalPages}
-              >
-                Siguiente
-                <ChevronRight className="h-4 w-4" />
-              </Button>
-            </div>
-          )}
+              {/* Paginación */}
+              {totalPages > 1 && (
+                <div className="flex items-center justify-center space-x-2 mt-8">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
+                    disabled={currentPage === 1}
+                  >
+                    <ChevronLeft className="h-4 w-4" />
+                    Anterior
+                  </Button>
+                  
+                  <div className="flex items-center space-x-1">
+                    {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
+                      <Button
+                        key={page}
+                        variant={currentPage === page ? "default" : "outline"}
+                        size="sm"
+                        onClick={() => setCurrentPage(page)}
+                        className="w-8 h-8 p-0"
+                      >
+                        {page}
+                      </Button>
+                    ))}
+                  </div>
 
-          {/* Información de paginación */}
-          <div className="text-center text-sm text-gray-500 dark:text-gray-400 mt-4">
-            Mostrando {indexOfFirstMessage + 1} - {Math.min(indexOfLastMessage, messages.length)} de {messages.length} mensajes
-          </div>
-        </>
-      )}
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
+                    disabled={currentPage === totalPages}
+                  >
+                    Siguiente
+                    <ChevronRight className="h-4 w-4" />
+                  </Button>
+                </div>
+              )}
+
+              {/* Información de paginación */}
+              <div className="text-center text-sm text-gray-500 dark:text-gray-400 mt-4">
+                Mostrando {indexOfFirstMessage + 1} - {Math.min(indexOfLastMessage, messages.length)} de {messages.length} mensajes
+              </div>
+            </>
+          )}
+        </CardContent>
+      </Card>
     </div>
   )
 }

@@ -215,7 +215,33 @@ export default function LoginForm() {
           return
         }
 
+        // Verificar si el usuario ya existe en la base de datos
+        console.log("🔍 Verificando usuario existente para email:", email)
+        
+        // Verificar en la tabla profiles
+        const { data: existingProfile, error: profileError } = await supabase
+          .from('profiles')
+          .select('email, id')
+          .eq('email', email)
+          .maybeSingle()
 
+        console.log("📊 Resultado de la consulta profiles:", { existingProfile, profileError })
+
+        if (profileError && profileError.code !== 'PGRST116') {
+          console.error("❌ Error verificando usuario existente en profiles:", profileError)
+          throw new Error("Error verificando si el usuario existe")
+        }
+
+        if (existingProfile) {
+          console.log("⚠️ Usuario ya existe en profiles, mostrando mensaje")
+          setMessage("Este email ya se encuentra registrado. Por favor, intenta iniciar sesión.")
+          setIsLoading(false)
+          return
+        }
+
+        console.log("✅ Usuario no existe en profiles, procediendo con registro")
+
+        // Ahora procedemos con el registro real
         const { data, error: signUpError } = await supabase.auth.signUp({
           email,
           password,
@@ -228,7 +254,17 @@ export default function LoginForm() {
         })
 
         if (signUpError) {
-          console.error("Error en registro:", signUpError)
+          console.error("Error en el registro:", signUpError)
+          
+          // Verificar si el error es porque el usuario ya existe
+          if (signUpError.message.includes('User already registered') || 
+              signUpError.message.includes('already been registered') ||
+              signUpError.message.includes('Email address already in use')) {
+            setMessage("Este email ya se encuentra registrado. Por favor, intenta iniciar sesión.")
+            setIsLoading(false)
+            return
+          }
+          
           throw signUpError
         }
 
@@ -306,21 +342,21 @@ export default function LoginForm() {
         </CardHeader>
 
         <CardContent className="space-y-4">
-          {/* Botón de Google comentado */}
-          <Button variant="outline" className="w-full bg-secondary/50 hover:bg-secondary/70 border-border/50" onClick={handleGoogleAuth} disabled={isLoading}>
+          {/* Botón de Google mejorado con colores del logo */}
+          <Button 
+            variant="outline" 
+            className="w-full bg-gradient-to-r from-blue-500 to-indigo-600 hover:from-blue-600 hover:to-indigo-700 text-white border-0 shadow-lg hover:shadow-xl transition-all duration-200 font-medium" 
+            onClick={handleGoogleAuth} 
+            disabled={isLoading}
+          >
             <Mail className="mr-2 h-4 w-4" />
             Continuar con Google
           </Button>
 
 
 
-          <div className="relative">
-            <div className="absolute inset-0 flex items-center">
-              <Separator className="w-full" />
-            </div>
-            <div className="relative flex justify-center text-xs uppercase">
-              <span className="bg-background px-2 text-muted-foreground">O continúa con email</span>
-            </div>
+          <div className="flex justify-center text-xs uppercase py-4">
+            <span className="text-foreground font-bold">O CONTINÚA CON EMAIL</span>
           </div>
 
           <form onSubmit={handleEmailAuth} className="space-y-4">

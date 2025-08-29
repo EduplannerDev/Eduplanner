@@ -44,6 +44,10 @@ ALTER TABLE profiles ENABLE ROW LEVEL SECURITY;
 CREATE POLICY "Users can view own profile" ON profiles
     FOR SELECT USING (auth.uid() = id);
 
+-- Política para permitir consultar emails durante el registro (sin autenticación)
+CREATE POLICY "Allow email lookup for registration" ON profiles
+    FOR SELECT USING (true);
+
 -- Política para que los usuarios puedan actualizar su propio perfil
 CREATE POLICY "Users can update own profile" ON profiles
     FOR UPDATE USING (auth.uid() = id);

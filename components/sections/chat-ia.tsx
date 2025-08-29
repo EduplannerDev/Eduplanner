@@ -14,6 +14,7 @@ import { useAuth } from "@/hooks/use-auth"
 import { useUserData } from "@/hooks/use-user-data"
 import { usePlaneaciones } from "@/hooks/use-planeaciones"
 import { extractPlaneacionInfo, getCleanContentForSaving } from "@/lib/planeaciones"
+import { WelcomeMessage } from "@/components/ui/welcome-message"
 import Swal from 'sweetalert2'
 
 interface ChatIAProps {
@@ -243,6 +244,9 @@ Puedes contarme:
           </p>
         </div>
       </div>
+
+      {/* Welcome Message */}
+      <WelcomeMessage />
 
       {/* Error Display */}
       {(error || planeacionError) && (

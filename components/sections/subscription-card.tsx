@@ -96,14 +96,14 @@ export function SubscriptionCard({ userPlan }: SubscriptionCardProps) {
   return (
     <div className="space-y-6 mx-auto">
       {/* Plan Actual */}
-      <Card className={isPro ? "border-yellow-200 bg-gradient-to-br from-yellow-50 to-orange-50" : ""}>
+      <Card className={isPro ? "bg-muted/50 border-border" : ""}>
         <CardHeader>
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
-              {isPro ? <Crown className="h-5 w-5 text-yellow-600" /> : <Zap className="h-5 w-5 text-blue-600" />}
-              <CardTitle className="dark:text-gray-100">Plan Actual</CardTitle>
+              {isPro ? <Crown className="h-5 w-5 text-foreground" /> : <Zap className="h-5 w-5 text-blue-600" />}
+              <CardTitle className="text-foreground">Plan Actual</CardTitle>
             </div>
-            <Badge variant={isPro ? "default" : "secondary"} className={isPro ? "bg-yellow-600" : ""}>
+            <Badge variant={isPro ? "default" : "secondary"} className={isPro ? "bg-foreground text-background" : ""}>
               {isPro ? "PRO" : "FREE"}
             </Badge>
           </div>
@@ -247,31 +247,31 @@ export function SubscriptionCard({ userPlan }: SubscriptionCardProps) {
             </div>
 
             {/* Plan Pro */}
-            <div className="space-y-4 text-center border rounded-lg p-6 bg-gradient-to-br from-yellow-50 to-orange-50 border-yellow-200 relative">
-              <Badge className="absolute -top-3 left-1/2 transform -translate-x-1/2 bg-yellow-600">Más Popular</Badge>
+            <div className="space-y-4 text-center border rounded-lg p-6 bg-muted/50 border-border relative">
+              <Badge className="absolute -top-3 left-1/2 transform -translate-x-1/2 bg-foreground text-background">Más Popular</Badge>
               <div>
                 <div className="flex items-center justify-center gap-2">
-                  <Crown className="h-6 w-6 text-yellow-600" />
-                  <h3 className="text-xl font-semibold dark:text-gray-100">Plan PRO</h3>
+                  <Crown className="h-6 w-6 text-foreground" />
+                  <h3 className="text-xl font-semibold text-foreground">Plan PRO</h3>
                 </div>
-                <p className="text-3xl font-bold mt-2 dark:text-gray-100">
-                  $200<span className="text-lg font-normal dark:text-gray-300">/mes</span>
+                <p className="text-3xl font-bold mt-2 text-foreground">
+                  $200<span className="text-lg font-normal text-muted-foreground">/mes</span>
                 </p>
-                <p className="text-sm text-gray-600 mt-1 dark:text-gray-300">Para profesores profesionales</p>
+                <p className="text-sm text-muted-foreground mt-1">Para profesores profesionales</p>
               </div>
               <div className="space-y-3 text-left">
                 {proFeatures.map((feature, index) => (
                   <div key={index} className="flex items-center gap-3 text-sm">
                     <Check className="h-4 w-4 text-green-600 flex-shrink-0" />
-                    <span>{feature.name}</span>
+                    <span className="text-foreground">{feature.name}</span>
                   </div>
                 ))}
               </div>
               <div className="pt-4">
                 {isPro ? (
-                  <Badge className="w-full py-2 bg-yellow-600">Plan Actual</Badge>
+                  <Badge className="w-full py-2 bg-foreground text-background">Plan Actual</Badge>
                 ) : (
-                  <Button className="w-full bg-gradient-to-r from-yellow-600 to-orange-600 hover:from-yellow-700 hover:to-orange-700">
+                  <Button className="w-full bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700">
                     <Crown className="mr-2 h-4 w-4" />
                     Actualizar a PRO
                   </Button>
