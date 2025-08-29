@@ -11,7 +11,29 @@ export const metadata: Metadata = {
   title: "Eduplanner",
   description: "Planeaciones con IA",
   icons: {
-    icon: '/favicon.ico',
+    icon: [
+      {
+        url: '/favicon-16x16.png',
+        sizes: '16x16',
+        type: 'image/png',
+      },
+      {
+        url: '/favicon-32x32.png',
+        sizes: '32x32',
+        type: 'image/png',
+      },
+      {
+        url: '/favicon.png',
+        sizes: '192x192',
+        type: 'image/png',
+      },
+    ],
+    shortcut: '/favicon-32x32.png',
+    apple: {
+      url: '/favicon.png',
+      sizes: '192x192',
+      type: 'image/png',
+    },
   },
 }
 
