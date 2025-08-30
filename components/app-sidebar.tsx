@@ -2,7 +2,7 @@
 
 import type React from "react";
 
-import { FileText, User, LogOut, GraduationCap, Plus, MessageSquare, HelpCircle, Users, BookOpen, Calendar, Bot, Shield } from "lucide-react"
+import { FileText, User, LogOut, GraduationCap, Plus, MessageSquare, HelpCircle, Users, BookOpen, Calendar, Bot, Shield, Home } from "lucide-react"
 
 import {
   Sidebar,
@@ -115,6 +115,26 @@ export function AppSidebar({ activeSection, onSectionChange, ...props }: AppSide
       </SidebarHeader>
 
       <SidebarContent>
+        {/* Dashboard como opción independiente */}
+        <SidebarGroup>
+          <SidebarGroupContent>
+            <SidebarMenu>
+              <SidebarMenuItem>
+                <SidebarMenuButton
+                  asChild
+                  isActive={activeSection === "dashboard"}
+                  tooltip="Panel principal con resumen de actividades"
+                >
+                  <button onClick={() => onSectionChange("dashboard")} className="w-full">
+                    <Home className="h-4 w-4" />
+                    <span>Dashboard</span>
+                  </button>
+                </SidebarMenuButton>
+              </SidebarMenuItem>
+            </SidebarMenu>
+          </SidebarGroupContent>
+        </SidebarGroup>
+        
         <SidebarGroup>
           <SidebarGroupLabel>Herramientas</SidebarGroupLabel>
           <SidebarGroupContent>

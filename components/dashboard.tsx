@@ -2,6 +2,7 @@
 
 import { useState } from "react"
 import { AppSidebar } from "./app-sidebar"
+import { DashboardHome } from "./sections/dashboard-home"
 import { NuevaPlaneacion } from "./sections/nueva-planeacion"
 import { MisPlaneaciones } from "./sections/mis-planeaciones"
 import { Perfil } from "./sections/perfil"
@@ -30,7 +31,7 @@ import {
 } from "@/components/ui/breadcrumb"
 
 export default function Dashboard() {
-  const [activeSection, setActiveSection] = useState("nueva-planeacion")
+  const [activeSection, setActiveSection] = useState("dashboard")
   const [preselectedStudent, setPreselectedStudent] = useState<any>(null)
   const [selectedStudentForMessages, setSelectedStudentForMessages] = useState<any>(null)
 
@@ -46,6 +47,8 @@ export default function Dashboard() {
 
   const getSectionTitle = (section: string) => {
     switch (section) {
+      case "dashboard":
+        return "Dashboard"
       case "nueva-planeacion":
         return "Nueva Planeación"
       case "mis-planeaciones":
@@ -84,6 +87,8 @@ export default function Dashboard() {
 
   const renderContent = () => {
     switch (activeSection) {
+      case "dashboard":
+        return <DashboardHome onSectionChange={setActiveSection} />
       case "nueva-planeacion":
         return <NuevaPlaneacion onCreateClass={() => setActiveSection("chat-ia")} />
       case "mis-planeaciones":
@@ -132,7 +137,7 @@ export default function Dashboard() {
       case "administracion-plantel":
         return <AdministracionPlantel isOpen={true} onClose={() => setActiveSection("admin-dashboard")} />
       default:
-        return <NuevaPlaneacion onCreateClass={() => setActiveSection("chat-ia")} />
+        return <DashboardHome onSectionChange={setActiveSection} />
     }
   }
 

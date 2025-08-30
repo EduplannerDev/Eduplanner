@@ -33,18 +33,14 @@ const NuevoGrupo = ({ onBack, onSaveSuccess }: NuevoGrupoProps) => {
     'Preescolar',
     'Primaria',
     'Secundaria',
-    'Preparatoria',
-    'Universidad',
-    'Otro'
+    'Preparatoria'
   ]
 
   const grados = {
     'Preescolar': ['1°', '2°', '3°'],
     'Primaria': ['1°', '2°', '3°', '4°', '5°', '6°'],
     'Secundaria': ['1°', '2°', '3°'],
-    'Preparatoria': ['1°', '2°', '3°'],
-    'Universidad': ['1°', '2°', '3°', '4°', '5°', '6°', '7°', '8°'],
-    'Otro': ['1°', '2°', '3°', '4°', '5°', '6°']
+    'Preparatoria': ['1°', '2°', '3°']
   }
 
   const getCurrentSchoolYear = () => {

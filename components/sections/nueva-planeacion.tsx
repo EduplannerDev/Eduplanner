@@ -173,9 +173,14 @@ export function NuevaPlaneacion({ onCreateClass }: NuevaPlaneacionProps) {
                 <span className="text-xs bg-green-100 text-green-800 px-2 py-1 rounded-full">Completado</span>
               </div>
               <div className="flex items-center justify-between">
-                <span className="text-sm font-medium text-foreground">🔄 Crear Examenes con IA</span>
+                <span className="text-sm font-medium text-foreground">✅ Crear Examenes con IA</span>
                 <span className="text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded-full">Completado</span>
               </div>
+                <div className="flex items-center justify-between">
+                <span className="text-sm font-medium text-foreground">✅ Bitactora personal y segura</span>
+                <span className="text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded-full">Completado</span>
+              </div>
+              
               <div className="flex items-center justify-between">
                 <span className="text-sm font-medium text-foreground">⏳ Planeación Semanal</span>
                 <span className="text-xs bg-gray-100 text-gray-600 px-2 py-1 rounded-full">Próximamente</span>

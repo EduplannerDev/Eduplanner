@@ -4,6 +4,7 @@ import React, { useState, useEffect } from 'react';
 import { useAuth } from '@/hooks/use-auth';
 import { getPlaneaciones } from '@/lib/planeaciones';
 import { Loader2 } from 'lucide-react';
+import { useToast } from '@/hooks/use-toast';
 import {
   AlertDialog,
   AlertDialogContent,
@@ -29,8 +30,9 @@ const removeAsterisks = (text: string | null | undefined): string => {
 };
 
 export const GenerarExamen: React.FC<GenerarExamenProps> = ({ onBack, onSaveSuccess }) => {
-  const router = useRouter();
   const { user } = useAuth();
+  const router = useRouter();
+  const { toast } = useToast();
   const [planeaciones, setPlaneaciones] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -189,14 +191,21 @@ export const GenerarExamen: React.FC<GenerarExamenProps> = ({ onBack, onSaveSucc
       });
 
       if (newExamen) {
-        alert("Examen guardado exitosamente!");
+        toast({
+          title: "Éxito",
+          description: "Examen guardado exitosamente!"
+        });
         onSaveSuccess();
       } else {
         throw new Error("Error al guardar el examen en la base de datos.");
       }
     } catch (error) {
       console.error("Error al guardar el examen:", error);
-      alert("Error al guardar el examen.");
+      toast({
+        title: "Error",
+        description: "Error al guardar el examen.",
+        variant: "destructive"
+      });
     }
   };
 
@@ -233,12 +242,11 @@ export const GenerarExamen: React.FC<GenerarExamenProps> = ({ onBack, onSaveSucc
 
          <div className="bg-yellow-100 border-l-4 border-yellow-500 text-yellow-800 p-4 rounded-md mb-6 shadow">
       <div className="flex items-center space-x-2">
-        <span className="text-2xl">⚠️</span>
+        <span className="text-2xl">✨</span>
         <div>
-          <p className="font-semibold">Funcionalidad en fase de pruebas</p>
+          <p className="font-semibold">Nueva función: Generador de Exámenes con IA (¡Tu feedback es vital!)</p>
           <p className="text-sm">
-            La generación automática de exámenes aún está en desarrollo. Los resultados pueden no ser los esperados.
-            Te recomendamos revisar cuidadosamente el contenido generado antes de utilizarlo.
+            Estamos entusiasmados con esta nueva herramienta para ahorrarte tiempo. Al revisar y ajustar el examen generado, nos ayudas a entrenar a la IA para que sea aún más precisa y relevante..
           </p>
         </div>
       </div>

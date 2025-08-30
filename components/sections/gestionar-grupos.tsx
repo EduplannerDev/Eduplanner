@@ -28,16 +28,14 @@ const nivelesEducativos = [
   'Preescolar',
   'Primaria',
   'Secundaria',
-  'Preparatoria',
-  'Universidad'
+  'Preparatoria'
 ]
 
 const grados = {
   'Preescolar': ['1°', '2°', '3°'],
   'Primaria': ['1°', '2°', '3°', '4°', '5°', '6°'],
   'Secundaria': ['1°', '2°', '3°'],
-  'Preparatoria': ['1°', '2°', '3°'],
-  'Universidad': ['1°', '2°', '3°', '4°', '5°']
+  'Preparatoria': ['1°', '2°', '3°']
 }
 
 export function GestionarGrupos() {

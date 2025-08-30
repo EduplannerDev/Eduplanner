@@ -21,6 +21,9 @@ export function EditExamen({ examenId, onBack, onSaveSuccess }: EditExamenProps)
   const [title, setTitle] = useState("")
   const [subject, setSubject] = useState("")
   const [content, setContent] = useState("")
+  const [examContent, setExamContent] = useState("")
+  const [answerSheet, setAnswerSheet] = useState("")
+  const [isStructuredFormat, setIsStructuredFormat] = useState(false)
   const [isPublic, setIsPublic] = useState(false)
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
@@ -35,7 +38,18 @@ export function EditExamen({ examenId, onBack, onSaveSuccess }: EditExamenProps)
         setExamen(data)
         setTitle(data.title || "")
         setSubject(data.subject || "")
-        setContent(typeof data.content === 'string' ? data.content : JSON.stringify(data.content, null, 2) || "")
+        // Detectar si el contenido es formato estructurado (JSON con examen_contenido y hoja_de_respuestas)
+        if (typeof data.content === 'object' && data.content.examen_contenido && data.content.hoja_de_respuestas) {
+          setIsStructuredFormat(true)
+          setExamContent(data.content.examen_contenido || "")
+          setAnswerSheet(data.content.hoja_de_respuestas || "")
+          setContent("") // No usar el campo content para formato estructurado
+        } else {
+          setIsStructuredFormat(false)
+          setContent(typeof data.content === 'string' ? data.content : JSON.stringify(data.content, null, 2) || "")
+          setExamContent("")
+          setAnswerSheet("")
+        }
         setIsPublic(data.is_public || false)
       } else {
         setMessage("Error: Examen no encontrado.")
@@ -58,13 +72,23 @@ export function EditExamen({ examenId, onBack, onSaveSuccess }: EditExamenProps)
     setSaving(true)
     setMessage("")
 
-    let parsedContent: any = content;
-    try {
-      // Intenta parsear el contenido si es un JSON string, sino lo deja como string
-      parsedContent = JSON.parse(content);
-    } catch (e) {
-      // Si no es un JSON válido, se asume que es texto plano o Markdown
+    let parsedContent: any;
+    
+    if (isStructuredFormat) {
+      // Para formato estructurado, crear el objeto JSON
+      parsedContent = {
+        examen_contenido: examContent,
+        hoja_de_respuestas: answerSheet
+      };
+    } else {
+      // Para formato legacy, intentar parsear o usar como string
       parsedContent = content;
+      try {
+        parsedContent = JSON.parse(content);
+      } catch (e) {
+        // Si no es un JSON válido, se asume que es texto plano o Markdown
+        parsedContent = content;
+      }
     }
 
     const success = await updateExamen(examenId, {
@@ -202,24 +226,62 @@ export function EditExamen({ examenId, onBack, onSaveSuccess }: EditExamenProps)
           </CardContent>
         </Card>
 
-        <Card>
-          <CardHeader>
-            <CardTitle>Contenido del Examen</CardTitle>
-            <CardDescription>Edita el contenido principal de tu examen. Puedes usar texto plano o Markdown.</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <Textarea
-              value={content}
-              onChange={(e) => setContent(e.target.value)}
-              placeholder="Escribe el contenido de tu examen aquí..."
-              className="min-h-[400px] sm:min-h-[500px] text-sm leading-relaxed font-mono dark:bg-gray-800 dark:text-gray-200"
-              disabled={saving}
-            />
-            <p className="text-xs text-gray-500 dark:text-gray-400 mt-2">
-              El contenido se guardará tal cual lo ingreses. Si usas Markdown, asegúrate de que sea compatible con cómo se mostrará.
-            </p>
-          </CardContent>
-        </Card>
+        {isStructuredFormat ? (
+          // Formato estructurado: mostrar campos separados
+          <>
+            <Card>
+              <CardHeader>
+                <CardTitle>Contenido del Examen</CardTitle>
+                <CardDescription>Edita las preguntas y contenido principal del examen.</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <Textarea
+                  value={examContent}
+                  onChange={(e) => setExamContent(e.target.value)}
+                  placeholder="Escribe las preguntas del examen aquí..."
+                  className="min-h-[300px] text-sm leading-relaxed"
+                  disabled={saving}
+                />
+              </CardContent>
+            </Card>
+            
+            <Card>
+              <CardHeader>
+                <CardTitle>Hoja de Respuestas</CardTitle>
+                <CardDescription>Edita las respuestas correctas y explicaciones.</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <Textarea
+                  value={answerSheet}
+                  onChange={(e) => setAnswerSheet(e.target.value)}
+                  placeholder="Escribe las respuestas correctas aquí..."
+                  className="min-h-[300px] text-sm leading-relaxed"
+                  disabled={saving}
+                />
+              </CardContent>
+            </Card>
+          </>
+        ) : (
+          // Formato legacy: mostrar campo único
+          <Card>
+            <CardHeader>
+              <CardTitle>Contenido del Examen</CardTitle>
+              <CardDescription>Edita el contenido principal de tu examen. Puedes usar texto plano o Markdown.</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <Textarea
+                value={content}
+                onChange={(e) => setContent(e.target.value)}
+                placeholder="Escribe el contenido de tu examen aquí..."
+                className="min-h-[400px] sm:min-h-[500px] text-sm leading-relaxed font-mono dark:bg-gray-800 dark:text-gray-200"
+                disabled={saving}
+              />
+              <p className="text-xs text-gray-500 dark:text-gray-400 mt-2">
+                El contenido se guardará tal cual lo ingreses. Si usas Markdown, asegúrate de que sea compatible con cómo se mostrará.
+              </p>
+            </CardContent>
+          </Card>
+        )}
       </div>
     </div>
   )

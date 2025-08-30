@@ -35,10 +35,7 @@ const nivelesEducativos = [
   'Preescolar',
   'Primaria',
   'Secundaria',
-  'Preparatoria',
-  'Universidad',
-  'Técnico',
-  'Mixto'
+  'Preparatoria'
 ]
 
 interface GestionarPlantelesProps {
@@ -98,7 +95,7 @@ export function GestionarPlanteles({ onViewPlantel }: GestionarPlantelesProps) {
           }
         })
       )
-      setPlantelesWithLimits(plantelesWithLimitsData)
+      setPlantelesWithLimits(plantelesWithLimitsData.filter((plantel): plantel is PlantelWithLimits => plantel !== null))
     } catch (error) {
       toast({
         title: "Error",
@@ -564,7 +561,7 @@ export function GestionarPlanteles({ onViewPlantel }: GestionarPlantelesProps) {
                           plantel.estado_suscripcion === 'activa' ? 'default' :
                           plantel.estado_suscripcion === 'suspendida' ? 'destructive' : 'secondary'
                         }>
-                          {plantel.plan_suscripcion?.charAt(0).toUpperCase() + plantel.plan_suscripcion?.slice(1) || 'No definido'}
+{plantel.plan_suscripcion ? plantel.plan_suscripcion.charAt(0).toUpperCase() + plantel.plan_suscripcion.slice(1) : 'No definido'}
                         </Badge>
                         {plantel.fecha_vencimiento && (
                           <div className="text-xs text-muted-foreground mt-1">

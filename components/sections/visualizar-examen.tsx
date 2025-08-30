@@ -97,14 +97,14 @@ const VisualizarExamen: React.FC<VisualizarExamenProps> = ({ examenContent, onBa
         <div className="space-y-6">
           {/* Contenido del Examen */}
           <div className="border p-4 rounded-lg shadow-sm prose max-w-none">
-            <h2 className="text-xl font-semibold mb-3 text-blue-700">📝 Examen</h2>
+            <h2 className="text-xl font-semibold mb-3 text-primary">📝 Examen</h2>
             <ReactMarkdown>{examContent}</ReactMarkdown>
           </div>
           
           {/* Hoja de Respuestas */}
           {answerSheet && (
-            <div className="border p-4 rounded-lg shadow-sm prose max-w-none bg-gray-50">
-              <h2 className="text-xl font-semibold mb-3 text-green-700">✅ Hoja de Respuestas</h2>
+            <div className="border p-4 rounded-lg shadow-sm prose max-w-none bg-muted/50">
+              <h2 className="text-xl font-semibold mb-3 text-primary">✅ Hoja de Respuestas</h2>
               <ReactMarkdown>{answerSheet}</ReactMarkdown>
             </div>
           )}

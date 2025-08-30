@@ -64,10 +64,7 @@ const nivelesEducativos = [
   'Preescolar',
   'Primaria',
   'Secundaria',
-  'Preparatoria',
-  'Universidad',
-  'Técnico',
-  'Mixto'
+  'Preparatoria'
 ]
 
 export function VistaPlantel({ plantelId, onBack }: VistaPlantelProps) {
@@ -132,24 +129,24 @@ export function VistaPlantel({ plantelId, onBack }: VistaPlantelProps) {
       setUsuarios(usuariosFormateados)
       
       setEditFormData({
-        max_usuarios: plantelData.max_usuarios || 0,
-        max_profesores: plantelData.max_profesores || 0,
-        max_directores: plantelData.max_directores || 0,
-        plan_suscripcion: plantelData.plan_suscripcion || '',
-        estado_suscripcion: plantelData.estado_suscripcion || '',
-        fecha_vencimiento: plantelData.fecha_vencimiento || ''
+        max_usuarios: plantelData?.max_usuarios || 0,
+        max_profesores: plantelData?.max_profesores || 0,
+        max_directores: plantelData?.max_directores || 0,
+        plan_suscripcion: plantelData?.plan_suscripcion || '',
+        estado_suscripcion: plantelData?.estado_suscripcion || '',
+        fecha_vencimiento: plantelData?.fecha_vencimiento || ''
       })
       
       setEditInfoFormData({
-        nombre: plantelData.nombre || '',
-        direccion: plantelData.direccion || '',
-        telefono: plantelData.telefono || '',
-        email: plantelData.email || '',
-        codigo_plantel: plantelData.codigo_plantel || '',
-        nivel_educativo: plantelData.nivel_educativo || '',
-        ciudad: plantelData.ciudad || '',
-        estado: plantelData.estado || '',
-        codigo_postal: plantelData.codigo_postal || ''
+        nombre: plantelData?.nombre || '',
+        direccion: plantelData?.direccion || '',
+        telefono: plantelData?.telefono || '',
+        email: plantelData?.email || '',
+        codigo_plantel: plantelData?.codigo_plantel || '',
+        nivel_educativo: plantelData?.nivel_educativo || '',
+        ciudad: plantelData?.ciudad || '',
+        estado: plantelData?.estado || '',
+        codigo_postal: plantelData?.codigo_postal || ''
       })
     } catch (error) {
       toast({
