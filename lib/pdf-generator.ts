@@ -1,9 +1,60 @@
-// Función para limpiar el texto de asteriscos y otros caracteres Markdown
-import jsPDF from 'jspdf';
+import html2pdf from 'html2pdf.js';
 
+// Función para limpiar contenido markdown
 function cleanMarkdown(text: string): string {
-  if (!text) return ""
-  return text.replace(/\*\*/g, "").replace(/\*/g, "").replace(/__/g, "").replace(/_/g, "")
+  if (!text) return '';
+  
+  return text
+    .replace(/\*\*(.*?)\*\*/g, '$1') // Remover negritas
+    .replace(/\*(.*?)\*/g, '$1')     // Remover cursivas
+    .replace(/#{1,6}\s*/g, '')       // Remover encabezados
+    .replace(/^[-*+]\s+/gm, '')     // Remover viñetas
+    .replace(/^\d+\.\s+/gm, '')     // Remover números de lista
+    .replace(/\[([^\]]+)\]\([^)]+\)/g, '$1') // Remover enlaces
+    .replace(/`([^`]+)`/g, '$1')     // Remover código inline
+    .replace(/\n{3,}/g, '\n\n')      // Normalizar saltos de línea
+    .trim();
+}
+
+// Función para convertir markdown a HTML básico
+function convertMarkdownToHtml(markdown: string): string {
+  if (!markdown) return '';
+  
+  let html = markdown;
+  
+  // Convertir encabezados
+  html = html.replace(/^### (.*$)/gm, '<h3>$1</h3>');
+  html = html.replace(/^## (.*$)/gm, '<h2>$1</h2>');
+  html = html.replace(/^# (.*$)/gm, '<h1>$1</h1>');
+  
+  // Convertir texto en negrita
+  html = html.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+  
+  // Convertir texto en cursiva
+  html = html.replace(/\*(.*?)\*/g, '<em>$1</em>');
+  
+  // Convertir listas no ordenadas
+  html = html.replace(/^\s*[-*+]\s+(.*)$/gm, '<li>$1</li>');
+  html = html.replace(/((<li>[\s\S]*?<\/li>\s*)+)/g, '<ul>$1</ul>');
+  
+  // Convertir listas ordenadas
+  html = html.replace(/^\s*\d+\.\s+(.*)$/gm, '<li>$1</li>');
+  
+  // Convertir párrafos
+  const paragraphs = html.split(/\n\s*\n/);
+  html = paragraphs.map(paragraph => {
+    const trimmed = paragraph.trim();
+    if (!trimmed) return '';
+    
+    // No envolver en <p> si ya tiene tags de bloque
+    if (trimmed.match(/^<(h[1-6]|ul|ol|li)/)) {
+      return trimmed;
+    }
+    
+    return `<p>${trimmed}</p>`;
+  }).filter(p => p).join('');
+  
+  return html;
 }
 
 function markdownToHtml(text: string): string {
@@ -51,9 +102,9 @@ function markdownToHtml(text: string): string {
           .replace(/_(.*?)_/g, '<em>$1</em>')
         
         // Solo envolver en <p> si no es un título
-        if (!line.includes('<h1>') && !line.includes('<h2>') && !line.includes('<h3>')) {
-          line = '<p>' + line + '</p>'
-        }
+          if (!line.includes('<h1>') && !line.includes('<h2>') && !line.includes('<h3>')) {
+            line = '<p>' + line + '</p>'
+          }
       } else {
         line = '' // Líneas vacías se mantienen vacías
       }
@@ -72,55 +123,35 @@ function markdownToHtml(text: string): string {
   return processedLines.join('\n')
 }
 
-function processExamContent(content: string) {
-  // Intentar parsear como JSON primero
-  try {
-    const examData = JSON.parse(content);
-    if (examData.examen_contenido && examData.hoja_de_respuestas) {
-      return {
-        examContent: examData.examen_contenido,
-        answerSheet: examData.hoja_de_respuestas,
-        isStructured: true
-      };
-    }
-  } catch (error) {
-    // Si no es JSON válido, buscar JSON dentro del texto
-    const jsonMatch = content.match(/\{[\s\S]*\}/);
-    if (jsonMatch) {
-      try {
-        const examData = JSON.parse(jsonMatch[0]);
-        if (examData.examen_contenido && examData.hoja_de_respuestas) {
-          return {
-            examContent: examData.examen_contenido,
-            answerSheet: examData.hoja_de_respuestas,
-            isStructured: true
-          };
-        }
-      } catch (innerError) {
-        // Continuar con el procesamiento normal
-      }
-    }
+// Función para procesar contenido de examen y separar hoja de respuestas
+function processExamContent(content: string): { examContent: string; answerSheet: string | null; isStructured: boolean } {
+  if (!content) {
+    return { examContent: '', answerSheet: null, isStructured: false };
   }
-  
-  // Buscar patrones específicos que indiquen contenido estructurado
-  const hasExamContent = content.includes('examen_contenido') || content.includes('Examen:');
-  const hasAnswerSheet = content.includes('hoja_de_respuestas') || content.includes('Respuestas:') || content.includes('Hoja de respuestas:');
-  
-  if (hasExamContent && hasAnswerSheet) {
-    // Intentar extraer las secciones manualmente
-    const examMatch = content.match(/(?:examen_contenido["']?\s*[:=]\s*["']?|Examen:\s*)([\s\S]*?)(?=(?:hoja_de_respuestas|Respuestas:|Hoja de respuestas:)|$)/i);
-    const answerMatch = content.match(/(?:hoja_de_respuestas["']?\s*[:=]\s*["']?|Respuestas:|Hoja de respuestas:)\s*([\s\S]*?)$/i);
+
+  // Verificar si el contenido ya está estructurado (contiene separadores específicos)
+  const hasAnswerSheetSeparator = content.includes('--- HOJA DE RESPUESTAS ---') || 
+                                  content.includes('HOJA DE RESPUESTAS') ||
+                                  content.includes('Answer Sheet') ||
+                                  content.includes('Respuestas:');
+
+  if (hasAnswerSheetSeparator) {
+    // Dividir el contenido en examen y hoja de respuestas
+    const parts = content.split(/(?:--- HOJA DE RESPUESTAS ---|HOJA DE RESPUESTAS|Answer Sheet|Respuestas:)/i);
     
-    if (examMatch && answerMatch) {
+    if (parts.length >= 2) {
+      const examContent = parts[0].trim();
+      const answerSheet = parts.slice(1).join('\n').trim();
+      
       return {
-        examContent: examMatch[1].trim().replace(/^["']|["']$/g, ''),
-        answerSheet: answerMatch[1].trim().replace(/^["']|["']$/g, ''),
+        examContent: examContent || content,
+        answerSheet: answerSheet || null,
         isStructured: true
       };
     }
   }
-  
-  // Procesamiento normal para texto
+
+  // Si no hay estructura clara, devolver todo como contenido del examen
   return {
     examContent: content,
     answerSheet: null,
@@ -128,91 +159,149 @@ function processExamContent(content: string) {
   };
 }
 
-function generatePDFFromText(content: string, title: string, filename: string, isAnswerSheet: boolean = false): void {
-  const pdf = new jsPDF({
-    orientation: 'portrait',
-    unit: 'mm',
-    format: 'a4'
-  });
+// Función para crear HTML estructurado para PDF
+function createPDFHtml(content: string, title: string, isAnswerSheet: boolean = false): string {
+  const styles = `
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        line-height: 1.6;
+        margin: 20px;
+        color: #333;
+      }
+      .header {
+        text-align: center;
+        margin-bottom: 30px;
+        border-bottom: 2px solid #333;
+        padding-bottom: 15px;
+      }
+      .title {
+        font-size: 24px;
+        font-weight: bold;
+        margin-bottom: 10px;
+      }
+      .subtitle {
+        font-size: 14px;
+        color: #666;
+        margin-bottom: 5px;
+      }
+      .content {
+        margin-top: 20px;
+      }
+      h1, h2, h3 {
+        color: #000000;
+        font-weight: bold;
+        margin-top: 25px;
+        margin-bottom: 15px;
+      }
+      h1 { font-size: 20px; }
+      h2 { font-size: 18px; }
+      h3 { font-size: 16px; }
+      p {
+        margin-bottom: 12px;
+        text-align: justify;
+      }
+      ul, ol {
+        margin-bottom: 15px;
+        padding-left: 25px;
+      }
+      li {
+        margin-bottom: 5px;
+      }
+      strong {
+        font-weight: bold;
+      }
+      em {
+        font-style: italic;
+      }
+      .footer {
+        position: fixed;
+        bottom: 20px;
+        left: 20px;
+        right: 20px;
+        text-align: center;
+        font-size: 10px;
+        color: #666;
+        border-top: 1px solid #ddd;
+        padding-top: 10px;
+      }
+    </style>
+  `;
+
+  const header = `
+    <div class="header">
+      <div class="title">${title}</div>
+      <div class="subtitle">${isAnswerSheet ? 'Hoja de Respuestas - EduPlanner' : 'EduPlanner'}</div>
+      <div class="subtitle">Generado el ${new Date().toLocaleDateString('es-MX')}</div>
+    </div>
+  `;
+
+  const footer = `
+    <div class="footer">
+      Generado por EduPlanner el ${new Date().toLocaleDateString('es-MX')}
+    </div>
+  `;
+
+  return `
+    <!DOCTYPE html>
+    <html>
+    <head>
+      <meta charset="UTF-8">
+      ${styles}
+    </head>
+    <body>
+      ${header}
+      <div class="content">
+        ${content}
+      </div>
+      ${footer}
+    </body>
+    </html>
+  `;
+}
+
+// Función principal para generar PDF desde HTML
+function generatePDFFromHTML(content: string, title: string, filename: string, isAnswerSheet: boolean = false): void {
+  // Crear HTML estructurado
+  const htmlContent = createPDFHtml(content, title, isAnswerSheet);
   
-  // Configuración de márgenes y dimensiones
-  const pageWidth = 210;
-  const pageHeight = 297;
-  const margin = 20;
-  const contentWidth = pageWidth - (margin * 2);
-  const lineHeight = 6;
-  let currentY = margin;
-  
-  // Función para agregar nueva página si es necesario
-  const checkPageBreak = (neededHeight: number) => {
-    if (currentY + neededHeight > pageHeight - margin) {
-      pdf.addPage();
-      currentY = margin;
+  // Configuración para html2pdf
+  const options = {
+    margin: [15, 15, 20, 15], // top, right, bottom, left
+    filename: filename,
+    image: { type: 'jpeg', quality: 0.98 },
+    html2canvas: { 
+      scale: 2,
+      useCORS: true,
+      letterRendering: true
+    },
+    jsPDF: { 
+      unit: 'mm', 
+      format: 'a4', 
+      orientation: 'portrait'
     }
   };
+
+  // Crear elemento temporal para el HTML
+  const element = document.createElement('div');
+  element.innerHTML = htmlContent;
+  element.style.width = '210mm';
+  element.style.minHeight = '297mm';
   
-  // Función para agregar texto con salto de línea automático
-  const addText = (text: string, fontSize: number = 12, isBold: boolean = false) => {
-    pdf.setFontSize(fontSize);
-    pdf.setFont('helvetica', isBold ? 'bold' : 'normal');
-    
-    const lines = pdf.splitTextToSize(text, contentWidth);
-    const textHeight = lines.length * lineHeight;
-    
-    checkPageBreak(textHeight);
-    
-    lines.forEach((line: string) => {
-      pdf.text(line, margin, currentY);
-      currentY += lineHeight;
+  // Generar PDF
+  html2pdf()
+    .set(options)
+    .from(element)
+    .save()
+    .then(() => {
+      console.log('PDF generado exitosamente:', filename);
+      // Limpiar elemento temporal
+      element.remove();
+    })
+    .catch((error: any) => {
+      console.error('Error generando PDF:', error);
+      element.remove();
     });
-    
-    currentY += 3; // Espacio adicional después del texto
-  };
-  
-  // Encabezado
-  addText(title, 18, true);
-  addText(isAnswerSheet ? 'Hoja de Respuestas - EduPlanner' : 'Examen - EduPlanner', 12, false);
-  
-  // Línea separadora
-  currentY += 5;
-  pdf.setLineWidth(0.5);
-  pdf.line(margin, currentY, pageWidth - margin, currentY);
-  currentY += 10;
-  
-  // Procesar contenido
-  const processedContent = cleanMarkdown(content);
-  const lines = processedContent.split('\n');
-  
-  lines.forEach(line => {
-    line = line.trim();
-    if (line === '') {
-      currentY += 3;
-      return;
-    }
-    
-    // Detectar títulos
-    if (line.startsWith('###')) {
-      addText(line.replace('###', '').trim(), 14, true);
-    } else if (line.startsWith('##')) {
-      addText(line.replace('##', '').trim(), 16, true);
-    } else if (line.startsWith('#')) {
-      addText(line.replace('#', '').trim(), 18, true);
-    } else if (line.startsWith('-') || line.startsWith('*')) {
-      addText('• ' + line.substring(1).trim(), 12, false);
-    } else {
-      addText(line, 12, false);
-    }
-  });
-  
-  // Pie de página
-  const footerY = pageHeight - 15;
-  pdf.setFontSize(10);
-  pdf.setFont('helvetica', 'normal');
-  pdf.text(`Generado por EduPlanner el ${new Date().toLocaleDateString('es-MX')}`, margin, footerY);
-  
-  // Descargar PDF
-  pdf.save(filename);
-  console.log('PDF generado exitosamente:', filename);
 }
 
 export function generateExamPDF(examen: any): void {
@@ -253,10 +342,10 @@ export function generateExamPDF(examen: any): void {
   // Agregar información de la materia al contenido si existe
   let fullContent = examContent;
   if (examen.subject) {
-    fullContent = `Materia: ${cleanMarkdown(examen.subject)}\n\n${examContent}`;
+    fullContent = `<p><strong>Materia:</strong> ${cleanMarkdown(examen.subject)}</p>${examContent}`;
   }
   
-  generatePDFFromText(fullContent, examTitle, examFilename, false);
+  generatePDFFromHTML(fullContent, examTitle, examFilename, false);
   
   console.log('PDF del examen generado. Hoja de respuestas disponible por separado:', { isStructured, hasAnswerSheet: !!answerSheet });
 }
@@ -268,40 +357,42 @@ export function generateAnswerSheetPDF(examen: any, answerSheet: string): void {
   // Agregar información de la materia al contenido si existe
   let fullContent = answerSheet;
   if (examen.subject) {
-    fullContent = `Materia: ${cleanMarkdown(examen.subject)}\n\n${answerSheet}`;
+    fullContent = `<p><strong>Materia:</strong> ${cleanMarkdown(examen.subject)}</p>${answerSheet}`;
   }
   
-  generatePDFFromText(fullContent, answerTitle, answerFilename, true);
+  generatePDFFromHTML(fullContent, answerTitle, answerFilename, true);
 }
 
 export function generatePDF(planeacion: any): void {
-  // Crear contenido de texto estructurado
-  let content = `${cleanMarkdown(planeacion.titulo)}\n\n`;
-  content += `PLANEACIÓN DIDÁCTICA - EDUPLANNER\n\n`;
+  // Crear contenido HTML estructurado
+  let content = `<div class="planeacion-header">`;
+  content += `<h1>PLANEACIÓN DIDÁCTICA</h1>`;
   
   // Información básica
-  content += `INFORMACIÓN GENERAL\n`;
-  content += `Materia: ${cleanMarkdown(planeacion.materia) || "No especificada"}\n`;
-  content += `Grado: ${cleanMarkdown(planeacion.grado) || "No especificado"}\n`;
-  content += `Duración: ${cleanMarkdown(planeacion.duracion) || "No especificada"}\n`;
-  content += `Estado: ${planeacion.estado.charAt(0).toUpperCase() + planeacion.estado.slice(1)}\n\n`;
+  content += `<h2>INFORMACIÓN GENERAL</h2>`;
+  content += `<p><strong>Materia:</strong> ${cleanMarkdown(planeacion.materia) || "No especificada"}</p>`;
+  content += `<p><strong>Grado:</strong> ${cleanMarkdown(planeacion.grado) || "No especificado"}</p>`;
+  content += `<p><strong>Duración:</strong> ${cleanMarkdown(planeacion.duracion) || "No especificada"}</p>`;
+  content += `<p><strong>Estado:</strong> ${planeacion.estado.charAt(0).toUpperCase() + planeacion.estado.slice(1)}</p>`;
   
   // Objetivo si existe
   if (planeacion.objetivo) {
-    content += `OBJETIVO DE APRENDIZAJE\n`;
-    content += `${cleanMarkdown(planeacion.objetivo)}\n\n`;
+    content += `<h2>OBJETIVO DE APRENDIZAJE</h2>`;
+    content += `<p>${cleanMarkdown(planeacion.objetivo)}</p>`;
   }
   
   // Desarrollo de la clase
-  content += `DESARROLLO DE LA CLASE\n`;
-  content += `${cleanMarkdown(planeacion.contenido)}\n\n`;
+  content += `<h2>DESARROLLO DE LA CLASE</h2>`;
+  const contenidoHtml = markdownToHtml(planeacion.contenido || '');
+  content += `<div class="contenido">${contenidoHtml}</div>`;
   
   // Información adicional
-  content += `Fecha de creación: ${new Date(planeacion.created_at).toLocaleDateString("es-MX")}`;
+  content += `<p><em>Fecha de creación: ${new Date(planeacion.created_at).toLocaleDateString("es-MX")}</em></p>`;
+  content += `</div>`;
   
-  // Generar PDF usando la función de texto
+  // Generar PDF
   const title = cleanMarkdown(planeacion.titulo);
   const filename = `${title.replace(/[^a-zA-Z0-9\s]/g, '').replace(/\s+/g, '_')}_Planeacion.pdf`;
   
-  generatePDFFromText(content, title, filename, false);
+  generatePDFFromHTML(content, title, filename, false);
 }

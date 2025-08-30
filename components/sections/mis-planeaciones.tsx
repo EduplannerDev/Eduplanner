@@ -25,7 +25,7 @@ import { usePlaneaciones } from "@/hooks/use-planeaciones"
 import { useState } from "react"
 import { ViewPlaneacion } from "./view-planeacion"
 import { EditPlaneacion } from "./edit-planeacion"
-import { generatePDF } from "@/lib/pdf-generator"
+// import { generatePDF } from "@/lib/pdf-generator" // Importación dinámica para evitar errores SSR
 import { generateDocx } from "@/lib/docx-generator"
 import { generatePptx } from "@/lib/pptx-generator"
 import { useProfile } from "@/hooks/use-profile"
@@ -94,9 +94,15 @@ export function MisPlaneaciones({ onCreateNew }: MisPlaneacionesProps) {
     }
   }
 
-  const handleDownload = (planeacion: any, format: "pdf" | "Word" | "PowerPoint") => {
+  const handleDownload = async (planeacion: any, format: "pdf" | "Word" | "PowerPoint") => {
     if (format === "pdf") {
-      generatePDF(planeacion)
+      try {
+        const { generatePDF } = await import("@/lib/pdf-generator")
+        generatePDF(planeacion)
+      } catch (error) {
+        console.error('Error generando PDF:', error)
+        setError('Error al generar el PDF')
+      }
     } else if (format === "Word") {
       generateDocx(planeacion)
     } else if (format === "PowerPoint") {
