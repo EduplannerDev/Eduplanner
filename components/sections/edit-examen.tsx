@@ -6,6 +6,7 @@ import { Textarea } from "@/components/ui/textarea"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Switch } from "@/components/ui/switch"
+import { RichTextEditor, convertLegacyToHtml } from "@/components/ui/rich-text-editor"
 import { ArrowLeft, Save, Loader2 } from "lucide-react"
 import { getExamenById, updateExamen, type Examen } from "@/lib/examenes"
 import { useState, useEffect, useCallback } from "react"
@@ -41,12 +42,13 @@ export function EditExamen({ examenId, onBack, onSaveSuccess }: EditExamenProps)
         // Detectar si el contenido es formato estructurado (JSON con examen_contenido y hoja_de_respuestas)
         if (typeof data.content === 'object' && data.content.examen_contenido && data.content.hoja_de_respuestas) {
           setIsStructuredFormat(true)
-          setExamContent(data.content.examen_contenido || "")
-          setAnswerSheet(data.content.hoja_de_respuestas || "")
+          setExamContent(convertLegacyToHtml(data.content.examen_contenido || ""))
+          setAnswerSheet(convertLegacyToHtml(data.content.hoja_de_respuestas || ""))
           setContent("") // No usar el campo content para formato estructurado
         } else {
           setIsStructuredFormat(false)
-          setContent(typeof data.content === 'string' ? data.content : JSON.stringify(data.content, null, 2) || "")
+          const contentStr = typeof data.content === 'string' ? data.content : JSON.stringify(data.content, null, 2) || ""
+          setContent(convertLegacyToHtml(contentStr))
           setExamContent("")
           setAnswerSheet("")
         }
@@ -235,11 +237,11 @@ export function EditExamen({ examenId, onBack, onSaveSuccess }: EditExamenProps)
                 <CardDescription>Edita las preguntas y contenido principal del examen.</CardDescription>
               </CardHeader>
               <CardContent>
-                <Textarea
-                  value={examContent}
-                  onChange={(e) => setExamContent(e.target.value)}
+                <RichTextEditor
+                  content={examContent}
+                  onChange={setExamContent}
                   placeholder="Escribe las preguntas del examen aquí..."
-                  className="min-h-[300px] text-sm leading-relaxed"
+                  className="min-h-[300px]"
                   disabled={saving}
                 />
               </CardContent>
@@ -251,11 +253,11 @@ export function EditExamen({ examenId, onBack, onSaveSuccess }: EditExamenProps)
                 <CardDescription>Edita las respuestas correctas y explicaciones.</CardDescription>
               </CardHeader>
               <CardContent>
-                <Textarea
-                  value={answerSheet}
-                  onChange={(e) => setAnswerSheet(e.target.value)}
+                <RichTextEditor
+                  content={answerSheet}
+                  onChange={setAnswerSheet}
                   placeholder="Escribe las respuestas correctas aquí..."
-                  className="min-h-[300px] text-sm leading-relaxed"
+                  className="min-h-[300px]"
                   disabled={saving}
                 />
               </CardContent>
@@ -269,11 +271,11 @@ export function EditExamen({ examenId, onBack, onSaveSuccess }: EditExamenProps)
               <CardDescription>Edita el contenido principal de tu examen. Puedes usar texto plano o Markdown.</CardDescription>
             </CardHeader>
             <CardContent>
-              <Textarea
-                value={content}
-                onChange={(e) => setContent(e.target.value)}
+              <RichTextEditor
+                content={content}
+                onChange={setContent}
                 placeholder="Escribe el contenido de tu examen aquí..."
-                className="min-h-[400px] sm:min-h-[500px] text-sm leading-relaxed font-mono dark:bg-gray-800 dark:text-gray-200"
+                className="min-h-[400px] sm:min-h-[500px]"
                 disabled={saving}
               />
               <p className="text-xs text-gray-500 dark:text-gray-400 mt-2">

@@ -1,4 +1,5 @@
 import { supabase } from "./supabase"
+import { convertMarkdownToHtml } from "@/components/ui/rich-text-editor"
 
 export interface Planeacion {
   id: string
@@ -217,6 +218,8 @@ function cleanPlaneacionContent(content: string): string {
     /¿Te gustaría modificar algo de esta planeación\?[^?]*\?$/i,
     /Recuerda que esta es una sugerencia, puedes adaptarla a las necesidades específicas de tus alumnos\.\s*¿Te gustaría que añadiera alguna otra actividad o modificáramos algún aspecto de la planeación\?\s*O si estás satisfecho con la planeación, ¿quieres guardarla para poder acceder a ella después desde 'Mis Planeaciones'\??[\s\S]*$/i,
     /Recuerda que esta es una sugerencia[^?]*\?$/i,
+    /Aquí tienes un borrador de tu planeación\.[\s\S]*¿quieres guardarla para poder acceder a ella después desde 'Mis Planeaciones'\?[\s\S]*$/i,
+    /Aquí tienes un borrador de tu planeación\.[\s\S]*$/i,
   ]
 
   endPatterns.forEach((pattern) => {
@@ -225,6 +228,9 @@ function cleanPlaneacionContent(content: string): string {
 
   // Limpiar espacios extra al inicio y final
   cleanedContent = cleanedContent.trim()
+
+  // Convertir markdown a HTML
+  cleanedContent = convertMarkdownToHtml(cleanedContent)
 
   return cleanedContent
 }
@@ -237,8 +243,37 @@ export function extractPlaneacionInfo(content: string): {
   duracion: string
   objetivo: string
 } {
-  // Primero limpiar el contenido
-  const cleanedContent = cleanPlaneacionContent(content)
+  // Limpiar solo el texto introductorio, pero NO convertir a HTML aún
+  let cleanedContent = content
+
+  // Eliminar texto introductorio común
+  const introPatterns = [
+    /^¡Perfecto!\s*Aquí tienes una planeación didáctica[^:]*:\s*/i,
+    /^Aquí tienes una planeación didáctica[^:]*:\s*/i,
+    /^Te presento una planeación didáctica[^:]*:\s*/i,
+    /^Esta es una planeación didáctica[^:]*:\s*/i,
+  ]
+
+  introPatterns.forEach((pattern) => {
+    cleanedContent = cleanedContent.replace(pattern, "")
+  })
+
+  // Eliminar la pregunta final sobre guardar
+  const endPatterns = [
+    /¿Te gustaría que añadiera alguna otra actividad o modificáramos algún aspecto de la planeación\?[^?]*\?$/i,
+    /¿Quieres que añada algo más a esta planeación\?[^?]*\?$/i,
+    /¿Te gustaría modificar algo de esta planeación\?[^?]*\?$/i,
+    /Recuerda que esta es una sugerencia, puedes adaptarla a las necesidades específicas de tus alumnos\.\s*¿Te gustaría que añadiera alguna otra actividad o modificáramos algún aspecto de la planeación\?\s*O si estás satisfecho con la planeación, ¿quieres guardarla para poder acceder a ella después desde 'Mis Planeaciones'\??[\s\S]*$/i,
+    /Recuerda que esta es una sugerencia[^?]*\?$/i,
+    /Aquí tienes un borrador de tu planeación\.[\s\S]*¿quieres guardarla para poder acceder a ella después desde 'Mis Planeaciones'\?[\s\S]*$/i,
+    /Aquí tienes un borrador de tu planeación\.[\s\S]*$/i,
+  ]
+
+  endPatterns.forEach((pattern) => {
+    cleanedContent = cleanedContent.replace(pattern, "")
+  })
+
+  cleanedContent = cleanedContent.trim()
   const lines = cleanedContent.split("\n")
 
   // Buscar patrones comunes en las respuestas de la IA
@@ -253,17 +288,17 @@ export function extractPlaneacionInfo(content: string): {
 
     // Extraer materia
     if (lowerLine.includes("materia:") || lowerLine.includes("asignatura:")) {
-      materia = line.split(":")[1]?.trim() || ""
+      materia = line.split(":")[1]?.trim().replace(/\*\*/g, "").trim() || ""
     }
 
     // Extraer grado
     if (lowerLine.includes("grado:") || lowerLine.includes("nivel:")) {
-      grado = line.split(":")[1]?.trim() || ""
+      grado = line.split(":")[1]?.trim().replace(/\*\*/g, "").trim() || ""
     }
 
     // Extraer duración
     if (lowerLine.includes("duración:") || lowerLine.includes("tiempo:")) {
-      duracion = line.split(":")[1]?.trim() || ""
+      duracion = line.split(":")[1]?.trim().replace(/\*\*/g, "").trim() || ""
     }
 
     // Extraer objetivo (Propósito general de la clase)
@@ -301,7 +336,7 @@ export function extractPlaneacionInfo(content: string): {
         }
       }
       // Unir las líneas y limpiar espacios extra
-      objetivo = objContent.join(" ").trim()
+      objetivo = objContent.join(" ").trim().replace(/\*\*/g, "").trim()
     }
 
     // Generar título basado en materia y tema
@@ -325,6 +360,75 @@ export function extractPlaneacionInfo(content: string): {
 // Función para obtener el contenido limpio para guardar
 export function getCleanContentForSaving(content: string): string {
   return cleanPlaneacionContent(content)
+}
+
+// Función para migrar planeaciones existentes de markdown a HTML
+export async function migrateMarkdownPlaneaciones(): Promise<{ migrated: number; errors: number }> {
+  let migrated = 0
+  let errors = 0
+  let page = 1
+  const pageSize = 50
+  
+  try {
+    while (true) {
+      // Obtener planeaciones en lotes
+      const { data, error } = await supabase
+        .from("planeaciones")
+        .select("id, contenido")
+        .is("deleted_at", null)
+        .range((page - 1) * pageSize, page * pageSize - 1)
+      
+      if (error) {
+        console.error("Error fetching planeaciones for migration:", error)
+        break
+      }
+      
+      if (!data || data.length === 0) {
+        break // No hay más planeaciones
+      }
+      
+      // Procesar cada planeación
+      for (const planeacion of data) {
+        try {
+          // Verificar si el contenido parece ser markdown (no tiene tags HTML)
+          const hasHtmlTags = planeacion.contenido.includes('<') && planeacion.contenido.includes('>')
+          
+          if (!hasHtmlTags && planeacion.contenido.trim()) {
+            // Convertir markdown a HTML
+            const htmlContent = convertMarkdownToHtml(planeacion.contenido)
+            
+            // Actualizar solo si el contenido cambió
+            if (htmlContent !== planeacion.contenido) {
+              const { error: updateError } = await supabase
+                .from("planeaciones")
+                .update({ 
+                  contenido: htmlContent,
+                  updated_at: new Date().toISOString()
+                })
+                .eq("id", planeacion.id)
+              
+              if (updateError) {
+                console.error(`Error updating planeacion ${planeacion.id}:`, updateError)
+                errors++
+              } else {
+                migrated++
+              }
+            }
+          }
+        } catch (error) {
+          console.error(`Error processing planeacion ${planeacion.id}:`, error)
+          errors++
+        }
+      }
+      
+      page++
+    }
+  } catch (error) {
+    console.error("Error in migration process:", error)
+    errors++
+  }
+  
+  return { migrated, errors }
 }
 
 // Función para generar PDF mejorada

@@ -2,7 +2,7 @@
 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
-import { Textarea } from "@/components/ui/textarea"
+import { RichTextEditor, convertLegacyToHtml } from "@/components/ui/rich-text-editor"
 import { ArrowLeft, Save, Loader2 } from "lucide-react"
 import { usePlaneaciones } from "@/hooks/use-planeaciones"
 import { useState, useEffect } from "react"
@@ -30,7 +30,8 @@ export function EditPlaneacion({ planeacionId, onBack }: EditPlaneacionProps) {
     const data = await getPlaneacion(planeacionId)
     if (data) {
       setPlaneacion(data)
-      setContenido(data.contenido)
+      // Convertir contenido legacy a HTML si es necesario
+      setContenido(convertLegacyToHtml(data.contenido))
     }
     setLoading(false)
   }
@@ -158,15 +159,15 @@ export function EditPlaneacion({ planeacionId, onBack }: EditPlaneacionProps) {
           <CardDescription>Edita el contenido de tu planeación didáctica</CardDescription>
         </CardHeader>
         <CardContent>
-          <Textarea
-            value={contenido}
-            onChange={(e) => setContenido(e.target.value)}
+          <RichTextEditor
+            content={contenido}
+            onChange={setContenido}
             placeholder="Escribe el contenido de tu planeación aquí..."
-            className="min-h-[500px] text-sm leading-relaxed"
+            className="min-h-[500px]"
             disabled={saving}
           />
           <p className="text-xs text-gray-500 mt-2">
-            Puedes usar saltos de línea y formato de texto para organizar tu planeación
+            Usa la barra de herramientas para dar formato a tu planeación. Puedes usar negritas, cursivas, listas, encabezados y más.
           </p>
         </CardContent>
       </Card>

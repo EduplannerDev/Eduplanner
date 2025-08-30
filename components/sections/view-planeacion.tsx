@@ -114,17 +114,17 @@ export function ViewPlaneacion({ planeacionId, onBack, onEdit }: ViewPlaneacionP
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
             <div>
               <label className="text-sm font-medium text-gray-600">Materia</label>
-              <p className="text-lg">{cleanMarkdown(planeacion.materia) || "No especificada"}</p>
+              <p className="text-lg">{planeacion.materia ? cleanMarkdown(planeacion.materia) : "No especificada"}</p>
             </div>
             <div>
               <label className="text-sm font-medium text-gray-600">Grado</label>
-              <p className="text-lg">{cleanMarkdown(planeacion.grado) || "No especificado"}</p>
+              <p className="text-lg">{planeacion.grado ? cleanMarkdown(planeacion.grado) : "No especificado"}</p>
             </div>
             <div>
               <label className="text-sm font-medium text-gray-600">Duración</label>
               <p className="text-lg flex items-center gap-1">
                 <Clock className="h-4 w-4" />
-                {cleanMarkdown(planeacion.duracion) || "No especificada"}
+                {planeacion.duracion ? cleanMarkdown(planeacion.duracion) : "No especificada"}
               </p>
             </div>
             <div>
@@ -149,7 +149,7 @@ export function ViewPlaneacion({ planeacionId, onBack, onEdit }: ViewPlaneacionP
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <p className="text-gray-900 dark:text-gray-100 leading-relaxed">{cleanMarkdown(planeacion.objetivo)}</p>
+            <p className="text-gray-900 dark:text-gray-100 leading-relaxed">{planeacion.objetivo ? cleanMarkdown(planeacion.objetivo) : ""}</p>
           </CardContent>
         </Card>
       )}
@@ -162,9 +162,10 @@ export function ViewPlaneacion({ planeacionId, onBack, onEdit }: ViewPlaneacionP
         </CardHeader>
         <CardContent>
           <div className="bg-gray-50 dark:bg-gray-800 p-6 rounded-lg border dark:border-gray-700">
-            <div className="whitespace-pre-wrap text-gray-900 dark:text-gray-100 leading-relaxed font-mono text-sm select-none">
-              {cleanMarkdown(planeacion.contenido)}
-            </div>
+            <div 
+              className="prose prose-sm max-w-none dark:prose-invert text-gray-900 dark:text-gray-100 leading-relaxed"
+              dangerouslySetInnerHTML={{ __html: planeacion.contenido || "" }}
+            />
           </div>
         </CardContent>
       </Card>
