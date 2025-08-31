@@ -96,7 +96,7 @@ export default function Dashboard() {
       case "perfil":
         return <Perfil />
       case "chat-ia":
-        return <ChatIA onBack={() => setActiveSection("nueva-planeacion")} />
+        return <ChatIA onBack={() => setActiveSection("nueva-planeacion")} onSaveSuccess={() => setActiveSection("mis-planeaciones")} />
       case "examenes":
         return <Examenes />
       case "generar-examenes":

@@ -7,21 +7,24 @@ import { Input } from "@/components/ui/input"
 import { ScrollArea } from "@/components/ui/scroll-area"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Textarea } from "@/components/ui/textarea"
-import { ArrowLeft, Send, Bot, User, Loader2, Sparkles, AlertCircle, Save, CheckCircle, ThumbsUp, ThumbsDown } from "lucide-react"
+import { ArrowLeft, Send, Bot, User, Loader2, Sparkles, AlertCircle, Save, CheckCircle, ThumbsUp, ThumbsDown, Crown, AlertTriangle } from "lucide-react"
 import { useChat } from "ai/react"
 import { useEffect, useRef, useState } from "react"
 import { useAuth } from "@/hooks/use-auth"
 import { useUserData } from "@/hooks/use-user-data"
 import { usePlaneaciones } from "@/hooks/use-planeaciones"
+import { useProfile } from "@/hooks/use-profile"
+import { isUserPro } from "@/lib/subscription-utils"
 import { extractPlaneacionInfo, getCleanContentForSaving } from "@/lib/planeaciones"
 import { WelcomeMessage } from "@/components/ui/welcome-message"
 import Swal from 'sweetalert2'
 
 interface ChatIAProps {
   onBack: () => void
+  onSaveSuccess: () => void
 }
 
-export function ChatIA({ onBack }: ChatIAProps) {
+export function ChatIA({ onBack, onSaveSuccess }: ChatIAProps) {
   const scrollAreaRef = useRef<HTMLDivElement>(null)
   const messagesEndRef = useRef<HTMLDivElement>(null)
   const [lastPlaneacionContent, setLastPlaneacionContent] = useState<string>("") 
@@ -37,6 +40,7 @@ export function ChatIA({ onBack }: ChatIAProps) {
 
   const { user } = useAuth()
   const { userData } = useUserData(user?.id)
+  const { profile } = useProfile()
 
   const getInitials = (email: string) => {
     return email.charAt(0).toUpperCase()
@@ -47,9 +51,13 @@ export function ChatIA({ onBack }: ChatIAProps) {
     error: planeacionError,
     canCreateMore,
     getRemainingPlaneaciones,
+    monthlyCount,
   } = usePlaneaciones()
+  
+  const isPro = profile ? isUserPro(profile) : false
+  const hasReachedLimit = !isPro && monthlyCount >= 5
 
-  const { messages, input, handleInputChange, handleSubmit, isLoading, error } = useChat({
+  const { messages, input, handleInputChange, handleSubmit: originalHandleSubmit, isLoading, error } = useChat({
     api: "/api/chat",
     onError: (error) => {
       console.error("Error en el chat:", error)
@@ -91,6 +99,32 @@ Puedes contarme:
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" })
   }, [messages])
+
+  // Función personalizada para manejar el envío con validación de límites
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault()
+    
+    // Verificar límite antes de enviar
+    if (hasReachedLimit) {
+      Swal.fire({
+        icon: 'warning',
+        title: 'Límite mensual alcanzado',
+        html: `
+          <p>Has creado <strong>${monthlyCount}/5</strong> planeaciones este mes con tu plan gratuito.</p>
+          <p class="mt-2">Actualiza a <strong>PRO</strong> para crear planeaciones ilimitadas.</p>
+        `,
+        confirmButtonText: 'Entendido',
+        showCancelButton: true,
+        cancelButtonText: 'Actualizar a PRO',
+        confirmButtonColor: '#f59e0b',
+        cancelButtonColor: '#8b5cf6'
+      })
+      return
+    }
+    
+    // Si no hay límite, proceder con el envío normal
+    originalHandleSubmit(e)
+  }
 
   const handleQuickSuggestion = (suggestion: string) => {
     const event = {
@@ -193,6 +227,10 @@ Puedes contarme:
     if (newPlaneacion) {
       setSavedPlaneacionId(newPlaneacion.id)
       setShowSaveButton(false)
+      // Navegar a mis planeaciones después de un breve delay para mostrar el mensaje de éxito
+      setTimeout(() => {
+        onSaveSuccess()
+      }, 2000)
     }
   }
 
@@ -247,6 +285,35 @@ Puedes contarme:
 
       {/* Welcome Message */}
       <WelcomeMessage />
+
+      {/* Limit Warning */}
+      {hasReachedLimit && (
+        <Card className="border-orange-200 bg-orange-50 dark:bg-orange-950/20">
+          <CardContent className="pt-6">
+            <div className="flex items-start gap-3">
+              <AlertTriangle className="w-5 h-5 text-orange-600 mt-0.5" />
+              <div className="space-y-2">
+                <h3 className="font-semibold text-orange-800 dark:text-orange-200">
+                  Límite mensual de planeaciones alcanzado
+                </h3>
+                <p className="text-sm text-orange-700 dark:text-orange-300">
+                  Has creado {monthlyCount} de 5 planeaciones permitidas este mes con tu plan gratuito.
+                  No puedes generar nuevas planeaciones hasta el próximo mes.
+                </p>
+                <div className="flex items-center gap-2 pt-2">
+                  <Button size="sm" className="bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700">
+                    <Crown className="w-4 h-4 mr-2" />
+                    Actualizar a PRO
+                  </Button>
+                  <span className="text-xs text-orange-600 dark:text-orange-400">
+                    Obtén planeaciones ilimitadas
+                  </span>
+                </div>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      )}
 
       {/* Error Display */}
       {(error || planeacionError) && (
@@ -515,11 +582,11 @@ Puedes contarme:
                 <Input
                   value={input}
                   onChange={handleInputChange}
-                  placeholder="Escribe tu mensaje aquí..."
-                  disabled={isLoading}
+                  placeholder={hasReachedLimit ? "Límite de planeaciones alcanzado" : "Escribe tu mensaje aquí..."}
+                  disabled={isLoading || hasReachedLimit}
                   className="flex-1"
                 />
-                <Button type="submit" disabled={isLoading || !input.trim()}>
+                <Button type="submit" disabled={isLoading || !input.trim() || hasReachedLimit}>
                   {isLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
                 </Button>
               </form>
@@ -555,7 +622,7 @@ Puedes contarme:
                       variant="outline"
                       className="w-full text-left h-auto p-3 justify-start whitespace-normal dark:bg-gray-700 dark:hover:bg-gray-600 dark:text-gray-100"
                       onClick={() => handleQuickSuggestion(suggestion)}
-                      disabled={isLoading}
+                      disabled={isLoading || hasReachedLimit}
                     >
                       <div className="text-sm leading-relaxed">{suggestion}</div>
                     </Button>
