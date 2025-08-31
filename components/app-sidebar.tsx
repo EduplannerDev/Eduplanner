@@ -20,8 +20,10 @@ import {
   SidebarMenuSubButton,
   SidebarMenuSubItem,
   SidebarRail,
+  useSidebar,
 } from "@/components/ui/sidebar"
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible"
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
 import { useAuth } from "@/hooks/use-auth"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { useUserData } from "@/hooks/use-user-data"
@@ -108,6 +110,7 @@ export function AppSidebar({ activeSection, onSectionChange, ...props }: AppSide
   const { user, signOut } = useAuth()
   const { userData } = useUserData(user?.id)
   const { isAdmin, isDirector } = useRoles()
+  const { state } = useSidebar()
   
   // Estado para manejar qué secciones están expandidas
   const [expandedSections, setExpandedSections] = useState<Record<string, boolean>>({
@@ -135,17 +138,23 @@ export function AppSidebar({ activeSection, onSectionChange, ...props }: AppSide
   const displayName = user?.user_metadata?.full_name || userData?.full_name || "Profesor"
 
   return (
-    <Sidebar {...props}>
-      <SidebarHeader className="border-b border-sidebar-border p-4">
+    <Sidebar collapsible="icon" {...props}>
+      <SidebarHeader className={`border-b border-sidebar-border ${state === "expanded" ? "p-4" : "p-2"}`}>
         {/* --- Logo y Texto Alineados Horizontalmente --- */}
-        <div className="flex flex-row items-center justify-center gap-3"> {/* Cambiado a flex-row y ajustado gap */}
-          {/* Asegúrate de que la ruta sea correcta y la imagen exista en tu carpeta public */}
-          <img src="/images/Logo.png" alt="Logo EduPlanner" className="h-10 w-auto" />
-          {/* Puedes ajustar la clase h-10 para el tamaño deseado */}
-          <div className="text-left"> {/* Cambiado a text-left para alineación con el logo */}
-            <span className="block text-sm font-semibold">EduPlanner</span>
-            <span className="block text-xs text-muted-foreground">Planeaciones con IA</span>
-          </div>
+        <div className="flex flex-row items-center justify-center gap-3">
+          {/* Logo siempre visible */}
+          <img 
+            src="/images/Logo.png" 
+            alt="Logo EduPlanner" 
+            className={`w-auto ${state === "expanded" ? "h-10" : "h-8"}`} 
+          />
+          {/* Texto solo visible cuando está expandido */}
+          {state === "expanded" && (
+            <div className="text-left">
+              <span className="block text-sm font-semibold">EduPlanner</span>
+              <span className="block text-xs text-muted-foreground">Planeaciones con IA</span>
+            </div>
+          )}
         </div>
       </SidebarHeader>
 
@@ -172,44 +181,71 @@ export function AppSidebar({ activeSection, onSectionChange, ...props }: AppSide
         
         {/* PLANIFICACIÓN Y EVALUACIÓN */}
         <SidebarGroup>
-          <SidebarGroupLabel>{menuStructure.planificacionEvaluacion.title}</SidebarGroupLabel>
+          {state === "expanded" && (
+            <SidebarGroupLabel>{menuStructure.planificacionEvaluacion.title}</SidebarGroupLabel>
+          )}
           <SidebarGroupContent>
             <SidebarMenu>
               {menuStructure.planificacionEvaluacion.sections.map((section) => (
                 <SidebarMenuItem key={section.title}>
                   {section.items ? (
-                    <Collapsible
-                      open={expandedSections[section.title.includes('Planeaciones') ? 'planeaciones' : 'examenes']}
-                      onOpenChange={() => toggleSection(section.title.includes('Planeaciones') ? 'planeaciones' : 'examenes')}
-                    >
-                      <CollapsibleTrigger asChild>
-                        <SidebarMenuButton className="w-full">
-                          <section.icon className="h-4 w-4" />
-                          <span>{section.title}</span>
-                          {expandedSections[section.title.includes('Planeaciones') ? 'planeaciones' : 'examenes'] ? (
-                            <ChevronDown className="h-4 w-4 ml-auto" />
-                          ) : (
-                            <ChevronRight className="h-4 w-4 ml-auto" />
-                          )}
-                        </SidebarMenuButton>
-                      </CollapsibleTrigger>
-                      <CollapsibleContent>
-                        <SidebarMenuSub>
-                          {section.items.map((item) => (
-                            <SidebarMenuSubItem key={item.title}>
-                              <SidebarMenuSubButton
-                                asChild
-                                isActive={activeSection === item.url.replace("#", "")}
+                    state === "expanded" ? (
+                      <Collapsible
+                        open={expandedSections[section.title.includes('Planeaciones') ? 'planeaciones' : 'examenes']}
+                        onOpenChange={() => toggleSection(section.title.includes('Planeaciones') ? 'planeaciones' : 'examenes')}
+                      >
+                        <CollapsibleTrigger asChild>
+                          <SidebarMenuButton className="w-full">
+                            <section.icon className="h-4 w-4" />
+                            <span>{section.title}</span>
+                            {expandedSections[section.title.includes('Planeaciones') ? 'planeaciones' : 'examenes'] ? (
+                              <ChevronDown className="h-4 w-4 ml-auto" />
+                            ) : (
+                              <ChevronRight className="h-4 w-4 ml-auto" />
+                            )}
+                          </SidebarMenuButton>
+                        </CollapsibleTrigger>
+                        <CollapsibleContent>
+                          <SidebarMenuSub>
+                            {section.items.map((item) => (
+                              <SidebarMenuSubItem key={item.title}>
+                                <SidebarMenuSubButton
+                                  asChild
+                                  isActive={activeSection === item.url.replace("#", "")}
+                                >
+                                  <button onClick={() => onSectionChange(item.url.replace("#", ""))} className="w-full">
+                                    <span>{item.title}</span>
+                                  </button>
+                                </SidebarMenuSubButton>
+                              </SidebarMenuSubItem>
+                            ))}
+                          </SidebarMenuSub>
+                        </CollapsibleContent>
+                      </Collapsible>
+                    ) : (
+                      <Popover>
+                        <PopoverTrigger asChild>
+                          <SidebarMenuButton
+                            tooltip={section.title}
+                          >
+                            <section.icon className="h-4 w-4" />
+                          </SidebarMenuButton>
+                        </PopoverTrigger>
+                        <PopoverContent side="right" className="w-48 p-2">
+                          <div className="space-y-1">
+                            {section.items.map((item) => (
+                              <button
+                                key={item.title}
+                                onClick={() => onSectionChange(item.url.replace("#", ""))}
+                                className="w-full text-left px-2 py-1 text-sm hover:bg-accent hover:text-accent-foreground rounded-sm transition-colors"
                               >
-                                <button onClick={() => onSectionChange(item.url.replace("#", ""))} className="w-full">
-                                  <span>{item.title}</span>
-                                </button>
-                              </SidebarMenuSubButton>
-                            </SidebarMenuSubItem>
-                          ))}
-                        </SidebarMenuSub>
-                      </CollapsibleContent>
-                    </Collapsible>
+                                {item.title}
+                              </button>
+                            ))}
+                          </div>
+                        </PopoverContent>
+                      </Popover>
+                    )
                   ) : (
                      <SidebarMenuButton
                        asChild
@@ -230,7 +266,9 @@ export function AppSidebar({ activeSection, onSectionChange, ...props }: AppSide
         
         {/* GESTIÓN DEL AULA */}
         <SidebarGroup>
-          <SidebarGroupLabel>{menuStructure.gestionAula.title}</SidebarGroupLabel>
+          {state === "expanded" && (
+            <SidebarGroupLabel>{menuStructure.gestionAula.title}</SidebarGroupLabel>
+          )}
           <SidebarGroupContent>
             <SidebarMenu>
               {menuStructure.gestionAula.sections.map((section) => (
@@ -253,7 +291,9 @@ export function AppSidebar({ activeSection, onSectionChange, ...props }: AppSide
         
         {/* MI ESPACIO */}
         <SidebarGroup>
-          <SidebarGroupLabel>{menuStructure.miEspacio.title}</SidebarGroupLabel>
+          {state === "expanded" && (
+            <SidebarGroupLabel>{menuStructure.miEspacio.title}</SidebarGroupLabel>
+          )}
           <SidebarGroupContent>
             <SidebarMenu>
               {menuStructure.miEspacio.sections.map((section) => (
@@ -277,7 +317,9 @@ export function AppSidebar({ activeSection, onSectionChange, ...props }: AppSide
         {/* Módulo de Administración - Solo para admins */}
         {isAdmin && (
           <SidebarGroup>
-            <SidebarGroupLabel>Administración Global</SidebarGroupLabel>
+            {state === "expanded" && (
+              <SidebarGroupLabel>Administración Global</SidebarGroupLabel>
+            )}
             <SidebarGroupContent>
               <SidebarMenu>
                 <SidebarMenuItem>
@@ -300,7 +342,9 @@ export function AppSidebar({ activeSection, onSectionChange, ...props }: AppSide
         {/* Módulo de Administración de Plantel - Solo para directores */}
         {isDirector && (
           <SidebarGroup>
-            <SidebarGroupLabel>Administración de Plantel</SidebarGroupLabel>
+            {state === "expanded" && (
+              <SidebarGroupLabel>Administración de Plantel</SidebarGroupLabel>
+            )}
             <SidebarGroupContent>
               <SidebarMenu>
                 <SidebarMenuItem>
@@ -326,32 +370,41 @@ export function AppSidebar({ activeSection, onSectionChange, ...props }: AppSide
           <SidebarMenuItem>
             <SidebarMenuButton asChild>
               <button onClick={() => onSectionChange("perfil")} className="w-full">
-                <div className="flex items-center gap-2 px-2 py-2 w-full">
-                  <Avatar className="h-8 w-8">
-                    <AvatarImage src={userData?.avatar_url || user?.user_metadata?.avatar_url || "/placeholder.svg"} />
-                    <AvatarFallback className="text-xs">{user?.email ? getInitials(user.email) : "U"}</AvatarFallback>
-                  </Avatar>
-                  <div className="flex flex-col flex-1 min-w-0 text-left">
-                    <span className="text-sm font-medium truncate">{displayName}</span>
-                    <span className="text-xs text-muted-foreground truncate">{user?.email}</span>
+                {state === "collapsed" ? (
+                  <div className="flex items-center justify-center w-full">
+                    <Avatar className="h-8 w-8">
+                      <AvatarImage src={userData?.avatar_url || user?.user_metadata?.avatar_url || "/placeholder.svg"} />
+                      <AvatarFallback className="text-xs">{user?.email ? getInitials(user.email) : "U"}</AvatarFallback>
+                    </Avatar>
                   </div>
-                </div>
+                ) : (
+                  <div className="flex items-center gap-2 px-2 py-2 w-full">
+                    <Avatar className="h-8 w-8">
+                      <AvatarImage src={userData?.avatar_url || user?.user_metadata?.avatar_url || "/placeholder.svg"} />
+                      <AvatarFallback className="text-xs">{user?.email ? getInitials(user.email) : "U"}</AvatarFallback>
+                    </Avatar>
+                    <div className="flex flex-col flex-1 min-w-0 text-left">
+                      <span className="text-sm font-medium truncate">{displayName}</span>
+                      <span className="text-xs text-muted-foreground truncate">{user?.email}</span>
+                    </div>
+                  </div>
+                )}
               </button>
             </SidebarMenuButton>
           </SidebarMenuItem>
           <SidebarMenuItem>
-            <SidebarMenuButton asChild>
+            <SidebarMenuButton asChild tooltip={state === "collapsed" ? "Preguntas Frecuentes" : undefined}>
               <button onClick={() => onSectionChange("faq")} className="w-full">
                 <HelpCircle className="h-4 w-4" />
-                <span>Preguntas Frecuentes</span>
+                {state === "expanded" && <span>Preguntas Frecuentes</span>}
               </button>
             </SidebarMenuButton>
           </SidebarMenuItem>
           <SidebarMenuItem>
-            <SidebarMenuButton asChild>
+            <SidebarMenuButton asChild tooltip={state === "collapsed" ? "Cerrar Sesión" : undefined}>
               <button onClick={handleSignOut} className="w-full text-red-600 hover:text-red-700">
                 <LogOut className="h-4 w-4" />
-                <span>Cerrar Sesión</span>
+                {state === "expanded" && <span>Cerrar Sesión</span>}
               </button>
             </SidebarMenuButton>
           </SidebarMenuItem>
