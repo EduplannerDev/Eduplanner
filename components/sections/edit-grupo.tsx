@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button"
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { Textarea } from "@/components/ui/textarea"
+
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 
 interface EditGrupoProps {
@@ -69,9 +69,7 @@ const EditGrupo = ({ grupoId, onBack, onSaveSuccess }: EditGrupoProps) => {
           nombre: grupoData.nombre,
           grado: grupoData.grado,
           nivel: grupoData.nivel,
-          ciclo_escolar: grupoData.ciclo_escolar,
-          descripcion: grupoData.descripcion || '',
-          numero_alumnos: grupoData.numero_alumnos
+          ciclo_escolar: grupoData.ciclo_escolar
         })
       } catch (err) {
         console.error('Error fetching grupo:', err)
@@ -105,8 +103,7 @@ const EditGrupo = ({ grupoId, onBack, onSaveSuccess }: EditGrupoProps) => {
     try {
       await updateGrupo(grupoId, {
         ...formData,
-        nombre: formData.nombre?.trim(),
-        descripcion: formData.descripcion?.trim() || undefined
+        nombre: formData.nombre?.trim()
       })
       onSaveSuccess()
     } catch (err) {
@@ -241,29 +238,10 @@ const EditGrupo = ({ grupoId, onBack, onSaveSuccess }: EditGrupoProps) => {
                 </Select>
               </div>
 
-              <div className="space-y-2">
-                <Label htmlFor="numero_alumnos">Número de Alumnos</Label>
-                <Input
-                  id="numero_alumnos"
-                  type="number"
-                  min="0"
-                  placeholder="0"
-                  value={formData.numero_alumnos || 0}
-                  onChange={(e) => handleInputChange('numero_alumnos', parseInt(e.target.value) || 0)}
-                />
-              </div>
+
             </div>
 
-            <div className="space-y-2">
-              <Label htmlFor="descripcion">Descripción (Opcional)</Label>
-              <Textarea
-                id="descripcion"
-                placeholder="Descripción adicional del grupo..."
-                value={formData.descripcion || ''}
-                onChange={(e) => handleInputChange('descripcion', e.target.value)}
-                rows={3}
-              />
-            </div>
+
 
             <div className="flex gap-4 pt-4">
               <Button type="button" variant="outline" onClick={onBack}>

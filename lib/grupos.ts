@@ -2,14 +2,13 @@ import { supabase } from './supabase'
 
 export interface Grupo {
   id: string
-  plantel_id: string
+  plantel_id: string | null
   user_id: string
   nombre: string
   grado: string
+  grupo: string
   nivel: string
   ciclo_escolar: string
-  descripcion?: string
-  numero_alumnos: number
   activo: boolean
   created_at: string
   updated_at: string
@@ -18,19 +17,17 @@ export interface Grupo {
 export interface CreateGrupoData {
   nombre: string
   grado: string
+  grupo: string
   nivel: string
   ciclo_escolar: string
-  descripcion?: string
-  numero_alumnos?: number
 }
 
 export interface UpdateGrupoData {
   nombre?: string
   grado?: string
+  grupo?: string
   nivel?: string
   ciclo_escolar?: string
-  descripcion?: string
-  numero_alumnos?: number
 }
 
 // Obtener todos los grupos del usuario
@@ -69,14 +66,13 @@ export async function getGrupoById(id: string): Promise<Grupo | null> {
 }
 
 // Crear un nuevo grupo
-export async function createGrupo(userId: string, plantelId: string, grupoData: CreateGrupoData): Promise<Grupo> {
+export async function createGrupo(userId: string, plantelId: string | null, grupoData: CreateGrupoData): Promise<Grupo> {
   const { data, error } = await supabase
     .from('grupos')
     .insert({
       user_id: userId,
       plantel_id: plantelId,
-      ...grupoData,
-      numero_alumnos: grupoData.numero_alumnos || 0
+      ...grupoData
     })
     .select()
     .single()
@@ -177,7 +173,7 @@ export async function deactivateGrupo(id: string): Promise<void> {
 export async function getGruposStats(userId: string, plantelId?: string) {
   let query = supabase
     .from('grupos')
-    .select('nivel, numero_alumnos')
+    .select('nivel')
     .eq('user_id', userId)
     .eq('activo', true)
 
@@ -194,7 +190,6 @@ export async function getGruposStats(userId: string, plantelId?: string) {
 
   const stats = {
     total: data.length,
-    totalAlumnos: data.reduce((sum, grupo) => sum + grupo.numero_alumnos, 0),
     porNivel: data.reduce((acc, grupo) => {
       acc[grupo.nivel] = (acc[grupo.nivel] || 0) + 1
       return acc
@@ -208,13 +203,7 @@ export async function getGruposStats(userId: string, plantelId?: string) {
 export async function getGruposStatsByPlantel(plantelId: string) {
   const { data, error } = await supabase
     .from('grupos')
-    .select(`
-      nivel,
-      numero_alumnos,
-      profiles!grupos_user_id_fkey(
-        full_name
-      )
-    `)
+    .select('nivel')
     .eq('plantel_id', plantelId)
     .eq('activo', true)
 
@@ -225,14 +214,8 @@ export async function getGruposStatsByPlantel(plantelId: string) {
 
   const stats = {
     total: data.length,
-    totalAlumnos: data.reduce((sum, grupo) => sum + grupo.numero_alumnos, 0),
     porNivel: data.reduce((acc, grupo) => {
       acc[grupo.nivel] = (acc[grupo.nivel] || 0) + 1
-      return acc
-    }, {} as Record<string, number>),
-    porProfesor: data.reduce((acc, grupo) => {
-      const profesor = grupo.profiles?.full_name || 'Sin asignar'
-      acc[profesor] = (acc[profesor] || 0) + 1
       return acc
     }, {} as Record<string, number>)
   }

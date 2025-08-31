@@ -56,8 +56,7 @@ export function GestionarGrupos() {
     grado: '',
     nivel: '',
     ciclo_escolar: '',
-    descripcion: '',
-    numero_alumnos: 0
+    descripcion: ''
   })
 
   const canManageGroups = isAdmin || isDirector || isProfesor
@@ -193,8 +192,7 @@ export function GestionarGrupos() {
       grado: '',
       nivel: '',
       ciclo_escolar: '',
-      descripcion: '',
-      numero_alumnos: 0
+      descripcion: ''
     })
   }
 
@@ -206,8 +204,7 @@ export function GestionarGrupos() {
       grado: grupo.grado,
       nivel: grupo.nivel,
       ciclo_escolar: grupo.ciclo_escolar,
-      descripcion: grupo.descripcion || '',
-      numero_alumnos: grupo.numero_alumnos
+      descripcion: grupo.descripcion || ''
     })
     setIsDialogOpen(true)
   }
@@ -333,16 +330,7 @@ export function GestionarGrupos() {
                 />
               </div>
               
-              <div className="space-y-2">
-                <Label htmlFor="alumnos">Número de Alumnos</Label>
-                <Input
-                  id="alumnos"
-                  type="number"
-                  min="0"
-                  value={formData.numero_alumnos}
-                  onChange={(e) => setFormData({ ...formData, numero_alumnos: parseInt(e.target.value) || 0 })}
-                />
-              </div>
+
               
               <div className="space-y-2">
                 <Label htmlFor="descripcion">Descripción (Opcional)</Label>
@@ -393,7 +381,7 @@ export function GestionarGrupos() {
 
       {/* Estadísticas */}
       {canViewAllGroups && stats && (
-        <div className="grid gap-4 md:grid-cols-3">
+        <div className="grid gap-4 md:grid-cols-2">
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">Total de Grupos</CardTitle>
@@ -406,23 +394,12 @@ export function GestionarGrupos() {
           
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Total de Alumnos</CardTitle>
+              <CardTitle className="text-sm font-medium">Grupos Activos</CardTitle>
               <Users className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">{stats.totalAlumnos}</div>
-            </CardContent>
-          </Card>
-          
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Promedio por Grupo</CardTitle>
-              <BarChart3 className="h-4 w-4 text-muted-foreground" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">
-                {stats.total > 0 ? Math.round(stats.totalAlumnos / stats.total) : 0}
-              </div>
+              <div className="text-2xl font-bold">{stats.total}</div>
+              <p className="text-xs text-muted-foreground">En funcionamiento</p>
             </CardContent>
           </Card>
         </div>
@@ -466,7 +443,6 @@ export function GestionarGrupos() {
                   <TableHead>Nivel</TableHead>
                   <TableHead>Grado</TableHead>
                   <TableHead>Ciclo</TableHead>
-                  <TableHead>Alumnos</TableHead>
                   {canViewAllGroups && <TableHead>Profesor</TableHead>}
                   <TableHead>Acciones</TableHead>
                 </TableRow>
@@ -480,7 +456,6 @@ export function GestionarGrupos() {
                     </TableCell>
                     <TableCell>{grupo.grado}</TableCell>
                     <TableCell>{grupo.ciclo_escolar}</TableCell>
-                    <TableCell>{grupo.numero_alumnos}</TableCell>
                     {canViewAllGroups && (
                       <TableCell>
                         {grupo.profiles?.full_name || 'Sin asignar'}
