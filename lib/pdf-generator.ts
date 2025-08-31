@@ -1,4 +1,4 @@
-import html2pdf from 'html2pdf.js';
+// import html2pdf from 'html2pdf.js'; // Importación dinámica para evitar errores SSR
 
 // Función para limpiar contenido markdown
 function cleanMarkdown(text: string): string {
@@ -60,8 +60,8 @@ function convertMarkdownToHtml(markdown: string): string {
 function markdownToHtml(text: string): string {
   if (!text) return ""
   
-  // Procesar línea por línea sin dividir en párrafos primero
-  const lines = text.split('\n').map(line => line.trim()).filter(line => line)
+  // Procesar línea por línea preservando saltos de línea
+  const lines = text.split('\n')
   const processedLines: string[] = []
   
   let inList = false
@@ -77,57 +77,71 @@ function markdownToHtml(text: string): string {
           .replace(/__(.*?)__/g, '<strong>$1</strong>')
           .replace(/\*(.*?)\*/g, '<em>$1</em>')
           .replace(/_(.*?)_/g, '<em>$1</em>')
-        processedLines.push('<p>' + formattedText + '</p>')
+        processedLines.push('<p style="word-break: break-word; overflow-wrap: break-word; white-space: normal; margin-bottom: 8px; line-height: 1.4; text-align: justify;">' + formattedText + '</p>')
       }
       currentParagraph = []
     }
   }
   
   for (const line of lines) {
+    const trimmedLine = line.trim()
+    
+    // Líneas vacías terminan párrafos y crean espacios
+    if (!trimmedLine) {
+      flushParagraph()
+      if (inList) {
+        processedLines.push('</ul>')
+        inList = false
+      }
+      continue
+    }
+    
     // Títulos
-    if (line.match(/^### /)) {
+    if (trimmedLine.match(/^### /)) {
       flushParagraph()
       if (inList) {
         processedLines.push('</ul>')
         inList = false
       }
-      const title = line.replace(/^### (.*)/, '<h3>$1</h3>')
+      const title = trimmedLine.replace(/^### (.*)/, '<h3>$1</h3>')
       processedLines.push(title)
-    } else if (line.match(/^## /)) {
+    } else if (trimmedLine.match(/^## /)) {
       flushParagraph()
       if (inList) {
         processedLines.push('</ul>')
         inList = false
       }
-      const title = line.replace(/^## (.*)/, '<h2>$1</h2>')
+      const title = trimmedLine.replace(/^## (.*)/, '<h2>$1</h2>')
       processedLines.push(title)
-    } else if (line.match(/^# /)) {
+    } else if (trimmedLine.match(/^# /)) {
       flushParagraph()
       if (inList) {
         processedLines.push('</ul>')
         inList = false
       }
-      const title = line.replace(/^# (.*)/, '<h1>$1</h1>')
+      const title = trimmedLine.replace(/^# (.*)/, '<h1>$1</h1>')
       processedLines.push(title)
     }
     // Listas
-    else if (line.match(/^[\*\-] /) || line.match(/^\d+\. /)) {
+    else if (trimmedLine.match(/^[\*\-] /) || trimmedLine.match(/^\d+\. /)) {
       flushParagraph()
       if (!inList) {
         processedLines.push('<ul>')
         inList = true
       }
-      let listItem = line.replace(/^[\*\-] (.*)/, '<li>$1</li>')
+      let listItem = trimmedLine.replace(/^[\*\-] (.*)/, '<li>$1</li>')
       listItem = listItem.replace(/^\d+\. (.*)/, '<li>$1</li>')
       processedLines.push(listItem)
     }
-    // Párrafos normales - agrupar líneas consecutivas
+    // Párrafos normales - agrupar líneas consecutivas con <br>
     else {
       if (inList) {
         processedLines.push('</ul>')
         inList = false
       }
-      currentParagraph.push(line)
+      if (trimmedLine) {
+        currentParagraph.push(trimmedLine)
+      }
     }
   }
   
@@ -208,37 +222,41 @@ function createPDFHtml(content: string, title: string, isAnswerSheet: boolean = 
         margin-top: 10px;
         margin-bottom: 30px;
         overflow: visible;
-        page-break-inside: auto;
-        orphans: 2;
-        widows: 2;
+        word-wrap: break-word;
+        overflow-wrap: break-word;
+        white-space: normal;
       }
       h1, h2, h3 {
         color: #000000;
         font-weight: bold;
-        margin-top: 8px;
-        margin-bottom: 4px;
+        margin-top: 16px;
+        margin-bottom: 8px;
         display: block;
         clear: both;
       }
-      h1 { font-size: 20px; }
-      h2 { font-size: 18px; }
-      h3 { font-size: 16px; }
+      h1 { font-size: 20px; margin-top: 20px; }
+      h2 { font-size: 18px; margin-top: 18px; }
+      h3 { font-size: 16px; margin-top: 16px; }
       p {
-        margin-bottom: 4px;
-        margin-top: 0px;
+        margin-bottom: 8px;
+        margin-top: 4px;
         text-align: justify;
-        line-height: 1.3;
+        line-height: 1.4;
         display: block;
         clear: both;
+        word-wrap: break-word;
+        overflow-wrap: break-word;
+        white-space: normal;
+        max-width: 100%;
       }
       ul, ol {
-        margin-bottom: 4px;
-        margin-top: 2px;
+        margin-bottom: 8px;
+        margin-top: 4px;
         padding-left: 20px;
       }
       li {
-        margin-bottom: 1px;
-        line-height: 1.2;
+        margin-bottom: 3px;
+        line-height: 1.3;
       }
       strong {
         font-weight: bold;
@@ -280,31 +298,36 @@ function createPDFHtml(content: string, title: string, isAnswerSheet: boolean = 
 
 // Función principal para generar PDF desde HTML
 function generatePDFFromHTML(content: string, title: string, filename: string, isAnswerSheet: boolean = false): void {
+  // Verificar que estamos en el cliente (browser)
+  if (typeof window === 'undefined' || typeof document === 'undefined') {
+    console.error('generatePDFFromHTML solo puede ejecutarse en el cliente');
+    return;
+  }
+
   // Crear HTML estructurado
   const htmlContent = createPDFHtml(content, title, isAnswerSheet);
   
   // Configuración para html2pdf
   const options = {
-    margin: [15, 15, 15, 15], // top, right, bottom, left
+    margin: [10, 10, 10, 10],
     filename: filename,
     image: { type: 'jpeg', quality: 0.98 },
     html2canvas: { 
-      scale: 2,
+      scale: 1,
       useCORS: true,
-      letterRendering: true,
+      allowTaint: true,
+      backgroundColor: '#ffffff',
       height: null,
-      width: null,
-      scrollX: 0,
-      scrollY: 0
+      width: null
     },
     jsPDF: { 
       unit: 'mm', 
       format: 'a4', 
-      orientation: 'portrait',
-      putOnlyUsedFonts: true,
-      floatPrecision: 16
+      orientation: 'portrait'
     },
-    pagebreak: { mode: ['avoid-all', 'css', 'legacy'] },
+    pagebreak: { 
+      mode: []
+    },
     enableLinks: false
   };
 
@@ -316,20 +339,28 @@ function generatePDFFromHTML(content: string, title: string, filename: string, i
   element.style.overflow = 'visible';
   element.style.pageBreakInside = 'avoid';
   
-  // Generar PDF
-  html2pdf()
-    .set(options)
-    .from(element)
-    .save()
-    .then(() => {
-      console.log('PDF generado exitosamente:', filename);
-      // Limpiar elemento temporal
-      element.remove();
-    })
-    .catch((error: any) => {
-      console.error('Error generando PDF:', error);
-      element.remove();
-    });
+  // Importación dinámica de html2pdf para evitar errores SSR
+  import('html2pdf.js').then((html2pdfModule) => {
+    const html2pdf = html2pdfModule.default;
+    
+    // Generar PDF
+    html2pdf()
+      .set(options)
+      .from(element)
+      .save()
+      .then(() => {
+        console.log('PDF generado exitosamente:', filename);
+        // Limpiar elemento temporal
+        element.remove();
+      })
+      .catch((error: any) => {
+        console.error('Error generando PDF:', error);
+        element.remove();
+      });
+  }).catch((error) => {
+    console.error('Error importando html2pdf:', error);
+    element.remove();
+  });
 }
 
 export function generateExamPDF(examen: any): void {
@@ -367,10 +398,13 @@ export function generateExamPDF(examen: any): void {
   const examTitle = cleanMarkdown(examen.title || 'Examen');
   const examFilename = `${examTitle.replace(/[^a-zA-Z0-9\s]/g, '').replace(/\s+/g, '_')}_Examen.pdf`;
   
+  // Convertir markdown a HTML
+  const htmlContent = markdownToHtml(examContent);
+  
   // Agregar información de la materia al contenido si existe
-  let fullContent = examContent;
+  let fullContent = htmlContent;
   if (examen.subject) {
-    fullContent = `<p><strong>Materia:</strong> ${cleanMarkdown(examen.subject)}</p>${examContent}`;
+    fullContent = `<p><strong>Materia:</strong> ${cleanMarkdown(examen.subject)}</p>${htmlContent}`;
   }
   
   generatePDFFromHTML(fullContent, examTitle, examFilename, false);
@@ -382,10 +416,13 @@ export function generateAnswerSheetPDF(examen: any, answerSheet: string): void {
   const answerTitle = `${cleanMarkdown(examen.title || 'Examen')} - Hoja de Respuestas`;
   const answerFilename = `${cleanMarkdown(examen.title || 'Examen').replace(/[^a-zA-Z0-9\s]/g, '').replace(/\s+/g, '_')}_Respuestas.pdf`;
   
+  // Convertir markdown a HTML
+  const htmlAnswerSheet = markdownToHtml(answerSheet);
+  
   // Agregar información de la materia al contenido si existe
-  let fullContent = answerSheet;
+  let fullContent = htmlAnswerSheet;
   if (examen.subject) {
-    fullContent = `<p><strong>Materia:</strong> ${cleanMarkdown(examen.subject)}</p>${answerSheet}`;
+    fullContent = `<p><strong>Materia:</strong> ${cleanMarkdown(examen.subject)}</p>${htmlAnswerSheet}`;
   }
   
   generatePDFFromHTML(fullContent, answerTitle, answerFilename, true);

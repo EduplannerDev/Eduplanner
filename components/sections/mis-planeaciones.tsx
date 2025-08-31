@@ -27,7 +27,6 @@ import { ViewPlaneacion } from "./view-planeacion"
 import { EditPlaneacion } from "./edit-planeacion"
 // import { generatePDF } from "@/lib/pdf-generator" // Importación dinámica para evitar errores SSR
 import { generateDocx } from "@/lib/docx-generator"
-import { generatePptx } from "@/lib/pptx-generator"
 import { useProfile } from "@/hooks/use-profile"
 import { isUserPro } from "@/lib/subscription-utils"
 import { Pagination, PaginationContent, PaginationItem, PaginationPrevious, PaginationLink, PaginationNext } from "@/components/ui/pagination"
@@ -50,9 +49,6 @@ export function MisPlaneaciones({ onCreateNew }: MisPlaneacionesProps) {
   const [viewMode, setViewMode] = useState<"list" | "view" | "edit">("list")
   const [deleting, setDeleting] = useState<string | null>(null)
   const [error, setError] = useState<string | null>(null)
-  const [showPptxDialog, setShowPptxDialog] = useState(false)
-  const [pendingPptxPlaneacion, setPendingPptxPlaneacion] = useState<any>(null)
-  const [generatingPptx, setGeneratingPptx] = useState(false)
 
   console.log("Current Page:", currentPage, "Total Pages:", totalPages)
 
@@ -94,7 +90,7 @@ export function MisPlaneaciones({ onCreateNew }: MisPlaneacionesProps) {
     }
   }
 
-  const handleDownload = async (planeacion: any, format: "pdf" | "Word" | "PowerPoint") => {
+  const handleDownload = async (planeacion: any, format: "pdf" | "Word") => {
     if (format === "pdf") {
       try {
         const { generatePDF } = await import("@/lib/pdf-generator")
@@ -105,33 +101,10 @@ export function MisPlaneaciones({ onCreateNew }: MisPlaneacionesProps) {
       }
     } else if (format === "Word") {
       generateDocx(planeacion)
-    } else if (format === "PowerPoint") {
-      // Mostrar disclaimer para PowerPoint usando AlertDialog
-      setPendingPptxPlaneacion(planeacion)
-      setShowPptxDialog(true)
     }
   }
 
-  const handleConfirmPptx = async () => {
-    if (pendingPptxPlaneacion) {
-      setGeneratingPptx(true)
-      setShowPptxDialog(false)
-      try {
-        await generatePptx(pendingPptxPlaneacion)
-      } catch (error) {
-        console.error('Error generando presentación:', error)
-        setError('Error al generar la presentación PowerPoint')
-      } finally {
-        setGeneratingPptx(false)
-        setPendingPptxPlaneacion(null)
-      }
-    }
-  }
 
-  const handleCancelPptx = () => {
-    setShowPptxDialog(false)
-    setPendingPptxPlaneacion(null)
-  }
 
   const handleBack = () => {
     setSelectedPlaneacion(null)
@@ -248,20 +221,10 @@ export function MisPlaneaciones({ onCreateNew }: MisPlaneacionesProps) {
                             Descargar para Word
                           </DropdownMenuItem>
                         )}
-                        {profile && isUserPro(profile) && (
-                          <DropdownMenuItem onClick={() => handleDownload(planeacion, "PowerPoint")}>
-                            Generar Presentación con IA
-                          </DropdownMenuItem>
-                        )}
 
                         {(!profile || !isUserPro(profile)) && (
                           <DropdownMenuItem disabled className="text-gray-500 dark:text-gray-400">
                             Word (Solo Pro)
-                          </DropdownMenuItem>
-                        )}
-                        {(!profile || !isUserPro(profile)) && (
-                          <DropdownMenuItem disabled className="text-gray-500 dark:text-gray-400">
-                            Presentación HTML (Solo Pro)
                           </DropdownMenuItem>
                         )}
                       </DropdownMenuContent>
@@ -337,53 +300,7 @@ export function MisPlaneaciones({ onCreateNew }: MisPlaneacionesProps) {
         </Pagination>
       )}
 
-      {/* AlertDialog para confirmación de descarga PowerPoint */}
-      <AlertDialog open={showPptxDialog} onOpenChange={setShowPptxDialog}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>⚠️ Función Experimental</AlertDialogTitle>
-            <AlertDialogDescription>
-              La generación de presentaciones PowerPoint está en fase experimental. 
-              Algunas características pueden no funcionar como se espera.
-              <br /><br />
-              <strong>Importante:</strong> La presentación generada es solo una base o plantilla. 
-              Debes revisarla, editarla y personalizarla según tus necesidades específicas 
-              antes de utilizarla en clase.
-              <br /><br />
-              ¿Deseas continuar con la descarga?
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel onClick={handleCancelPptx}>
-              Cancelar
-            </AlertDialogCancel>
-            <AlertDialogAction onClick={handleConfirmPptx}>
-              Continuar
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
 
-      {/* Loader completo para generación de PowerPoint */}
-      {generatingPptx && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm">
-          <div className="bg-white rounded-lg p-8 shadow-xl max-w-md w-full mx-4">
-            <div className="flex flex-col items-center space-y-4">
-              <Loader2 className="h-12 w-12 animate-spin text-blue-600" />
-              <div className="text-center">
-                <h3 className="text-lg font-semibold text-gray-900 mb-2">
-                  Generando Presentación
-                </h3>
-                <p className="text-sm text-gray-600">
-                  Estamos creando tu presentación PowerPoint.
-                  <br />
-                  Este proceso puede tomar unos momentos...
-                </p>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
     </div>
   )
 }

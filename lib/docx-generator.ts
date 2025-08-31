@@ -1,5 +1,57 @@
 import { Document, Packer, Paragraph, TextRun, HeadingLevel, AlignmentType, UnderlineType } from "docx";
 
+// Función para convertir HTML a texto plano preservando formato
+function htmlToPlainText(html: string): string {
+  if (!html || typeof html !== 'string') return '';
+  
+  return html
+    // Convertir etiquetas de encabezados a markdown
+    .replace(/<h1[^>]*>(.*?)<\/h1>/gi, '# $1\n')
+    .replace(/<h2[^>]*>(.*?)<\/h2>/gi, '## $1\n')
+    .replace(/<h3[^>]*>(.*?)<\/h3>/gi, '### $1\n')
+    .replace(/<h4[^>]*>(.*?)<\/h4>/gi, '#### $1\n')
+    .replace(/<h5[^>]*>(.*?)<\/h5>/gi, '##### $1\n')
+    .replace(/<h6[^>]*>(.*?)<\/h6>/gi, '###### $1\n')
+    
+    // Convertir etiquetas de formato a markdown
+    .replace(/<strong[^>]*>(.*?)<\/strong>/gi, '**$1**')
+    .replace(/<b[^>]*>(.*?)<\/b>/gi, '**$1**')
+    .replace(/<em[^>]*>(.*?)<\/em>/gi, '*$1*')
+    .replace(/<i[^>]*>(.*?)<\/i>/gi, '*$1*')
+    .replace(/<u[^>]*>(.*?)<\/u>/gi, '__$1__')
+    
+    // Convertir listas manteniendo estructura
+    .replace(/<ul[^>]*>/gi, '')
+    .replace(/<\/ul>/gi, '\n')
+    .replace(/<ol[^>]*>/gi, '')
+    .replace(/<\/ol>/gi, '\n')
+    .replace(/<li[^>]*>(.*?)<\/li>/gi, '• $1\n')
+    
+    // Convertir párrafos y saltos de línea preservando espacios
+    .replace(/<p[^>]*>/gi, '')
+    .replace(/<\/p>/gi, '\n\n')
+    .replace(/<br[^>]*\/?>/gi, '\n')
+    .replace(/<div[^>]*>/gi, '')
+    .replace(/<\/div>/gi, '\n')
+    
+    // Remover todas las demás etiquetas HTML
+    .replace(/<[^>]*>/g, '')
+    
+    // Decodificar entidades HTML comunes
+    .replace(/&nbsp;/g, ' ')
+    .replace(/&amp;/g, '&')
+    .replace(/&lt;/g, '<')
+    .replace(/&gt;/g, '>')
+    .replace(/&quot;/g, '"')
+    .replace(/&#39;/g, "'")
+    
+    // Preservar espacios múltiples y tabulaciones
+    .replace(/\t/g, '    ') // Convertir tabs a 4 espacios
+    // NO eliminar espacios múltiples para preservar formato
+    .replace(/\n{3,}/g, '\n\n') // Limitar a máximo 2 saltos de línea consecutivos
+    .trim();
+}
+
 // Función para procesar texto Markdown y convertirlo a elementos de Word
 function processMarkdownText(text: string): TextRun[] {
   if (!text || typeof text !== 'string') return [new TextRun("")];
@@ -86,8 +138,11 @@ function processMarkdownText(text: string): TextRun[] {
 function processContent(content: string): Paragraph[] {
   if (!content || typeof content !== 'string') return [];
   
+  // Convertir HTML a texto plano/markdown primero
+  const plainTextContent = htmlToPlainText(content);
+  
   // Limpiar el contenido de caracteres problemáticos
-  const cleanContent = content.replace(/[\u0000-\u0008\u000B\u000C\u000E-\u001F\u007F-\u009F]/g, '');
+  const cleanContent = plainTextContent.replace(/[\u0000-\u0008\u000B\u000C\u000E-\u001F\u007F-\u009F]/g, '');
   
   const paragraphs: Paragraph[] = [];
   const lines = cleanContent.split('\n');
@@ -108,6 +163,10 @@ function processContent(content: string): Paragraph[] {
         continue;
       }
       
+      // Detectar indentación del texto original
+      const leadingSpaces = line.length - line.trimStart().length;
+      const indentLevel = Math.floor(leadingSpaces / 4); // Cada 4 espacios = 1 nivel de indentación
+      
       try {
         if (trimmedLine.startsWith('### ')) {
           // Subtítulo nivel 3
@@ -116,6 +175,9 @@ function processContent(content: string): Paragraph[] {
             paragraphs.push(new Paragraph({
               children: processMarkdownText(headingText),
               heading: HeadingLevel.HEADING_3,
+              indent: {
+                left: indentLevel * 360 // 360 twips = 0.25 pulgadas por nivel
+              },
               spacing: {
                 before: 240,
                 after: 120
@@ -129,6 +191,9 @@ function processContent(content: string): Paragraph[] {
             paragraphs.push(new Paragraph({
               children: processMarkdownText(headingText),
               heading: HeadingLevel.HEADING_2,
+              indent: {
+                left: indentLevel * 360
+              },
               spacing: {
                 before: 240,
                 after: 120
@@ -142,6 +207,9 @@ function processContent(content: string): Paragraph[] {
             paragraphs.push(new Paragraph({
               children: processMarkdownText(headingText),
               heading: HeadingLevel.HEADING_1,
+              indent: {
+                left: indentLevel * 360
+              },
               spacing: {
                 before: 240,
                 after: 120
@@ -158,7 +226,7 @@ function processContent(content: string): Paragraph[] {
                 ...processMarkdownText(listText)
               ],
               indent: {
-                left: 720 // Indentación de 0.5 pulgadas
+                left: 720 + (indentLevel * 360) // Indentación base + indentación adicional
               },
               spacing: {
                 after: 60
@@ -175,7 +243,7 @@ function processContent(content: string): Paragraph[] {
                 ...processMarkdownText(match[2].trim())
               ],
               indent: {
-                left: 720 // Indentación de 0.5 pulgadas
+                left: 720 + (indentLevel * 360) // Indentación base + indentación adicional
               },
               spacing: {
                 after: 60
@@ -183,9 +251,12 @@ function processContent(content: string): Paragraph[] {
             }));
           }
         } else {
-          // Párrafo normal
+          // Párrafo normal con indentación preservada
           paragraphs.push(new Paragraph({
             children: processMarkdownText(trimmedLine),
+            indent: {
+              left: indentLevel * 360 // Preservar indentación original
+            },
             spacing: {
               after: 120
             }
@@ -193,9 +264,12 @@ function processContent(content: string): Paragraph[] {
         }
       } catch (lineError) {
         console.warn(`Error procesando línea: "${trimmedLine}"`, lineError);
-        // Fallback: agregar como párrafo simple
+        // Fallback: agregar como párrafo simple con indentación preservada
         paragraphs.push(new Paragraph({
           children: [new TextRun(trimmedLine)],
+          indent: {
+            left: indentLevel * 360 // Preservar indentación original
+          },
           spacing: {
             after: 120
           }
@@ -301,7 +375,8 @@ export async function generateDocx(planeacion: any): Promise<void> {
             }
           }));
           
-          const objetivoParagraphs = processContent(String(planeacion.objetivo));
+          const objetivoPlainText = htmlToPlainText(String(planeacion.objetivo));
+          const objetivoParagraphs = processContent(objetivoPlainText);
           documentChildren.push(...objetivoParagraphs);
           
           addSpacing();

@@ -1,17 +1,26 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useAuth } from '@/hooks/use-auth';
 import { getExamenesByOwner, getSharedExamenes, type Examen } from '@/lib/examenes';
-import { generateExamPDF } from '@/lib/pdf-generator';
+// import { generateExamPDF } from '@/lib/pdf-generator'; // Importación dinámica para evitar errores SSR
 import { Loader2, FileText as FileTextIcon, Calendar, Plus, Edit, Download } from 'lucide-react';
 import { Button } from "@/components/ui/button";
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { useProfile } from "@/hooks/use-profile";
+import { isUserPro } from "@/lib/subscription-utils";
 import GenerarExamen from './generar-examen';
 import ViewExamen from './view-examen';
 import EditExamen from './edit-examen';
 
 const Examenes = () => {
   const { user } = useAuth();
+  const { profile } = useProfile();
   const [examenes, setExamenes] = useState<Examen[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -75,7 +84,10 @@ const Examenes = () => {
   const handleDownloadPDF = (examen: Examen, event: React.MouseEvent) => {
     event.stopPropagation();
     try {
-      generateExamPDF(examen);
+      // Importación dinámica para evitar errores SSR
+      import('@/lib/pdf-generator').then(({ generateExamPDF }) => {
+        generateExamPDF(examen);
+      });
     } catch (error) {
       console.error('Error generando PDF:', error);
       alert('Error al generar el PDF. Por favor, intenta de nuevo.');
@@ -230,20 +242,33 @@ const Examenes = () => {
                     </span>
                   </div>
                   <div className="flex gap-2" onClick={(e) => e.stopPropagation()}>
-                    <Button size="sm" variant="outline" onClick={(e) => handleDownloadPDF(examen, e)}>
-                      <Download className="h-4 w-4" />
-                      Descargar Examen
-                    </Button>
-                    {hasAnswerSheet(examen) && (
-                      <Button size="sm" variant="outline" onClick={(e) => handleDownloadAnswerSheet(examen, e)}>
-                        <Download className="h-4 w-4" />
-                        Descargar Respuestas
-                      </Button>
-                    )}
                     <Button size="sm" variant="outline" onClick={() => handleEditExamen(examen.id)}>
                       <Edit className="h-4 w-4" />
                       Editar
                     </Button>
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <Button size="sm" variant="outline">
+                          <Download className="h-4 w-4" />
+                          Descargar
+                        </Button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent>
+                        <DropdownMenuItem onClick={(e) => handleDownloadPDF(examen, e)}>
+                          Descargar como PDF
+                        </DropdownMenuItem>
+                        {hasAnswerSheet(examen) && profile && isUserPro(profile) && (
+                          <DropdownMenuItem onClick={(e) => handleDownloadAnswerSheet(examen, e)}>
+                            Descargar Hoja de Respuestas
+                          </DropdownMenuItem>
+                        )}
+                        {hasAnswerSheet(examen) && (!profile || !isUserPro(profile)) && (
+                          <DropdownMenuItem disabled className="text-gray-500 dark:text-gray-400">
+                            Hoja de Respuestas (Solo Pro)
+                          </DropdownMenuItem>
+                        )}
+                      </DropdownMenuContent>
+                    </DropdownMenu>
                   </div>
                 </div>
               </CardContent>
