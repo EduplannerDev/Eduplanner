@@ -11,6 +11,7 @@ import { Label } from "@/components/ui/label"
 import { Separator } from "@/components/ui/separator"
 import { supabase } from "@/lib/supabase"
 import { Mail, Eye, EyeOff, Loader2, AlertTriangle, Home } from "lucide-react"
+import ForgotPasswordForm from "@/components/forgot-password-form"
 
 export default function LoginForm() {
   const [email, setEmail] = useState("")
@@ -18,6 +19,7 @@ export default function LoginForm() {
   const [showPassword, setShowPassword] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
   const [isSignUp, setIsSignUp] = useState(false)
+  const [showForgotPassword, setShowForgotPassword] = useState(false)
   const [message, setMessage] = useState<string | null>(null)
   const searchParams = useSearchParams()
 
@@ -324,6 +326,15 @@ export default function LoginForm() {
     }
   }
 
+  // Mostrar formulario de recuperación de contraseña si está activo
+  if (showForgotPassword) {
+    return (
+      <ForgotPasswordForm 
+        onBack={() => setShowForgotPassword(false)}
+      />
+    )
+  }
+
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100 p-4">
       <Card className="w-full max-w-md bg-muted/50">
@@ -399,6 +410,21 @@ export default function LoginForm() {
                 </Button>
               </div>
             </div>
+
+            {/* Botón de recuperación de contraseña - solo en modo login */}
+            {!isSignUp && (
+              <div className="text-right">
+                <Button
+                  type="button"
+                  variant="link"
+                  className="text-sm p-0 h-auto font-normal text-muted-foreground hover:text-primary"
+                  onClick={() => setShowForgotPassword(true)}
+                  disabled={isLoading}
+                >
+                  ¿Olvidaste tu contraseña?
+                </Button>
+              </div>
+            )}
 
             <Button type="submit" className="w-full" disabled={isLoading}>
               {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
