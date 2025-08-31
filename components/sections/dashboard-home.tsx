@@ -72,7 +72,7 @@ export function DashboardHome({ onSectionChange }: DashboardHomeProps) {
       
       // Cargar estadísticas
       const [planeacionesRes, examenesRes, gruposRes, mensajesRes, monthlyCount] = await Promise.all([
-        supabase.from('planeaciones').select('id').eq('user_id', user?.id),
+        supabase.from('planeacion_creations').select('id').eq('user_id', user?.id),
         supabase.from('examenes').select('id').eq('owner_id', user?.id),
         supabase.from('grupos').select('id').eq('user_id', user?.id),
         supabase.from('messages').select('id').eq('user_id', user?.id),

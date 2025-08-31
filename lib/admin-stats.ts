@@ -86,9 +86,9 @@ export async function getPlatformStats(): Promise<PlatformStats> {
         .select('numero_alumnos')
         .eq('activo', true),
       
-      // Total de planeaciones
+      // Total de planeaciones creadas
       supabase
-        .from('planeaciones')
+        .from('planeacion_creations')
         .select('*', { count: 'exact', head: true }),
       
       // Total de exámenes
@@ -179,7 +179,7 @@ export async function getRecentActivity(): Promise<RecentActivity> {
         .gte('created_at', fechaLimiteISO),
       
       supabase
-        .from('planeaciones')
+        .from('planeacion_creations')
         .select('*', { count: 'exact', head: true })
         .gte('created_at', fechaLimiteISO),
       

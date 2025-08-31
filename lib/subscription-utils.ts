@@ -136,11 +136,17 @@ export async function canUserCreate(
     switch (type) {
       case 'planeaciones':
         limit = limits.planeaciones_limit;
-        // Contar planeaciones actuales
+        // Contar planeaciones creadas este mes desde planeacion_creations
+        const currentDate = new Date();
+        const startOfMonth = new Date(currentDate.getFullYear(), currentDate.getMonth(), 1).toISOString();
+        const endOfMonth = new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 0, 23, 59, 59, 999).toISOString();
+        
         const { count: planeacionesCount } = await supabase
-          .from('planeaciones')
+          .from('planeacion_creations')
           .select('*', { count: 'exact', head: true })
-          .eq('user_id', userId);
+          .eq('user_id', userId)
+          .gte('created_at', startOfMonth)
+          .lte('created_at', endOfMonth);
         currentCount = planeacionesCount || 0;
         break;
         

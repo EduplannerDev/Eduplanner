@@ -162,6 +162,7 @@ export async function updatePlaneacion(planeacionId: string, updates: Partial<Pl
         updated_at: new Date().toISOString(),
       })
       .eq("id", planeacionId)
+      .is("deleted_at", null)
 
     if (error) {
       console.error("Error updating planeacion:", error)
@@ -177,19 +178,25 @@ export async function updatePlaneacion(planeacionId: string, updates: Partial<Pl
 
 // Soft delete de planeación
 export async function deletePlaneacion(planeacionId: string): Promise<boolean> {
+  try {
+    const { error } = await supabase
+      .from("planeaciones")
+      .update({
+        deleted_at: new Date().toISOString(),
+        updated_at: new Date().toISOString()
+      })
+      .eq("id", planeacionId);
 
-  const { error, data } = await supabase
-    .from("planeaciones")
-    .delete()
-    .eq("id", planeacionId);
+    if (error) {
+      console.error("Error deleting planeacion:", error);
+      return false;
+    }
 
-
-  if (error) {
-    console.error("Error deleting planeacion:", error);
+    return true;
+  } catch (error) {
+    console.error("Error in deletePlaneacion:", error);
     return false;
   }
-
-  return true;
 }
 
 
