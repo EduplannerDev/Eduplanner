@@ -52,7 +52,7 @@ const EditGrupo = ({ grupoId, onBack, onSaveSuccess }: EditGrupoProps) => {
     getCurrentSchoolYear(),
     `${new Date().getFullYear()}-${new Date().getFullYear() + 1}`,
     `${new Date().getFullYear() + 1}-${new Date().getFullYear() + 2}`
-  ]
+  ].filter((ciclo, index, array) => array.indexOf(ciclo) === index) // Eliminar duplicados
 
   useEffect(() => {
     const fetchGrupo = async () => {

@@ -312,7 +312,7 @@ export async function getUserMainPlantel(userId: string): Promise<Plantel | null
       return null;
     }
 
-    return data?.plantel || null;
+    return (data?.plantel as unknown as Plantel) || null;
   } catch (error) {
     console.error('Exception in getUserMainPlantel:', (error as Error).message);
     return null;
@@ -528,3 +528,5 @@ export async function assignUserToPlantelWithValidation(
     };
   }
 }
+
+export type { Plantel };

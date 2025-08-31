@@ -111,9 +111,9 @@ export function GestionarUsuarios() {
       
       // Agregar usuarios de asignaciones
       assignments.forEach(assignment => {
-        if (assignment.profiles) {
+        if (assignment.user) {
           allUsers.push({
-            ...assignment.profiles,
+            ...assignment.user,
             role: assignment.role, // Usar el rol de la asignación
             plantel: assignment.plantel
           })
@@ -560,6 +560,7 @@ export function GestionarUsuarios() {
             </div>
           </DialogContent>
         </Dialog>
+        </div>
       </div>
 
       {/* Selector de plantel */}
@@ -675,14 +676,14 @@ export function GestionarUsuarios() {
                 <div>
                   <p className="text-sm font-medium">Plan de Suscripción</p>
                   <p className="text-xs text-muted-foreground">
-                    {selectedPlantelInfo.plan_suscripcion?.charAt(0).toUpperCase() + selectedPlantelInfo.plan_suscripcion?.slice(1) || 'No definido'}
+                    {selectedPlantelInfo?.plan_suscripcion ? (selectedPlantelInfo.plan_suscripcion.charAt(0).toUpperCase() + selectedPlantelInfo.plan_suscripcion.slice(1)) : 'No definido'}
                   </p>
                 </div>
                 <Badge variant={
                   selectedPlantelInfo.estado_suscripcion === 'activa' ? 'default' :
                   selectedPlantelInfo.estado_suscripcion === 'suspendida' ? 'destructive' : 'secondary'
                 }>
-                  {selectedPlantelInfo.estado_suscripcion?.charAt(0).toUpperCase() + selectedPlantelInfo.estado_suscripcion?.slice(1) || 'No definido'}
+                  {selectedPlantelInfo?.estado_suscripcion ? (selectedPlantelInfo.estado_suscripcion.charAt(0).toUpperCase() + selectedPlantelInfo.estado_suscripcion.slice(1)) : 'No definido'}
                 </Badge>
               </div>
               {selectedPlantelInfo.fecha_vencimiento && (

@@ -63,10 +63,18 @@ export function DashboardHome({ onSectionChange }: DashboardHomeProps) {
       // Cargar estadísticas
       const [planeacionesRes, examenesRes, gruposRes, mensajesRes] = await Promise.all([
         supabase.from('planeaciones').select('id').eq('user_id', user?.id),
-        supabase.from('examenes').select('id').eq('user_id', user?.id),
+        supabase.from('examenes').select('id').eq('owner_id', user?.id),
         supabase.from('grupos').select('id').eq('user_id', user?.id),
         supabase.from('messages').select('id').eq('user_id', user?.id)
       ])
+
+      // Debug logs
+      console.log('Dashboard stats debug:', {
+        planeaciones: { data: planeacionesRes.data, error: planeacionesRes.error, count: planeacionesRes.data?.length },
+        examenes: { data: examenesRes.data, error: examenesRes.error, count: examenesRes.data?.length },
+        grupos: { data: gruposRes.data, error: gruposRes.error, count: gruposRes.data?.length },
+        mensajes: { data: mensajesRes.data, error: mensajesRes.error, count: mensajesRes.data?.length }
+      })
 
       setStats({
         planeaciones: planeacionesRes.data?.length || 0,

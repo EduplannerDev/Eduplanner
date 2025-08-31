@@ -90,8 +90,8 @@ export function useRoles() {
           : profile?.role as UserRole
         
         const effectivePlantel = (assignments && assignments.length > 0)
-          ? assignments[0].plantel as Plantel
-          : profile?.plantel as Plantel
+          ? assignments[0].plantel as unknown as Plantel
+          : profile?.plantel as unknown as Plantel
         
         const isAdmin = effectiveRole === 'administrador'
         const isDirector = effectiveRole === 'director'

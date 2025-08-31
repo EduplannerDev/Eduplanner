@@ -35,7 +35,7 @@ const grados = {
   'Preescolar': ['1°', '2°', '3°'],
   'Primaria': ['1°', '2°', '3°', '4°', '5°', '6°'],
   'Secundaria': ['1°', '2°', '3°'],
-  'Preparatoria': ['1°', '2°', '3°']
+  'Preparatoria': ['1°', '2°', '3°'],
 }
 
 export function GestionarGrupos() {
@@ -67,7 +67,7 @@ export function GestionarGrupos() {
   const loadPlanteles = async () => {
     try {
       if (isAdmin) {
-        const data = await getAllPlanteles()
+        const data: Plantel[] = await getAllPlanteles()
         setPlanteles(data)
         if (data.length > 0 && !selectedPlantel) {
           setSelectedPlantel(data[0].id)

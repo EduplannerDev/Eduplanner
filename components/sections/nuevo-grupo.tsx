@@ -2,7 +2,9 @@
 
 import { useState } from 'react'
 import { useAuth } from '@/hooks/use-auth'
+import { useRoles } from '@/hooks/use-roles'
 import { createGrupo, type CreateGrupoData } from '@/lib/grupos'
+import { useToast } from '@/hooks/use-toast'
 import { ArrowLeft, Save, Loader2 } from 'lucide-react'
 import { Button } from "@/components/ui/button"
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card"
@@ -18,6 +20,8 @@ interface NuevoGrupoProps {
 
 const NuevoGrupo = ({ onBack, onSaveSuccess }: NuevoGrupoProps) => {
   const { user } = useAuth()
+  const { plantel } = useRoles()
+  const { toast } = useToast()
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [formData, setFormData] = useState<CreateGrupoData>({
@@ -60,7 +64,7 @@ const NuevoGrupo = ({ onBack, onSaveSuccess }: NuevoGrupoProps) => {
     getCurrentSchoolYear(),
     `${new Date().getFullYear()}-${new Date().getFullYear() + 1}`,
     `${new Date().getFullYear() + 1}-${new Date().getFullYear() + 2}`
-  ]
+  ].filter((ciclo, index, array) => array.indexOf(ciclo) === index) // Eliminar duplicados
 
   const handleInputChange = (field: keyof CreateGrupoData, value: string | number) => {
     setFormData(prev => ({
@@ -86,7 +90,16 @@ const NuevoGrupo = ({ onBack, onSaveSuccess }: NuevoGrupoProps) => {
     setError(null)
 
     try {
-      await createGrupo(user.id, {
+      if (!plantel?.id) {
+        toast({
+          title: "Error",
+          description: "No se pudo obtener la información del plantel",
+          variant: "destructive"
+        })
+        return
+      }
+      
+      await createGrupo(user.id, plantel.id, {
         ...formData,
         nombre: formData.nombre.trim(),
         descripcion: formData.descripcion?.trim() || undefined
