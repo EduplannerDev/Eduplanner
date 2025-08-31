@@ -82,8 +82,31 @@ export default function GestionarAlumnos({ grupoId, onBack, onNavigateToMensajes
     }
   };
 
+  const validateEmail = (email: string): boolean => {
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    return emailRegex.test(email);
+  };
+
+  const validatePhone = (phone: string): boolean => {
+    const phoneRegex = /^\d{10}$/;
+    return phoneRegex.test(phone.replace(/\s+/g, ''));
+  };
+
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
+    
+    // Validación específica para teléfonos - solo permitir números y espacios
+    if (name.includes('telefono')) {
+      const cleanValue = value.replace(/[^\d\s]/g, '');
+      if (cleanValue.replace(/\s+/g, '').length <= 10) {
+        setFormData(prev => ({
+          ...prev,
+          [name]: cleanValue
+        }));
+      }
+      return;
+    }
+    
     setFormData(prev => ({
       ...prev,
       [name]: value
@@ -118,6 +141,44 @@ export default function GestionarAlumnos({ grupoId, onBack, onNavigateToMensajes
       toast({
         title: "Error",
         description: "El nombre del alumno es requerido",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    // Validar correos electrónicos
+    if (formData.correo_padre.trim() && !validateEmail(formData.correo_padre.trim())) {
+      toast({
+        title: "Error",
+        description: "El correo electrónico del padre no es válido",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (formData.correo_madre.trim() && !validateEmail(formData.correo_madre.trim())) {
+      toast({
+        title: "Error",
+        description: "El correo electrónico de la madre no es válido",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    // Validar teléfonos
+    if (formData.telefono_padre.trim() && !validatePhone(formData.telefono_padre.trim())) {
+      toast({
+        title: "Error",
+        description: "El teléfono del padre debe tener exactamente 10 dígitos",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (formData.telefono_madre.trim() && !validatePhone(formData.telefono_madre.trim())) {
+      toast({
+        title: "Error",
+        description: "El teléfono de la madre debe tener exactamente 10 dígitos",
         variant: "destructive",
       });
       return;
@@ -180,7 +241,45 @@ export default function GestionarAlumnos({ grupoId, onBack, onNavigateToMensajes
       return;
     }
 
-    try {
+    // Validar correos electrónicos
+    if (formData.correo_padre.trim() && !validateEmail(formData.correo_padre.trim())) {
+      toast({
+        title: "Error",
+        description: "El correo electrónico del padre no es válido",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (formData.correo_madre.trim() && !validateEmail(formData.correo_madre.trim())) {
+      toast({
+        title: "Error",
+        description: "El correo electrónico de la madre no es válido",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    // Validar teléfonos
+    if (formData.telefono_padre.trim() && !validatePhone(formData.telefono_padre.trim())) {
+      toast({
+        title: "Error",
+        description: "El teléfono del padre debe tener exactamente 10 dígitos",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (formData.telefono_madre.trim() && !validatePhone(formData.telefono_madre.trim())) {
+      toast({
+        title: "Error",
+        description: "El teléfono de la madre debe tener exactamente 10 dígitos",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    try{
       setSubmitting(true);
       
       const updateData: UpdateAlumnoData = {
@@ -332,14 +431,14 @@ export default function GestionarAlumnos({ grupoId, onBack, onNavigateToMensajes
               <span>Añadir Alumno</span>
             </Button>
           </DialogTrigger>
-          <DialogContent className="max-w-4xl">
+          <DialogContent className="max-w-4xl max-h-[90vh]">
             <DialogHeader>
               <DialogTitle>Añadir Nuevo Alumno</DialogTitle>
               <DialogDescription>
                 Agrega un nuevo alumno al grupo {grupo?.nombre}
               </DialogDescription>
             </DialogHeader>
-            <div className="space-y-6 max-h-[500px] overflow-y-auto pr-2">
+            <div className="space-y-6 max-h-[60vh] overflow-y-auto px-1">
               {/* Información Básica */}
               <div className="space-y-4">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -379,41 +478,44 @@ export default function GestionarAlumnos({ grupoId, onBack, onNavigateToMensajes
                 {/* Padre */}
                 <div className="mb-6">
                   <h5 className="text-sm font-medium text-gray-700 mb-3 uppercase tracking-wide">Padre</h5>
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                    <div>
-                      <Label htmlFor="nombre_padre" className="text-sm">Nombre Completo</Label>
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4 px-2">
+                    <div className="space-y-2">
+                      <Label htmlFor="nombre_padre" className="text-sm font-medium">Nombre Completo</Label>
                       <Input
                         id="nombre_padre"
                         name="nombre_padre"
                         value={formData.nombre_padre}
                         onChange={handleInputChange}
                         placeholder="Juan Carlos Rojas"
-                        className="mt-1"
+                        className="w-full"
                       />
                     </div>
-                    <div>
-                      <Label htmlFor="correo_padre" className="text-sm">Correo Electrónico</Label>
+                    <div className="space-y-2">
+                      <Label htmlFor="correo_padre" className="text-sm font-medium">Correo Electrónico</Label>
                       <Input
                         id="correo_padre"
                         name="correo_padre"
                         type="email"
                         value={formData.correo_padre}
                         onChange={handleInputChange}
-                        placeholder="juan.rojas@email.com"
-                        className="mt-1"
+                        placeholder="ejemplo@correo.com"
+                        className="w-full"
                       />
+                      <p className="text-xs text-gray-500">Formato: usuario@dominio.com</p>
                     </div>
-                    <div>
-                      <Label htmlFor="telefono_padre" className="text-sm">Teléfono</Label>
+                    <div className="space-y-2">
+                      <Label htmlFor="telefono_padre" className="text-sm font-medium">Teléfono</Label>
                       <Input
                         id="telefono_padre"
                         name="telefono_padre"
                         type="tel"
                         value={formData.telefono_padre}
                         onChange={handleInputChange}
-                        placeholder="+52 55 1234 5678"
-                        className="mt-1"
+                        placeholder="5512345678"
+                        className="w-full"
+                        maxLength={10}
                       />
+                      <p className="text-xs text-gray-500">Solo números, máximo 10 dígitos</p>
                     </div>
                   </div>
                 </div>
@@ -421,41 +523,44 @@ export default function GestionarAlumnos({ grupoId, onBack, onNavigateToMensajes
                 {/* Madre */}
                 <div>
                   <h5 className="text-sm font-medium text-gray-700 mb-3 uppercase tracking-wide">Madre</h5>
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                    <div>
-                      <Label htmlFor="nombre_madre" className="text-sm">Nombre Completo</Label>
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4 px-2">
+                    <div className="space-y-2">
+                      <Label htmlFor="nombre_madre" className="text-sm font-medium">Nombre Completo</Label>
                       <Input
                         id="nombre_madre"
                         name="nombre_madre"
                         value={formData.nombre_madre}
                         onChange={handleInputChange}
                         placeholder="María Elena García"
-                        className="mt-1"
+                        className="w-full"
                       />
                     </div>
-                    <div>
-                      <Label htmlFor="correo_madre" className="text-sm">Correo Electrónico</Label>
+                    <div className="space-y-2">
+                      <Label htmlFor="correo_madre" className="text-sm font-medium">Correo Electrónico</Label>
                       <Input
                         id="correo_madre"
                         name="correo_madre"
                         type="email"
                         value={formData.correo_madre}
                         onChange={handleInputChange}
-                        placeholder="maria.garcia@email.com"
-                        className="mt-1"
+                        placeholder="ejemplo@correo.com"
+                        className="w-full"
                       />
+                      <p className="text-xs text-gray-500">Formato: usuario@dominio.com</p>
                     </div>
-                    <div>
-                      <Label htmlFor="telefono_madre" className="text-sm">Teléfono</Label>
+                    <div className="space-y-2">
+                      <Label htmlFor="telefono_madre" className="text-sm font-medium">Teléfono</Label>
                       <Input
                         id="telefono_madre"
                         name="telefono_madre"
                         type="tel"
                         value={formData.telefono_madre}
                         onChange={handleInputChange}
-                        placeholder="+52 55 8765 4321"
-                        className="mt-1"
+                        placeholder="5512345678"
+                        className="w-full"
+                        maxLength={10}
                       />
+                      <p className="text-xs text-gray-500">Solo números, máximo 10 dígitos</p>
                     </div>
                   </div>
                 </div>
@@ -463,17 +568,18 @@ export default function GestionarAlumnos({ grupoId, onBack, onNavigateToMensajes
               
               {/* Notas Generales */}
               <div className="border-t border-gray-200 pt-6">
-                <div>
-                  <Label htmlFor="notas_generales" className="text-sm font-medium">Notas Generales</Label>
-                  <Textarea
-                    id="notas_generales"
-                    name="notas_generales"
-                    value={formData.notas_generales}
-                    onChange={handleInputChange}
-                    placeholder="Información adicional sobre el alumno..."
-                    className="mt-1"
-                    rows={3}
-                  />
+                <div className="px-2">
+                  <div className="space-y-2">
+                    <Label htmlFor="notas_generales" className="text-sm font-medium">Notas Generales</Label>
+                    <Textarea
+                      id="notas_generales"
+                      name="notas_generales"
+                      value={formData.notas_generales}
+                      onChange={handleInputChange}
+                      placeholder="Información adicional sobre el alumno..."
+                      className="w-full min-h-[80px]"
+                    />
+                  </div>
                 </div>
               </div>
             </div>
