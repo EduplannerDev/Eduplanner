@@ -19,7 +19,10 @@ import {
 } from "lucide-react"
 import { useAuth } from "@/hooks/use-auth"
 import { useUserData } from "@/hooks/use-user-data"
+import { useProfile } from "@/hooks/use-profile"
 import { supabase } from "@/lib/supabase"
+import { getMonthlyPlaneacionesCount } from "@/lib/planeaciones"
+import { isUserPro } from "@/lib/subscription-utils"
 
 interface DashboardHomeProps {
   onSectionChange: (section: string) => void
@@ -43,8 +46,10 @@ interface RecentActivity {
 export function DashboardHome({ onSectionChange }: DashboardHomeProps) {
   const { user } = useAuth()
   const { userData } = useUserData(user?.id)
+  const { profile } = useProfile()
   const [stats, setStats] = useState<Stats>({ planeaciones: 0, examenes: 0, grupos: 0, mensajes: 0 })
   const [recentActivity, setRecentActivity] = useState<RecentActivity[]>([])
+  const [monthlyPlaneaciones, setMonthlyPlaneaciones] = useState(0)
   const [loading, setLoading] = useState(true)
 
   const displayName = user?.user_metadata?.full_name || userData?.full_name || "Profesor"
@@ -56,16 +61,22 @@ export function DashboardHome({ onSectionChange }: DashboardHomeProps) {
     }
   }, [user?.id])
 
+  // Determinar si el usuario es pro y los límites
+  const isPro = profile ? isUserPro(profile) : false
+  const planeacionesLimit = isPro ? -1 : 5 // -1 significa ilimitado
+  const examenesLimit = isPro ? -1 : -1 // Los exámenes son ilimitados para todos por ahora
+
   const loadDashboardData = async () => {
     try {
       setLoading(true)
       
       // Cargar estadísticas
-      const [planeacionesRes, examenesRes, gruposRes, mensajesRes] = await Promise.all([
+      const [planeacionesRes, examenesRes, gruposRes, mensajesRes, monthlyCount] = await Promise.all([
         supabase.from('planeaciones').select('id').eq('user_id', user?.id),
         supabase.from('examenes').select('id').eq('owner_id', user?.id),
         supabase.from('grupos').select('id').eq('user_id', user?.id),
-        supabase.from('messages').select('id').eq('user_id', user?.id)
+        supabase.from('messages').select('id').eq('user_id', user?.id),
+        getMonthlyPlaneacionesCount(user?.id || '')
       ])
 
       // Debug logs
@@ -82,6 +93,8 @@ export function DashboardHome({ onSectionChange }: DashboardHomeProps) {
         grupos: gruposRes.data?.length || 0,
         mensajes: mensajesRes.data?.length || 0
       })
+      
+      setMonthlyPlaneaciones(monthlyCount)
 
       // Cargar actividad reciente
       const recentPlaneaciones = await supabase
@@ -323,24 +336,44 @@ export function DashboardHome({ onSectionChange }: DashboardHomeProps) {
         <CardHeader>
           <CardTitle>Progreso del Mes</CardTitle>
           <CardDescription>
-            Tu productividad en el mes actual
+            {isPro ? "Tu productividad en el mes actual (Plan PRO)" : "Tu productividad en el mes actual (Plan Free)"}
           </CardDescription>
         </CardHeader>
         <CardContent>
           <div className="space-y-4">
             <div>
               <div className="flex justify-between text-sm mb-1">
-                <span>Planeaciones creadas</span>
-                <span>{stats.planeaciones}/10</span>
+                <span>Planeaciones creadas este mes</span>
+                <span>
+                  {monthlyPlaneaciones}
+                  {isPro ? " (Ilimitadas)" : `/5`}
+                </span>
               </div>
-              <Progress value={(stats.planeaciones / 10) * 100} className="h-2" />
+              {isPro ? (
+                <div className="flex items-center gap-2 text-sm text-green-600">
+                  <CheckCircle className="h-4 w-4" />
+                  <span>Planeaciones ilimitadas con Plan PRO</span>
+                </div>
+              ) : (
+                <>
+                  <Progress value={(monthlyPlaneaciones / 5) * 100} className="h-2" />
+                  {monthlyPlaneaciones >= 5 && (
+                    <div className="text-sm text-amber-600 mt-1">
+                      ⚠️ Has alcanzado el límite mensual. Actualiza a PRO para planeaciones ilimitadas.
+                    </div>
+                  )}
+                </>
+              )}
             </div>
             <div>
               <div className="flex justify-between text-sm mb-1">
                 <span>Exámenes generados</span>
-                <span>{stats.examenes}/5</span>
+                <span>{stats.examenes} (Ilimitados)</span>
               </div>
-              <Progress value={(stats.examenes / 5) * 100} className="h-2" />
+              <div className="flex items-center gap-2 text-sm text-green-600">
+                <CheckCircle className="h-4 w-4" />
+                <span>Exámenes ilimitados para todos los usuarios</span>
+              </div>
             </div>
           </div>
         </CardContent>
