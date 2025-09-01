@@ -67,13 +67,17 @@ export default function ForgotPasswordForm({ onBack }: ForgotPasswordFormProps) 
 
   if (emailSent) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-background p-4">
-        <Card className="w-full max-w-md">
-          <CardHeader className="text-center">
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100 p-4">
+        <Card className="w-full max-w-md bg-muted/50">
+          {/* Logo */}
+          <div className="flex justify-center pt-8 pb-4">
+            <img src="/images/Logo.png" alt="Logo EduPlanner" className="h-[300px] w-auto" />
+          </div>
+          <CardHeader className="text-center space-y-1">
             <div className="mx-auto w-12 h-12 bg-green-100 rounded-full flex items-center justify-center mb-4">
               <CheckCircle className="w-6 h-6 text-green-600" />
             </div>
-            <CardTitle>Email Enviado</CardTitle>
+            <CardTitle className="text-2xl">Email Enviado</CardTitle>
             <CardDescription>
               Hemos enviado un enlace de recuperación a tu email
             </CardDescription>
@@ -111,11 +115,15 @@ export default function ForgotPasswordForm({ onBack }: ForgotPasswordFormProps) 
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-background p-4">
-      <Card className="w-full max-w-md">
-        <CardHeader>
-          <CardTitle>Recuperar Contraseña</CardTitle>
-          <CardDescription>
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100 p-4">
+      <Card className="w-full max-w-md bg-muted/50">
+        {/* Logo */}
+        <div className="flex justify-center pt-8 pb-4">
+          <img src="/images/Logo.png" alt="Logo EduPlanner" className="h-[300px] w-auto" />
+        </div>
+        <CardHeader className="space-y-1">
+          <CardTitle className="text-2xl text-center">Recuperar Contraseña</CardTitle>
+          <CardDescription className="text-center">
             Ingresa tu email y te enviaremos un enlace para restablecer tu contraseña
           </CardDescription>
         </CardHeader>

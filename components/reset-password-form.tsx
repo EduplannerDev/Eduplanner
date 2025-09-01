@@ -117,9 +117,9 @@ function ResetPasswordFormContent() {
         text: 'Contraseña actualizada exitosamente. Redirigiendo...' 
       })
 
-      // Redirigir al dashboard después de 2 segundos
+      // Redirigir a la página principal después de 2 segundos
       setTimeout(() => {
-        router.push('/dashboard?message=' + encodeURIComponent('Contraseña actualizada exitosamente'))
+        router.push('/?message=' + encodeURIComponent('Contraseña actualizada exitosamente'))
       }, 2000)
 
     } catch (error: any) {
@@ -136,8 +136,12 @@ function ResetPasswordFormContent() {
   // Mostrar loading mientras se verifica la sesión
   if (isValidSession === null) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-background p-4">
-        <Card className="w-full max-w-md">
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100 p-4">
+        <Card className="w-full max-w-md bg-muted/50">
+          {/* Logo */}
+          <div className="flex justify-center pt-8 pb-4">
+            <img src="/images/Logo.png" alt="Logo EduPlanner" className="h-[300px] w-auto" />
+          </div>
           <CardContent className="flex items-center justify-center p-8">
             <div className="text-center">
               <Loader2 className="h-8 w-8 animate-spin mx-auto mb-2" />
@@ -152,13 +156,17 @@ function ResetPasswordFormContent() {
   // Mostrar error si la sesión no es válida
   if (!isValidSession) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-background p-4">
-        <Card className="w-full max-w-md">
-          <CardHeader className="text-center">
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100 p-4">
+        <Card className="w-full max-w-md bg-muted/50">
+          {/* Logo */}
+          <div className="flex justify-center pt-8 pb-4">
+            <img src="/images/Logo.png" alt="Logo EduPlanner" className="h-[300px] w-auto" />
+          </div>
+          <CardHeader className="text-center space-y-1">
             <div className="mx-auto w-12 h-12 bg-red-100 rounded-full flex items-center justify-center mb-4">
               <AlertTriangle className="w-6 h-6 text-red-600" />
             </div>
-            <CardTitle>Enlace Inválido</CardTitle>
+            <CardTitle className="text-2xl">Enlace Inválido</CardTitle>
             <CardDescription>
               El enlace de recuperación es inválido o ha expirado
             </CardDescription>
@@ -183,11 +191,15 @@ function ResetPasswordFormContent() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-background p-4">
-      <Card className="w-full max-w-md">
-        <CardHeader>
-          <CardTitle>Nueva Contraseña</CardTitle>
-          <CardDescription>
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100 p-4">
+      <Card className="w-full max-w-md bg-muted/50">
+        {/* Logo */}
+        <div className="flex justify-center pt-8 pb-4">
+          <img src="/images/Logo.png" alt="Logo EduPlanner" className="h-[300px] w-auto" />
+        </div>
+        <CardHeader className="space-y-1">
+          <CardTitle className="text-2xl text-center">Nueva Contraseña</CardTitle>
+          <CardDescription className="text-center">
             Ingresa tu nueva contraseña
           </CardDescription>
         </CardHeader>

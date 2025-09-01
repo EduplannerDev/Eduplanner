@@ -14,10 +14,23 @@ export function WelcomeMessage() {
 
   useEffect(() => {
     const welcomeMessage = searchParams.get('welcome')
+    const successMessage = searchParams.get('message')
     const errorMessage = searchParams.get('error')
 
     if (welcomeMessage) {
       setMessage(decodeURIComponent(welcomeMessage))
+      setIsVisible(true)
+      
+      // Auto-ocultar después de 10 segundos
+      const timer = setTimeout(() => {
+        setIsVisible(false)
+      }, 10000)
+
+      return () => clearTimeout(timer)
+    }
+
+    if (successMessage) {
+      setMessage(decodeURIComponent(successMessage))
       setIsVisible(true)
       
       // Auto-ocultar después de 10 segundos
@@ -42,6 +55,7 @@ export function WelcomeMessage() {
     // Limpiar los parámetros de la URL
     const url = new URL(window.location.href)
     url.searchParams.delete('welcome')
+    url.searchParams.delete('message')
     url.searchParams.delete('error')
     window.history.replaceState({}, '', url.toString())
   }
