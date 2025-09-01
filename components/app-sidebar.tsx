@@ -3,7 +3,7 @@
 import type React from "react";
 import { useState } from "react";
 
-import { FileText, User, LogOut, GraduationCap, Plus, MessageSquare, HelpCircle, Users, BookOpen, Calendar, Bot, Shield, Home, ChevronDown, ChevronRight } from "lucide-react"
+import { FileText, User, LogOut, GraduationCap, Plus, MessageSquare, HelpCircle, Users, BookOpen, Calendar, Bot, Shield, Home, ChevronDown, ChevronRight, Notebook } from "lucide-react"
 
 import {
   Sidebar,
@@ -96,6 +96,12 @@ const menuStructure = {
         icon: Calendar,
         url: "#agenda",
         description: "Gestionar tu agenda personal",
+      },
+      {
+        title: "Bitácora",
+        icon: Notebook,
+        url: "#bitacora",
+        description: "Registro de actividades y observaciones",
       },
     ],
   },
