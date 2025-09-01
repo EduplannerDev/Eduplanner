@@ -8,6 +8,8 @@ ALTER TABLE events
 ADD COLUMN linked_planeacion_id UUID REFERENCES planeaciones(id) ON DELETE SET NULL,
 ADD COLUMN linked_examen_id UUID REFERENCES examenes(id) ON DELETE SET NULL;
 
+-- Las columnas de examenes mantienen sus tipos originales (VARCHAR)
+
 -- 2. CREAR ÍNDICES PARA MEJORAR RENDIMIENTO
 -- ========================================
 CREATE INDEX idx_events_linked_planeacion ON events(linked_planeacion_id) WHERE linked_planeacion_id IS NOT NULL;
@@ -62,15 +64,17 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
 
--- 5. FUNCIÓN PARA OBTENER PLANEACIONES DISPONIBLES PARA ENLAZAR
+-- 4. FUNCIÓN PARA OBTENER PLANEACIONES DISPONIBLES PARA ENLAZAR
 -- ============================================================
-CREATE OR REPLACE FUNCTION get_available_planeaciones_for_events(user_uuid UUID)
+DROP FUNCTION IF EXISTS get_available_planeaciones_for_events(UUID);
+
+CREATE FUNCTION get_available_planeaciones_for_events(user_uuid UUID)
 RETURNS TABLE (
     id UUID,
     titulo VARCHAR(255),
     materia VARCHAR(100),
     grado VARCHAR(50),
-    grupo VARCHAR(50),
+    grupo TEXT,
     fecha_inicio TEXT,
     fecha_fin TEXT
 ) AS $$
@@ -79,11 +83,11 @@ BEGIN
     SELECT 
         p.id,
         p.titulo,
-        p.materia,
-        p.grado,
-        p.grupo,
-        p.fecha_inicio::TEXT,
-        p.fecha_fin::TEXT
+        COALESCE(p.materia, 'Sin materia'),
+        COALESCE(p.grado, 'N/A'),
+        'N/A'::TEXT as grupo,
+        p.created_at::DATE::TEXT as fecha_inicio,
+        p.created_at::DATE::TEXT as fecha_fin
     FROM planeaciones p
     WHERE p.user_id = user_uuid
     AND p.deleted_at IS NULL
@@ -93,13 +97,15 @@ $$ LANGUAGE plpgsql SECURITY DEFINER;
 
 -- 6. FUNCIÓN PARA OBTENER EXÁMENES DISPONIBLES PARA ENLAZAR
 -- ========================================================
-CREATE OR REPLACE FUNCTION get_available_examenes_for_events(user_uuid UUID)
+DROP FUNCTION IF EXISTS get_available_examenes_for_events(UUID);
+
+CREATE FUNCTION get_available_examenes_for_events(user_uuid UUID)
 RETURNS TABLE (
     id UUID,
     titulo VARCHAR(255),
     materia VARCHAR(100),
-    grado VARCHAR(50),
-    grupo VARCHAR(50),
+    grado TEXT,
+    grupo TEXT,
     fecha_examen TEXT,
     duracion_minutos INTEGER
 ) AS $$
@@ -107,12 +113,12 @@ BEGIN
     RETURN QUERY
     SELECT 
         e.id,
-        e.title as titulo,
-        e.subject as materia,
-        e.grade as grado,
-        e.group_name as grupo,
-        e.exam_date::TEXT as fecha_examen,
-        e.duration_minutes as duracion_minutos
+        COALESCE(e.title, 'Sin título') as titulo,
+        COALESCE(e.subject, 'Sin materia') as materia,
+        'N/A'::TEXT as grado,
+        'N/A'::TEXT as grupo,
+        e.created_at::DATE::TEXT as fecha_examen,
+        0 as duracion_minutos
     FROM examenes e
     WHERE e.owner_id = user_uuid
     ORDER BY e.created_at DESC, e.title ASC;

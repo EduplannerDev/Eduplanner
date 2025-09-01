@@ -377,12 +377,20 @@ export async function getAvailablePlaneaciones(): Promise<{ success: boolean; pl
       })
 
     if (error) {
-      console.error('Error al obtener planeaciones:', error)
-      return { success: false, error: error.message }
+      // eslint-disable-next-line no-console
+      console.error('Error al obtener planeaciones:', {
+        message: error.message,
+        details: error.details,
+        hint: error.hint,
+        code: error.code,
+        full_error: error
+      })
+      return { success: false, error: error.message || 'Error desconocido al obtener planeaciones' }
     }
 
     return { success: true, planeaciones: data || [] }
   } catch (error) {
+    // eslint-disable-next-line no-console
     console.error('Error inesperado al obtener planeaciones:', error)
     return { success: false, error: 'Error inesperado al obtener planeaciones' }
   }
@@ -403,8 +411,14 @@ export async function getAvailableExamenes(): Promise<{ success: boolean; examen
       })
 
     if (error) {
-      console.error('Error al obtener exámenes:', error)
-      return { success: false, error: error.message }
+      console.error('Error al obtener exámenes:', {
+        message: error.message,
+        details: error.details,
+        hint: error.hint,
+        code: error.code,
+        full_error: error
+      })
+      return { success: false, error: error.message || 'Error desconocido al obtener exámenes' }
     }
 
     return { success: true, examenes: data || [] }
