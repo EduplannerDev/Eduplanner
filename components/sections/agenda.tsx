@@ -17,7 +17,6 @@ import timeGridPlugin from '@fullcalendar/timegrid'
 import interactionPlugin from '@fullcalendar/interaction'
 import esLocale from '@fullcalendar/core/locales/es'
 import { saveEvent, getUserEvents, getEventsWithLinks, extractHashtags, eventsToFullCalendarFormat, updateEvent, deleteEvent, Event, EventFormData, getAvailablePlaneaciones, getAvailableExamenes, AvailablePlaneacion, AvailableExamen } from '@/lib/events'
-import { DiarioProfesional } from './diario-profesional'
 
 interface AgendaProps {
   onSectionChange?: (section: string) => void
@@ -32,7 +31,6 @@ export function Agenda({ onSectionChange }: AgendaProps) {
   const [selectedDate, setSelectedDate] = useState<string | null>(null)
   const [editingEvent, setEditingEvent] = useState<Event | null>(null)
   const [isEditing, setIsEditing] = useState(false)
-  const [isDiarioOpen, setIsDiarioOpen] = useState(false)
   const [eventData, setEventData] = useState<EventFormData>({
     title: '',
     category: '',
@@ -712,7 +710,7 @@ export function Agenda({ onSectionChange }: AgendaProps) {
               </div>
             </CardHeader>
             <CardContent>
-              <div className="fullcalendar-container border rounded-lg">
+              <div className="fullcalendar-container border rounded-lg p-4">
                 <FullCalendar
                   plugins={[dayGridPlugin, timeGridPlugin, interactionPlugin]}
                   initialView="dayGridMonth"
@@ -869,14 +867,7 @@ export function Agenda({ onSectionChange }: AgendaProps) {
                   <Calendar className="h-4 w-4" />
                   {selectedDate ? 'Día Seleccionado' : 'Hoy'}
                 </CardTitle>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  className="text-xs"
-                  onClick={() => setIsDiarioOpen(true)}
-                >
-                  📝 Bitácora (Privado)
-                </Button>
+
               </div>
               <CardDescription>
                 {selectedDate 
@@ -1054,12 +1045,7 @@ export function Agenda({ onSectionChange }: AgendaProps) {
         </div>
       </div>
 
-      {/* Componente de la Bitácora */}
-      <DiarioProfesional 
-        isOpen={isDiarioOpen} 
-        onClose={() => setIsDiarioOpen(false)}
-        selectedDate={selectedDate}
-      />
+
     </div>
   )
 }

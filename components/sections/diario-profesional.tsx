@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { Eye, EyeOff, Lock, Plus, Save, Edit, Calendar, Clock, History, RotateCcw } from "lucide-react"
+import { Eye, EyeOff, Lock, Plus, Save, Edit, Calendar, Clock, History, RotateCcw, CalendarDays } from "lucide-react"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -11,6 +11,8 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } f
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { useToast } from "@/hooks/use-toast"
 import { Badge } from "@/components/ui/badge"
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
+import { Calendar as CalendarComponent } from "@/components/ui/calendar"
 import { 
   checkDiaryPasswordExists, 
   createDiaryPassword, 
@@ -74,24 +76,51 @@ export function DiarioProfesional({ isOpen, onClose, selectedDate }: DiarioProfe
     mood: ""
   })
   const [authError, setAuthError] = useState("")
+  const [currentDate, setCurrentDate] = useState<Date>(new Date())
+  const [isDatePickerOpen, setIsDatePickerOpen] = useState(false)
 
   const [entryVersions, setEntryVersions] = useState<DiaryEntryVersion[]>([])
   const [selectedEntryForHistory, setSelectedEntryForHistory] = useState<DiaryEntry | null>(null)
   const { toast } = useToast()
 
-  // Verificar si el usuario tiene contraseña configurada
+  // Función helper para obtener fecha local en formato YYYY-MM-DD sin conversión UTC
+  const getLocalDateString = (date: Date): string => {
+    const year = date.getFullYear()
+    const month = String(date.getMonth() + 1).padStart(2, '0')
+    const day = String(date.getDate()).padStart(2, '0')
+    return `${year}-${month}-${day}`
+  }
+
+  // Verificar si el usuario tiene contraseña configurada y establecer fecha inicial
   useEffect(() => {
     if (isOpen) {
       checkPasswordExists()
+      // Establecer la fecha inicial: selectedDate si existe, sino fecha actual
+      const initialDate = selectedDate ? new Date(selectedDate) : new Date()
+      setCurrentDate(initialDate)
+      console.log('=== DIALOG OPENED ===')
+      console.log('selectedDate prop:', selectedDate)
+      console.log('Setting currentDate to:', getLocalDateString(initialDate))
     }
   }, [isOpen])
+
+  // Sincronizar currentDate con selectedDate cuando cambie la prop (solo si el diálogo está abierto)
+  useEffect(() => {
+    if (isOpen && selectedDate) {
+      const newDate = new Date(selectedDate)
+      setCurrentDate(newDate)
+      console.log('=== SELECTEDDATE CHANGED ===')
+      console.log('New selectedDate:', selectedDate)
+      console.log('Setting currentDate to:', getLocalDateString(newDate))
+    }
+  }, [selectedDate, isOpen])
 
   // Cargar entradas cuando el usuario se autentique o cambie la fecha seleccionada
   useEffect(() => {
     if (isAuthenticated) {
       loadEntries()
     }
-  }, [isAuthenticated, selectedDate])
+  }, [isAuthenticated, currentDate])
 
   const checkPasswordExists = async () => {
     try {
@@ -158,11 +187,18 @@ export function DiarioProfesional({ isOpen, onClose, selectedDate }: DiarioProfe
 
   const loadEntries = async () => {
     try {
+      console.log('=== LOADING ENTRIES ===')
+      console.log('currentDate:', currentDate)
+      console.log('selectedDate prop:', selectedDate)
+      
+      // Limpiar entradas antes de cargar nuevas
+      setEntries([])
+      
       const diaryEntries = await getDiaryEntries()
+      console.log('Raw entries from DB:', diaryEntries.length)
+      
       // Convertir el formato de la base de datos al formato del componente
       let formattedEntries = diaryEntries.map(entry => {
-        // Preservar información de versión restaurada si existe en el estado actual
-        const existingEntry = entries.find(e => e.id === entry.id)
         return {
           id: entry.id,
           title: entry.title,
@@ -172,21 +208,18 @@ export function DiarioProfesional({ isOpen, onClose, selectedDate }: DiarioProfe
           tags: entry.tags || [],
           mood: entry.mood,
           isPrivate: entry.is_private,
-          isRestoredVersion: existingEntry?.isRestoredVersion || false,
-          restoredVersionNumber: existingEntry?.restoredVersionNumber
+          isRestoredVersion: false,
+          restoredVersionNumber: undefined
         }
       })
       
-      // Filtrar por fecha seleccionada si existe
-      if (selectedDate) {
-        // selectedDate ya viene en formato YYYY-MM-DD desde FullCalendar
-        console.log('Filtering by selectedDate:', selectedDate)
-        console.log('Entries before filter:', formattedEntries.map(e => ({ title: e.title, date: e.date })))
-        formattedEntries = formattedEntries.filter(entry => entry.date === selectedDate)
-        console.log('Entries after filter:', formattedEntries.map(e => ({ title: e.title, date: e.date })))
-      } else {
-        console.log('No selectedDate, showing all entries')
-      }
+      // Filtrar por fecha actual seleccionada
+      const currentDateString = getLocalDateString(currentDate) // Formato YYYY-MM-DD
+      console.log('Filtering by currentDate:', currentDateString)
+      console.log('Entries before filter:', formattedEntries.map(e => ({ title: e.title, date: e.date })))
+      formattedEntries = formattedEntries.filter(entry => entry.date === currentDateString)
+      console.log('Entries after filter:', formattedEntries.map(e => ({ title: e.title, date: e.date })))
+      console.log('=== END LOADING ENTRIES ===')
       
       setEntries(formattedEntries)
     } catch (error) {
@@ -213,8 +246,8 @@ export function DiarioProfesional({ isOpen, onClose, selectedDate }: DiarioProfe
       const tags = newEntry.tags.split(',').map(tag => tag.trim()).filter(tag => tag)
       const now = new Date()
       
-      // Usar la fecha seleccionada si está disponible, sino usar la fecha actual
-      const entryDate = selectedDate ? new Date(selectedDate).toISOString().split('T')[0] : now.toISOString().split('T')[0]
+      // Usar currentDate para la fecha de la entrada
+      const entryDate = getLocalDateString(currentDate)
       
       await createDiaryEntry({
         title: newEntry.title,
@@ -353,6 +386,13 @@ export function DiarioProfesional({ isOpen, onClose, selectedDate }: DiarioProfe
     }
   }
 
+  const handleDateChange = (date: Date | undefined) => {
+    if (date) {
+      setCurrentDate(date)
+      setIsDatePickerOpen(false)
+    }
+  }
+
   const resetState = () => {
     setIsAuthenticated(false)
     setPassword("")
@@ -362,6 +402,7 @@ export function DiarioProfesional({ isOpen, onClose, selectedDate }: DiarioProfe
     setIsCreatingEntry(false)
     setEditingEntry(null)
     setNewEntry({ title: "", content: "", tags: "", mood: "" })
+    setIsDatePickerOpen(false)
 
     setEntryVersions([])
     setSelectedEntryForHistory(null)
@@ -499,23 +540,31 @@ export function DiarioProfesional({ isOpen, onClose, selectedDate }: DiarioProfe
           <div className="space-y-6">
             <div className="flex justify-between items-center">
               <div className="flex items-center gap-2">
-                <Calendar className="h-4 w-4" />
-                <span className="text-sm text-muted-foreground">
-                  {selectedDate 
-                    ? new Date(selectedDate).toLocaleDateString('es-ES', { 
-                        weekday: 'long', 
-                        year: 'numeric', 
-                        month: 'long', 
-                        day: 'numeric' 
-                      })
-                    : new Date().toLocaleDateString('es-ES', { 
-                        weekday: 'long', 
-                        year: 'numeric', 
-                        month: 'long', 
-                        day: 'numeric' 
-                      })
-                  }
-                </span>
+                <Popover>
+                  <PopoverTrigger asChild>
+                    <Button variant="outline" className="w-auto justify-start text-left font-normal">
+                      <CalendarDays className="mr-2 h-4 w-4" />
+                      {currentDate.toLocaleDateString('es-ES', {
+                        weekday: 'long',
+                        year: 'numeric',
+                        month: 'long',
+                        day: 'numeric'
+                      })}
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-auto p-0" align="start">
+                    <CalendarComponent
+                      mode="single"
+                      selected={currentDate}
+                      onSelect={(date) => {
+                        if (date) {
+                          setCurrentDate(date)
+                        }
+                      }}
+                      initialFocus
+                    />
+                  </PopoverContent>
+                </Popover>
               </div>
               <Button onClick={() => setIsCreatingEntry(true)}>
                 <Plus className="h-4 w-4 mr-2" />
@@ -720,9 +769,7 @@ export function DiarioProfesional({ isOpen, onClose, selectedDate }: DiarioProfe
                             </div>
                           </div>
                           <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                            <Calendar className="h-3 w-3" />
-                            {new Date(entry.date).toLocaleDateString('es-ES')}
-                            <Clock className="h-3 w-3 ml-2" />
+                            <Clock className="h-3 w-3" />
                             {entry.time}
                           </div>
                         </div>
@@ -759,9 +806,7 @@ export function DiarioProfesional({ isOpen, onClose, selectedDate }: DiarioProfe
               <Card>
                 <CardContent className="text-center py-8">
                   <p className="text-muted-foreground">
-                    {selectedDate 
-                      ? 'No hay entradas para esta fecha. ¡Crea tu primera entrada!' 
-                      : 'No tienes entradas en tu diario. ¡Comienza escribiendo tu primera reflexión!'}
+                    No hay entradas para esta fecha. ¡Crea tu primera entrada!
                   </p>
                 </CardContent>
               </Card>
