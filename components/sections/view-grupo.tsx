@@ -2,12 +2,13 @@
 
 import { useState, useEffect } from 'react'
 import { getGrupoById, type Grupo } from '@/lib/grupos'
-import { ArrowLeft, Edit, Users, Calendar, GraduationCap, FileText, Loader2, ClipboardList } from 'lucide-react'
+import { ArrowLeft, Edit, Users, Calendar, GraduationCap, FileText, Loader2, ClipboardList, X, CheckCircle, XCircle, Clock } from 'lucide-react'
 import { Button } from "@/components/ui/button"
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Separator } from "@/components/ui/separator"
-import { getHistorialAsistenciaGrupo, AsistenciaHistorial } from '@/lib/asistencia'
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
+import { getHistorialAsistenciaGrupo, AsistenciaHistorial, getAlumnosConAsistencia, AsistenciaConAlumno } from '@/lib/asistencia'
 import GestionarAlumnos from './gestionar-alumnos'
 import { format } from 'date-fns'
 import { es } from 'date-fns/locale'
@@ -27,6 +28,10 @@ const ViewGrupo = ({ grupoId, onBack, onEdit }: ViewGrupoProps) => {
   const [viewMode, setViewMode] = useState<ViewMode>('details')
   const [historialAsistencia, setHistorialAsistencia] = useState<AsistenciaHistorial[]>([])
   const [loadingAsistencia, setLoadingAsistencia] = useState(false)
+  const [showDetalleModal, setShowDetalleModal] = useState(false)
+  const [detalleAsistencia, setDetalleAsistencia] = useState<AsistenciaConAlumno[]>([])
+  const [fechaSeleccionada, setFechaSeleccionada] = useState<string>('')
+  const [loadingDetalle, setLoadingDetalle] = useState(false)
 
   const handleGestionarAlumnos = () => {
     setViewMode('alumnos')
@@ -45,8 +50,52 @@ const ViewGrupo = ({ grupoId, onBack, onEdit }: ViewGrupoProps) => {
     }
   }
 
+  const handleVerDetalleAsistencia = async (fecha: string) => {
+    setFechaSeleccionada(fecha)
+    setShowDetalleModal(true)
+    setLoadingDetalle(true)
+    try {
+      const detalle = await getAlumnosConAsistencia(grupoId, fecha)
+      setDetalleAsistencia(detalle)
+    } catch (error) {
+      console.error('Error loading attendance detail:', error)
+    } finally {
+      setLoadingDetalle(false)
+    }
+  }
+
   const handleBackToDetails = () => {
     setViewMode('details')
+  }
+
+  const getEstadoIcon = (estado: string) => {
+    switch (estado) {
+      case 'presente':
+        return <CheckCircle className="h-4 w-4 text-green-600" />
+      case 'ausente':
+        return <XCircle className="h-4 w-4 text-red-600" />
+      case 'retardo':
+        return <Clock className="h-4 w-4 text-yellow-600" />
+      case 'justificado':
+        return <FileText className="h-4 w-4 text-blue-600" />
+      default:
+        return null
+    }
+  }
+
+  const getEstadoColor = (estado: string) => {
+    switch (estado) {
+      case 'presente':
+        return 'text-green-600 bg-green-50 dark:bg-green-900/20'
+      case 'ausente':
+        return 'text-red-600 bg-red-50 dark:bg-red-900/20'
+      case 'retardo':
+        return 'text-yellow-600 bg-yellow-50 dark:bg-yellow-900/20'
+      case 'justificado':
+        return 'text-blue-600 bg-blue-50 dark:bg-blue-900/20'
+      default:
+        return 'text-gray-600 bg-gray-50 dark:bg-gray-900/20'
+    }
   }
 
   useEffect(() => {
@@ -139,14 +188,18 @@ const ViewGrupo = ({ grupoId, onBack, onEdit }: ViewGrupoProps) => {
             ) : (
                <div className="space-y-4">
                  {historialAsistencia.map((registro, index) => (
-                   <div key={`${registro.fecha}-${index}`} className="border rounded-lg p-4">
+                   <div 
+                     key={`${registro.fecha}-${index}`} 
+                     className="border rounded-lg p-4 cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"
+                     onClick={() => handleVerDetalleAsistencia(registro.fecha)}
+                   >
                      <div className="flex justify-between items-start mb-2">
                        <div>
                          <h3 className="font-semibold">
                            {format(new Date(registro.fecha), 'EEEE, d MMMM yyyy', { locale: es })}
                          </h3>
                          <p className="text-sm text-gray-600">
-                           Total de alumnos: {registro.total_alumnos}
+                           Total de alumnos: {registro.total_alumnos} • Haz clic para ver detalle
                          </p>
                        </div>
                        <Badge 
@@ -188,6 +241,95 @@ const ViewGrupo = ({ grupoId, onBack, onEdit }: ViewGrupoProps) => {
             )}
           </CardContent>
         </Card>
+
+        {/* Modal de Detalle de Asistencia */}
+        <Dialog open={showDetalleModal} onOpenChange={setShowDetalleModal}>
+          <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto">
+            <DialogHeader>
+              <DialogTitle className="flex items-center gap-2">
+                <ClipboardList className="h-5 w-5" />
+                Detalle de Asistencia - {fechaSeleccionada && format(new Date(fechaSeleccionada), 'EEEE, d MMMM yyyy', { locale: es })}
+              </DialogTitle>
+            </DialogHeader>
+            
+            {loadingDetalle ? (
+              <div className="flex items-center justify-center h-32">
+                <Loader2 className="h-8 w-8 animate-spin" />
+                <span className="ml-2">Cargando detalle...</span>
+              </div>
+            ) : detalleAsistencia.length === 0 ? (
+              <div className="text-center py-8">
+                <ClipboardList className="h-12 w-12 mx-auto text-gray-400 mb-4" />
+                <p className="text-gray-500">No hay registros de asistencia para esta fecha</p>
+              </div>
+            ) : (
+              <div className="space-y-4">
+                <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+                  <div className="text-center p-3 bg-green-50 dark:bg-green-900/20 rounded">
+                    <div className="text-lg font-bold text-green-600 dark:text-green-400">
+                      {detalleAsistencia.filter(a => a.estado === 'presente').length}
+                    </div>
+                    <div className="text-sm text-gray-600 dark:text-gray-300">Presentes</div>
+                  </div>
+                  <div className="text-center p-3 bg-red-50 dark:bg-red-900/20 rounded">
+                    <div className="text-lg font-bold text-red-600 dark:text-red-400">
+                      {detalleAsistencia.filter(a => a.estado === 'ausente').length}
+                    </div>
+                    <div className="text-sm text-gray-600 dark:text-gray-300">Ausentes</div>
+                  </div>
+                  <div className="text-center p-3 bg-yellow-50 dark:bg-yellow-900/20 rounded">
+                    <div className="text-lg font-bold text-yellow-600 dark:text-yellow-400">
+                      {detalleAsistencia.filter(a => a.estado === 'retardo').length}
+                    </div>
+                    <div className="text-sm text-gray-600 dark:text-gray-300">Retardos</div>
+                  </div>
+                  <div className="text-center p-3 bg-blue-50 dark:bg-blue-900/20 rounded">
+                    <div className="text-lg font-bold text-blue-600 dark:text-blue-400">
+                      {detalleAsistencia.filter(a => a.estado === 'justificado').length}
+                    </div>
+                    <div className="text-sm text-gray-600 dark:text-gray-300">Justificados</div>
+                  </div>
+                </div>
+
+                <div className="space-y-2">
+                  <h3 className="font-semibold text-lg mb-4">Lista de Alumnos</h3>
+                  {detalleAsistencia
+                    .sort((a, b) => {
+                      if (a.alumno_numero_lista && b.alumno_numero_lista) {
+                        return a.alumno_numero_lista - b.alumno_numero_lista
+                      }
+                      return a.alumno_nombre.localeCompare(b.alumno_nombre)
+                    })
+                    .map((alumno, index) => (
+                      <div key={alumno.id} className="flex items-center justify-between p-3 border rounded-lg">
+                        <div className="flex items-center gap-3">
+                          <div className="w-8 h-8 bg-gray-100 dark:bg-gray-800 rounded-full flex items-center justify-center text-sm font-medium">
+                            {alumno.alumno_numero_lista || index + 1}
+                          </div>
+                          <div>
+                            <p className="font-medium">{alumno.alumno_nombre}</p>
+                            {alumno.notas && (
+                              <p className="text-sm text-gray-600 dark:text-gray-400">Nota: {alumno.notas}</p>
+                            )}
+                          </div>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <div className={`flex items-center gap-1 px-2 py-1 rounded-full text-sm font-medium ${getEstadoColor(alumno.estado)}`}>
+                            {getEstadoIcon(alumno.estado)}
+                            <span className="capitalize">{alumno.estado}</span>
+                          </div>
+                          <div className="text-xs text-gray-500">
+                            {format(new Date(alumno.hora_registro), 'HH:mm')}
+                          </div>
+                        </div>
+                      </div>
+                    ))
+                  }
+                </div>
+              </div>
+            )}
+          </DialogContent>
+        </Dialog>
       </div>
     )
   }
