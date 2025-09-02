@@ -6,6 +6,7 @@ import FeedbackClient from '@/components/feedback-client'
 import AuthErrorBoundary from '@/components/auth-error-boundary'
 import { Analytics } from '@vercel/analytics/react'
 import { SpeedInsights } from '@vercel/speed-insights/next'
+import ClarityAnalytics from '@/components/clarity-analytics'
 
 export const metadata: Metadata = {
   title: "Eduplanner",
@@ -58,6 +59,7 @@ export default function RootLayout({
           <FeedbackClient />
           <Analytics />
           <SpeedInsights />
+          <ClarityAnalytics />
         </ThemeProvider>
       </body>
     </html>
