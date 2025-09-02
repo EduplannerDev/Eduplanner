@@ -1,14 +1,14 @@
--- Migración: Agregar trigger para calendario escolar automático
--- ==========================================================
--- Esta migración crea un trigger que automáticamente agrega eventos del calendario escolar
--- a nuevos usuarios cuando se registran en la plataforma
+-- Migración: Restaurar función de calendario escolar para uso manual
+-- ================================================================
+-- Esta migración restaura la función add_school_calendar_to_new_user
+-- para que pueda ser utilizada manualmente desde la API
 
--- 1. FUNCIÓN PARA AGREGAR CALENDARIO ESCOLAR A NUEVO USUARIO
--- =========================================================
-CREATE OR REPLACE FUNCTION add_school_calendar_to_new_user(p_user_id UUID)
+-- 1. RECREAR LA FUNCIÓN DE CALENDARIO ESCOLAR
+-- ==========================================
+CREATE OR REPLACE FUNCTION public.add_school_calendar_to_new_user(p_user_id UUID)
 RETURNS VOID AS $$
 BEGIN
-    -- Insertar eventos del calendario escolar 2025-2026 para el nuevo usuario
+    -- Insertar eventos del calendario escolar 2025-2026 para el usuario especificado
     -- Estos eventos están basados en el archivo ICS oficial
     
     -- Consejos Técnicos Escolares (sesiones ordinarias)
@@ -49,54 +49,21 @@ BEGIN
     (p_user_id, 'Tercera Evaluación - Fin', 'Fin del tercer período de evaluación', 'entrega', '2026-03-31', ARRAY['#calendario-escolar', '#evaluacion']),
     (p_user_id, 'Evaluación Final - Inicio', 'Inicio del período de evaluación final', 'entrega', '2026-06-01', ARRAY['#calendario-escolar', '#evaluacion']),
     (p_user_id, 'Evaluación Final - Fin', 'Fin del período de evaluación final', 'entrega', '2026-07-10', ARRAY['#calendario-escolar', '#evaluacion']);
+    
+    -- Log de éxito
+    RAISE NOTICE 'Calendario escolar agregado exitosamente para usuario %', p_user_id;
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
 
--- 2. MODIFICAR EL TRIGGER EXISTENTE PARA INCLUIR CALENDARIO ESCOLAR
--- ================================================================
--- Primero eliminamos el trigger existente
-DROP TRIGGER IF EXISTS on_auth_user_created_basic ON auth.users;
-
--- Creamos una nueva función que incluye tanto el perfil como el calendario
-CREATE OR REPLACE FUNCTION public.handle_new_user_with_calendar()
-RETURNS TRIGGER AS $$
-BEGIN
-  -- Crear el perfil del usuario
-  INSERT INTO public.profiles (id, full_name, email)
-  VALUES (
-    NEW.id, 
-    COALESCE(NEW.raw_user_meta_data->>'full_name', NEW.email), 
-    NEW.email
-  )
-  ON CONFLICT (id) DO NOTHING;
-  
-  -- Agregar calendario escolar al nuevo usuario
-  PERFORM add_school_calendar_to_new_user(NEW.id);
-  
-  RETURN NEW;
-END;
-$$ LANGUAGE plpgsql SECURITY DEFINER;
-
--- Crear el nuevo trigger
-CREATE TRIGGER on_auth_user_created_with_calendar
-  AFTER INSERT ON auth.users
-  FOR EACH ROW EXECUTE FUNCTION public.handle_new_user_with_calendar();
-
--- 3. COMENTARIOS Y DOCUMENTACIÓN
+-- 2. COMENTARIOS Y DOCUMENTACIÓN
 -- ==============================
-COMMENT ON FUNCTION add_school_calendar_to_new_user() IS 'Agrega automáticamente eventos del calendario escolar 2025-2026 a nuevos usuarios';
-COMMENT ON FUNCTION public.handle_new_user_with_calendar() IS 'Maneja la creación de nuevos usuarios incluyendo perfil y calendario escolar';
+COMMENT ON FUNCTION public.add_school_calendar_to_new_user(UUID) IS 'Agrega eventos del calendario escolar 2025-2026 a un usuario específico. Para uso manual desde la API.';
 
--- 4. VERIFICACIÓN DE LA MIGRACIÓN
+-- 3. VERIFICACIÓN DE LA MIGRACIÓN
 -- ===============================
 DO $$
 BEGIN
-    RAISE NOTICE 'Migration completed: School calendar trigger created successfully';
-    RAISE NOTICE 'New users will automatically receive:';
-    RAISE NOTICE '- Basic profile setup';
-    RAISE NOTICE '- Complete school calendar 2025-2026';
-    RAISE NOTICE '- 10 Technical Council sessions';
-    RAISE NOTICE '- 12 important school events';
-    RAISE NOTICE '- 8 evaluation periods';
-    RAISE NOTICE 'Total: 30 calendar events per new user';
+    RAISE NOTICE 'Migration completed: School calendar function restored';
+    RAISE NOTICE 'Function add_school_calendar_to_new_user is now available for manual use';
+    RAISE NOTICE 'The function will add 30 school calendar events to the specified user';
 END $$;

@@ -10,6 +10,7 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { Alert, AlertDescription } from "@/components/ui/alert"
+import { Skeleton } from "@/components/ui/skeleton"
 import { useToast } from "@/hooks/use-toast"
 import FullCalendar from '@fullcalendar/react'
 import dayGridPlugin from '@fullcalendar/daygrid'
@@ -17,6 +18,7 @@ import timeGridPlugin from '@fullcalendar/timegrid'
 import interactionPlugin from '@fullcalendar/interaction'
 import esLocale from '@fullcalendar/core/locales/es'
 import { saveEvent, getUserEvents, getEventsWithLinks, extractHashtags, eventsToFullCalendarFormat, updateEvent, deleteEvent, Event, EventFormData, getAvailablePlaneaciones, getAvailableExamenes, AvailablePlaneacion, AvailableExamen } from '@/lib/events'
+import { supabase } from '@/lib/supabase'
 
 interface AgendaProps {
   onSectionChange?: (section: string) => void
@@ -48,6 +50,8 @@ export function Agenda({ onSectionChange }: AgendaProps) {
   const [examenSearch, setExamenSearch] = useState('')
   const [showPlaneacionSuggestions, setShowPlaneacionSuggestions] = useState(false)
   const [showExamenSuggestions, setShowExamenSuggestions] = useState(false)
+  const [generatingSchoolEvents, setGeneratingSchoolEvents] = useState(false)
+  const [hasSchoolEvents, setHasSchoolEvents] = useState(false)
   const { toast } = useToast()
 
   // Funciones para manejar formato de fecha mexicano
@@ -89,6 +93,19 @@ export function Agenda({ onSectionChange }: AgendaProps) {
       if (result.success && result.events) {
         console.log('✅ Eventos cargados en componente:', result.events.length, 'eventos')
         setEvents(result.events)
+        
+        // Verificar si ya existen eventos del calendario escolar basándose en títulos
+        const schoolEvents = result.events.filter(event => 
+          event.title.includes('Consejo Técnico Escolar') ||
+          event.title.includes('Suspensión de Labores') ||
+          event.title.includes('Suspensión de labores') ||
+          event.title.includes('Inicio del Ciclo Escolar') ||
+          event.title.includes('Fin del Ciclo Escolar') ||
+          event.title.includes('Vacaciones') ||
+          event.title.includes('Evaluación')
+        )
+        setHasSchoolEvents(schoolEvents.length > 0)
+        console.log('📅 Eventos del calendario escolar encontrados:', schoolEvents.length)
       } else {
         console.error('❌ Error al cargar eventos:', result.error)
       }
@@ -284,6 +301,62 @@ export function Agenda({ onSectionChange }: AgendaProps) {
     setExamenSearch('')
     setShowPlaneacionSuggestions(false)
     setShowExamenSuggestions(false)
+  }
+
+  // Función para generar eventos SEP
+  const handleGenerateSchoolEvents = async () => {
+    setGeneratingSchoolEvents(true)
+    try {
+      // Obtener el token de sesión de Supabase
+      const { data: { session } } = await supabase.auth.getSession()
+      
+      if (!session?.access_token) {
+        toast({
+          title: "Error de autenticación",
+          description: "No se pudo obtener el token de sesión. Por favor, inicia sesión nuevamente.",
+          variant: "destructive"
+        })
+        return
+      }
+      
+      const response = await fetch('/api/generate-school-events', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${session.access_token}`
+        }
+      })
+
+      const result = await response.json()
+
+      if (result.success) {
+        // Recargar eventos para mostrar los nuevos
+        await loadEvents()
+        
+        // Marcar que ya se tienen eventos del calendario escolar
+        setHasSchoolEvents(true)
+        
+        toast({
+          title: "¡Eventos SEP generados!",
+          description: `Se han agregado ${result.eventsCount} eventos del calendario escolar SEP 2025-2026`
+        })
+      } else {
+        toast({
+          title: "Error al generar eventos",
+          description: result.error || "No se pudieron generar los eventos SEP",
+          variant: "destructive"
+        })
+      }
+    } catch (error) {
+      console.error('Error al generar eventos SEP:', error)
+      toast({
+        title: "Error inesperado",
+        description: "Ocurrió un error al generar los eventos SEP",
+        variant: "destructive"
+      })
+    } finally {
+      setGeneratingSchoolEvents(false)
+    }
   }
 
   // Función para abrir modal de edición
@@ -696,21 +769,49 @@ export function Agenda({ onSectionChange }: AgendaProps) {
                     Gestiona tus eventos y actividades
                   </CardDescription>
                 </div>
-                <Button 
-                  className="flex items-center gap-2"
-                  onClick={() => {
-                    resetForm()
-                    loadAvailableLinks()
-                    setIsModalOpen(true)
-                  }}
-                >
-                  <Plus className="h-4 w-4" />
-                  Nuevo Evento
-                </Button>
+                <div className="flex items-center gap-2">
+                  {loading ? (
+                    <Skeleton className="h-10 w-40" />
+                  ) : (
+                    !hasSchoolEvents && (
+                      <Button 
+                        variant="outline"
+                        className="flex items-center gap-2"
+                        onClick={handleGenerateSchoolEvents}
+                        disabled={generatingSchoolEvents}
+                      >
+                        <BookOpen className="h-4 w-4" />
+                        {generatingSchoolEvents ? 'Generando...' : 'Generar Eventos SEP'}
+                      </Button>
+                    )
+                  )}
+                  <Button 
+                    className="flex items-center gap-2"
+                    onClick={() => {
+                      resetForm()
+                      loadAvailableLinks()
+                      setIsModalOpen(true)
+                    }}
+                    disabled={loading}
+                  >
+                    <Plus className="h-4 w-4" />
+                    Nuevo Evento
+                  </Button>
+                </div>
               </div>
             </CardHeader>
             <CardContent>
-              <div className="fullcalendar-container border rounded-lg p-4">
+              {loading ? (
+                <div className="space-y-4">
+                  <Skeleton className="h-8 w-full" />
+                  <div className="grid grid-cols-7 gap-2">
+                    {Array.from({ length: 35 }).map((_, i) => (
+                      <Skeleton key={i} className="h-20 w-full" />
+                    ))}
+                  </div>
+                </div>
+              ) : (
+                <div className="fullcalendar-container border rounded-lg p-4">
                 <FullCalendar
                   plugins={[dayGridPlugin, timeGridPlugin, interactionPlugin]}
                   initialView="dayGridMonth"
@@ -852,7 +953,8 @@ export function Agenda({ onSectionChange }: AgendaProps) {
                     document.removeEventListener('mousemove', () => {})
                   }}
                 />
-              </div>
+                </div>
+              )}
             </CardContent>
           </Card>
         </div>
@@ -885,8 +987,15 @@ export function Agenda({ onSectionChange }: AgendaProps) {
               </CardDescription>
             </CardHeader>
             <CardContent>
-              <div className="space-y-3 max-h-64 overflow-y-auto">
-                {(() => {
+              {loading ? (
+                <div className="space-y-3">
+                  <Skeleton className="h-4 w-3/4" />
+                  <Skeleton className="h-16 w-full" />
+                  <Skeleton className="h-16 w-full" />
+                </div>
+              ) : (
+                <div className="space-y-3 max-h-64 overflow-y-auto">
+                  {(() => {
                   const today = new Date()
                   // Usar la fecha local en lugar de UTC para evitar problemas de zona horaria
                   const todayStr = today.getFullYear() + '-' + 
@@ -954,8 +1063,9 @@ export function Agenda({ onSectionChange }: AgendaProps) {
                       </div>
                     )
                   })
-                })()} 
-              </div>
+                })()}
+                </div>
+              )}
             </CardContent>
           </Card>
 
@@ -971,8 +1081,16 @@ export function Agenda({ onSectionChange }: AgendaProps) {
               </CardDescription>
             </CardHeader>
             <CardContent>
-              <div className="space-y-3 max-h-64 overflow-y-auto">
-                {(() => {
+              {loading ? (
+                <div className="space-y-3">
+                  <Skeleton className="h-4 w-1/2" />
+                  <Skeleton className="h-12 w-full" />
+                  <Skeleton className="h-12 w-full" />
+                  <Skeleton className="h-12 w-full" />
+                </div>
+              ) : (
+                <div className="space-y-3 max-h-64 overflow-y-auto">
+                  {(() => {
                   const today = new Date()
                   // Usar la fecha local en lugar de UTC para evitar problemas de zona horaria
                   const todayStr = today.getFullYear() + '-' + 
@@ -1036,8 +1154,9 @@ export function Agenda({ onSectionChange }: AgendaProps) {
                       </div>
                     )
                   })
-                })()} 
-              </div>
+                  })()} 
+                </div>
+              )}
             </CardContent>
           </Card>
 
