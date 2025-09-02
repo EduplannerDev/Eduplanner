@@ -1,17 +1,20 @@
 'use client'
 
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect, useCallback, useMemo } from 'react'
 import { useAuth } from '@/hooks/use-auth'
 import { getGruposByOwner, deleteGrupo, type Grupo } from '@/lib/grupos'
-import { Loader2, Users as UsersIcon, Calendar, Plus, Edit, Trash2, Eye, Users } from 'lucide-react'
+import { Loader2, Users as UsersIcon, Calendar, Plus, Edit, Trash2, Eye, Users, CheckSquare } from 'lucide-react'
 import { Button } from "@/components/ui/button"
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog"
+
+import { format } from 'date-fns'
 import NuevoGrupo from './nuevo-grupo'
 import ViewGrupo from './view-grupo'
 import EditGrupo from './edit-grupo'
 import GestionarAlumnos from './gestionar-alumnos'
+import TomarAsistenciaGrupo from './tomar-asistencia-grupo'
 
 interface MisGruposProps {
   onNavigateToMensajesPadres?: (studentData: any) => void;
@@ -25,8 +28,17 @@ const MisGrupos = ({ onNavigateToMensajesPadres, onNavigateToMensajesPadresAlumn
   const [error, setError] = useState<string | null>(null)
   const [showNuevoGrupo, setShowNuevoGrupo] = useState(false)
   const [selectedGrupoId, setSelectedGrupoId] = useState<string | null>(null)
-  const [viewMode, setViewMode] = useState<"list" | "view" | "edit" | "new" | "gestionar-alumnos">("list")
+  const [viewMode, setViewMode] = useState<"list" | "view" | "edit" | "new" | "gestionar-alumnos" | "tomar-asistencia">("list")
   const [deletingGrupoId, setDeletingGrupoId] = useState<string | null>(null)
+
+
+  const handleTomarAsistencia = (grupoId: string) => {
+    setSelectedGrupoId(grupoId)
+    setViewMode('tomar-asistencia')
+  }
+
+  // Usar useMemo para evitar que la fecha cambie en cada render
+  const fechaHoy = useMemo(() => format(new Date(), 'yyyy-MM-dd'), [])
 
   const fetchGrupos = useCallback(async () => {
     if (!user?.id) {
@@ -51,6 +63,8 @@ const MisGrupos = ({ onNavigateToMensajesPadres, onNavigateToMensajesPadresAlumn
       fetchGrupos()
     }
   }, [viewMode, showNuevoGrupo, fetchGrupos])
+
+
 
   const handleViewGrupo = (grupoId: string) => {
     setSelectedGrupoId(grupoId)
@@ -146,6 +160,16 @@ const MisGrupos = ({ onNavigateToMensajesPadres, onNavigateToMensajesPadresAlumn
     )
   }
 
+  if (viewMode === "tomar-asistencia" && selectedGrupoId) {
+    return (
+      <TomarAsistenciaGrupo
+        grupoId={selectedGrupoId}
+        fecha={fechaHoy}
+        onBack={handleBackToList}
+      />
+    )
+  }
+
   return (
     <div className="space-y-6">
       {error && (
@@ -210,6 +234,14 @@ const MisGrupos = ({ onNavigateToMensajesPadres, onNavigateToMensajesPadresAlumn
                     </span>
                   </div>
                   <div className="flex gap-2" onClick={(e) => e.stopPropagation()}>
+                    <Button 
+                      size="sm" 
+                      className="bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white border-0"
+                      onClick={() => handleTomarAsistencia(grupo.id)}
+                    >
+                      <CheckSquare className="h-4 w-4" />
+                      Tomar asistencia
+                    </Button>
                     <Button 
                       size="sm" 
                       variant="outline" 

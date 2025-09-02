@@ -2,12 +2,15 @@
 
 import { useState, useEffect } from 'react'
 import { getGrupoById, type Grupo } from '@/lib/grupos'
-import { ArrowLeft, Edit, Users, Calendar, GraduationCap, FileText, Loader2 } from 'lucide-react'
+import { ArrowLeft, Edit, Users, Calendar, GraduationCap, FileText, Loader2, ClipboardList } from 'lucide-react'
 import { Button } from "@/components/ui/button"
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Separator } from "@/components/ui/separator"
+import { getHistorialAsistenciaGrupo, AsistenciaHistorial } from '@/lib/asistencia'
 import GestionarAlumnos from './gestionar-alumnos'
+import { format } from 'date-fns'
+import { es } from 'date-fns/locale'
 
 interface ViewGrupoProps {
   grupoId: string
@@ -15,16 +18,31 @@ interface ViewGrupoProps {
   onEdit: () => void
 }
 
-type ViewMode = 'details' | 'alumnos'
+type ViewMode = 'details' | 'alumnos' | 'asistencias'
 
 const ViewGrupo = ({ grupoId, onBack, onEdit }: ViewGrupoProps) => {
   const [grupo, setGrupo] = useState<Grupo | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [viewMode, setViewMode] = useState<ViewMode>('details')
+  const [historialAsistencia, setHistorialAsistencia] = useState<AsistenciaHistorial[]>([])
+  const [loadingAsistencia, setLoadingAsistencia] = useState(false)
 
   const handleGestionarAlumnos = () => {
     setViewMode('alumnos')
+  }
+
+  const handleVerAsistencias = async () => {
+    setViewMode('asistencias')
+    setLoadingAsistencia(true)
+    try {
+      const historial = await getHistorialAsistenciaGrupo(grupoId)
+      setHistorialAsistencia(historial)
+    } catch (error) {
+      console.error('Error loading attendance history:', error)
+    } finally {
+      setLoadingAsistencia(false)
+    }
   }
 
   const handleBackToDetails = () => {
@@ -88,6 +106,92 @@ const ViewGrupo = ({ grupoId, onBack, onEdit }: ViewGrupoProps) => {
     )
   }
 
+  // Renderizar vista de asistencias si está en ese modo
+  if (viewMode === 'asistencias') {
+    return (
+      <div className="space-y-6">
+        <div className="flex items-center gap-4">
+          <Button variant="outline" onClick={handleBackToDetails}>
+            <ArrowLeft className="h-4 w-4 mr-2" />
+            Volver a Detalles
+          </Button>
+          <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100">Historial de Asistencias</h1>
+        </div>
+        
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <ClipboardList className="h-5 w-5" />
+              Registro de Asistencias - {grupo.nombre}
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            {loadingAsistencia ? (
+              <div className="flex items-center justify-center h-32">
+                <Loader2 className="h-8 w-8 animate-spin" />
+                <span className="ml-2">Cargando historial...</span>
+              </div>
+            ) : historialAsistencia.length === 0 ? (
+              <div className="text-center py-8">
+                <ClipboardList className="h-12 w-12 mx-auto text-gray-400 mb-4" />
+                <p className="text-gray-500">No hay registros de asistencia para este grupo</p>
+              </div>
+            ) : (
+               <div className="space-y-4">
+                 {historialAsistencia.map((registro, index) => (
+                   <div key={`${registro.fecha}-${index}`} className="border rounded-lg p-4">
+                     <div className="flex justify-between items-start mb-2">
+                       <div>
+                         <h3 className="font-semibold">
+                           {format(new Date(registro.fecha), 'EEEE, d MMMM yyyy', { locale: es })}
+                         </h3>
+                         <p className="text-sm text-gray-600">
+                           Total de alumnos: {registro.total_alumnos}
+                         </p>
+                       </div>
+                       <Badge 
+                         variant={registro.porcentaje_asistencia >= 80 ? "default" : "destructive"}
+                       >
+                         {registro.porcentaje_asistencia}% asistencia
+                       </Badge>
+                     </div>
+                     
+                     <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-4">
+                       <div className="text-center p-3 bg-green-50 dark:bg-green-900/20 rounded">
+                         <div className="text-lg font-bold text-green-600 dark:text-green-400">
+                           {registro.presentes}
+                         </div>
+                         <div className="text-sm text-gray-600 dark:text-gray-300">Presentes</div>
+                       </div>
+                       <div className="text-center p-3 bg-red-50 dark:bg-red-900/20 rounded">
+                         <div className="text-lg font-bold text-red-600 dark:text-red-400">
+                           {registro.ausentes}
+                         </div>
+                         <div className="text-sm text-gray-600 dark:text-gray-300">Ausentes</div>
+                       </div>
+                       <div className="text-center p-3 bg-yellow-50 dark:bg-yellow-900/20 rounded">
+                         <div className="text-lg font-bold text-yellow-600 dark:text-yellow-400">
+                           {registro.retardos}
+                         </div>
+                         <div className="text-sm text-gray-600 dark:text-gray-300">Retardos</div>
+                       </div>
+                       <div className="text-center p-3 bg-blue-50 dark:bg-blue-900/20 rounded">
+                         <div className="text-lg font-bold text-blue-600 dark:text-blue-400">
+                           {registro.justificados}
+                         </div>
+                         <div className="text-sm text-gray-600 dark:text-gray-300">Justificados</div>
+                       </div>
+                     </div>
+                   </div>
+                 ))}
+               </div>
+            )}
+          </CardContent>
+        </Card>
+      </div>
+    )
+  }
+
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
@@ -137,15 +241,33 @@ const ViewGrupo = ({ grupoId, onBack, onEdit }: ViewGrupoProps) => {
                 </div>
               </div>
               
-              {grupo.descripcion && (
-                <>
-                  <Separator />
-                  <div>
-                    <label className="text-sm font-medium text-gray-500 dark:text-gray-400">Descripción</label>
-                    <p className="text-gray-900 dark:text-gray-100 mt-1">{grupo.descripcion}</p>
+
+            </CardContent>
+          </Card>
+
+          {/* Tarjeta destacada de Ver Asistencias */}
+          <Card className="bg-gradient-to-r from-blue-500 to-blue-600 border-0 text-white">
+            <CardContent className="p-6">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-4">
+                  <div className="p-3 bg-white/20 rounded-full">
+                    <ClipboardList className="h-8 w-8 text-white" />
                   </div>
-                </>
-              )}
+                  <div>
+                    <h3 className="text-xl font-bold text-white mb-1">Historial de Asistencias</h3>
+                    <p className="text-blue-100 text-sm">
+                      Revisa el registro completo de asistencias de {grupo.nombre} • {grupo.numero_alumnos || 0} alumnos
+                    </p>
+                  </div>
+                </div>
+                <Button 
+                  onClick={handleVerAsistencias}
+                  className="bg-white text-blue-600 hover:bg-blue-50 font-semibold px-6 py-3 h-auto"
+                >
+                  <ClipboardList className="h-5 w-5 mr-2" />
+                  Ver Historial
+                </Button>
+              </div>
             </CardContent>
           </Card>
 
@@ -161,10 +283,10 @@ const ViewGrupo = ({ grupoId, onBack, onEdit }: ViewGrupoProps) => {
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <div className="text-center p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
                   <div className="text-2xl font-bold text-blue-600 dark:text-blue-400">
-                    {grupo.numero_alumnos}
+                    {grupo.numero_alumnos || 0}
                   </div>
                   <div className="text-sm text-gray-600 dark:text-gray-300">
-                    {grupo.numero_alumnos === 1 ? 'Alumno' : 'Alumnos'}
+                    Alumnos
                   </div>
                 </div>
                 <div className="text-center p-4 bg-green-50 dark:bg-green-900/20 rounded-lg">
@@ -251,6 +373,7 @@ const ViewGrupo = ({ grupoId, onBack, onEdit }: ViewGrupoProps) => {
                 <Users className="h-4 w-4 mr-2" />
                 Alumnos
               </Button>
+
               <p className="text-xs text-gray-500 dark:text-gray-400 text-center mt-2">
                 Próximamente disponible
               </p>

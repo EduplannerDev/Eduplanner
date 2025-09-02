@@ -19,6 +19,7 @@ import { AdminDashboard } from "./sections/admin-dashboard"
 import { AdministracionPlantel } from "./sections/administracion-plantel"
 import { Agenda } from "./sections/agenda"
 import { DiarioProfesional } from "./sections/diario-profesional"
+import TomarAsistencia from "./sections/tomar-asistencia"
 import { WelcomeMessage } from "./ui/welcome-message"
 import { SidebarInset, SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar"
 import { Separator } from "@/components/ui/separator"
@@ -77,6 +78,8 @@ export default function Dashboard() {
         return "Mis Grupos"
       case "agenda":
         return "Agenda"
+      case "tomar-asistencia":
+        return "Tomar Asistencia"
       case "bitacora":
         return "Bitácora"
       case "admin-dashboard":
@@ -135,6 +138,8 @@ export default function Dashboard() {
         />
       case "agenda":
         return <Agenda onSectionChange={setActiveSection} />
+      case "tomar-asistencia":
+        return <TomarAsistencia onBack={() => setActiveSection("dashboard")} />
       case "bitacora":
         return <DiarioProfesional isOpen={true} onClose={() => setActiveSection("agenda")} />
       case "admin-dashboard":

@@ -12,6 +12,7 @@ export interface Grupo {
   activo: boolean
   created_at: string
   updated_at: string
+  numero_alumnos?: number
 }
 
 export interface CreateGrupoData {

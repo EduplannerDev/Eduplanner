@@ -15,7 +15,8 @@ import {
   Clock,
   CheckCircle,
   Plus,
-  GraduationCap
+  GraduationCap,
+  ClipboardCheck
 } from "lucide-react"
 import { useAuth } from "@/hooks/use-auth"
 import { useUserData } from "@/hooks/use-user-data"
@@ -23,6 +24,8 @@ import { useProfile } from "@/hooks/use-profile"
 import { supabase } from "@/lib/supabase"
 import { getMonthlyPlaneacionesCount } from "@/lib/planeaciones"
 import { isUserPro } from "@/lib/subscription-utils"
+import { format } from "date-fns"
+import { es } from "date-fns/locale"
 
 interface DashboardHomeProps {
   onSectionChange: (section: string) => void
@@ -264,6 +267,32 @@ export function DashboardHome({ onSectionChange }: DashboardHomeProps) {
           </CardContent>
         </Card>
       </div>
+
+      {/* Tarjeta destacada de Tomar Asistencia */}
+      <Card className="bg-gradient-to-r from-emerald-500 to-emerald-600 border-0 text-white">
+        <CardContent className="p-6">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-4">
+              <div className="p-3 bg-white/20 rounded-full">
+                <ClipboardCheck className="h-8 w-8 text-white" />
+              </div>
+              <div>
+                <h3 className="text-xl font-bold text-white mb-1">Tomar Asistencia Hoy</h3>
+                <p className="text-emerald-100 text-sm">
+                   Registra la asistencia de tus {stats.grupos} grupos • {format(new Date(), "EEEE, d 'de' MMMM", { locale: es })}
+                 </p>
+              </div>
+            </div>
+            <Button 
+              onClick={() => onSectionChange('tomar-asistencia')}
+              className="bg-white text-emerald-600 hover:bg-emerald-50 font-semibold px-6 py-3 h-auto"
+            >
+              <ClipboardCheck className="h-5 w-5 mr-2" />
+              Comenzar
+            </Button>
+          </div>
+        </CardContent>
+      </Card>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Acciones rápidas */}
