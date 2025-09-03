@@ -32,7 +32,6 @@ import {
   BreadcrumbSeparator,
 } from "@/components/ui/breadcrumb"
 import { useRoles } from "@/hooks/use-roles"
-import { DebugUserRole } from "./debug-user-role"
 
 export default function Dashboard() {
   const [activeSection, setActiveSection] = useState("dashboard")
@@ -155,15 +154,13 @@ export default function Dashboard() {
           return <DashboardHome onSectionChange={setActiveSection} />
         }
         return <AdministracionPlantel isOpen={true} onClose={() => setActiveSection("admin-dashboard")} />
-      case "debug-role":
-        return <DebugUserRole />
       default:
         return <DashboardHome onSectionChange={setActiveSection} />
     }
   }
 
   // Usar padding diferente para el chat y mensajes
-  const isChat = activeSection === "chat-ia" || activeSection === "generar-mensajes" || activeSection === "generar-mensajes-padres" || activeSection === "mis-mensajes"
+  const isChat = activeSection === "chat-ia" || activeSection === "generar-mensajes" || activeSection === "generar-mensajes-padres"
 
   return (
     <SidebarProvider>
