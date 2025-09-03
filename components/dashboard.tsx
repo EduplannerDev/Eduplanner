@@ -160,7 +160,7 @@ export default function Dashboard() {
   }
 
   // Usar padding diferente para el chat y mensajes
-  const isChat = activeSection === "chat-ia" || activeSection === "generar-mensajes" || activeSection === "generar-mensajes-padres"
+  const isChat = activeSection === "generar-mensajes-padres"
 
   return (
     <SidebarProvider>
