@@ -31,12 +31,13 @@ export interface UpdateGrupoData {
   ciclo_escolar?: string
 }
 
-// Obtener todos los grupos del usuario
+// Obtener todos los grupos del usuario según su rol y permisos
 export async function getGruposByOwner(userId: string): Promise<Grupo[]> {
+  // La consulta ahora depende de las políticas RLS que determinan
+  // qué grupos puede ver el usuario según su rol y plantel
   const { data, error } = await supabase
     .from('grupos')
     .select('*')
-    .eq('user_id', userId)
     .order('created_at', { ascending: false })
 
   if (error) {

@@ -33,12 +33,10 @@ CREATE TRIGGER update_messages_updated_at
 CREATE TABLE IF NOT EXISTS parent_messages (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     user_id UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
-    grupo_id UUID REFERENCES grupos(id) ON DELETE CASCADE,
-    alumno_id UUID REFERENCES alumnos(id) ON DELETE CASCADE,
+    alumno_id UUID NOT NULL REFERENCES alumnos(id) ON DELETE CASCADE,
     title VARCHAR(255) NOT NULL,
     content TEXT NOT NULL,
     message_type VARCHAR(50) DEFAULT 'general' CHECK (message_type IN ('general', 'academico', 'comportamiento', 'evento', 'tarea', 'citatorio')),
-    recipient_type VARCHAR(20) DEFAULT 'grupo' CHECK (recipient_type IN ('grupo', 'individual')),
     
     -- Información del destinatario
     parent_name VARCHAR(255),
@@ -51,21 +49,13 @@ CREATE TABLE IF NOT EXISTS parent_messages (
     delivery_method VARCHAR(20) DEFAULT 'email' CHECK (delivery_method IN ('email', 'whatsapp', 'sms', 'manual')),
     
     created_at TIMESTAMPTZ DEFAULT NOW(),
-    updated_at TIMESTAMPTZ DEFAULT NOW(),
-    
-    -- Constraint: si es individual debe tener alumno_id
-    CONSTRAINT check_individual_message CHECK (
-        (recipient_type = 'individual' AND alumno_id IS NOT NULL) OR
-        (recipient_type = 'grupo' AND grupo_id IS NOT NULL)
-    )
+    updated_at TIMESTAMPTZ DEFAULT NOW()
 );
 
 -- Índices para parent_messages
 CREATE INDEX IF NOT EXISTS idx_parent_messages_user_id ON parent_messages(user_id);
-CREATE INDEX IF NOT EXISTS idx_parent_messages_grupo_id ON parent_messages(grupo_id);
 CREATE INDEX IF NOT EXISTS idx_parent_messages_alumno_id ON parent_messages(alumno_id);
 CREATE INDEX IF NOT EXISTS idx_parent_messages_type ON parent_messages(message_type);
-CREATE INDEX IF NOT EXISTS idx_parent_messages_recipient_type ON parent_messages(recipient_type);
 CREATE INDEX IF NOT EXISTS idx_parent_messages_is_sent ON parent_messages(is_sent);
 CREATE INDEX IF NOT EXISTS idx_parent_messages_created_at ON parent_messages(created_at DESC);
 CREATE INDEX IF NOT EXISTS idx_parent_messages_parent_email ON parent_messages(parent_email);
@@ -115,7 +105,7 @@ COMMENT ON COLUMN messages.category IS 'Categoría del mensaje';
 
 COMMENT ON TABLE parent_messages IS 'Tabla para mensajes dirigidos a padres de familia';
 COMMENT ON COLUMN parent_messages.user_id IS 'ID del profesor que envía el mensaje';
-COMMENT ON COLUMN parent_messages.grupo_id IS 'ID del grupo (para mensajes grupales)';
+-- Campo grupo_id eliminado - se obtiene a través de alumnos.grupo_id
 COMMENT ON COLUMN parent_messages.alumno_id IS 'ID del alumno (para mensajes individuales)';
 COMMENT ON COLUMN parent_messages.message_type IS 'Tipo de mensaje: general, academico, comportamiento, etc.';
 COMMENT ON COLUMN parent_messages.recipient_type IS 'Tipo de destinatario: grupo o individual';
@@ -186,14 +176,13 @@ CREATE POLICY "Ver mensajes de padres según permisos" ON parent_messages
             WHERE p.id = auth.uid()
             AND (
                 p.role = 'administrador'
-                OR (p.role = 'director' AND (
-                    (parent_messages.grupo_id IS NOT NULL AND EXISTS (
-                        SELECT 1 FROM grupos g WHERE g.id = parent_messages.grupo_id AND g.plantel_id = p.plantel_id
-                    ))
-                    OR (parent_messages.alumno_id IS NOT NULL AND EXISTS (
-                        SELECT 1 FROM alumnos a JOIN grupos g ON g.id = a.grupo_id 
-                        WHERE a.id = parent_messages.alumno_id AND g.plantel_id = p.plantel_id
-                    ))
+                OR (p.role = 'director' AND EXISTS (
+                    SELECT 1 FROM alumnos a JOIN grupos g ON g.id = a.grupo_id 
+                    WHERE a.id = parent_messages.alumno_id AND g.plantel_id = p.plantel_id
+                ))
+                OR (p.role = 'profesor' AND EXISTS (
+                    SELECT 1 FROM alumnos a JOIN grupos g ON g.id = a.grupo_id 
+                    WHERE a.id = parent_messages.alumno_id AND g.user_id = auth.uid()
                 ))
             )
         )
@@ -208,28 +197,16 @@ CREATE POLICY "Crear mensajes de padres según permisos" ON parent_messages
             WHERE p.id = auth.uid()
             AND p.role IN ('profesor', 'director', 'administrador')
         )
-        AND (
-            (grupo_id IS NOT NULL AND EXISTS (
-                SELECT 1 FROM grupos g
-                JOIN profiles p ON p.id = auth.uid()
-                WHERE g.id = parent_messages.grupo_id
-                AND (
-                    p.role = 'administrador'
-                    OR (p.role = 'director' AND p.plantel_id = g.plantel_id)
-                    OR (p.role = 'profesor' AND g.user_id = auth.uid())
-                )
-            ))
-            OR (alumno_id IS NOT NULL AND EXISTS (
-                SELECT 1 FROM alumnos a
-                JOIN grupos g ON g.id = a.grupo_id
-                JOIN profiles p ON p.id = auth.uid()
-                WHERE a.id = parent_messages.alumno_id
-                AND (
-                    p.role = 'administrador'
-                    OR (p.role = 'director' AND p.plantel_id = g.plantel_id)
-                    OR (p.role = 'profesor' AND g.user_id = auth.uid())
-                )
-            ))
+        AND EXISTS (
+            SELECT 1 FROM alumnos a
+            JOIN grupos g ON g.id = a.grupo_id
+            JOIN profiles p ON p.id = auth.uid()
+            WHERE a.id = parent_messages.alumno_id
+            AND (
+                p.role = 'administrador'
+                OR (p.role = 'director' AND p.plantel_id = g.plantel_id)
+                OR (p.role = 'profesor' AND g.user_id = auth.uid())
+            )
         )
     );
 

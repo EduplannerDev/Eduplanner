@@ -154,14 +154,57 @@ Puedo crear mensajes sobre:
       if (!user?.id) return
       
       try {
+        // Primero obtener los grupos del usuario usando la función que funciona
+        const { getGruposByOwner } = await import('@/lib/grupos')
+        const userGroups = await getGruposByOwner(user.id)
+        
+        if (!userGroups || userGroups.length === 0) {
+          setStudents([])
+          return
+        }
+        
+        const groupIds = userGroups.map(g => g.id)
+        
+        // Luego obtener los alumnos de esos grupos
         const { data, error } = await supabase
           .from('alumnos')
-          .select('*')
-          .eq('user_id', user.id)
+          .select(`
+            id,
+            nombre_completo,
+            numero_lista,
+            grupo_id,
+            nombre_padre,
+            correo_padre,
+            telefono_padre,
+            nombre_madre,
+            correo_madre,
+            telefono_madre,
+            notas_generales,
+            grupos!grupo_id (
+              grado,
+              grupo,
+              nivel,
+              ciclo_escolar
+            )
+          `)
+          .in('grupo_id', groupIds)
           .order('nombre_completo')
         
         if (error) throw error
-        setStudents(data || [])
+        
+        // Transformar los datos para incluir la información del grupo
+        const transformedData = (data || []).map(alumno => {
+          const grupoInfo = Array.isArray(alumno.grupos) ? alumno.grupos[0] : alumno.grupos
+          return {
+            ...alumno,
+            grado: grupoInfo?.grado || '',
+            grupo: grupoInfo?.grupo || '',
+            nivel: grupoInfo?.nivel || '',
+            ciclo_escolar: grupoInfo?.ciclo_escolar || ''
+          }
+        })
+        
+        setStudents(transformedData)
       } catch (error) {
         console.error('Error fetching students:', error)
         toast.error('Error al cargar los estudiantes')
@@ -407,27 +450,27 @@ Puedo crear mensajes sobre:
             {selectedStudentData && (
               <div className="bg-blue-50 dark:bg-blue-900/20 p-4 rounded-lg border border-blue-200 dark:border-blue-800">
                 <h4 className="font-medium text-blue-900 dark:text-blue-100 mb-2">Información del Estudiante:</h4>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-sm">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-sm text-gray-700 dark:text-gray-300">
                   <div>
-                    <span className="font-medium">Nombre:</span> {selectedStudentData.nombre_completo}
+                    <span className="font-medium text-gray-900 dark:text-gray-100">Nombre:</span> {selectedStudentData.nombre_completo}
                   </div>
                   <div>
-                    <span className="font-medium">Grupo:</span> {selectedStudentData.grupo}
+                    <span className="font-medium text-gray-900 dark:text-gray-100">Grupo:</span> {selectedStudentData.grupo}
                   </div>
                   <div>
-                    <span className="font-medium">Grado:</span> {selectedStudentData.grado}
+                    <span className="font-medium text-gray-900 dark:text-gray-100">Grado:</span> {selectedStudentData.grado}
                   </div>
                   <div>
-                    <span className="font-medium">Nivel:</span> {selectedStudentData.nivel}
+                    <span className="font-medium text-gray-900 dark:text-gray-100">Nivel:</span> {selectedStudentData.nivel}
                   </div>
                   {selectedStudentData.nombre_padre && (
                     <div>
-                      <span className="font-medium">Padre:</span> {selectedStudentData.nombre_padre}
+                      <span className="font-medium text-gray-900 dark:text-gray-100">Padre:</span> {selectedStudentData.nombre_padre}
                     </div>
                   )}
                   {selectedStudentData.nombre_madre && (
                     <div>
-                      <span className="font-medium">Madre:</span> {selectedStudentData.nombre_madre}
+                      <span className="font-medium text-gray-900 dark:text-gray-100">Madre:</span> {selectedStudentData.nombre_madre}
                     </div>
                   )}
                 </div>
