@@ -218,10 +218,10 @@ export function ExpedienteAlumno({ alumnoId, onBack, onNavigateToMensajesPadres,
 
   const getTipoColor = (tipo: string) => {
     switch (tipo) {
-      case 'academico': return 'bg-blue-100 text-blue-800';
-      case 'comportamiento': return 'bg-yellow-100 text-yellow-800';
-      case 'logro': return 'bg-green-100 text-green-800';
-      default: return 'bg-gray-100 text-gray-800';
+      case 'academico': return 'bg-blue-100 text-blue-800 dark:bg-blue-900/20 dark:text-blue-400';
+      case 'comportamiento': return 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/20 dark:text-yellow-400';
+      case 'logro': return 'bg-green-100 text-green-800 dark:bg-green-900/20 dark:text-green-400';
+      default: return 'bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-300';
     }
   };
 
@@ -247,7 +247,7 @@ export function ExpedienteAlumno({ alumnoId, onBack, onNavigateToMensajesPadres,
       <div className="flex items-center justify-center h-64">
         <div className="text-center">
           <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-4"></div>
-          <p className="text-gray-600">Cargando expediente...</p>
+          <p className="text-gray-600 dark:text-gray-300">Cargando expediente...</p>
         </div>
       </div>
     );
@@ -256,7 +256,7 @@ export function ExpedienteAlumno({ alumnoId, onBack, onNavigateToMensajesPadres,
   if (error || !alumno) {
     return (
       <div className="text-center py-8">
-        <p className="text-red-600 mb-4">{error || 'Alumno no encontrado'}</p>
+        <p className="text-red-600 dark:text-red-400 mb-4">{error || 'Alumno no encontrado'}</p>
         <Button onClick={onBack} variant="outline">
           Volver
         </Button>
@@ -296,10 +296,10 @@ export function ExpedienteAlumno({ alumnoId, onBack, onNavigateToMensajesPadres,
               </AvatarFallback>
             </Avatar>
             <div className="flex-1">
-              <h1 className="text-3xl font-bold text-gray-900 mb-2">
+              <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100 mb-2">
                 {alumno.nombre_completo}
               </h1>
-              <div className="flex items-center space-x-4 text-gray-600 mb-4">
+              <div className="flex items-center space-x-4 text-gray-600 dark:text-gray-300 mb-4">
                 <span className="flex items-center space-x-1">
                   <User className="h-4 w-4" />
                   <span>Grupo: {grupo?.nombre}</span>
@@ -310,23 +310,23 @@ export function ExpedienteAlumno({ alumnoId, onBack, onNavigateToMensajesPadres,
               </div>
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
                 <div>
-                  <p className="text-gray-500">Grado</p>
-                  <p className="font-medium">{grupo?.grado}</p>
+                  <p className="text-gray-500 dark:text-gray-400">Grado</p>
+                  <p className="font-medium dark:text-gray-200">{grupo?.grado}</p>
                 </div>
                 <div>
-                  <p className="text-gray-500">Nivel</p>
-                  <p className="font-medium">{grupo?.nivel}</p>
+                  <p className="text-gray-500 dark:text-gray-400">Nivel</p>
+                  <p className="font-medium dark:text-gray-200">{grupo?.nivel}</p>
                 </div>
                 <div>
-                  <p className="text-gray-500">Ciclo Escolar</p>
-                  <p className="font-medium">{grupo?.ciclo_escolar}</p>
+                  <p className="text-gray-500 dark:text-gray-400">Ciclo Escolar</p>
+                  <p className="font-medium dark:text-gray-200">{grupo?.ciclo_escolar}</p>
                 </div>
               </div>
               
               {/* Información de Contacto de los Padres */}
               {(alumno.nombre_padre || alumno.nombre_madre || alumno.correo_padre || alumno.correo_madre || alumno.telefono_padre || alumno.telefono_madre) && (
                 <div className="mt-6 border-t pt-4">
-                  <h3 className="text-lg font-semibold text-gray-900 mb-3 flex items-center">
+                  <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-3 flex items-center">
                     <User className="h-5 w-5 mr-2" />
                     Información de Contacto
                   </h3>
@@ -334,23 +334,23 @@ export function ExpedienteAlumno({ alumnoId, onBack, onNavigateToMensajesPadres,
                     {/* Información del Padre */}
                     {(alumno.nombre_padre || alumno.correo_padre || alumno.telefono_padre) && (
                       <div className="space-y-2">
-                        <h4 className="font-medium text-gray-700 border-b border-gray-200 pb-1">PADRE</h4>
+                        <h4 className="font-medium text-gray-700 dark:text-gray-300 border-b border-gray-200 dark:border-gray-600 pb-1">PADRE</h4>
                         {alumno.nombre_padre && (
                           <div>
-                            <p className="text-gray-500 text-sm">Nombre Completo</p>
-                            <p className="font-medium">{alumno.nombre_padre}</p>
+                            <p className="text-gray-500 dark:text-gray-400 text-sm">Nombre Completo</p>
+                            <p className="font-medium dark:text-gray-200">{alumno.nombre_padre}</p>
                           </div>
                         )}
                         {alumno.correo_padre && (
                           <div>
-                            <p className="text-gray-500 text-sm">Correo Electrónico</p>
-                            <p className="font-medium text-blue-600">{alumno.correo_padre}</p>
+                            <p className="text-gray-500 dark:text-gray-400 text-sm">Correo Electrónico</p>
+                            <p className="font-medium text-blue-600 dark:text-blue-400">{alumno.correo_padre}</p>
                           </div>
                         )}
                         {alumno.telefono_padre && (
                           <div>
-                            <p className="text-gray-500 text-sm">Teléfono</p>
-                            <p className="font-medium">{alumno.telefono_padre}</p>
+                            <p className="text-gray-500 dark:text-gray-400 text-sm">Teléfono</p>
+                            <p className="font-medium dark:text-gray-200">{alumno.telefono_padre}</p>
                           </div>
                         )}
                       </div>
@@ -359,23 +359,23 @@ export function ExpedienteAlumno({ alumnoId, onBack, onNavigateToMensajesPadres,
                     {/* Información de la Madre */}
                     {(alumno.nombre_madre || alumno.correo_madre || alumno.telefono_madre) && (
                       <div className="space-y-2">
-                        <h4 className="font-medium text-gray-700 border-b border-gray-200 pb-1">MADRE</h4>
+                        <h4 className="font-medium text-gray-700 dark:text-gray-300 border-b border-gray-200 dark:border-gray-600 pb-1">MADRE</h4>
                         {alumno.nombre_madre && (
                           <div>
-                            <p className="text-gray-500 text-sm">Nombre Completo</p>
-                            <p className="font-medium">{alumno.nombre_madre}</p>
+                            <p className="text-gray-500 dark:text-gray-400 text-sm">Nombre Completo</p>
+                            <p className="font-medium dark:text-gray-200">{alumno.nombre_madre}</p>
                           </div>
                         )}
                         {alumno.correo_madre && (
                           <div>
-                            <p className="text-gray-500 text-sm">Correo Electrónico</p>
-                            <p className="font-medium text-blue-600">{alumno.correo_madre}</p>
+                            <p className="text-gray-500 dark:text-gray-400 text-sm">Correo Electrónico</p>
+                            <p className="font-medium text-blue-600 dark:text-blue-400">{alumno.correo_madre}</p>
                           </div>
                         )}
                         {alumno.telefono_madre && (
                           <div>
-                            <p className="text-gray-500 text-sm">Teléfono</p>
-                            <p className="font-medium">{alumno.telefono_madre}</p>
+                            <p className="text-gray-500 dark:text-gray-400 text-sm">Teléfono</p>
+                            <p className="font-medium dark:text-gray-200">{alumno.telefono_madre}</p>
                           </div>
                         )}
                       </div>
@@ -386,14 +386,14 @@ export function ExpedienteAlumno({ alumnoId, onBack, onNavigateToMensajesPadres,
               
               {alumno.notas_generales && (
                 <div className="mt-4">
-                  <p className="text-gray-500 text-sm">Notas Generales</p>
-                  <p className="text-gray-700">{alumno.notas_generales}</p>
+                  <p className="text-gray-500 dark:text-gray-400 text-sm">Notas Generales</p>
+                  <p className="text-gray-700 dark:text-gray-300">{alumno.notas_generales}</p>
                 </div>
               )}
               
               {/* Acciones Rápidas */}
               <div className="mt-6 border-t pt-4">
-                <h3 className="text-lg font-semibold text-gray-900 mb-3">Acciones Rápidas</h3>
+                <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-3">Acciones Rápidas</h3>
                 <div className="flex flex-wrap gap-3">
                   {onNavigateToMensajesPadres && (
                     <Button
@@ -565,7 +565,7 @@ export function ExpedienteAlumno({ alumnoId, onBack, onNavigateToMensajesPadres,
                             {getTipoIcon(seguimiento.tipo)}
                             <span>{getTipoLabel(seguimiento.tipo)}</span>
                           </Badge>
-                          <span className="text-sm text-gray-500">
+                          <span className="text-sm text-gray-500 dark:text-gray-400">
                             {formatDate(seguimiento.fecha)}
                           </span>
                         </div>
@@ -604,8 +604,8 @@ export function ExpedienteAlumno({ alumnoId, onBack, onNavigateToMensajesPadres,
                           </AlertDialog>
                         </div>
                       </div>
-                      <p className="text-gray-700 leading-relaxed">{seguimiento.nota}</p>
-                      <p className="text-xs text-gray-500 mt-2">
+                      <p className="text-gray-700 dark:text-gray-300 leading-relaxed">{seguimiento.nota}</p>
+                      <p className="text-xs text-gray-500 dark:text-gray-400 mt-2">
                         Registrado el {new Date(seguimiento.created_at).toLocaleString('es-ES')}
                       </p>
                     </div>
@@ -627,11 +627,11 @@ export function ExpedienteAlumno({ alumnoId, onBack, onNavigateToMensajesPadres,
             </CardHeader>
             <CardContent>
               <div className="text-center py-8">
-                <BookOpen className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-                <h3 className="text-lg font-medium text-gray-900 mb-2">
+                <BookOpen className="h-12 w-12 text-gray-400 dark:text-gray-500 mx-auto mb-4" />
+                <h3 className="text-lg font-medium text-gray-900 dark:text-gray-100 mb-2">
                   Próximamente
                 </h3>
-                <p className="text-gray-600">
+                <p className="text-gray-600 dark:text-gray-300">
                   Esta sección mostrará el historial académico del alumno.
                 </p>
               </div>
@@ -650,11 +650,11 @@ export function ExpedienteAlumno({ alumnoId, onBack, onNavigateToMensajesPadres,
             </CardHeader>
             <CardContent>
               <div className="text-center py-8">
-                <MessageSquare className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-                <h3 className="text-lg font-medium text-gray-900 mb-2">
+                <MessageSquare className="h-12 w-12 text-gray-400 dark:text-gray-500 mx-auto mb-4" />
+                <h3 className="text-lg font-medium text-gray-900 dark:text-gray-100 mb-2">
                   Próximamente
                 </h3>
-                <p className="text-gray-600 mb-4">
+                <p className="text-gray-600 dark:text-gray-300 mb-4">
                   Esta sección mostrará el historial de comunicaciones con los padres.
                 </p>
                 <Button 

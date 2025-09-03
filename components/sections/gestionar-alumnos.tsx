@@ -413,11 +413,11 @@ export default function GestionarAlumnos({ grupoId, onBack, onNavigateToMensajes
             <span>Volver</span>
           </Button>
           <div>
-            <h1 className="text-2xl font-bold text-gray-900">
+            <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100">
               Alumnos de: {grupo?.nombre || 'Cargando...'}
             </h1>
             {grupo && (
-              <p className="text-gray-600">
+              <p className="text-gray-600 dark:text-gray-300">
                 {grupo.grado} • {grupo.nivel} • {grupo.ciclo_escolar}
               </p>
             )}
@@ -607,10 +607,10 @@ export default function GestionarAlumnos({ grupoId, onBack, onNavigateToMensajes
         <Card>
           <CardContent className="p-4">
             <div className="flex items-center space-x-2">
-              <Users className="h-5 w-5 text-blue-600" />
+              <Users className="h-5 w-5 text-blue-600 dark:text-blue-400" />
               <div>
-                <p className="text-sm text-gray-600">Total de Alumnos</p>
-                <p className="text-2xl font-bold text-gray-900">{alumnos.length}</p>
+                <p className="text-sm text-gray-600 dark:text-gray-300">Total de Alumnos</p>
+                <p className="text-2xl font-bold text-gray-900 dark:text-gray-100">{alumnos.length}</p>
               </div>
             </div>
           </CardContent>
@@ -618,10 +618,10 @@ export default function GestionarAlumnos({ grupoId, onBack, onNavigateToMensajes
         <Card>
           <CardContent className="p-4">
             <div className="flex items-center space-x-2">
-              <User className="h-5 w-5 text-green-600" />
+              <User className="h-5 w-5 text-green-600 dark:text-green-400" />
               <div>
-                <p className="text-sm text-gray-600">Con Número de Lista</p>
-                <p className="text-2xl font-bold text-gray-900">
+                <p className="text-sm text-gray-600 dark:text-gray-300">Con Número de Lista</p>
+                <p className="text-2xl font-bold text-gray-900 dark:text-gray-100">
                   {alumnos.filter(a => a.numero_lista).length}
                 </p>
               </div>
@@ -631,10 +631,10 @@ export default function GestionarAlumnos({ grupoId, onBack, onNavigateToMensajes
         <Card>
           <CardContent className="p-4">
             <div className="flex items-center space-x-2">
-              <Edit className="h-5 w-5 text-purple-600" />
+              <Edit className="h-5 w-5 text-purple-600 dark:text-purple-400" />
               <div>
-                <p className="text-sm text-gray-600">Con Notas</p>
-                <p className="text-2xl font-bold text-gray-900">
+                <p className="text-sm text-gray-600 dark:text-gray-300">Con Notas</p>
+                <p className="text-2xl font-bold text-gray-900 dark:text-gray-100">
                   {alumnos.filter(a => a.notas_generales).length}
                 </p>
               </div>
@@ -654,11 +654,11 @@ export default function GestionarAlumnos({ grupoId, onBack, onNavigateToMensajes
         <CardContent>
           {alumnos.length === 0 ? (
             <div className="text-center py-8">
-              <User className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-              <h3 className="text-lg font-medium text-gray-900 mb-2">
+              <User className="h-12 w-12 text-gray-400 dark:text-gray-500 mx-auto mb-4" />
+              <h3 className="text-lg font-medium text-gray-900 dark:text-gray-100 mb-2">
                 No hay alumnos registrados
               </h3>
-              <p className="text-gray-600 mb-4">
+              <p className="text-gray-600 dark:text-gray-300 mb-4">
                 Comienza agregando el primer alumno a este grupo.
               </p>
               <Button
@@ -686,26 +686,26 @@ export default function GestionarAlumnos({ grupoId, onBack, onNavigateToMensajes
                       {alumno.numero_lista ? (
                         <Badge variant="outline">{alumno.numero_lista}</Badge>
                       ) : (
-                        <span className="text-gray-400">-</span>
+                        <span className="text-gray-400 dark:text-gray-500">-</span>
                       )}
                     </TableCell>
                     <TableCell>
                       <button
                         onClick={() => handleViewExpediente(alumno.id)}
-                        className="text-blue-600 hover:text-blue-800 hover:underline font-medium text-left"
+                        className="text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300 hover:underline font-medium text-left"
                       >
                         {alumno.nombre_completo}
                       </button>
                     </TableCell>
                     <TableCell>
                       {alumno.notas_generales ? (
-                        <span className="text-sm text-gray-600">
+                        <span className="text-sm text-gray-600 dark:text-gray-300">
                           {alumno.notas_generales.length > 50
                             ? `${alumno.notas_generales.substring(0, 50)}...`
                             : alumno.notas_generales}
                         </span>
                       ) : (
-                        <span className="text-gray-400">Sin notas</span>
+                        <span className="text-gray-400 dark:text-gray-500">Sin notas</span>
                       )}
                     </TableCell>
                     <TableCell className="text-right">

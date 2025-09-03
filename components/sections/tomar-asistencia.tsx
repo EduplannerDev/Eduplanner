@@ -170,17 +170,17 @@ export default function TomarAsistencia({ onBack }: TomarAsistenciaProps) {
         </CardHeader>
         <CardContent>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <div className="text-center p-4 bg-blue-50 rounded-lg">
-              <div className="text-2xl font-bold text-blue-600">{grupos.length}</div>
-              <div className="text-sm text-blue-600">Grupos Totales</div>
+            <div className="text-center p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
+              <div className="text-2xl font-bold text-blue-600 dark:text-blue-400">{grupos.length}</div>
+              <div className="text-sm text-blue-600 dark:text-blue-400">Grupos Totales</div>
             </div>
-            <div className="text-center p-4 bg-green-50 rounded-lg">
-              <div className="text-2xl font-bold text-green-600">{gruposConEstado.filter(g => g.asistenciaTomada).length}</div>
-              <div className="text-sm text-green-600">Asistencias Tomadas</div>
+            <div className="text-center p-4 bg-green-50 dark:bg-green-900/20 rounded-lg">
+              <div className="text-2xl font-bold text-green-600 dark:text-green-400">{gruposConEstado.filter(g => g.asistenciaTomada).length}</div>
+              <div className="text-sm text-green-600 dark:text-green-400">Asistencias Tomadas</div>
             </div>
-            <div className="text-center p-4 bg-orange-50 rounded-lg">
-              <div className="text-2xl font-bold text-orange-600">{gruposConEstado.filter(g => !g.asistenciaTomada).length}</div>
-              <div className="text-sm text-orange-600">Pendientes</div>
+            <div className="text-center p-4 bg-orange-50 dark:bg-orange-900/20 rounded-lg">
+              <div className="text-2xl font-bold text-orange-600 dark:text-orange-400">{gruposConEstado.filter(g => !g.asistenciaTomada).length}</div>
+              <div className="text-sm text-orange-600 dark:text-orange-400">Pendientes</div>
             </div>
           </div>
         </CardContent>
@@ -208,11 +208,11 @@ export default function TomarAsistencia({ onBack }: TomarAsistenciaProps) {
             <div className="space-y-4">
               {gruposConEstado.map((grupo, index) => (
                 <div key={grupo.id}>
-                  <div className="flex items-center justify-between p-4 border rounded-lg hover:bg-gray-50 transition-colors">
+                  <div className="flex items-center justify-between p-4 border rounded-lg hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors">
                     <div className="flex-1">
                       <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center">
-                          <Users className="h-5 w-5 text-blue-600" />
+                        <div className="w-10 h-10 bg-blue-100 dark:bg-blue-900/20 rounded-full flex items-center justify-center">
+                          <Users className="h-5 w-5 text-blue-600 dark:text-blue-400" />
                         </div>
                         <div>
                           <h3 className="font-semibold text-foreground">{grupo.nombre}</h3>

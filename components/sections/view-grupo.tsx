@@ -71,13 +71,13 @@ const ViewGrupo = ({ grupoId, onBack, onEdit }: ViewGrupoProps) => {
   const getEstadoIcon = (estado: string) => {
     switch (estado) {
       case 'presente':
-        return <CheckCircle className="h-4 w-4 text-green-600" />
+        return <CheckCircle className="h-4 w-4 text-green-600 dark:text-green-400" />
       case 'ausente':
-        return <XCircle className="h-4 w-4 text-red-600" />
+        return <XCircle className="h-4 w-4 text-red-600 dark:text-red-400" />
       case 'retardo':
-        return <Clock className="h-4 w-4 text-yellow-600" />
+        return <Clock className="h-4 w-4 text-yellow-600 dark:text-yellow-400" />
       case 'justificado':
-        return <FileText className="h-4 w-4 text-blue-600" />
+        return <FileText className="h-4 w-4 text-blue-600 dark:text-blue-400" />
       default:
         return null
     }
@@ -86,15 +86,15 @@ const ViewGrupo = ({ grupoId, onBack, onEdit }: ViewGrupoProps) => {
   const getEstadoColor = (estado: string) => {
     switch (estado) {
       case 'presente':
-        return 'text-green-600 bg-green-50 dark:bg-green-900/20'
+        return 'text-green-600 dark:text-green-400 bg-green-50 dark:bg-green-900/20'
       case 'ausente':
-        return 'text-red-600 bg-red-50 dark:bg-red-900/20'
+        return 'text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-900/20'
       case 'retardo':
-        return 'text-yellow-600 bg-yellow-50 dark:bg-yellow-900/20'
+        return 'text-yellow-600 dark:text-yellow-400 bg-yellow-50 dark:bg-yellow-900/20'
       case 'justificado':
-        return 'text-blue-600 bg-blue-50 dark:bg-blue-900/20'
+        return 'text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-900/20'
       default:
-        return 'text-gray-600 bg-gray-50 dark:bg-gray-900/20'
+        return 'text-gray-600 dark:text-gray-400 bg-gray-50 dark:bg-gray-900/20'
     }
   }
 
@@ -318,7 +318,7 @@ const ViewGrupo = ({ grupoId, onBack, onEdit }: ViewGrupoProps) => {
                             {getEstadoIcon(alumno.estado)}
                             <span className="capitalize">{alumno.estado}</span>
                           </div>
-                          <div className="text-xs text-gray-500">
+                          <div className="text-xs text-gray-500 dark:text-gray-400">
                             {format(new Date(alumno.hora_registro), 'HH:mm')}
                           </div>
                         </div>

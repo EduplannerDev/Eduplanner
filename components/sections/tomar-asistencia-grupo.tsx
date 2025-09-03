@@ -279,32 +279,32 @@ export default function TomarAsistenciaGrupo({ grupoId, fecha, onBack }: TomarAs
       <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
         <Card>
           <CardContent className="p-4 text-center">
-            <div className="text-2xl font-bold text-gray-900">{stats.total}</div>
-            <div className="text-sm text-gray-600">Total</div>
+            <div className="text-2xl font-bold text-foreground">{stats.total}</div>
+            <div className="text-sm text-muted-foreground">Total</div>
           </CardContent>
         </Card>
         <Card>
           <CardContent className="p-4 text-center">
-            <div className="text-2xl font-bold text-green-600">{stats.presentes}</div>
-            <div className="text-sm text-green-600">Presentes</div>
+            <div className="text-2xl font-bold text-green-600 dark:text-green-400">{stats.presentes}</div>
+            <div className="text-sm text-green-600 dark:text-green-400">Presentes</div>
           </CardContent>
         </Card>
         <Card>
           <CardContent className="p-4 text-center">
-            <div className="text-2xl font-bold text-red-600">{stats.ausentes}</div>
-            <div className="text-sm text-red-600">Ausentes</div>
+            <div className="text-2xl font-bold text-red-600 dark:text-red-400">{stats.ausentes}</div>
+            <div className="text-sm text-red-600 dark:text-red-400">Ausentes</div>
           </CardContent>
         </Card>
         <Card>
           <CardContent className="p-4 text-center">
-            <div className="text-2xl font-bold text-yellow-600">{stats.retardos}</div>
-            <div className="text-sm text-yellow-600">Retardos</div>
+            <div className="text-2xl font-bold text-yellow-600 dark:text-yellow-400">{stats.retardos}</div>
+            <div className="text-sm text-yellow-600 dark:text-yellow-400">Retardos</div>
           </CardContent>
         </Card>
         <Card>
           <CardContent className="p-4 text-center">
-            <div className="text-2xl font-bold text-blue-600">{stats.justificados}</div>
-            <div className="text-sm text-blue-600">Justificados</div>
+            <div className="text-2xl font-bold text-blue-600 dark:text-blue-400">{stats.justificados}</div>
+            <div className="text-sm text-blue-600 dark:text-blue-400">Justificados</div>
           </CardContent>
         </Card>
       </div>
@@ -331,12 +331,12 @@ export default function TomarAsistenciaGrupo({ grupoId, fecha, onBack }: TomarAs
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-3">
                       {alumno.alumno_numero_lista && (
-                        <div className="w-8 h-8 bg-gray-100 rounded-full flex items-center justify-center text-sm font-medium">
+                        <div className="w-8 h-8 bg-muted rounded-full flex items-center justify-center text-sm font-medium text-muted-foreground">
                           {alumno.alumno_numero_lista}
                         </div>
                       )}
                       <div>
-                        <h3 className="font-medium text-gray-900">{alumno.alumno_nombre}</h3>
+                        <h3 className="font-medium text-foreground">{alumno.alumno_nombre}</h3>
                         <div className="flex items-center gap-2 mt-1">
                           <IconoEstado className="h-4 w-4" />
                           <Badge variant="outline" className={estadoActual?.color}>
@@ -435,10 +435,10 @@ export default function TomarAsistenciaGrupo({ grupoId, fecha, onBack }: TomarAs
           {alumnos.length === 0 && (
             <div className="text-center py-8">
               <Users className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-              <h3 className="text-lg font-medium text-gray-900 mb-2">
+              <h3 className="text-lg font-medium text-foreground mb-2">
                 No hay alumnos registrados
               </h3>
-              <p className="text-gray-600">
+              <p className="text-muted-foreground">
                 Este grupo no tiene alumnos registrados.
               </p>
             </div>
