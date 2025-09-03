@@ -16,15 +16,14 @@ export async function GET(req: NextRequest) {
     }
 
     let query = supabase
-      .from("messages")
+      .from("parent_messages")
       .select("*")
       .eq("user_id", user_id)
-      .eq("message_type", "parent_message") // Solo mensajes de padres
       .order("created_at", { ascending: false })
 
     // Si se especifica un student_id, filtrar por ese estudiante
     if (student_id) {
-      query = query.eq("student_id", student_id)
+      query = query.eq("alumno_id", student_id)
     }
 
     const { data, error } = await query

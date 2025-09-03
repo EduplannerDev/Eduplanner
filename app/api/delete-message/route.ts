@@ -7,21 +7,29 @@ const supabase = createClient(supabaseUrl, supabaseKey)
 
 export async function DELETE(req: NextRequest) {
   try {
-    const { searchParams } = new URL(req.url)
-    const messageId = searchParams.get("id")
-    const userId = searchParams.get("user_id")
+    const body = await req.json()
+    const { messageId, userId } = body
 
     if (!messageId || !userId) {
       return NextResponse.json({ error: "Faltan parámetros obligatorios" }, { status: 400 })
     }
 
-    const { error } = await supabase
+    // Intentar eliminar de la tabla messages primero
+    const { error: messagesError } = await supabase
       .from("messages")
       .delete()
       .match({ id: messageId, user_id: userId })
 
-    if (error) {
-      return NextResponse.json({ error: error.message }, { status: 500 })
+    // Si no se encontró en messages, intentar en parent_messages
+    if (messagesError || messagesError === null) {
+      const { error: parentMessagesError } = await supabase
+        .from("parent_messages")
+        .delete()
+        .match({ id: messageId, user_id: userId })
+
+      if (parentMessagesError) {
+        return NextResponse.json({ error: parentMessagesError.message }, { status: 500 })
+      }
     }
 
     return NextResponse.json({ message: "Mensaje eliminado exitosamente" })

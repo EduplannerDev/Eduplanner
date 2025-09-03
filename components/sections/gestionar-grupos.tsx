@@ -118,11 +118,12 @@ export function GestionarGrupos() {
     }
   }
 
+  // Optimizado: solo cargar planteles una vez cuando el usuario puede gestionar grupos
   useEffect(() => {
-    if (canManageGroups) {
+    if (canManageGroups && !roleLoading) {
       loadPlanteles()
     }
-  }, [isAdmin, isDirector, isProfesor, userPlantel])
+  }, [canManageGroups, roleLoading])
 
   useEffect(() => {
     if (selectedPlantel) {

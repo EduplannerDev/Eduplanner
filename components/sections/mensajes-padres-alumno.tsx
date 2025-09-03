@@ -32,9 +32,9 @@ interface ParentMessage {
   id: string
   title: string
   content: string
-  category: string
+  message_type: string
   created_at: string
-  student_id: string
+  alumno_id: string
 }
 
 export function MensajesPadresAlumno({ onBack, studentId, studentName }: MensajesPadresAlumnoProps) {
@@ -96,8 +96,8 @@ export function MensajesPadresAlumno({ onBack, studentId, studentName }: Mensaje
     }
   }
 
-  const getCategoryColor = (category: string) => {
-    switch (category.toLowerCase()) {
+  const getCategoryColor = (messageType: string) => {
+    switch (messageType.toLowerCase()) {
       case 'academico':
         return 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-300'
       case 'conducta':
@@ -164,9 +164,9 @@ export function MensajesPadresAlumno({ onBack, studentId, studentName }: Mensaje
                           </div>
                         </div>
                         <div className="flex items-center gap-2">
-                          <Badge className={getCategoryColor(message.category)}>
-                            {message.category}
-                          </Badge>
+                          <Badge className={getCategoryColor(message.message_type)}>
+                  {message.message_type}
+                </Badge>
                           <div className="flex gap-1">
                             <Button
                               variant="outline"

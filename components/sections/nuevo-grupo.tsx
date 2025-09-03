@@ -78,9 +78,12 @@ const NuevoGrupo = ({ onBack, onSaveSuccess }: NuevoGrupoProps) => {
     }
   }
 
+  // Optimizado: solo cargar planteles una vez cuando el rol esté definido
   useEffect(() => {
-    loadPlanteles()
-  }, [isAdmin, isDirector, isProfesor, plantel])
+    if (!loading && (isAdmin || isDirector || isProfesor)) {
+      loadPlanteles()
+    }
+  }, [isAdmin, isDirector, isProfesor, loading])
 
   const getCurrentSchoolYear = () => {
     const currentYear = new Date().getFullYear()

@@ -107,11 +107,12 @@ export function GestionarPlanteles({ onViewPlantel }: GestionarPlantelesProps) {
     }
   }
 
+  // Optimizado: solo cargar planteles una vez cuando el usuario es admin
   useEffect(() => {
-    if (isAdmin) {
+    if (isAdmin && !loading) {
       loadPlanteles()
     }
-  }, [isAdmin])
+  }, [isAdmin, loading])
 
   // Manejar envío del formulario
   const handleSubmit = async (e: React.FormEvent) => {

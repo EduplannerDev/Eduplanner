@@ -104,30 +104,8 @@ Puedes pedirme ayuda para crear mensajes sobre:
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" })
   }, [messages])
 
-  // Regenerar mensaje automáticamente cuando cambie el tono
-  useEffect(() => {
-    // Solo regenerar si hay mensajes del usuario (excluyendo el mensaje de bienvenida)
-    const userMessages = messages.filter(msg => msg.role === 'user')
-    if (userMessages.length > 0 && !isLoading) {
-      // Obtener el último mensaje del usuario
-      const lastUserMessage = userMessages[userMessages.length - 1]
-      if (lastUserMessage && lastUserMessage.content.trim()) {
-        // Simular el envío del último mensaje con el nuevo tono
-        const event = {
-          target: { value: lastUserMessage.content },
-        } as React.ChangeEvent<HTMLTextAreaElement>
-        
-        handleInputChange(event)
-        
-        setTimeout(() => {
-          const form = document.querySelector("form") as HTMLFormElement
-          if (form) {
-            form.requestSubmit()
-          }
-        }, 100)
-      }
-    }
-  }, [selectedTone]) // Solo se ejecuta cuando cambia selectedTone
+  // Nota: Regeneración automática removida para evitar peticiones excesivas
+  // Los usuarios ahora deben regenerar manualmente cuando cambien el tono
 
   const handleQuickSuggestion = (suggestion: string) => {
     const event = {

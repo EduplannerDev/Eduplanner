@@ -138,11 +138,12 @@ export function GestionarUsuarios() {
     }
   }
 
+  // Optimizado: solo cargar planteles una vez cuando el usuario puede gestionar usuarios
   useEffect(() => {
-    if (canManageUsers) {
+    if (canManageUsers && !roleLoading) {
       loadPlanteles()
     }
-  }, [isAdmin, isDirector, userPlantel])
+  }, [canManageUsers, roleLoading])
 
   useEffect(() => {
     if (selectedPlantel) {

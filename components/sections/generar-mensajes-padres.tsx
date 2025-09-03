@@ -21,7 +21,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select"
-import { useEffect, useRef, useState } from "react"
+import { useEffect, useRef, useState, useMemo } from "react"
 import { useAuth } from "@/hooks/use-auth"
 import { useUserData } from "@/hooks/use-user-data"
 import { Textarea } from "@/components/ui/textarea"
@@ -76,14 +76,20 @@ export function GenerarMensajesPadres({ onBack, onNavigateToMessages, preselecte
   const { user } = useAuth()
   const { userData } = useUserData(user?.id)
   
-  const { messages, input, handleInputChange, handleSubmit, isLoading, error } = useChat({
-    api: "/api/generate-parent-messages",
-    body: {
+  // Memoizar el objeto body para evitar re-renders innecesarios del useChat
+  const chatBody = useMemo(() => {
+    const studentInfo = selectedStudent ? students.find(s => s.id === selectedStudent) : null
+    return {
       tone: selectedTone,
       studentId: selectedStudent,
-      studentInfo: selectedStudent ? students.find(s => s.id === selectedStudent) : null,
+      studentInfo,
       teacherInfo: userData || null
-    },
+    }
+  }, [selectedTone, selectedStudent, students, userData])
+  
+  const { messages, input, handleInputChange, handleSubmit, isLoading, error } = useChat({
+    api: "/api/generate-parent-messages",
+    body: chatBody,
     onFinish: (message) => {
       if (message.content.includes("**")) {
         const titleMatch = message.content.match(/\*\*(.*?)\*\*/);
@@ -146,8 +152,6 @@ Puedo crear mensajes sobre:
   const [whatsappMessage, setWhatsappMessage] = useState<string>("") 
   const [isAdaptingForWhatsapp, setIsAdaptingForWhatsapp] = useState(false)
 
-  const supabase = createClient()
-
   // Cargar estudiantes
   useEffect(() => {
     const fetchStudents = async () => {
@@ -164,6 +168,9 @@ Puedo crear mensajes sobre:
         }
         
         const groupIds = userGroups.map(g => g.id)
+        
+        // Crear cliente Supabase dentro del useEffect para evitar dependencias innecesarias
+        const supabase = createClient()
         
         // Luego obtener los alumnos de esos grupos
         const { data, error } = await supabase
@@ -214,41 +221,27 @@ Puedo crear mensajes sobre:
     }
 
     fetchStudents()
-  }, [user?.id, supabase])
+  }, [user?.id])
 
   // Configurar estudiante preseleccionado
   useEffect(() => {
-    if (preselectedStudent) {
-      // Crear un alumno temporal con la estructura esperada
-      const tempStudent: Alumno = {
-        id: preselectedStudent.id,
-        nombre_completo: preselectedStudent.nombre,
-        numero_lista: 1,
-        grupo: preselectedStudent.grupo,
-        grado: preselectedStudent.grado,
-        nivel: preselectedStudent.nivel,
-        ciclo_escolar: '2024-2025',
-        nombre_padre: preselectedStudent.nombre_padre,
-        correo_padre: preselectedStudent.correo_padre,
-        telefono_padre: preselectedStudent.telefono_padre,
-        nombre_madre: preselectedStudent.nombre_madre,
-        correo_madre: preselectedStudent.correo_madre,
-        telefono_madre: preselectedStudent.telefono_madre
+    if (preselectedStudent && students.length > 0) {
+      // Verificar si el estudiante ya existe en la lista
+      const exists = students.find(s => s.id === preselectedStudent.id)
+      if (!exists) {
+        // Mostrar advertencia si el estudiante preseleccionado no está en la lista de estudiantes del usuario
+        console.warn('Preselected student not found in user\'s student list:', preselectedStudent.id)
+        toast.error(`El estudiante ${preselectedStudent.nombre} no se encuentra en tus grupos asignados. Por favor, selecciona un estudiante de la lista.`)
+        return
       }
       
-      // Agregar el estudiante a la lista si no existe
-      setStudents(prev => {
-        const exists = prev.find(s => s.id === preselectedStudent.id)
-        if (!exists) {
-          return [tempStudent, ...prev]
-        }
-        return prev
-      })
-      
-      // Seleccionar automáticamente el estudiante
+      // Seleccionar automáticamente el estudiante si existe
       setSelectedStudent(preselectedStudent.id)
+    } else if (preselectedStudent && students.length === 0 && !loadingStudents) {
+      // Si no hay estudiantes cargados y ya terminó de cargar
+      toast.error(`No tienes acceso al estudiante ${preselectedStudent.nombre}. Verifica que tengas permisos para este grupo.`)
     }
-  }, [preselectedStudent])
+  }, [preselectedStudent, students, loadingStudents])
 
   const getInitials = (email: string) => {
     return email.charAt(0).toUpperCase()
@@ -259,31 +252,8 @@ Puedo crear mensajes sobre:
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" })
   }, [messages])
 
-  // Regenerar mensaje automáticamente cuando cambie el tono o estudiante
-  useEffect(() => {
-    const userMessages = messages.filter(msg => msg.role === 'user')
-    if (userMessages.length > 0 && !isLoading && selectedStudent && !isSaving) {
-      const lastUserMessage = userMessages[userMessages.length - 1]
-      if (lastUserMessage && lastUserMessage.content.trim()) {
-        // Solo regenerar si no hay un mensaje del asistente después del último mensaje del usuario
-        const lastMessage = messages[messages.length - 1]
-        if (lastMessage && lastMessage.role === 'user') {
-          const event = {
-            target: { value: lastUserMessage.content },
-          } as React.ChangeEvent<HTMLTextAreaElement>
-          
-          handleInputChange(event)
-          
-          setTimeout(() => {
-            const form = document.querySelector("form") as HTMLFormElement
-            if (form) {
-              form.requestSubmit()
-            }
-          }, 100)
-        }
-      }
-    }
-  }, [selectedTone, selectedStudent])
+  // Nota: Regeneración automática removida para evitar peticiones excesivas
+  // Los usuarios ahora deben regenerar manualmente cuando cambien el tono o estudiante
 
   const handleQuickSuggestion = (suggestion: string) => {
     if (!selectedStudent) {
@@ -297,12 +267,13 @@ Puedo crear mensajes sobre:
 
     handleInputChange(event)
 
-    setTimeout(() => {
+    // Usar requestAnimationFrame en lugar de setTimeout para mejor rendimiento
+    requestAnimationFrame(() => {
       const form = document.querySelector("form") as HTMLFormElement
       if (form) {
         form.requestSubmit()
       }
-    }, 100)
+    })
   }
 
   const handleSaveMessage = async (messageData?: {
@@ -312,7 +283,19 @@ Puedo crear mensajes sobre:
     student_id?: string;
   }) => {
     const dataToSave = messageData || messageToSave;
-    if (!dataToSave || !user?.id) return;
+    if (!dataToSave || !user?.id) {
+      toast.error("Faltan datos necesarios para guardar el mensaje");
+      return;
+    }
+    
+    // Validar que el estudiante existe en la lista de estudiantes cargados
+    if (dataToSave.student_id) {
+      const studentExists = students.find(s => s.id === dataToSave.student_id);
+      if (!studentExists) {
+        toast.error("El estudiante seleccionado no existe o no tienes permisos para acceder a él");
+        return;
+      }
+    }
     
     setIsSaving(true);
     try {
@@ -328,15 +311,18 @@ Puedo crear mensajes sobre:
       });
 
       if (!response.ok) {
-        throw new Error("Error al guardar el mensaje");
+        const errorData = await response.json().catch(() => ({ error: "Error desconocido" }));
+        throw new Error(errorData.error || `Error ${response.status}: ${response.statusText}`);
       }
 
+      const result = await response.json();
       toast.success("Mensaje para padres guardado exitosamente");
       setMessageToSave(null);
       setIsDialogOpen(false);
       // No navegamos a onNavigateToMessages() porque estos mensajes no aparecen en "Mis Mensajes"
     } catch (error) {
-      toast.error("Error al guardar el mensaje");
+      const errorMessage = error instanceof Error ? error.message : "Error desconocido al guardar el mensaje";
+      toast.error(errorMessage);
       console.error("Error al guardar:", error);
     } finally {
       setIsSaving(false);
