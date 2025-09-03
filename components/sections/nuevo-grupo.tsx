@@ -5,7 +5,7 @@ import { useAuth } from '@/hooks/use-auth'
 import { useRoles } from '@/hooks/use-roles'
 import { createGrupo, type CreateGrupoData } from '@/lib/grupos'
 import { getAllPlanteles, type Plantel } from '@/lib/planteles'
-import { useToast } from '@/hooks/use-toast'
+import { useNotification } from '@/hooks/use-notification'
 import { ArrowLeft, Save, Loader2 } from 'lucide-react'
 import { Button } from "@/components/ui/button"
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card"
@@ -22,9 +22,9 @@ interface NuevoGrupoProps {
 const NuevoGrupo = ({ onBack, onSaveSuccess }: NuevoGrupoProps) => {
   const { user } = useAuth()
   const { plantel, isAdmin, isDirector, isProfesor } = useRoles()
-  const { toast } = useToast()
+  const { success, error } = useNotification()
   const [loading, setLoading] = useState(false)
-  const [error, setError] = useState<string | null>(null)
+  const [errorMsg, setErrorMsg] = useState<string | null>(null)
   const [planteles, setPlanteles] = useState<Plantel[]>([])
   const [selectedPlantel, setSelectedPlantel] = useState<string>('')
   const [formData, setFormData] = useState<CreateGrupoData>({
@@ -71,11 +71,9 @@ const NuevoGrupo = ({ onBack, onSaveSuccess }: NuevoGrupoProps) => {
         setPlanteles([plantel])
         setSelectedPlantel(plantel.id)
       }
-    } catch (error) {
-      toast({
-        title: "Error",
-        description: "No se pudieron cargar los planteles",
-        variant: "destructive"
+    } catch (err) {
+      error("No se pudieron cargar los planteles", {
+        title: "Error"
       })
     }
   }
@@ -113,25 +111,23 @@ const NuevoGrupo = ({ onBack, onSaveSuccess }: NuevoGrupoProps) => {
     e.preventDefault()
     
     if (!user?.id) {
-      setError('Usuario no autenticado')
+      setErrorMsg('Usuario no autenticado')
       return
     }
 
     if (!formData.nombre.trim() || !formData.grado || !formData.grupo || !formData.nivel || !formData.ciclo_escolar) {
-      setError('Por favor completa todos los campos obligatorios')
+      setErrorMsg('Por favor completa todos los campos obligatorios')
       return
     }
 
     setLoading(true)
-    setError(null)
+    setErrorMsg(null)
 
     try {
       // Solo validar plantel para administradores y directores
       if ((isAdmin || isDirector) && !selectedPlantel) {
-        toast({
-          title: "Error",
-          description: "Por favor selecciona un plantel",
-          variant: "destructive"
+        error("Por favor selecciona un plantel", {
+          title: "Error"
         })
         return
       }
@@ -146,7 +142,7 @@ const NuevoGrupo = ({ onBack, onSaveSuccess }: NuevoGrupoProps) => {
       onSaveSuccess()
     } catch (err) {
       console.error('Error creating grupo:', err)
-      setError('Error al crear el grupo. Por favor intenta de nuevo.')
+      setErrorMsg('Error al crear el grupo. Por favor intenta de nuevo.')
     } finally {
       setLoading(false)
     }
@@ -165,9 +161,9 @@ const NuevoGrupo = ({ onBack, onSaveSuccess }: NuevoGrupoProps) => {
         </div>
       </div>
 
-      {error && (
+      {errorMsg && (
         <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded relative">
-          {error}
+          {errorMsg}
         </div>
       )}
 

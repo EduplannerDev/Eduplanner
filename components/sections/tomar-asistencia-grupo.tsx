@@ -18,7 +18,7 @@ import {
   Save,
   UserCheck
 } from "lucide-react"
-import { useToast } from "@/hooks/use-toast"
+import { useNotification } from "@/hooks/use-notification"
 import { format } from "date-fns"
 import { es } from "date-fns/locale"
 import { 
@@ -68,11 +68,11 @@ export default function TomarAsistenciaGrupo({ grupoId, fecha, onBack }: TomarAs
   const [alumnos, setAlumnos] = useState<AsistenciaConAlumno[]>([])
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
-  const [error, setError] = useState<string | null>(null)
+  const [errorMsg, setErrorMsg] = useState<string | null>(null)
   const [notasAbiertas, setNotasAbiertas] = useState<string | null>(null)
   const [notasTemp, setNotasTemp] = useState<{ [key: string]: string }>({})
   const [cambiosPendientes, setCambiosPendientes] = useState(false)
-  const { toast } = useToast()
+  const { success, error } = useNotification()
 
   useEffect(() => {
     loadData()
@@ -158,10 +158,7 @@ export default function TomarAsistenciaGrupo({ grupoId, fecha, onBack }: TomarAs
       setNotasAbiertas(null)
       setCambiosPendientes(false)
       
-      toast({
-        title: "Éxito",
-        description: "Asistencia guardada correctamente para todos los alumnos",
-      })
+      success("Asistencia guardada correctamente para todos los alumnos")
       
       // Regresar al listado principal después de guardar
       setTimeout(() => {
@@ -169,11 +166,7 @@ export default function TomarAsistenciaGrupo({ grupoId, fecha, onBack }: TomarAs
       }, 1500) // Esperar 1.5 segundos para que el usuario vea el mensaje de éxito
     } catch (err) {
       console.error('Error saving attendance:', err)
-      toast({
-        title: "Error",
-        description: "No se pudo guardar la asistencia",
-        variant: "destructive",
-      })
+      error("No se pudo guardar la asistencia")
     } finally {
       setSaving(false)
     }

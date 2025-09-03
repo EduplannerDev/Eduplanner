@@ -11,7 +11,7 @@ import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { Skeleton } from "@/components/ui/skeleton"
-import { useToast } from "@/hooks/use-toast"
+import { useNotification } from "@/hooks/use-notification"
 import FullCalendar from '@fullcalendar/react'
 import dayGridPlugin from '@fullcalendar/daygrid'
 import timeGridPlugin from '@fullcalendar/timegrid'
@@ -52,7 +52,7 @@ export function Agenda({ onSectionChange }: AgendaProps) {
   const [showExamenSuggestions, setShowExamenSuggestions] = useState(false)
   const [generatingSchoolEvents, setGeneratingSchoolEvents] = useState(false)
   const [hasSchoolEvents, setHasSchoolEvents] = useState(false)
-  const { toast } = useToast()
+  const { success, error } = useNotification()
 
   // Funciones para manejar formato de fecha mexicano
   const formatDateToMexican = (isoDate: string): string => {
@@ -217,11 +217,7 @@ export function Agenda({ onSectionChange }: AgendaProps) {
 
   const handleSaveEvent = async () => {
     if (!eventData.title || !eventData.category || !eventData.date) {
-      toast({
-        title: "Error",
-        description: "Por favor completa todos los campos obligatorios",
-        variant: "destructive"
-      })
+      error("Por favor completa todos los campos obligatorios")
       return
     }
 
@@ -239,10 +235,7 @@ export function Agenda({ onSectionChange }: AgendaProps) {
             event.id === editingEvent.id ? result.event! : event
           ))
           
-          toast({
-            title: "¡Evento actualizado!",
-            description: "El evento se ha actualizado correctamente"
-          })
+          success("El evento se ha actualizado correctamente")
         }
       } else {
         // Crear nuevo evento
@@ -252,10 +245,7 @@ export function Agenda({ onSectionChange }: AgendaProps) {
           // Agregar el nuevo evento a la lista
           setEvents(prev => [...prev, result.event!])
           
-          toast({
-            title: "¡Evento guardado!",
-            description: "El evento se ha guardado correctamente en tu agenda"
-          })
+          success("El evento se ha guardado correctamente en tu agenda")
         }
       }
       
@@ -264,19 +254,11 @@ export function Agenda({ onSectionChange }: AgendaProps) {
         setIsModalOpen(false)
         resetForm()
       } else {
-        toast({
-          title: "Error al guardar",
-          description: result.error || "No se pudo guardar el evento",
-          variant: "destructive"
-        })
+        error(result.error || "No se pudo guardar el evento")
       }
     } catch (error) {
       console.error('Error al guardar evento:', error)
-      toast({
-        title: "Error inesperado",
-        description: "Ocurrió un error inesperado al guardar el evento",
-        variant: "destructive"
-      })
+      error("Ocurrió un error inesperado al guardar el evento")
     } finally {
       setSaving(false)
     }
@@ -336,24 +318,13 @@ export function Agenda({ onSectionChange }: AgendaProps) {
         // Marcar que ya se tienen eventos del calendario escolar
         setHasSchoolEvents(true)
         
-        toast({
-          title: "¡Eventos SEP generados!",
-          description: `Se han agregado ${result.eventsCount} eventos del calendario escolar SEP 2025-2026`
-        })
+        success(`Se han agregado ${result.eventsCount} eventos del calendario escolar SEP 2025-2026`)
       } else {
-        toast({
-          title: "Error al generar eventos",
-          description: result.error || "No se pudieron generar los eventos SEP",
-          variant: "destructive"
-        })
+        error(result.error || "No se pudieron generar los eventos SEP")
       }
     } catch (error) {
       console.error('Error al generar eventos SEP:', error)
-      toast({
-        title: "Error inesperado",
-        description: "Ocurrió un error al generar los eventos SEP",
-        variant: "destructive"
-      })
+      error("Ocurrió un error al generar los eventos SEP")
     } finally {
       setGeneratingSchoolEvents(false)
     }
@@ -408,24 +379,13 @@ export function Agenda({ onSectionChange }: AgendaProps) {
         // Remover el evento de la lista
         setEvents(prev => prev.filter(event => event.id !== eventId))
         
-        toast({
-          title: "¡Evento eliminado!",
-          description: "El evento se ha eliminado correctamente"
-        })
+        success("El evento se ha eliminado correctamente")
       } else {
-        toast({
-          title: "Error",
-          description: result.error || "Error al eliminar el evento",
-          variant: "destructive"
-        })
+        error(result.error || "Error al eliminar el evento")
       }
     } catch (error) {
       console.error('Error al eliminar evento:', error)
-      toast({
-        title: "Error inesperado",
-        description: "Ocurrió un error inesperado al eliminar el evento",
-        variant: "destructive"
-      })
+      error("Ocurrió un error inesperado al eliminar el evento")
     }
   }
 

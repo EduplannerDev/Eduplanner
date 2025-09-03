@@ -12,7 +12,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Progress } from '@/components/ui/progress'
 import { Textarea } from '@/components/ui/textarea'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
-import { useToast } from '@/hooks/use-toast'
+import { useNotification } from '@/hooks/use-notification'
 import { Plantel } from '@/lib/profile'
 import { getPlantelWithLimits, PlantelWithLimits, updatePlantel, getPlantelUsers, getUserPlantelAssignments, assignUserToPlantel, canAddUserToPlantel } from '@/lib/planteles'
 // Removed import for searchUsers - will be defined locally
@@ -69,7 +69,7 @@ const nivelesEducativos = [
 
 export function VistaPlantel({ plantelId, onBack }: VistaPlantelProps) {
   const { isAdmin } = useAdminCheck()
-  const { toast } = useToast()
+  const { success, error } = useNotification()
   const [plantel, setPlantel] = useState<PlantelWithLimits | null>(null)
   const [usuarios, setUsuarios] = useState<UsuarioPlantel[]>([])
   const [loading, setLoading] = useState(true)
@@ -148,11 +148,9 @@ export function VistaPlantel({ plantelId, onBack }: VistaPlantelProps) {
         estado: plantelData?.estado || '',
         codigo_postal: plantelData?.codigo_postal || ''
       })
-    } catch (error) {
-      toast({
-        title: "Error",
-        description: "No se pudo cargar la información del plantel",
-        variant: "destructive"
+    } catch (err) {
+      error("No se pudo cargar la información del plantel", {
+        title: "Error"
       })
     } finally {
       setLoading(false)
@@ -166,20 +164,17 @@ export function VistaPlantel({ plantelId, onBack }: VistaPlantelProps) {
   // Actualizar límites del plantel
   const handleUpdateLimits = async () => {
     try {
-      const success = await updatePlantel(plantelId, editFormData)
-      if (success) {
-        toast({
-          title: "Éxito",
-          description: "Límites actualizados correctamente"
+      const result = await updatePlantel(plantelId, editFormData)
+      if (result) {
+        success("Límites actualizados correctamente", {
+          title: "Éxito"
         })
         setIsEditDialogOpen(false)
         loadPlantelData()
       }
-    } catch (error) {
-      toast({
-        title: "Error",
-        description: "Error al actualizar los límites",
-        variant: "destructive"
+    } catch (err) {
+      error("Error al actualizar los límites", {
+        title: "Error"
       })
     }
   }
@@ -187,20 +182,17 @@ export function VistaPlantel({ plantelId, onBack }: VistaPlantelProps) {
   // Actualizar información básica del plantel
   const handleUpdateInfo = async () => {
     try {
-      const success = await updatePlantel(plantelId, editInfoFormData)
-      if (success) {
-        toast({
-          title: "Éxito",
-          description: "Información actualizada correctamente"
+      const result = await updatePlantel(plantelId, editInfoFormData)
+      if (result) {
+        success("Información actualizada correctamente", {
+          title: "Éxito"
         })
         setIsEditInfoDialogOpen(false)
         loadPlantelData()
       }
-    } catch (error) {
-      toast({
-        title: "Error",
-        description: "Error al actualizar la información",
-        variant: "destructive"
+    } catch (err) {
+      error("Error al actualizar la información", {
+        title: "Error"
       })
     }
   }

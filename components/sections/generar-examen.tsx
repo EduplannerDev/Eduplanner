@@ -4,7 +4,7 @@ import React, { useState, useEffect } from 'react';
 import { useAuth } from '@/hooks/use-auth';
 import { getPlaneaciones } from '@/lib/planeaciones';
 import { Loader2 } from 'lucide-react';
-import { useToast } from '@/hooks/use-toast';
+import { useNotification } from '@/hooks/use-notification';
 import {
   AlertDialog,
   AlertDialogContent,
@@ -32,10 +32,10 @@ const removeAsterisks = (text: string | null | undefined): string => {
 export const GenerarExamen: React.FC<GenerarExamenProps> = ({ onBack, onSaveSuccess }) => {
   const { user } = useAuth();
   const router = useRouter();
-  const { toast } = useToast();
+  const { success, error } = useNotification();
   const [planeaciones, setPlaneaciones] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const [selectedPlaneaciones, setSelectedPlaneaciones] = useState<string[]>([]);
   const [showInstructionsModal, setShowInstructionsModal] = useState(false);
   const [additionalInstructions, setAdditionalInstructions] = useState('');
@@ -60,7 +60,7 @@ export const GenerarExamen: React.FC<GenerarExamenProps> = ({ onBack, onSaveSucc
         setPlaneaciones(fetchedPlaneaciones.data);
       } catch (err) {
         console.error("Error fetching planeaciones:", err);
-        setError("No se pudieron cargar las planeaciones.");
+        setErrorMsg("No se pudieron cargar las planeaciones.");
       } finally {
         setLoading(false);
       }
@@ -191,20 +191,17 @@ export const GenerarExamen: React.FC<GenerarExamenProps> = ({ onBack, onSaveSucc
       });
 
       if (newExamen) {
-        toast({
-          title: "Éxito",
-          description: "Examen guardado exitosamente!"
+        success("Examen guardado exitosamente!", {
+          title: "Éxito"
         });
         onSaveSuccess();
       } else {
         throw new Error("Error al guardar el examen en la base de datos.");
       }
-    } catch (error) {
-      console.error("Error al guardar el examen:", error);
-      toast({
-        title: "Error",
-        description: "Error al guardar el examen.",
-        variant: "destructive"
+    } catch (err) {
+      console.error("Error al guardar el examen:", err);
+      error("Error al guardar el examen.", {
+        title: "Error"
       });
     }
   };
@@ -217,10 +214,10 @@ export const GenerarExamen: React.FC<GenerarExamenProps> = ({ onBack, onSaveSucc
     );
   }
 
-  if (error) {
+  if (errorMsg) {
     return (
       <div className="text-red-500 text-center p-4">
-        <p>{error}</p>
+        <p>{errorMsg}</p>
       </div>
     );
   }

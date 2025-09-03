@@ -11,6 +11,31 @@ const config: Config = {
   theme: {
   	extend: {
   		colors: {
+  			// Colores estándar para notificaciones
+  			green: {
+  				50: '#f0fdf4',
+  				100: '#dcfce7',
+  				500: '#22c55e',
+  				800: '#166534',
+  				900: '#14532d',
+  				950: '#052e16'
+  			},
+  			red: {
+  				50: '#fef2f2',
+  				100: '#fee2e2',
+  				500: '#ef4444',
+  				800: '#991b1b',
+  				900: '#7f1d1d',
+  				950: '#450a0a'
+  			},
+  			yellow: {
+  				50: '#fefce8',
+  				100: '#fef3c7',
+  				500: '#eab308',
+  				800: '#a16207',
+  				900: '#713f12',
+  				950: '#422006'
+  			},
   			background: 'hsl(var(--background))',
   			foreground: 'hsl(var(--foreground))',
   			card: {

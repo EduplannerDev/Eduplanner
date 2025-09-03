@@ -9,7 +9,7 @@ import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { Alert, AlertDescription } from "@/components/ui/alert"
-import { useToast } from "@/hooks/use-toast"
+import { useNotification } from "@/hooks/use-notification"
 import { Badge } from "@/components/ui/badge"
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
 import { Calendar as CalendarComponent } from "@/components/ui/calendar"
@@ -81,7 +81,7 @@ export function DiarioProfesional({ isOpen, onClose, selectedDate }: DiarioProfe
 
   const [entryVersions, setEntryVersions] = useState<DiaryEntryVersion[]>([])
   const [selectedEntryForHistory, setSelectedEntryForHistory] = useState<DiaryEntry | null>(null)
-  const { toast } = useToast()
+  const { success, error } = useNotification()
 
   // Función helper para obtener fecha local en formato YYYY-MM-DD sin conversión UTC
   const getLocalDateString = (date: Date): string => {
@@ -153,10 +153,7 @@ export function DiarioProfesional({ isOpen, onClose, selectedDate }: DiarioProfe
       setAuthError("")
       setNewPassword("")
       setConfirmPassword("")
-      toast({
-        title: "Contraseña creada",
-        description: "Tu bitácora está ahora protegida"
-      })
+      success("Tu bitácora está ahora protegida")
     } catch (error) {
       console.error('Error creating password:', error)
       setAuthError("Error al crear la contraseña")
@@ -222,23 +219,15 @@ export function DiarioProfesional({ isOpen, onClose, selectedDate }: DiarioProfe
       console.log('=== END LOADING ENTRIES ===')
       
       setEntries(formattedEntries)
-    } catch (error) {
-      console.error('Error loading entries:', error)
-      toast({
-        title: "Error",
-        description: "No se pudieron cargar las entradas de la bitácora",
-        variant: "destructive"
-      })
+    } catch (err) {
+      console.error('Error loading entries:', err)
+      error("No se pudieron cargar las entradas de la bitácora")
     }
   }
 
   const handleSaveEntry = async () => {
     if (!newEntry.title || !newEntry.content) {
-      toast({
-        title: "Error",
-        description: "El título y contenido son obligatorios",
-        variant: "destructive"
-      })
+      error("El título y contenido son obligatorios")
       return
     }
 
@@ -264,17 +253,10 @@ export function DiarioProfesional({ isOpen, onClose, selectedDate }: DiarioProfe
       
       setNewEntry({ title: "", content: "", tags: "", mood: "" })
       setIsCreatingEntry(false)
-      toast({
-        title: "Entrada guardada",
-        description: "Tu reflexión ha sido guardada de forma segura"
-      })
-    } catch (error) {
-      console.error('Error saving entry:', error)
-      toast({
-        title: "Error",
-        description: "No se pudo guardar la entrada",
-        variant: "destructive"
-      })
+      success("Tu reflexión ha sido guardada de forma segura")
+    } catch (err) {
+      console.error('Error saving entry:', err)
+      error("No se pudo guardar la entrada")
     }
   }
 
@@ -300,11 +282,7 @@ export function DiarioProfesional({ isOpen, onClose, selectedDate }: DiarioProfe
 
   const handleUpdateEntry = async () => {
     if (!editingEntry || !newEntry.title || !newEntry.content) {
-      toast({
-        title: "Error",
-        description: "El título y contenido son obligatorios",
-        variant: "destructive"
-      })
+      error("El título y contenido son obligatorios")
       return
     }
 
@@ -325,17 +303,10 @@ export function DiarioProfesional({ isOpen, onClose, selectedDate }: DiarioProfe
       setNewEntry({ title: "", content: "", tags: "", mood: "" })
       setEditingEntry(null)
       setIsCreatingEntry(false)
-      toast({
-        title: "Entrada actualizada",
-        description: "Tu reflexión ha sido actualizada exitosamente"
-      })
-    } catch (error) {
-      console.error('Error updating entry:', error)
-      toast({
-        title: "Error",
-        description: "No se pudo actualizar la entrada",
-        variant: "destructive"
-      })
+      success("Tu reflexión ha sido actualizada exitosamente")
+    } catch (err) {
+      console.error('Error updating entry:', err)
+      error("No se pudo actualizar la entrada")
     }
   }
 
@@ -372,17 +343,10 @@ export function DiarioProfesional({ isOpen, onClose, selectedDate }: DiarioProfe
       setSelectedEntryForHistory(null)
       setEntryVersions([])
       
-      toast({
-        title: "Versión restaurada",
-        description: `Se ha restaurado la versión ${versionNumber} de la entrada`
-      })
-    } catch (error) {
-      console.error('Error restoring version:', error)
-      toast({
-        title: "Error",
-        description: "No se pudo restaurar la versión",
-        variant: "destructive"
-      })
+      success(`Se ha restaurado la versión ${versionNumber} de la entrada`)
+    } catch (err) {
+      console.error('Error restoring version:', err)
+      error("No se pudo restaurar la versión")
     }
   }
 
