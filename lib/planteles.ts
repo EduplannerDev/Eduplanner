@@ -145,6 +145,7 @@ export async function assignUserToPlantel(
   assignedBy?: string
 ): Promise<UserPlantelAssignment | null> {
   try {
+    // Insertar en user_plantel_assignments
     const { data, error } = await supabase
       .from('user_plantel_assignments')
       .insert([{
@@ -159,6 +160,21 @@ export async function assignUserToPlantel(
     if (error) {
       console.error('Error assigning user to plantel:', error.message);
       return null;
+    }
+
+    // También actualizar la tabla profiles para mantener consistencia
+    const { error: profileError } = await supabase
+      .from('profiles')
+      .update({
+        plantel_id: plantelId,
+        role: role
+      })
+      .eq('id', userId);
+
+    if (profileError) {
+      console.error('Error updating profile with plantel assignment:', profileError.message);
+      // No retornamos null aquí porque la asignación principal ya se hizo
+      // Solo logueamos el error
     }
 
     return data;
@@ -199,7 +215,14 @@ export async function getPlantelUsers(plantelId: string): Promise<UserPlantelAss
       .from('user_plantel_assignments')
       .select(`
         *,
-        profiles!user_plantel_assignments_user_id_fkey(*)
+        profiles!user_id(
+          id,
+          full_name,
+          email,
+          telefono,
+          avatar_url,
+          activo
+        )
       `)
       .eq('plantel_id', plantelId)
       .eq('activo', true)
@@ -220,6 +243,7 @@ export async function getPlantelUsers(plantelId: string): Promise<UserPlantelAss
 // Remover asignación de usuario a plantel
 export async function removeUserFromPlantel(userId: string, plantelId: string): Promise<boolean> {
   try {
+    // Desactivar la asignación en user_plantel_assignments
     const { error } = await supabase
       .from('user_plantel_assignments')
       .update({ activo: false })
@@ -229,6 +253,21 @@ export async function removeUserFromPlantel(userId: string, plantelId: string): 
     if (error) {
       console.error('Error removing user from plantel:', error.message);
       return false;
+    }
+
+    // También limpiar la información del plantel en profiles
+    const { error: profileError } = await supabase
+      .from('profiles')
+      .update({
+        plantel_id: null,
+        role: null
+      })
+      .eq('id', userId);
+
+    if (profileError) {
+      console.error('Error clearing profile plantel assignment:', profileError.message);
+      // No retornamos false aquí porque la desactivación principal ya se hizo
+      // Solo logueamos el error
     }
 
     return true;
@@ -245,6 +284,7 @@ export async function updateUserRoleInPlantel(
   newRole: UserRole
 ): Promise<boolean> {
   try {
+    // Actualizar el rol en user_plantel_assignments
     const { error } = await supabase
       .from('user_plantel_assignments')
       .update({ role: newRole })
@@ -255,6 +295,18 @@ export async function updateUserRoleInPlantel(
     if (error) {
       console.error('Error updating user role in plantel:', error.message);
       return false;
+    }
+
+    // También actualizar el rol en profiles para mantener consistencia
+    const { error: profileError } = await supabase
+      .from('profiles')
+      .update({ role: newRole })
+      .eq('id', userId);
+
+    if (profileError) {
+      console.error('Error updating profile role:', profileError.message);
+      // No retornamos false aquí porque la actualización principal ya se hizo
+      // Solo logueamos el error
     }
 
     return true;

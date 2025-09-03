@@ -65,6 +65,7 @@ export interface UserPlantelAssignment {
   // Relaciones opcionales
   plantel?: Plantel;
   user?: Profile;
+  profiles?: Profile; // Para joins de Supabase
 }
 
 export interface ProfileUpdate {

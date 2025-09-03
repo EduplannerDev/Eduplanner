@@ -81,7 +81,7 @@ export default function TomarAsistenciaGrupo({ grupoId, fecha, onBack }: TomarAs
   const loadData = async () => {
     try {
       setLoading(true)
-      setError(null)
+      setErrorMsg(null)
       
       const [grupoData, alumnosData] = await Promise.all([
         getGrupoById(grupoId),
@@ -102,7 +102,7 @@ export default function TomarAsistenciaGrupo({ grupoId, fecha, onBack }: TomarAs
       
     } catch (err) {
       console.error('Error loading data:', err)
-      setError('Error al cargar los datos')
+      setErrorMsg('Error al cargar los datos')
     } finally {
       setLoading(false)
     }
@@ -206,7 +206,7 @@ export default function TomarAsistenciaGrupo({ grupoId, fecha, onBack }: TomarAs
     )
   }
 
-  if (error) {
+  if (errorMsg) {
     return (
       <div className="space-y-6">
         <div className="flex items-center gap-4">
@@ -216,7 +216,7 @@ export default function TomarAsistenciaGrupo({ grupoId, fecha, onBack }: TomarAs
           </Button>
         </div>
         <Alert variant="destructive">
-          <AlertDescription>{error}</AlertDescription>
+          <AlertDescription>{errorMsg}</AlertDescription>
         </Alert>
       </div>
     )

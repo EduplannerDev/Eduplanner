@@ -31,11 +31,14 @@ import {
   BreadcrumbPage,
   BreadcrumbSeparator,
 } from "@/components/ui/breadcrumb"
+import { useRoles } from "@/hooks/use-roles"
+import { DebugUserRole } from "./debug-user-role"
 
 export default function Dashboard() {
   const [activeSection, setActiveSection] = useState("dashboard")
   const [preselectedStudent, setPreselectedStudent] = useState<any>(null)
   const [selectedStudentForMessages, setSelectedStudentForMessages] = useState<any>(null)
+  const { isDirector } = useRoles()
 
   const handleNavigateToMensajesPadres = (studentData: any) => {
     setPreselectedStudent(studentData)
@@ -145,7 +148,15 @@ export default function Dashboard() {
       case "admin-dashboard":
         return <AdminDashboard />
       case "administracion-plantel":
+        // Validar que solo los directores puedan acceder
+        if (!isDirector) {
+          // Redirigir al dashboard si no es director
+          setActiveSection("dashboard")
+          return <DashboardHome onSectionChange={setActiveSection} />
+        }
         return <AdministracionPlantel isOpen={true} onClose={() => setActiveSection("admin-dashboard")} />
+      case "debug-role":
+        return <DebugUserRole />
       default:
         return <DashboardHome onSectionChange={setActiveSection} />
     }

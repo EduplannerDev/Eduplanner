@@ -6,6 +6,7 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog'
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 import { Badge } from '@/components/ui/badge'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
@@ -83,9 +84,7 @@ export function GestionarUsuarios() {
     setLoading(true)
     try {
       // Cargar información del plantel con límites
-      console.log('Cargando información del plantel:', selectedPlantel)
       const plantelInfo = await getPlantelWithLimits(selectedPlantel)
-      console.log('Información del plantel cargada:', plantelInfo)
       setSelectedPlantelInfo(plantelInfo)
       
       // Obtener usuarios asignados al plantel
@@ -254,13 +253,7 @@ export function GestionarUsuarios() {
 
   // Asignar plantel principal a usuario
   const handleAssignMainPlantel = async (userId: string) => {
-    console.log('=== handleAssignMainPlantel START ===')
-    console.log('userId:', userId)
-    console.log('selectedPlantel:', selectedPlantel)
-    console.log('newUserRole:', newUserRole)
-    
     if (!selectedPlantel) {
-      console.log('ERROR: No plantel selected')
       toast({
         title: "Error",
         description: "No hay plantel seleccionado",
@@ -270,12 +263,9 @@ export function GestionarUsuarios() {
     }
 
     try {
-      console.log('Step 1: Checking if user can be added to plantel...')
       const canAdd = await canAddUserToPlantel(selectedPlantel, newUserRole)
-      console.log('canAdd result:', canAdd)
       
       if (!canAdd) {
-        console.log('ERROR: Cannot add user - limit reached')
         toast({
           title: "Límite alcanzado",
           description: `No se puede agregar más usuarios con el rol ${roleLabels[newUserRole]}. Se ha alcanzado el límite máximo para este plantel.`,
@@ -284,24 +274,18 @@ export function GestionarUsuarios() {
         return
       }
 
-      console.log('Step 2: Updating profile...')
       const success = await updateProfile(userId, { 
         plantel_id: selectedPlantel,
         role: newUserRole
       })
-      console.log('updateProfile result:', success)
       
       if (success) {
-        console.log('SUCCESS: User assigned successfully')
         toast({
           title: "Éxito",
           description: "Usuario asignado al plantel correctamente"
         })
-        console.log('Step 3: Reloading users...')
         await loadUsers()
-        console.log('Step 4: Closing dialog...')
         setIsDialogOpen(false)
-        console.log('=== handleAssignMainPlantel END SUCCESS ===')
       } else {
         throw new Error('updateProfile returned false')
       }
@@ -312,34 +296,41 @@ export function GestionarUsuarios() {
         description: "Error al asignar el usuario al plantel",
         variant: "destructive"
       })
-      console.log('=== handleAssignMainPlantel END ERROR ===')
     }
   }
 
   // Remover usuario del plantel
   const handleRemoveUser = async (userId: string) => {
-    if (!selectedPlantel) return
+    console.log('handleRemoveUser called with userId:', userId)
+    console.log('selectedPlantel:', selectedPlantel)
     
-    if (!confirm('¿Estás seguro de que quieres remover este usuario del plantel?')) {
+    if (!selectedPlantel) {
+      console.log('No selectedPlantel, returning early')
+      toast({
+        title: "Error",
+        description: "No hay plantel seleccionado",
+        variant: "destructive"
+      })
       return
     }
 
     try {
-      // Remover asignación específica
-      await removeUserFromPlantel(userId, selectedPlantel)
+      console.log('Calling removeUserFromPlantel...')
+      const result = await removeUserFromPlantel(userId, selectedPlantel)
+      console.log('removeUserFromPlantel result:', result)
       
-      // Si es el plantel principal, también removerlo
-      const user = users.find(u => u.id === userId)
-      if (user?.plantel_id === selectedPlantel) {
-        await updateProfile(userId, { plantel_id: null })
+      if (result) {
+        console.log('Success! Showing toast and reloading users')
+        toast({
+          title: "Éxito",
+          description: "Usuario removido del plantel correctamente"
+        })
+        loadUsers()
+      } else {
+        throw new Error('removeUserFromPlantel returned false')
       }
-      
-      toast({
-        title: "Éxito",
-        description: "Usuario removido del plantel correctamente"
-      })
-      loadUsers()
     } catch (error) {
+      console.error('Error in handleRemoveUser:', error)
       toast({
         title: "Error",
         description: "Error al remover el usuario del plantel",
@@ -481,9 +472,6 @@ export function GestionarUsuarios() {
                         </div>
                         <Button
                           onClick={() => {
-                            console.log('=== BUTTON CLICK EVENT ===')
-                            console.log('Clicked for user:', user.id)
-                            console.log('About to call handleAssignMainPlantel')
                             handleAssignMainPlantel(user.id)
                           }}
                           size="sm"
@@ -711,7 +699,10 @@ export function GestionarUsuarios() {
       {/* Lista de usuarios */}
       <Card>
         <CardHeader>
-          <CardTitle>Usuarios del Plantel</CardTitle>
+          <CardTitle className="flex items-center space-x-2">
+            <Users className="h-5 w-5" />
+            <span>Usuarios del Plantel</span>
+          </CardTitle>
           <CardDescription>
             {selectedPlantel ? 
               `Usuarios asignados a ${planteles.find(p => p.id === selectedPlantel)?.nombre}` :
@@ -721,77 +712,156 @@ export function GestionarUsuarios() {
         </CardHeader>
         <CardContent>
           {loading ? (
-            <div className="text-center py-8">Cargando usuarios...</div>
+            <div className="flex items-center justify-center py-12">
+              <div className="text-center">
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
+                <p className="text-muted-foreground">Cargando usuarios...</p>
+              </div>
+            </div>
+          ) : !selectedPlantel ? (
+            <div className="text-center py-12">
+              <Users className="mx-auto h-12 w-12 text-muted-foreground mb-4" />
+              <h3 className="text-lg font-semibold mb-2">Selecciona un Plantel</h3>
+              <p className="text-muted-foreground">
+                Elige un plantel para ver y gestionar sus usuarios
+              </p>
+            </div>
           ) : filteredUsers.length === 0 ? (
-            <div className="text-center py-8 text-muted-foreground">
-              No hay usuarios asignados a este plantel
+            <div className="text-center py-12">
+              <Users className="mx-auto h-12 w-12 text-muted-foreground mb-4" />
+              <h3 className="text-lg font-semibold mb-2">No hay usuarios</h3>
+              <p className="text-muted-foreground mb-4">
+                {searchTerm ? 'No se encontraron usuarios con ese criterio de búsqueda' : 'No hay usuarios asignados a este plantel'}
+              </p>
+              {!searchTerm && (
+                <Button onClick={() => setIsInviteDialogOpen(true)}>
+                  <UserPlus className="h-4 w-4 mr-2" />
+                  Invitar Usuario
+                </Button>
+              )}
             </div>
           ) : (
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Usuario</TableHead>
-                  <TableHead>Email</TableHead>
-                  <TableHead>Rol</TableHead>
-                  <TableHead>Estado</TableHead>
-                  <TableHead>Acciones</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {filteredUsers.map((user) => (
-                  <TableRow key={user.id}>
-                    <TableCell>
-                      <div className="flex items-center space-x-2">
-                        <Avatar className="h-8 w-8">
-                          <AvatarImage src={user.avatar_url || ''} />
-                          <AvatarFallback>
-                            {user.full_name?.charAt(0) || user.email?.charAt(0) || 'U'}
-                          </AvatarFallback>
-                        </Avatar>
-                        <span className="font-medium">{user.full_name || 'Sin nombre'}</span>
-                      </div>
-                    </TableCell>
-                    <TableCell>{user.email}</TableCell>
-                    <TableCell>
-                      <Badge variant={roleColors[user.role]}>
-                        {roleLabels[user.role]}
-                      </Badge>
-                    </TableCell>
-                    <TableCell>
-                      <Badge variant={user.activo ? 'default' : 'secondary'}>
-                        {user.activo ? 'Activo' : 'Inactivo'}
-                      </Badge>
-                    </TableCell>
-                    <TableCell>
-                      <div className="flex space-x-2">
-                        <Select
-                          value={user.role}
-                          onValueChange={(newRole: UserRole) => handleUpdateRole(user.id, newRole)}
-                        >
-                          <SelectTrigger className="w-32">
-                            <SelectValue />
-                          </SelectTrigger>
-                          <SelectContent>
-                            {isAdmin && (
-                              <SelectItem value="administrador">Admin</SelectItem>
-                            )}
-                            <SelectItem value="director">Director</SelectItem>
-                            <SelectItem value="profesor">Profesor</SelectItem>
-                          </SelectContent>
-                        </Select>
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          onClick={() => handleRemoveUser(user.id)}
-                        >
-                          <Trash2 className="h-4 w-4" />
-                        </Button>
-                      </div>
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
+            <div className="space-y-4">
+              <div className="rounded-md border">
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead className="w-[300px]">Usuario</TableHead>
+                      <TableHead className="w-[250px]">Email</TableHead>
+                      <TableHead className="w-[120px]">Rol</TableHead>
+                      <TableHead className="w-[100px]">Estado</TableHead>
+                      <TableHead className="w-[200px]">Acciones</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {filteredUsers.map((user) => (
+                      <TableRow key={user.id} className="hover:bg-muted/50">
+                        <TableCell>
+                          <div className="flex items-center space-x-3">
+                            <Avatar className="h-10 w-10">
+                              <AvatarImage src={user.avatar_url || ''} alt={user.full_name || 'Usuario'} />
+                              <AvatarFallback className="bg-primary/10 text-primary font-semibold">
+                                {user.full_name?.charAt(0)?.toUpperCase() || user.email?.charAt(0)?.toUpperCase() || 'U'}
+                              </AvatarFallback>
+                            </Avatar>
+                            <div>
+                              <p className="font-medium text-sm">{user.full_name || 'Sin nombre'}</p>
+                              <p className="text-xs text-muted-foreground">ID: {user.id.slice(0, 8)}...</p>
+                            </div>
+                          </div>
+                        </TableCell>
+                        <TableCell>
+                          <p className="text-sm">{user.email}</p>
+                        </TableCell>
+                        <TableCell>
+                          <Badge variant={roleColors[user.role]} className="text-xs">
+                            {roleLabels[user.role]}
+                          </Badge>
+                        </TableCell>
+                        <TableCell>
+                          <Badge variant={user.activo ? 'default' : 'secondary'} className="text-xs">
+                            {user.activo ? 'Activo' : 'Inactivo'}
+                          </Badge>
+                        </TableCell>
+                        <TableCell>
+                          <div className="flex items-center space-x-2">
+                            <Select
+                              value={user.role}
+                              onValueChange={(newRole: UserRole) => handleUpdateRole(user.id, newRole)}
+                            >
+                              <SelectTrigger className="w-28 h-8 text-xs">
+                                <SelectValue />
+                              </SelectTrigger>
+                              <SelectContent>
+                                {isAdmin && (
+                                  <SelectItem value="administrador">Admin</SelectItem>
+                                )}
+                                <SelectItem value="director">Director</SelectItem>
+                                <SelectItem value="profesor">Profesor</SelectItem>
+                              </SelectContent>
+                            </Select>
+                            
+                            <AlertDialog>
+                              <AlertDialogTrigger asChild>
+                                <Button
+                                  size="sm"
+                                  variant="outline"
+                                  className="h-8 w-8 p-0 text-destructive hover:text-destructive hover:bg-destructive/10"
+                                >
+                                  <Trash2 className="h-4 w-4" />
+                                </Button>
+                              </AlertDialogTrigger>
+                              <AlertDialogContent>
+                                <AlertDialogHeader>
+                                  <AlertDialogTitle className="flex items-center space-x-2">
+                                    <Trash2 className="h-5 w-5 text-destructive" />
+                                    <span>¿Remover usuario del plantel?</span>
+                                  </AlertDialogTitle>
+                                  <AlertDialogDescription className="space-y-2">
+                                    <p>
+                                      ¿Estás seguro de que quieres remover a <strong>{user.full_name || user.email}</strong> del plantel?
+                                    </p>
+                                    <p className="text-sm text-muted-foreground">
+                                      Esta acción desactivará su asignación al plantel y no podrá acceder a los recursos del mismo.
+                                    </p>
+                                  </AlertDialogDescription>
+                                </AlertDialogHeader>
+                                <AlertDialogFooter>
+                                  <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                                  <AlertDialogAction
+                                     onClick={() => {
+                                       console.log('AlertDialogAction onClick triggered for user:', user.id)
+                                       handleRemoveUser(user.id)
+                                     }}
+                                     className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                                   >
+                                     <Trash2 className="h-4 w-4 mr-2" />
+                                     Remover Usuario
+                                   </AlertDialogAction>
+                                </AlertDialogFooter>
+                              </AlertDialogContent>
+                            </AlertDialog>
+                          </div>
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </div>
+              
+              {/* Información adicional */}
+              <div className="flex items-center justify-between text-sm text-muted-foreground">
+                <p>
+                  Mostrando {filteredUsers.length} de {users.length} usuarios
+                  {searchTerm && ` (filtrado por "${searchTerm}")`}
+                </p>
+                {selectedPlantelInfo && (
+                  <p>
+                    Límite: {selectedPlantelInfo.usuarios_actuales || 0} / {selectedPlantelInfo.max_usuarios || 0} usuarios
+                  </p>
+                )}
+              </div>
+            </div>
           )}
         </CardContent>
       </Card>

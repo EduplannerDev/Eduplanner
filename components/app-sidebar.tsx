@@ -407,6 +407,14 @@ export function AppSidebar({ activeSection, onSectionChange, ...props }: AppSide
             </SidebarMenuButton>
           </SidebarMenuItem>
           <SidebarMenuItem>
+            <SidebarMenuButton asChild tooltip={state === "collapsed" ? "Debug Roles" : undefined}>
+              <button onClick={() => onSectionChange("debug-role")} className="w-full text-orange-600 hover:text-orange-700">
+                <Shield className="h-4 w-4" />
+                {state === "expanded" && <span>Debug Roles</span>}
+              </button>
+            </SidebarMenuButton>
+          </SidebarMenuItem>
+          <SidebarMenuItem>
             <SidebarMenuButton asChild tooltip={state === "collapsed" ? "Cerrar Sesión" : undefined}>
               <button onClick={handleSignOut} className="w-full text-red-600 hover:text-red-700">
                 <LogOut className="h-4 w-4" />

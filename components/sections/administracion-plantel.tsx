@@ -6,15 +6,25 @@ import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { Switch } from "@/components/ui/switch"
-import { Users, UserPlus, Settings, Shield, Edit, Save, X } from "lucide-react"
+import { Users, UserPlus, Settings, Shield, Edit, Save, X, RefreshCw } from "lucide-react"
 import { useRoles } from "@/hooks/use-roles"
 import { useNotification } from "@/hooks/use-notification"
 import { supabase } from "@/lib/supabase"
+import { getPlantelUsers } from "@/lib/planteles"
 
+interface ProfesorPlantel {
+  id: string
+  user_id: string
+  nombre: string
+  email: string
+  activo: boolean
+  fecha_asignacion: string
+}
 
 interface AdministracionPlantelProps {
   isOpen: boolean
@@ -24,8 +34,9 @@ interface AdministracionPlantelProps {
 export function AdministracionPlantel({ isOpen, onClose }: AdministracionPlantelProps) {
   const { isDirector, plantel, loading } = useRoles()
   const { success, error } = useNotification()
-  const [activeTab, setActiveTab] = useState("informacion")
+  const [activeTab, setActiveTab] = useState("profesores")
   const [isEditing, setIsEditing] = useState(false)
+  const [isInitialLoading, setIsInitialLoading] = useState(true)
   const [editForm, setEditForm] = useState({
     nombre: "",
     direccion: "",
@@ -38,6 +49,57 @@ export function AdministracionPlantel({ isOpen, onClose }: AdministracionPlantel
     codigo_postal: ""
   })
   const [saving, setSaving] = useState(false)
+  const [profesores, setProfesores] = useState<ProfesorPlantel[]>([])
+  const [loadingProfesores, setLoadingProfesores] = useState(false)
+
+  // Controlar el estado de loading inicial
+  useEffect(() => {
+    if (!loading) {
+      // Agregar un pequeño delay para mostrar el loader
+      const timer = setTimeout(() => {
+        setIsInitialLoading(false)
+      }, 500)
+      return () => clearTimeout(timer)
+    }
+  }, [loading])
+
+  // Función para cargar profesores
+  const loadProfesores = async () => {
+    if (!plantel) return
+    
+    setLoadingProfesores(true)
+    try {
+      const users = await getPlantelUsers(plantel.id)
+      const profesoresData: ProfesorPlantel[] = users
+         .filter(user => user.role === 'profesor')
+         .map(user => {
+           const profile = user.profiles
+           return {
+             id: user.id,
+             user_id: user.user_id,
+             nombre: profile?.full_name || profile?.email || 'Usuario sin nombre',
+             email: profile?.email || 'Sin email',
+             activo: user.activo,
+             fecha_asignacion: user.assigned_at
+           }
+         })
+      setProfesores(profesoresData)
+    } catch (err) {
+      console.error('Error loading profesores:', err)
+      error("No se pudieron cargar los profesores.", {
+        title: "Error"
+      })
+    } finally {
+      setLoadingProfesores(false)
+    }
+  }
+
+  // Cargar profesores cuando se monta el componente
+  useEffect(() => {
+    if (plantel && activeTab === 'profesores') {
+      loadProfesores()
+    }
+  }, [plantel, activeTab])
 
   // Inicializar formulario cuando se carga el plantel
   useEffect(() => {
@@ -140,19 +202,19 @@ export function AdministracionPlantel({ isOpen, onClose }: AdministracionPlantel
     setIsEditing(false)
   }
 
-  // Verificar permisos
-  if (loading) {
+  // Verificar permisos y estado de carga
+  if (loading || isInitialLoading) {
     return (
       <div className="flex items-center justify-center h-64">
         <div className="text-center">
           <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
-          <p className="text-muted-foreground">Verificando permisos...</p>
+          <p className="text-muted-foreground">Cargando información del plantel...</p>
         </div>
       </div>
     )
   }
 
-  if (!isDirector) {
+  if (!loading && !isDirector) {
     return (
       <div className="flex items-center justify-center h-64">
         <Alert className="max-w-md">
@@ -165,7 +227,7 @@ export function AdministracionPlantel({ isOpen, onClose }: AdministracionPlantel
     )
   }
 
-  if (!plantel) {
+  if (!loading && !plantel) {
     return (
       <div className="flex items-center justify-center h-64">
         <Alert className="max-w-md">
@@ -176,6 +238,11 @@ export function AdministracionPlantel({ isOpen, onClose }: AdministracionPlantel
         </Alert>
       </div>
     )
+  }
+
+  // Verificación adicional para TypeScript
+  if (!plantel) {
+    return null
   }
 
   return (
@@ -395,23 +462,74 @@ export function AdministracionPlantel({ isOpen, onClose }: AdministracionPlantel
         <TabsContent value="profesores" className="space-y-4">
           <Card>
             <CardHeader>
-              <CardTitle>Gestión de Profesores</CardTitle>
-              <CardDescription>
-                Administra los profesores asignados a tu plantel
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="text-center py-8">
-                <Users className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-                <h3 className="text-lg font-semibold mb-2">Módulo en Desarrollo</h3>
-                <p className="text-muted-foreground mb-4">
-                  La gestión de profesores estará disponible próximamente.
-                </p>
-                <Button disabled>
-                  <UserPlus className="h-4 w-4 mr-2" />
-                  Invitar Profesor
+              <div className="flex justify-between items-center">
+                <div>
+                  <CardTitle>Gestión de Profesores</CardTitle>
+                  <CardDescription>
+                    Administra los profesores asignados a tu plantel
+                  </CardDescription>
+                </div>
+                <Button onClick={loadProfesores} variant="outline" size="sm">
+                  <RefreshCw className="h-4 w-4 mr-2" />
+                  Actualizar
                 </Button>
               </div>
+            </CardHeader>
+            <CardContent>
+              {loadingProfesores ? (
+                <div className="text-center py-8">
+                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
+                  <p className="text-muted-foreground">Cargando profesores...</p>
+                </div>
+              ) : profesores.length === 0 ? (
+                <div className="text-center py-8">
+                  <Users className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+                  <h3 className="text-lg font-semibold mb-2">No hay profesores asignados</h3>
+                  <p className="text-muted-foreground mb-4">
+                    Aún no tienes profesores asignados a tu plantel.
+                  </p>
+                </div>
+              ) : (
+                <div className="space-y-4">
+                  <div className="flex items-center justify-between">
+                    <p className="text-sm text-muted-foreground">
+                      {profesores.length} profesor{profesores.length !== 1 ? 'es' : ''} asignado{profesores.length !== 1 ? 's' : ''}
+                    </p>
+                  </div>
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>Profesor</TableHead>
+                        <TableHead>Email</TableHead>
+                        <TableHead>Estado</TableHead>
+                        <TableHead>Fecha de Asignación</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {profesores.map((profesor) => (
+                        <TableRow key={profesor.id}>
+                          <TableCell className="font-medium">
+                            {profesor.nombre}
+                          </TableCell>
+                          <TableCell>{profesor.email}</TableCell>
+                          <TableCell>
+                            <Badge variant={profesor.activo ? 'default' : 'secondary'}>
+                              {profesor.activo ? 'Activo' : 'Inactivo'}
+                            </Badge>
+                          </TableCell>
+                          <TableCell>
+                            {new Date(profesor.fecha_asignacion).toLocaleDateString('es-ES', {
+                              year: 'numeric',
+                              month: 'short',
+                              day: 'numeric'
+                            })}
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </div>
+              )}
             </CardContent>
           </Card>
         </TabsContent>

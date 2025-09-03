@@ -12,6 +12,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Progress } from '@/components/ui/progress'
 import { Textarea } from '@/components/ui/textarea'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+import { useToast } from '@/components/ui/use-toast'
 import { useNotification } from '@/hooks/use-notification'
 import { Plantel } from '@/lib/profile'
 import { getPlantelWithLimits, PlantelWithLimits, updatePlantel, getPlantelUsers, getUserPlantelAssignments, assignUserToPlantel, canAddUserToPlantel } from '@/lib/planteles'
@@ -70,6 +71,7 @@ const nivelesEducativos = [
 export function VistaPlantel({ plantelId, onBack }: VistaPlantelProps) {
   const { isAdmin } = useAdminCheck()
   const { success, error } = useNotification()
+  const { toast } = useToast()
   const [plantel, setPlantel] = useState<PlantelWithLimits | null>(null)
   const [usuarios, setUsuarios] = useState<UsuarioPlantel[]>([])
   const [loading, setLoading] = useState(true)
@@ -117,15 +119,18 @@ export function VistaPlantel({ plantelId, onBack }: VistaPlantelProps) {
       
       // Cargar usuarios del plantel
       const usuariosData = await getPlantelUsers(plantelId)
-      const usuariosFormateados: UsuarioPlantel[] = usuariosData.map((assignment: any) => ({
-        id: assignment.id,
-        user_id: assignment.user_id,
-        nombre: assignment.profiles?.full_name || assignment.profiles?.email || 'Usuario sin nombre',
-        email: assignment.profiles?.email || 'Sin email',
-        rol: assignment.role,
-        activo: assignment.activo,
-        fecha_asignacion: assignment.assigned_at
-      }))
+      const usuariosFormateados: UsuarioPlantel[] = usuariosData.map((assignment: any) => {
+        const profile = assignment.profiles
+        return {
+          id: assignment.id,
+          user_id: assignment.user_id,
+          nombre: profile?.full_name || profile?.email || 'Usuario sin nombre',
+          email: profile?.email || 'Sin email',
+          rol: assignment.role,
+          activo: assignment.activo,
+          fecha_asignacion: assignment.assigned_at
+        }
+      })
       setUsuarios(usuariosFormateados)
       
       setEditFormData({
