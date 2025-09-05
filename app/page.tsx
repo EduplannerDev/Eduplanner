@@ -1,9 +1,11 @@
 "use client"
 
-import { Suspense } from "react"
+import { Suspense, useState } from "react"
 import { useAuth } from "@/hooks/use-auth"
+import { useIsMobile } from "@/hooks/use-mobile"
 import LoginForm from "@/components/login-form"
 import Dashboard from "@/components/dashboard"
+import { MobileLanding } from "@/components/mobile-landing"
 import { Loader2 } from "lucide-react"
 
 function LoadingFallback() {
@@ -16,9 +18,20 @@ function LoadingFallback() {
 
 export default function Home() {
   const { user, loading } = useAuth()
+  const isMobile = useIsMobile()
+  const [showMobileLanding, setShowMobileLanding] = useState(true)
 
   if (loading) {
     return <LoadingFallback />
+  }
+
+  // Mostrar landing móvil si estamos en móvil y no se ha elegido continuar
+  if (isMobile && showMobileLanding && !user) {
+    return (
+      <MobileLanding 
+        onContinueToDesktop={() => setShowMobileLanding(false)} 
+      />
+    )
   }
 
   return (

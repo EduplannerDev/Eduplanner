@@ -122,15 +122,15 @@ const faqData: FAQItem[] = [
 ]
 
 const categories = [
-  { name: "Planeaciones", icon: BookOpen, color: "bg-blue-100 text-blue-800" },
-  { name: "Presentaciones", icon: Presentation, color: "bg-green-100 text-green-800" },
-  { name: "Exámenes", icon: FileText, color: "bg-purple-100 text-purple-800" },
-  { name: "Chat IA", icon: MessageSquare, color: "bg-orange-100 text-orange-800" },
-  { name: "Mensajes", icon: Users, color: "bg-pink-100 text-pink-800" },
-  { name: "Suscripción", icon: CreditCard, color: "bg-yellow-100 text-yellow-800" },
-  { name: "Perfil", icon: Settings, color: "bg-gray-100 text-gray-800" },
-  { name: "General", icon: HelpCircle, color: "bg-indigo-100 text-indigo-800" },
-  { name: "Soporte", icon: HelpCircle, color: "bg-red-100 text-red-800" }
+  { name: "Planeaciones", icon: BookOpen, color: "bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-300" },
+  { name: "Presentaciones", icon: Presentation, color: "bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300" },
+  { name: "Exámenes", icon: FileText, color: "bg-purple-100 text-purple-800 dark:bg-purple-900/30 dark:text-purple-300" },
+  { name: "Chat IA", icon: MessageSquare, color: "bg-orange-100 text-orange-800 dark:bg-orange-900/30 dark:text-orange-300" },
+  { name: "Mensajes", icon: Users, color: "bg-pink-100 text-pink-800 dark:bg-pink-900/30 dark:text-pink-300" },
+  { name: "Suscripción", icon: CreditCard, color: "bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-300" },
+  { name: "Perfil", icon: Settings, color: "bg-gray-100 text-gray-800 dark:bg-gray-800/50 dark:text-gray-300" },
+  { name: "General", icon: HelpCircle, color: "bg-indigo-100 text-indigo-800 dark:bg-indigo-900/30 dark:text-indigo-300" },
+  { name: "Soporte", icon: HelpCircle, color: "bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-300" }
 ]
 
 export function FAQ() {
@@ -155,8 +155,8 @@ export function FAQ() {
   return (
     <div className="space-y-6">
       <div className="text-center space-y-2">
-        <h1 className="text-3xl font-bold text-gray-900">Preguntas Frecuentes</h1>
-        <p className="text-gray-600 max-w-2xl mx-auto">
+        <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100">Preguntas Frecuentes</h1>
+        <p className="text-gray-600 dark:text-gray-300 max-w-2xl mx-auto">
           Encuentra respuestas a las preguntas más comunes sobre EduPlanner. 
           Si no encuentras lo que buscas, no dudes en contactarnos.
         </p>
@@ -175,8 +175,8 @@ export function FAQ() {
                     <IconComponent className="h-5 w-5" />
                   </div>
                   <div>
-                    <CardTitle className="text-xl">{category}</CardTitle>
-                    <CardDescription>
+                    <CardTitle className="text-xl text-gray-900 dark:text-gray-100">{category}</CardTitle>
+                    <CardDescription className="text-gray-600 dark:text-gray-400">
                       {faqs.length} pregunta{faqs.length !== 1 ? 's' : ''}
                     </CardDescription>
                   </div>
@@ -188,19 +188,19 @@ export function FAQ() {
                     <AccordionItem key={faq.id} value={faq.id}>
                       <AccordionTrigger className="text-left hover:no-underline">
                         <div className="flex items-start gap-3 w-full">
-                          <HelpCircle className="h-4 w-4 mt-1 text-gray-400 flex-shrink-0" />
-                          <span className="font-medium">{faq.question}</span>
+                          <HelpCircle className="h-4 w-4 mt-1 text-gray-400 dark:text-gray-500 flex-shrink-0" />
+                          <span className="font-medium text-gray-900 dark:text-gray-100">{faq.question}</span>
                         </div>
                       </AccordionTrigger>
                       <AccordionContent>
                         <div className="pl-7 space-y-3">
-                          <p className="text-gray-700 leading-relaxed">
+                          <p className="text-gray-700 dark:text-gray-300 leading-relaxed">
                             {faq.answer}
                           </p>
                           {faq.tags && faq.tags.length > 0 && (
                             <div className="flex flex-wrap gap-1">
                               {faq.tags.map((tag, index) => (
-                                <Badge key={index} variant="secondary" className="text-xs">
+                                <Badge key={index} variant="secondary" className="text-xs bg-gray-100 text-gray-700 dark:bg-gray-700 dark:text-gray-300">
                                   {tag}
                                 </Badge>
                               ))}
@@ -217,18 +217,18 @@ export function FAQ() {
         })}
       </div>
 
-      <Card className="bg-gradient-to-r from-blue-50 to-indigo-50 border-blue-200">
+      <Card className="bg-gradient-to-r from-blue-50 to-indigo-50 border-blue-200 dark:from-blue-900/20 dark:to-indigo-900/20 dark:border-blue-800/50">
         <CardContent className="pt-6">
           <div className="text-center space-y-3">
             <div className="flex justify-center">
-              <div className="p-3 bg-blue-100 rounded-full">
-                <MessageSquare className="h-6 w-6 text-blue-600" />
+              <div className="p-3 bg-blue-100 dark:bg-blue-900/50 rounded-full">
+                <MessageSquare className="h-6 w-6 text-blue-600 dark:text-blue-400" />
               </div>
             </div>
-            <h3 className="text-lg font-semibold text-gray-900">
+            <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100">
               ¿No encontraste lo que buscabas?
             </h3>
-            <p className="text-gray-600 max-w-md mx-auto">
+            <p className="text-gray-600 dark:text-gray-300 max-w-md mx-auto">
               Usa el botón de feedback en la esquina inferior derecha para enviarnos 
               tu pregunta o sugerencia. Nuestro equipo te ayudará lo antes posible.
             </p>

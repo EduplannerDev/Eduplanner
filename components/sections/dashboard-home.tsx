@@ -156,10 +156,10 @@ export function DashboardHome({ onSectionChange }: DashboardHomeProps) {
 
   const getActivityColor = (type: string) => {
     switch (type) {
-      case 'planeacion': return 'bg-blue-100 text-blue-800'
-      case 'examen': return 'bg-green-100 text-green-800'
-      case 'mensaje': return 'bg-purple-100 text-purple-800'
-      default: return 'bg-gray-100 text-gray-800'
+      case 'planeacion': return 'bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-300'
+      case 'examen': return 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300'
+      case 'mensaje': return 'bg-purple-100 text-purple-800 dark:bg-purple-900/30 dark:text-purple-300'
+      default: return 'bg-gray-100 text-gray-800 dark:bg-gray-800/50 dark:text-gray-300'
     }
   }
 
@@ -210,59 +210,59 @@ export function DashboardHome({ onSectionChange }: DashboardHomeProps) {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4 md:space-y-6">
       {/* Saludo personalizado */}
-      <div className="mb-8">
-        <h1 className="text-3xl font-bold text-foreground mb-2">
+      <div className="mb-6 md:mb-8">
+        <h1 className="text-2xl md:text-3xl font-bold text-foreground mb-2">
           ¡Hola, {firstName}! 👋
         </h1>
-        <p className="text-muted-foreground">
+        <p className="text-sm md:text-base text-muted-foreground">
           Bienvenido a tu panel de control. Aquí tienes un resumen de tu actividad educativa.
         </p>
       </div>
 
       {/* Estadísticas principales */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+      <div className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-4 gap-3 md:gap-4 mb-6 md:mb-8">
         <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Planeaciones</CardTitle>
-            <FileText className="h-4 w-4 text-muted-foreground" />
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 px-3 md:px-6 pt-3 md:pt-6">
+            <CardTitle className="text-xs md:text-sm font-medium">Planeaciones</CardTitle>
+            <FileText className="h-3 w-3 md:h-4 md:w-4 text-muted-foreground" />
           </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{stats.planeaciones}</div>
+          <CardContent className="px-3 md:px-6 pb-3 md:pb-6">
+            <div className="text-lg md:text-2xl font-bold">{stats.planeaciones}</div>
             <p className="text-xs text-muted-foreground">Total creadas</p>
           </CardContent>
         </Card>
 
         <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Exámenes</CardTitle>
-            <GraduationCap className="h-4 w-4 text-muted-foreground" />
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 px-3 md:px-6 pt-3 md:pt-6">
+            <CardTitle className="text-xs md:text-sm font-medium">Exámenes</CardTitle>
+            <GraduationCap className="h-3 w-3 md:h-4 md:w-4 text-muted-foreground" />
           </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{stats.examenes}</div>
+          <CardContent className="px-3 md:px-6 pb-3 md:pb-6">
+            <div className="text-lg md:text-2xl font-bold">{stats.examenes}</div>
             <p className="text-xs text-muted-foreground">Total generados</p>
           </CardContent>
         </Card>
 
         <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Grupos</CardTitle>
-            <Users className="h-4 w-4 text-muted-foreground" />
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 px-3 md:px-6 pt-3 md:pt-6">
+            <CardTitle className="text-xs md:text-sm font-medium">Grupos</CardTitle>
+            <Users className="h-3 w-3 md:h-4 md:w-4 text-muted-foreground" />
           </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{stats.grupos}</div>
+          <CardContent className="px-3 md:px-6 pb-3 md:pb-6">
+            <div className="text-lg md:text-2xl font-bold">{stats.grupos}</div>
             <p className="text-xs text-muted-foreground">Grupos activos</p>
           </CardContent>
         </Card>
 
         <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Mensajes</CardTitle>
-            <MessageSquare className="h-4 w-4 text-muted-foreground" />
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 px-3 md:px-6 pt-3 md:pt-6">
+            <CardTitle className="text-xs md:text-sm font-medium">Mensajes</CardTitle>
+            <MessageSquare className="h-3 w-3 md:h-4 md:w-4 text-muted-foreground" />
           </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{stats.mensajes}</div>
+          <CardContent className="px-3 md:px-6 pb-3 md:pb-6">
+            <div className="text-lg md:text-2xl font-bold">{stats.mensajes}</div>
             <p className="text-xs text-muted-foreground">Mensajes enviados</p>
           </CardContent>
         </Card>
@@ -270,52 +270,54 @@ export function DashboardHome({ onSectionChange }: DashboardHomeProps) {
 
       {/* Tarjeta destacada de Tomar Asistencia */}
       <Card className="bg-gradient-to-r from-emerald-500 to-emerald-600 border-0 text-white">
-        <CardContent className="p-6">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-4">
-              <div className="p-3 bg-white/20 rounded-full">
-                <ClipboardCheck className="h-8 w-8 text-white" />
+        <CardContent className="p-4 md:p-6">
+          <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+            <div className="flex items-center gap-3 md:gap-4">
+              <div className="p-2 md:p-3 bg-white/20 rounded-full">
+                <ClipboardCheck className="h-6 w-6 md:h-8 md:w-8 text-white" />
               </div>
               <div>
-                <h3 className="text-xl font-bold text-white mb-1">Tomar Asistencia Hoy</h3>
-                <p className="text-emerald-100 text-sm">
+                <h3 className="text-lg md:text-xl font-bold text-white mb-1">Tomar Asistencia Hoy</h3>
+                <p className="text-emerald-100 text-xs md:text-sm">
                    Registra la asistencia de tus {stats.grupos} grupos • {format(new Date(), "EEEE, d 'de' MMMM", { locale: es })}
                  </p>
               </div>
             </div>
             <Button 
               onClick={() => onSectionChange('tomar-asistencia')}
-              className="bg-white text-emerald-600 hover:bg-emerald-50 font-semibold px-6 py-3 h-auto"
+              className="bg-white text-emerald-600 hover:bg-emerald-50 font-semibold px-4 md:px-6 py-2 md:py-3 h-auto w-full md:w-auto"
             >
-              <ClipboardCheck className="h-5 w-5 mr-2" />
+              <ClipboardCheck className="h-4 w-4 md:h-5 md:w-5 mr-2" />
               Comenzar
             </Button>
           </div>
         </CardContent>
       </Card>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 md:gap-6">
         {/* Acciones rápidas */}
         <Card>
-          <CardHeader>
-            <CardTitle>Acciones Rápidas</CardTitle>
-            <CardDescription>
+          <CardHeader className="px-4 md:px-6 pt-4 md:pt-6">
+            <CardTitle className="text-lg md:text-xl">Acciones Rápidas</CardTitle>
+            <CardDescription className="text-sm">
               Accede rápidamente a las funciones más utilizadas
             </CardDescription>
           </CardHeader>
-          <CardContent>
-            <div className="grid grid-cols-2 gap-3">
+          <CardContent className="px-4 md:px-6 pb-4 md:pb-6">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               {quickActions.map((action, index) => (
                 <Button
                   key={index}
                   variant="outline"
-                  className={`h-auto p-4 flex flex-col items-center gap-2 ${action.color} text-white border-0`}
+                  className={`h-auto p-3 md:p-4 flex flex-col items-center gap-2 ${action.color} text-white border-0`}
                   onClick={action.action}
                 >
-                  {action.icon}
+                  <div className="h-4 w-4 md:h-5 md:w-5">
+                    {action.icon}
+                  </div>
                   <div className="text-center">
-                    <div className="font-medium text-sm">{action.title}</div>
-                    <div className="text-xs opacity-90">{action.description}</div>
+                    <div className="font-medium text-xs md:text-sm">{action.title}</div>
+                    <div className="text-xs opacity-90 hidden sm:block">{action.description}</div>
                   </div>
                 </Button>
               ))}
@@ -325,17 +327,17 @@ export function DashboardHome({ onSectionChange }: DashboardHomeProps) {
 
         {/* Actividad reciente */}
         <Card>
-          <CardHeader>
-            <CardTitle>Actividad Reciente</CardTitle>
-            <CardDescription>
+          <CardHeader className="px-4 md:px-6 pt-4 md:pt-6">
+            <CardTitle className="text-lg md:text-xl">Actividad Reciente</CardTitle>
+            <CardDescription className="text-sm">
               Tus últimas creaciones y modificaciones
             </CardDescription>
           </CardHeader>
-          <CardContent>
+          <CardContent className="px-4 md:px-6 pb-4 md:pb-6">
             {recentActivity.length > 0 ? (
               <div className="space-y-3">
                 {recentActivity.map((activity) => (
-                  <div key={activity.id} className="flex items-center gap-3 p-2 rounded-lg hover:bg-gray-50">
+                  <div key={activity.id} className="flex items-center gap-3 p-2 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-800">
                     <div className={`p-2 rounded-full ${getActivityColor(activity.type)}`}>
                       {getActivityIcon(activity.type)}
                     </div>
@@ -362,13 +364,13 @@ export function DashboardHome({ onSectionChange }: DashboardHomeProps) {
 
       {/* Progreso del mes */}
       <Card>
-        <CardHeader>
-          <CardTitle>Progreso del Mes</CardTitle>
-          <CardDescription>
+        <CardHeader className="px-4 md:px-6 pt-4 md:pt-6">
+          <CardTitle className="text-lg md:text-xl">Progreso del Mes</CardTitle>
+          <CardDescription className="text-sm">
             {isPro ? "Tu productividad en el mes actual (Plan PRO)" : "Tu productividad en el mes actual (Plan Free)"}
           </CardDescription>
         </CardHeader>
-        <CardContent>
+        <CardContent className="px-4 md:px-6 pb-4 md:pb-6">
           <div className="space-y-4">
             <div>
               <div className="flex justify-between text-sm mb-1">

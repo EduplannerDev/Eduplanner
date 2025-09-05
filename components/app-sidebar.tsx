@@ -28,6 +28,7 @@ import { useAuth } from "@/hooks/use-auth"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { useUserData } from "@/hooks/use-user-data"
 import { useRoles } from "@/hooks/use-roles"
+import { useIsMobile } from "@/hooks/use-mobile"
 
 // Estructura del menú con secciones desplegables
 const menuStructure = {
@@ -116,7 +117,8 @@ export function AppSidebar({ activeSection, onSectionChange, ...props }: AppSide
   const { user, signOut } = useAuth()
   const { userData } = useUserData(user?.id)
   const { isAdmin, isDirector } = useRoles()
-  const { state } = useSidebar()
+  const { state, setOpenMobile } = useSidebar()
+  const isMobile = useIsMobile()
   
   // Estado para manejar qué secciones están expandidas
   const [expandedSections, setExpandedSections] = useState<Record<string, boolean>>({
@@ -127,6 +129,7 @@ export function AppSidebar({ activeSection, onSectionChange, ...props }: AppSide
 
   const handleSignOut = async () => {
     await signOut()
+    // No necesitamos cerrar el sidebar aquí ya que se redirige al login
   }
 
   const getInitials = (email: string) => {
@@ -138,6 +141,14 @@ export function AppSidebar({ activeSection, onSectionChange, ...props }: AppSide
       ...prev,
       [sectionKey]: !prev[sectionKey]
     }))
+  }
+
+  // Función para manejar la navegación y cerrar el sidebar en móvil
+  const handleNavigation = (section: string) => {
+    onSectionChange(section)
+    if (isMobile) {
+      setOpenMobile(false)
+    }
   }
 
   // Obtener el nombre para mostrar
@@ -175,7 +186,7 @@ export function AppSidebar({ activeSection, onSectionChange, ...props }: AppSide
                   isActive={activeSection === "dashboard"}
                   tooltip="Panel principal con resumen de actividades"
                 >
-                  <button onClick={() => onSectionChange("dashboard")} className="w-full">
+                  <button onClick={() => handleNavigation("dashboard")} className="w-full">
                     <Home className="h-4 w-4" />
                     <span>Dashboard</span>
                   </button>
@@ -219,7 +230,7 @@ export function AppSidebar({ activeSection, onSectionChange, ...props }: AppSide
                                   asChild
                                   isActive={activeSection === item.url.replace("#", "")}
                                 >
-                                  <button onClick={() => onSectionChange(item.url.replace("#", ""))} className="w-full">
+                                  <button onClick={() => handleNavigation(item.url.replace("#", ""))} className="w-full">
                                     <span>{item.title}</span>
                                   </button>
                                 </SidebarMenuSubButton>
@@ -242,7 +253,7 @@ export function AppSidebar({ activeSection, onSectionChange, ...props }: AppSide
                             {section.items.map((item) => (
                               <button
                                 key={item.title}
-                                onClick={() => onSectionChange(item.url.replace("#", ""))}
+                                onClick={() => handleNavigation(item.url.replace("#", ""))}
                                 className="w-full text-left px-2 py-1 text-sm hover:bg-accent hover:text-accent-foreground rounded-sm transition-colors"
                               >
                                 {item.title}
@@ -258,7 +269,7 @@ export function AppSidebar({ activeSection, onSectionChange, ...props }: AppSide
                        isActive={activeSection === (section as any).url?.replace("#", "")}
                        tooltip={(section as any).description}
                      >
-                       <button onClick={() => onSectionChange((section as any).url?.replace("#", "") || "")} className="w-full">
+                       <button onClick={() => handleNavigation((section as any).url?.replace("#", "") || "")} className="w-full">
                          <section.icon className="h-4 w-4" />
                          <span>{section.title}</span>
                        </button>
@@ -284,7 +295,7 @@ export function AppSidebar({ activeSection, onSectionChange, ...props }: AppSide
                     isActive={activeSection === (section as any).url?.replace("#", "")}
                     tooltip={(section as any).description}
                   >
-                    <button onClick={() => onSectionChange((section as any).url?.replace("#", "") || "")} className="w-full">
+                    <button onClick={() => handleNavigation((section as any).url?.replace("#", "") || "")} className="w-full">
                       <section.icon className="h-4 w-4" />
                       <span>{section.title}</span>
                     </button>
@@ -309,7 +320,7 @@ export function AppSidebar({ activeSection, onSectionChange, ...props }: AppSide
                     isActive={activeSection === section.url?.replace("#", "")}
                     tooltip={section.description}
                   >
-                    <button onClick={() => onSectionChange(section.url?.replace("#", "") || "")} className="w-full">
+                    <button onClick={() => handleNavigation(section.url?.replace("#", "") || "")} className="w-full">
                       <section.icon className="h-4 w-4" />
                       <span>{section.title}</span>
                     </button>
@@ -334,7 +345,7 @@ export function AppSidebar({ activeSection, onSectionChange, ...props }: AppSide
                     isActive={activeSection === "admin-dashboard"}
                     tooltip="Panel de administración del sistema"
                   >
-                    <button onClick={() => onSectionChange("admin-dashboard")} className="w-full">
+                    <button onClick={() => handleNavigation("admin-dashboard")} className="w-full">
                       <Shield className="h-4 w-4" />
                       <span>Panel de Administración</span>
                     </button>
@@ -359,7 +370,7 @@ export function AppSidebar({ activeSection, onSectionChange, ...props }: AppSide
                     isActive={activeSection === "administracion-plantel"}
                     tooltip="Gestión de plantel educativo"
                   >
-                    <button onClick={() => onSectionChange("administracion-plantel")} className="w-full">
+                    <button onClick={() => handleNavigation("administracion-plantel")} className="w-full">
                       <Users className="h-4 w-4" />
                       <span>Gestión de Plantel</span>
                     </button>
@@ -375,7 +386,7 @@ export function AppSidebar({ activeSection, onSectionChange, ...props }: AppSide
         <SidebarMenu>
           <SidebarMenuItem>
             <SidebarMenuButton asChild>
-              <button onClick={() => onSectionChange("perfil")} className="w-full">
+              <button onClick={() => handleNavigation("perfil")} className="w-full">
                 {state === "collapsed" ? (
                   <div className="flex items-center justify-center w-full">
                     <Avatar className="h-8 w-8">
@@ -400,7 +411,7 @@ export function AppSidebar({ activeSection, onSectionChange, ...props }: AppSide
           </SidebarMenuItem>
           <SidebarMenuItem>
             <SidebarMenuButton asChild tooltip={state === "collapsed" ? "Preguntas Frecuentes" : undefined}>
-              <button onClick={() => onSectionChange("faq")} className="w-full">
+              <button onClick={() => handleNavigation("faq")} className="w-full">
                 <HelpCircle className="h-4 w-4" />
                 {state === "expanded" && <span>Preguntas Frecuentes</span>}
               </button>
