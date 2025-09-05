@@ -31,6 +31,8 @@ export async function saveMobileNotificationEmail(
       }
     }
 
+    console.log('Attempting to save email:', data.email)
+
     // Intentar insertar el email
     const { data: result, error } = await supabase
       .from('mobile_notifications')
@@ -43,6 +45,13 @@ export async function saveMobileNotificationEmail(
       .single()
 
     if (error) {
+      console.error('Supabase error details:', {
+        code: error.code,
+        message: error.message,
+        details: error.details,
+        hint: error.hint
+      })
+
       // Si el error es por duplicado, consideramos éxito
       if (error.code === '23505') { // Unique constraint violation
         return {
@@ -52,14 +61,32 @@ export async function saveMobileNotificationEmail(
         }
       }
 
-      console.error('Error saving mobile notification email:', error)
+      // Si el error es de permisos RLS
+      if (error.code === '42501') {
+        return {
+          success: false,
+          message: 'Error de permisos. La tabla no está configurada correctamente.',
+          error: 'RLS_PERMISSION_ERROR'
+        }
+      }
+
+      // Si la tabla no existe
+      if (error.code === '42P01') {
+        return {
+          success: false,
+          message: 'La tabla no existe. Ejecuta la migración primero.',
+          error: 'TABLE_NOT_EXISTS'
+        }
+      }
+
       return {
         success: false,
-        message: 'Error al guardar el email',
+        message: `Error al guardar el email: ${error.message}`,
         error: error.message
       }
     }
 
+    console.log('Email saved successfully:', result)
     return {
       success: true,
       message: 'Email guardado exitosamente',
