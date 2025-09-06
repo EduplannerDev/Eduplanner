@@ -49,12 +49,6 @@ export function NuevaPlaneacion({ onCreateClass }: NuevaPlaneacionProps) {
     },
   ]
 
-  const materias = [
-    { name: "Matemáticas", enabled: false },
-    { name: "Español", enabled: false },
-    { name: "Ciencias", enabled: false },
-    { name: "Historia", enabled: false },
-  ]
 
   return (
     <TooltipProvider>
@@ -173,39 +167,6 @@ export function NuevaPlaneacion({ onCreateClass }: NuevaPlaneacionProps) {
           })}
         </div>
 
-        <Card>
-          <CardHeader>
-            <CardTitle>Plantillas Rápidas</CardTitle>
-            <CardDescription>Comienza con plantillas prediseñadas para diferentes materias</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-              {materias.map((materia) => (
-                <Tooltip key={materia.name}>
-                  <TooltipTrigger asChild>
-                    <Button
-                      variant="outline"
-                      className={`h-20 flex-col ${materia.enabled
-                          ? "hover:bg-gray-50"
-                          : "opacity-60 cursor-not-allowed border-dashed text-gray-400"
-                        }`}
-                      disabled={!materia.enabled}
-                    >
-                      <BookOpen className={`h-6 w-6 mb-2 ${materia.enabled ? "" : "text-gray-400"}`} />
-                      {materia.name}
-                    </Button>
-                  </TooltipTrigger>
-                  {!materia.enabled && (
-                    <TooltipContent>
-                      <p className="font-medium">🚀 Próximamente</p>
-                      <p className="text-sm">Plantillas de {materia.name} en desarrollo</p>
-                    </TooltipContent>
-                  )}
-                </Tooltip>
-              ))}
-            </div>
-          </CardContent>
-        </Card>
 
         {/* Sección adicional para mostrar el progreso del MVP */}
         <Card className="bg-muted/50 border-border">
