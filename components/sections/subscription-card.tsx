@@ -66,24 +66,22 @@ export function SubscriptionCard({ userPlan }: SubscriptionCardProps) {
   // Características de los planes
 
   const freeFeatures = [
-    { name: "Hasta 5 planeaciones por mes", included: true },
-    { name: "Plantillas básicas", included: true },
-    { name: "Exportar en PDF", included: true },
-    { name: "Soporte por email", included: false },
-    { name: "Plantillas premium", included: false },
-    { name: "Planeaciones ilimitadas", included: false },
-    { name: "Colaboración en tiempo real", included: false },
-    { name: "Análisis y reportes", included: false },
+    { name: "Hasta 5 generaciones al mes", included: true },
+    { name: "Acceso a todos los generadores con IA", included: true },
+    { name: "Gestión de hasta 2 grupos y 50 alumnos", included: true },
+    { name: "Descarga en formato PDF", included: true },
+    { name: "Generaciones ilimitadas", included: false },
+    { name: "Grupos y alumnos ilimitados", included: false },
+    { name: "Descarga en formato Word (.docx) editable", included: false },
+    { name: "Soporte prioritario", included: false },
   ]
 
   const proFeatures = [
-    { name: "Planeaciones ilimitadas", included: true },
-    { name: "Todas las plantillas premium", included: true },
-    { name: "Exportar en múltiples formatos", included: true },
+    { name: "Todo lo del plan Gratis, más:", included: true },
+    { name: "Generaciones ilimitadas", included: true },
+    { name: "Grupos y alumnos ilimitados", included: true },
+    { name: "Descarga en formato Word (.docx) editable", included: true },
     { name: "Soporte prioritario", included: true },
-    { name: "Colaboración en tiempo real", included: true },
-    { name: "Análisis y reportes avanzados", included: true },
-    { name: "Banco de recursos educativos", included: true },
   ]
 
 
@@ -213,11 +211,10 @@ export function SubscriptionCard({ userPlan }: SubscriptionCardProps) {
             {/* Plan Free */}
             <div className="space-y-4 text-center">
               <div>
-                <h3 className="text-xl font-semibold dark:text-gray-100">Plan Free</h3>
+                <h3 className="text-xl font-semibold dark:text-gray-100">Plan GRATIS</h3>
                 <p className="text-3xl font-bold mt-2 dark:text-gray-100">
-                  $0<span className="text-lg font-normal dark:text-gray-300">/mes</span>
+                  $0<span className="text-lg font-normal dark:text-gray-300"> / por siempre</span>
                 </p>
-                <p className="text-sm text-gray-600 mt-1 dark:text-gray-300">Perfecto para empezar</p>
               </div>
               <div className="space-y-3 text-left">
                 {freeFeatures.map((feature, index) => (
@@ -249,9 +246,8 @@ export function SubscriptionCard({ userPlan }: SubscriptionCardProps) {
                   <h3 className="text-xl font-semibold text-foreground">Plan PRO</h3>
                 </div>
                 <p className="text-3xl font-bold mt-2 text-foreground">
-                  $200<span className="text-lg font-normal text-muted-foreground">/mes</span>
+                  $200<span className="text-lg font-normal text-muted-foreground"> / mes</span>
                 </p>
-                <p className="text-sm text-muted-foreground mt-1">Para profesores profesionales</p>
               </div>
               <div className="space-y-3 text-left">
                 {proFeatures.map((feature, index) => (
