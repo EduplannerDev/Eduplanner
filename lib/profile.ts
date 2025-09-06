@@ -246,35 +246,56 @@ export async function uploadAvatar(userId: string, file: File): Promise<string |
     return null;
   }
 
+  console.log("uploadAvatar: Iniciando subida de avatar para usuario:", userId);
+  console.log("uploadAvatar: Archivo:", file.name, "Tamaño:", file.size, "Tipo:", file.type);
+
   const fileExt = file.name.split('.').pop();
   const fileName = `${userId}-${Math.random()}.${fileExt}`;
   const filePath = `${userId}/${fileName}`;
 
   try {
+    // Verificar autenticación antes de subir
+    const { data: sessionData, error: sessionError } = await supabase.auth.getSession();
+    if (sessionError) {
+      console.error("uploadAvatar: Error al obtener sesión:", sessionError.message);
+      throw new Error("Error de autenticación: " + sessionError.message);
+    }
+    if (!sessionData.session) {
+      console.error("uploadAvatar: No hay sesión activa");
+      throw new Error("No hay sesión activa de usuario");
+    }
+    console.log("uploadAvatar: Usuario autenticado:", sessionData.session.user.id);
+
+    console.log("uploadAvatar: Intentando subir archivo a:", filePath);
     const { error: uploadError } = await supabase.storage
       .from('avatars') // Asegúrate de tener un bucket llamado 'avatars' en Supabase Storage
       .upload(filePath, file, { cacheControl: '3600', upsert: true });
 
     if (uploadError) {
-      console.error("Error uploading avatar:", uploadError.message);
-      return null;
+      console.error("uploadAvatar: Error en upload:", uploadError);
+      throw new Error("Error al subir archivo: " + uploadError.message);
     }
+
+    console.log("uploadAvatar: Archivo subido exitosamente");
 
     const { data: publicUrlData } = supabase.storage.from('avatars').getPublicUrl(filePath);
     const publicUrl = publicUrlData.publicUrl;
+    console.log("uploadAvatar: URL pública generada:", publicUrl);
 
     // Actualizar la URL del avatar en el perfil del usuario
+    console.log("uploadAvatar: Actualizando perfil con nueva URL");
     const success = await updateProfile(userId, { avatar_url: publicUrl });
 
     if (!success) {
-      console.error("Error updating profile with new avatar URL.");
-      return null;
+      console.error("uploadAvatar: Error al actualizar perfil con nueva URL");
+      throw new Error("Error al actualizar perfil con nueva URL del avatar");
     }
 
+    console.log("uploadAvatar: Proceso completado exitosamente");
     return publicUrl;
   } catch (error) {
-    console.error("Excepción en uploadAvatar:", (error as Error).message);
-    return null;
+    console.error("uploadAvatar: Excepción capturada:", error);
+    throw error; // Re-lanzar el error para que el componente pueda manejarlo
   }
 }
 

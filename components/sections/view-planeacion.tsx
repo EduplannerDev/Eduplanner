@@ -30,6 +30,37 @@ export function ViewPlaneacion({ planeacionId, onBack, onEdit }: ViewPlaneacionP
     loadPlaneacion()
   }, [planeacionId])
 
+  // Proteger contra atajos de teclado para copiar
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      // Bloquear Ctrl+C, Ctrl+A, Ctrl+V, Ctrl+X, F12
+      if (
+        (e.ctrlKey && (e.key === 'c' || e.key === 'a' || e.key === 'v' || e.key === 'x')) ||
+        e.key === 'F12' ||
+        (e.ctrlKey && e.shiftKey && e.key === 'I') || // DevTools
+        (e.ctrlKey && e.shiftKey && e.key === 'J') || // Console
+        (e.ctrlKey && e.key === 'u') // View Source
+      ) {
+        e.preventDefault()
+        e.stopPropagation()
+        return false
+      }
+    }
+
+    const handleContextMenu = (e: Event) => {
+      e.preventDefault()
+      return false
+    }
+
+    document.addEventListener('keydown', handleKeyDown)
+    document.addEventListener('contextmenu', handleContextMenu)
+
+    return () => {
+      document.removeEventListener('keydown', handleKeyDown)
+      document.removeEventListener('contextmenu', handleContextMenu)
+    }
+  }, [])
+
   const loadPlaneacion = async () => {
     setLoading(true)
     const data = await getPlaneacion(planeacionId)
@@ -77,7 +108,20 @@ export function ViewPlaneacion({ planeacionId, onBack, onEdit }: ViewPlaneacionP
   }
 
   return (
-    <div className="space-y-6 max-w-4xl mx-auto">
+    <div 
+      className="space-y-6 max-w-4xl mx-auto select-none" 
+      style={{ 
+        userSelect: 'none', 
+        WebkitUserSelect: 'none', 
+        MozUserSelect: 'none', 
+        msUserSelect: 'none',
+        WebkitTouchCallout: 'none',
+        WebkitTapHighlightColor: 'transparent'
+      }}
+      onContextMenu={(e) => e.preventDefault()}
+      onSelectStart={(e) => e.preventDefault()}
+      onDragStart={(e) => e.preventDefault()}
+    >
       {/* Header */}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-4">
@@ -149,7 +193,15 @@ export function ViewPlaneacion({ planeacionId, onBack, onEdit }: ViewPlaneacionP
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <p className="text-gray-900 dark:text-gray-100 leading-relaxed">{planeacion.objetivo ? cleanMarkdown(planeacion.objetivo) : ""}</p>
+            <p 
+              className="text-gray-900 dark:text-gray-100 leading-relaxed select-none"
+              style={{ userSelect: 'none', WebkitUserSelect: 'none', MozUserSelect: 'none', msUserSelect: 'none' }}
+              onContextMenu={(e) => e.preventDefault()}
+              onSelectStart={(e) => e.preventDefault()}
+              onDragStart={(e) => e.preventDefault()}
+            >
+              {planeacion.objetivo ? cleanMarkdown(planeacion.objetivo) : ""}
+            </p>
           </CardContent>
         </Card>
       )}
@@ -161,10 +213,22 @@ export function ViewPlaneacion({ planeacionId, onBack, onEdit }: ViewPlaneacionP
           <CardDescription>Desarrollo completo de la clase</CardDescription>
         </CardHeader>
         <CardContent>
-          <div className="bg-gray-50 dark:bg-gray-800 p-6 rounded-lg border dark:border-gray-700">
+          <div 
+            className="bg-gray-50 dark:bg-gray-800 p-6 rounded-lg border dark:border-gray-700 select-none"
+            style={{ userSelect: 'none', WebkitUserSelect: 'none', MozUserSelect: 'none', msUserSelect: 'none' }}
+            onContextMenu={(e) => e.preventDefault()}
+            onSelectStart={(e) => e.preventDefault()}
+            onDragStart={(e) => e.preventDefault()}
+            onCopy={(e) => e.preventDefault()}
+            onCut={(e) => e.preventDefault()}
+          >
             <div 
-              className="prose prose-sm max-w-none dark:prose-invert text-gray-900 dark:text-gray-100 leading-relaxed"
+              className="prose prose-sm max-w-none dark:prose-invert text-gray-900 dark:text-gray-100 leading-relaxed select-none"
+              style={{ userSelect: 'none', WebkitUserSelect: 'none', MozUserSelect: 'none', msUserSelect: 'none' }}
               dangerouslySetInnerHTML={{ __html: planeacion.contenido || "" }}
+              onContextMenu={(e) => e.preventDefault()}
+              onSelectStart={(e) => e.preventDefault()}
+              onDragStart={(e) => e.preventDefault()}
             />
           </div>
         </CardContent>

@@ -2,7 +2,7 @@
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
-import { ArrowLeft, Calendar, BookOpen, Loader2, FileText as FileTextIcon } from "lucide-react"
+import { ArrowLeft, Calendar, BookOpen, Loader2, FileText as FileTextIcon, CheckSquare } from "lucide-react"
 import { getExamenById, type Examen } from "@/lib/examenes"
 import { useState, useEffect } from "react"
 import ReactMarkdown from "react-markdown"
@@ -38,6 +38,37 @@ export function ViewExamen({ examenId, onBack }: ViewExamenProps) {
     loadExamen();
   }, [examenId]);
 
+  // Proteger contra atajos de teclado para copiar
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      // Bloquear Ctrl+C, Ctrl+A, Ctrl+V, Ctrl+X, F12
+      if (
+        (e.ctrlKey && (e.key === 'c' || e.key === 'a' || e.key === 'v' || e.key === 'x')) ||
+        e.key === 'F12' ||
+        (e.ctrlKey && e.shiftKey && e.key === 'I') || // DevTools
+        (e.ctrlKey && e.shiftKey && e.key === 'J') || // Console
+        (e.ctrlKey && e.key === 'u') // View Source
+      ) {
+        e.preventDefault()
+        e.stopPropagation()
+        return false
+      }
+    }
+
+    const handleContextMenu = (e: Event) => {
+      e.preventDefault()
+      return false
+    }
+
+    document.addEventListener('keydown', handleKeyDown)
+    document.addEventListener('contextmenu', handleContextMenu)
+
+    return () => {
+      document.removeEventListener('keydown', handleKeyDown)
+      document.removeEventListener('contextmenu', handleContextMenu)
+    }
+  }, [])
+
   if (loading) {
     return (
       <div className="flex items-center justify-center min-h-[400px]">
@@ -70,26 +101,75 @@ export function ViewExamen({ examenId, onBack }: ViewExamenProps) {
     );
   }
 
-  // 🛠️ Solución: preparar contenido con saltos de línea para Markdown
-  let formattedContent = '';
+  // 🛠️ Preparar contenido separando examen y hoja de respuestas
+  let examenContent = '';
+  let hojaRespuestas = '';
+  let hasStructuredContent = false;
   
   if (typeof examen.content === 'string') {
-    formattedContent = examen.content
-      .replace(/\\n/g, '\n') // Escapes dobles
-      .replace(/([^\n])\n(?=[^\n])/g, '$1\n\n'); // Asegura párrafos dobles
-  } else if (typeof examen.content === 'object' && examen.content !== null) {
-    // Manejar el nuevo formato JSON
-    if (examen.content.examen_contenido && examen.content.hoja_de_respuestas) {
-      formattedContent = examen.content.examen_contenido + '\n\n---\n\n' + examen.content.hoja_de_respuestas;
+    // Intentar separar por el separador ---
+    if (examen.content.includes('---')) {
+      const parts = examen.content.split('---');
+      examenContent = parts[0]?.trim() || '';
+      hojaRespuestas = parts[1]?.trim() || '';
+      hasStructuredContent = true;
     } else {
-      formattedContent = JSON.stringify(examen.content, null, 2);
+      // Si no hay separador, buscar patrones comunes más amplios
+      const responsePatterns = [
+        /(?=Clave de Respuestas)/i,
+        /(?=Hoja de Respuestas)/i,
+        /(?=Respuestas)/i,
+        /(?=RESPUESTAS)/i,
+        /(?=Sección \d+: Opción Múltiple)/i,
+        /(?=Sección \d+: Verdadero o Falso)/i,
+        /(?=Sección \d+: Problemas)/i,
+        /(?=Sección \d+:)/i
+      ];
+      
+      let found = false;
+      for (const pattern of responsePatterns) {
+        const sections = examen.content.split(pattern);
+        if (sections.length > 1) {
+          examenContent = sections[0].trim();
+          hojaRespuestas = sections.slice(1).join('').trim();
+          hasStructuredContent = true;
+          found = true;
+          break;
+        }
+      }
+      
+      if (!found) {
+        examenContent = examen.content.replace(/\\n/g, '\n').replace(/([^\n])\n(?=[^\n])/g, '$1\n\n');
+      }
+    }
+  } else if (typeof examen.content === 'object' && examen.content !== null) {
+    // Manejar el nuevo formato JSON estructurado
+    if (examen.content.examen_contenido && examen.content.hoja_de_respuestas) {
+      examenContent = examen.content.examen_contenido;
+      hojaRespuestas = examen.content.hoja_de_respuestas;
+      hasStructuredContent = true;
+    } else {
+      examenContent = JSON.stringify(examen.content, null, 2);
     }
   } else {
-    formattedContent = 'Contenido no disponible';
+    examenContent = 'Contenido no disponible';
   }
 
   return (
-    <div className="space-y-6 max-w-4xl mx-auto p-4 md:p-6">
+    <div 
+      className="space-y-6 max-w-4xl mx-auto p-4 md:p-6 select-none"
+      style={{ 
+        userSelect: 'none', 
+        WebkitUserSelect: 'none', 
+        MozUserSelect: 'none', 
+        msUserSelect: 'none',
+        WebkitTouchCallout: 'none',
+        WebkitTapHighlightColor: 'transparent'
+      }}
+      onContextMenu={(e) => e.preventDefault()}
+      onSelectStart={(e) => e.preventDefault()}
+      onDragStart={(e) => e.preventDefault()}
+    >
       {/* Header */}
       <div className="flex items-center gap-4">
         <Button variant="outline" size="icon" onClick={onBack} aria-label="Volver">
@@ -109,21 +189,44 @@ export function ViewExamen({ examenId, onBack }: ViewExamenProps) {
             Información General
           </CardTitle>
         </CardHeader>
-        <CardContent className="space-y-3">
+        <CardContent 
+          className="space-y-3 select-none"
+          style={{ userSelect: 'none', WebkitUserSelect: 'none', MozUserSelect: 'none', msUserSelect: 'none' }}
+          onContextMenu={(e) => e.preventDefault()}
+          onSelectStart={(e) => e.preventDefault()}
+          onDragStart={(e) => e.preventDefault()}
+        >
           <div>
             <label className="text-sm font-medium text-gray-500 dark:text-gray-400">Materia</label>
-            <p className="text-md text-gray-800 dark:text-gray-200">{examen.subject || "No especificada"}</p>
+            <p 
+              className="text-md text-gray-800 dark:text-gray-200 select-none"
+              style={{ userSelect: 'none', WebkitUserSelect: 'none', MozUserSelect: 'none', msUserSelect: 'none' }}
+              onContextMenu={(e) => e.preventDefault()}
+              onSelectStart={(e) => e.preventDefault()}
+            >
+              {examen.subject || "No especificada"}
+            </p>
           </div>
           <div>
             <label className="text-sm font-medium text-gray-500 dark:text-gray-400">Fecha de Creación</label>
-            <p className="text-md text-gray-800 dark:text-gray-200 flex items-center gap-1">
+            <p 
+              className="text-md text-gray-800 dark:text-gray-200 flex items-center gap-1 select-none"
+              style={{ userSelect: 'none', WebkitUserSelect: 'none', MozUserSelect: 'none', msUserSelect: 'none' }}
+              onContextMenu={(e) => e.preventDefault()}
+              onSelectStart={(e) => e.preventDefault()}
+            >
               <Calendar className="h-4 w-4 text-gray-500 dark:text-gray-400" />
               {new Date(examen.created_at).toLocaleDateString("es-MX", { year: 'numeric', month: 'long', day: 'numeric' })}
             </p>
           </div>
           <div>
             <label className="text-sm font-medium text-gray-500 dark:text-gray-400">Última Actualización</label>
-            <p className="text-md text-gray-800 dark:text-gray-200 flex items-center gap-1">
+            <p 
+              className="text-md text-gray-800 dark:text-gray-200 flex items-center gap-1 select-none"
+              style={{ userSelect: 'none', WebkitUserSelect: 'none', MozUserSelect: 'none', msUserSelect: 'none' }}
+              onContextMenu={(e) => e.preventDefault()}
+              onSelectStart={(e) => e.preventDefault()}
+            >
               <Calendar className="h-4 w-4 text-gray-500 dark:text-gray-400" />
               {new Date(examen.updated_at).toLocaleDateString("es-MX", { year: 'numeric', month: 'long', day: 'numeric' })}
             </p>
@@ -131,7 +234,7 @@ export function ViewExamen({ examenId, onBack }: ViewExamenProps) {
         </CardContent>
       </Card>
 
-      {/* Contenido Principal del Examen */}
+      {/* Contenido del Examen */}
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2 text-xl">
@@ -140,13 +243,60 @@ export function ViewExamen({ examenId, onBack }: ViewExamenProps) {
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="bg-gray-50 dark:bg-gray-800 p-4 sm:p-6 rounded-lg border dark:border-gray-700">
-            <div className="prose dark:prose-invert max-w-none text-sm">
-              <ReactMarkdown>{formattedContent}</ReactMarkdown>
+          <div 
+            className="bg-gray-50 dark:bg-gray-800 p-4 sm:p-6 rounded-lg border dark:border-gray-700 select-none"
+            style={{ userSelect: 'none', WebkitUserSelect: 'none', MozUserSelect: 'none', msUserSelect: 'none' }}
+            onContextMenu={(e) => e.preventDefault()}
+            onSelectStart={(e) => e.preventDefault()}
+            onDragStart={(e) => e.preventDefault()}
+            onCopy={(e) => e.preventDefault()}
+            onCut={(e) => e.preventDefault()}
+          >
+            <div 
+              className="prose dark:prose-invert max-w-none text-sm select-none"
+              style={{ userSelect: 'none', WebkitUserSelect: 'none', MozUserSelect: 'none', msUserSelect: 'none' }}
+              onContextMenu={(e) => e.preventDefault()}
+              onSelectStart={(e) => e.preventDefault()}
+              onDragStart={(e) => e.preventDefault()}
+            >
+              <ReactMarkdown>{examenContent}</ReactMarkdown>
             </div>
           </div>
         </CardContent>
       </Card>
+
+      {/* Hoja de Respuestas - Solo mostrar si existe */}
+      {hasStructuredContent && hojaRespuestas && (
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2 text-xl">
+              <CheckSquare className="h-5 w-5" />
+              Hoja de Respuestas
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div 
+              className="bg-emerald-50 dark:bg-emerald-900/20 p-4 sm:p-6 rounded-lg border border-emerald-200 dark:border-emerald-800 select-none"
+              style={{ userSelect: 'none', WebkitUserSelect: 'none', MozUserSelect: 'none', msUserSelect: 'none' }}
+              onContextMenu={(e) => e.preventDefault()}
+              onSelectStart={(e) => e.preventDefault()}
+              onDragStart={(e) => e.preventDefault()}
+              onCopy={(e) => e.preventDefault()}
+              onCut={(e) => e.preventDefault()}
+            >
+              <div 
+                className="prose dark:prose-invert max-w-none text-sm select-none"
+                style={{ userSelect: 'none', WebkitUserSelect: 'none', MozUserSelect: 'none', msUserSelect: 'none' }}
+                onContextMenu={(e) => e.preventDefault()}
+                onSelectStart={(e) => e.preventDefault()}
+                onDragStart={(e) => e.preventDefault()}
+              >
+                <ReactMarkdown>{hojaRespuestas}</ReactMarkdown>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      )}
 
       <div className="mt-6 flex justify-start">
         <Button variant="outline" onClick={onBack}>

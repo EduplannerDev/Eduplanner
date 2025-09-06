@@ -4,7 +4,6 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Crown, Check, X, Zap, Star, AlertTriangle, CreditCard, Loader2 } from "lucide-react"
-import { usePlaneaciones } from "@/hooks/use-planeaciones"
 import { useAuth } from "@/hooks/use-auth"
 import { useProfile } from "@/hooks/use-profile"
 import { subscribestripe } from "@/hooks/stripe"
@@ -23,12 +22,7 @@ export function SubscriptionCard({ userPlan }: SubscriptionCardProps) {
   const email: string = user?.email || ""
   const userId: string = user?.id || ""
   const isPro = profile ? isUserPro(profile) : userPlan === "pro"
-  const { monthlyCount, getRemainingPlaneaciones } = usePlaneaciones()
   const subscriptionInfo = profile ? getSubscriptionInfo(profile) : null
-
-  const remainingPlaneaciones = getRemainingPlaneaciones()
-  const planeacionesLimit = isPro ? "∞" : 5
-  const planeacionesProgress = isPro ? 0 : (monthlyCount / Number(planeacionesLimit)) * 100
   const [isPending, startTransition] = useTransition()
   const handleClickSubsButton = async () => {
     const url = await subscribestripe({ userId, email });
@@ -282,59 +276,6 @@ export function SubscriptionCard({ userPlan }: SubscriptionCardProps) {
         </CardContent>
       </Card>
 
-      {/* Estadísticas de Uso */}
-      <Card>
-        <CardHeader className="text-center">
-          <CardTitle className="dark:text-gray-100">Uso del Plan</CardTitle>
-          <CardDescription className="dark:text-gray-300">Tu consumo actual del mes</CardDescription>
-        </CardHeader>
-        <CardContent className="max-w-2xl mx-auto">
-          <div className="space-y-6">
-            <div>
-              <div className="flex justify-between text-sm mb-2">
-                <span>Planeaciones creadas este mes</span>
-                <span className="font-medium">
-                  {monthlyCount} de {planeacionesLimit}
-                </span>
-              </div>
-              <div className="w-full bg-gray-200 rounded-full h-3">
-                <div
-                  className={`h-3 rounded-full transition-all duration-300 ${isPro ? "bg-green-600" : "bg-blue-600"}`}
-                  style={{ width: `${planeacionesProgress}%` }}
-                ></div>
-              </div>
-            </div>
-
-            {!isPro && (
-              <div>
-                <div className="flex justify-between text-sm mb-2">
-                  <span>Plantillas premium usadas</span>
-                  <span className="font-medium">0 de 0</span>
-                </div>
-                <div className="w-full bg-gray-200 rounded-full h-3">
-                  <div className="bg-gray-400 h-3 rounded-full" style={{ width: "0%" }}></div>
-                </div>
-                <p className="text-xs text-gray-500 mt-2 text-center">
-                  Actualiza a PRO para acceder a plantillas premium
-                </p>
-              </div>
-            )}
-
-            <div>
-              <div className="flex justify-between text-sm mb-2">
-                <span>Exportaciones realizadas</span>
-                <span className="font-medium">{isPro ? "8 de ∞" : "2 de 10"}</span>
-              </div>
-              <div className="w-full bg-gray-200 rounded-full h-3">
-                <div
-                  className={`h-3 rounded-full transition-all duration-300 ${isPro ? "bg-green-600" : "bg-blue-600"}`}
-                  style={{ width: isPro ? "8%" : "20%" }}
-                ></div>
-              </div>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
     </div>
   )
 }
