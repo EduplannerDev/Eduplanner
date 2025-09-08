@@ -27,3 +27,5 @@ yarn-error.log*
 next-env.d.ts
 Copia de .env.local
 supabase/.temp/
+
+/contenidos

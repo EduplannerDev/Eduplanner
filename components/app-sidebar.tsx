@@ -3,7 +3,7 @@
 import type React from "react";
 import { useState } from "react";
 
-import { FileText, User, LogOut, GraduationCap, Plus, MessageSquare, HelpCircle, Users, BookOpen, Calendar, Bot, Shield, Home, ChevronDown, ChevronRight, Notebook, Mail } from "lucide-react"
+import { FileText, User, LogOut, GraduationCap, Plus, MessageSquare, HelpCircle, Users, BookOpen, Calendar, Bot, Shield, Home, ChevronDown, ChevronRight, Notebook, Mail, BarChart3 } from "lucide-react"
 
 import {
   Sidebar,
@@ -67,6 +67,12 @@ const menuStructure = {
             description: "Te lleva a la lista",
           },
         ],
+      },
+      {
+        title: "Dosificación",
+        icon: BarChart3,
+        url: "#dosificacion",
+        description: "Gestión de dosificación curricular",
       },
     ],
   },
