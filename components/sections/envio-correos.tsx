@@ -26,6 +26,7 @@ import {
   User,
   Calendar
 } from 'lucide-react'
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { toast } from 'sonner'
 import { supabase } from '@/lib/supabase'
 import { useAuth } from '@/hooks/use-auth'
@@ -60,6 +61,7 @@ export default function EnvioCorreos() {
   const [sendToAll, setSendToAll] = useState(false)
   const [recipients, setRecipients] = useState<string[]>([''])
   const [currentRecipient, setCurrentRecipient] = useState('')
+  const [selectedSender, setSelectedSender] = useState('contacto@eduplanner.mx')
 
   // Estados para paginación del historial
   const [currentPage, setCurrentPage] = useState(1)
@@ -168,7 +170,8 @@ export default function EnvioCorreos() {
         subject: subject.trim(),
         content: content.trim(),
         sendToAllUsers: sendToAll,
-        recipients: sendToAll ? [] : recipients.filter(r => r.trim() && isValidEmail(r.trim()))
+        recipients: sendToAll ? [] : recipients.filter(r => r.trim() && isValidEmail(r.trim())),
+        senderEmail: selectedSender
       }
 
       const response = await fetch('/api/send-email', {
@@ -194,6 +197,7 @@ export default function EnvioCorreos() {
         setContent('')
         setRecipients([''])
         setSendToAll(false)
+        setSelectedSender('contacto@eduplanner.mx')
         
         // Recargar historial
         loadEmailHistory()
@@ -242,10 +246,40 @@ export default function EnvioCorreos() {
                 Enviar Correo Personalizado
               </CardTitle>
               <CardDescription>
-                Envía correos personalizados desde contacto@eduplanner.mx con el logo de EduPlanner
+                Envía correos personalizados desde EduPlanner con el logo institucional. Elige entre contacto, soporte o no-reply.
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-6">
+              {/* Remitente */}
+              <div className="space-y-2">
+                <Label htmlFor="sender">Remitente *</Label>
+                <Select value={selectedSender} onValueChange={setSelectedSender}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Selecciona el remitente" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="contacto@eduplanner.mx">
+                      <div className="flex flex-col">
+                        <span className="font-medium">contacto@eduplanner.mx</span>
+                        <span className="text-sm text-gray-500">Para comunicación general y consultas</span>
+                      </div>
+                    </SelectItem>
+                    <SelectItem value="soporte@eduplanner.mx">
+                      <div className="flex flex-col">
+                        <span className="font-medium">soporte@eduplanner.mx</span>
+                        <span className="text-sm text-gray-500">Para asistencia técnica y soporte</span>
+                      </div>
+                    </SelectItem>
+                    <SelectItem value="no-reply@eduplanner.mx">
+                      <div className="flex flex-col">
+                        <span className="font-medium">no-reply@eduplanner.mx</span>
+                        <span className="text-sm text-gray-500">Para notificaciones automáticas</span>
+                      </div>
+                    </SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
               {/* Asunto */}
               <div className="space-y-2">
                 <Label htmlFor="subject">Asunto *</Label>

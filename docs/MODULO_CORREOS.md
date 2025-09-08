@@ -189,20 +189,22 @@ Obtiene el historial de envíos.
 
 ### Características del Email
 
-- **Header**: Logo de EduPlanner (60px altura)
+- **Header**: Logo de EduPlanner incrustado directamente en el HTML (60px altura)
 - **Cuerpo**: Contenido personalizable con diseño profesional
-- **Footer**: Información de EduPlanner y timestamp
+- **Footer**: Solo timestamp discreto (sin menciones de automatización)
 - **Responsive**: Compatible con todos los dispositivos
 - **Colores**: Paleta institucional de EduPlanner
+- **UX Mejorado**: Logo visible directamente en el correo, no como adjunto
 
 ### Ejemplo de HTML Generado
 
 ```html
 <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
   <div style="background-color: white; padding: 30px; border-radius: 10px;">
-    <!-- Logo automático -->
+    <!-- Logo incrustado directamente en el HTML -->
     <div style="text-align: center; margin-bottom: 20px;">
-      <img src="https://eduplanner.mx/images/Logo.png" alt="EduPlanner" style="height: 60px;" />
+      <img src="https://eduplanner.mx/images/Logo.png" alt="EduPlanner" 
+           style="height: 60px; display: block; margin: 0 auto;" />
     </div>
     
     <!-- Título del correo -->
@@ -211,10 +213,10 @@ Obtiene el historial de envíos.
     <!-- Contenido personalizado -->
     <div>{content}</div>
     
-    <!-- Footer automático -->
+    <!-- Footer con fecha -->
     <div style="text-align: center; margin-top: 30px; border-top: 1px solid #eee;">
-      <p style="color: #6c757d; font-size: 14px;">
-        Este email fue enviado automáticamente desde EduPlanner
+      <p style="color: #6c757d; font-size: 12px;">
+        Fecha del envío
       </p>
     </div>
   </div>

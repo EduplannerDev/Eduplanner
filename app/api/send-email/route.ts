@@ -84,12 +84,21 @@ export async function POST(req: NextRequest) {
 
     // Obtener datos del request
     const body = await req.json();
-    const { recipients, subject, content, sendToAllUsers = false } = body;
+    const { recipients, subject, content, sendToAllUsers = false, senderEmail } = body;
 
     // Validar datos requeridos
     if (!subject || !content) {
       return NextResponse.json(
         { error: 'El asunto y el contenido del correo son requeridos' },
+        { status: 400 }
+      );
+    }
+
+    // Validar remitente
+    const validSenders = ['contacto@eduplanner.mx', 'soporte@eduplanner.mx', 'no-reply@eduplanner.mx'];
+    if (senderEmail && !validSenders.includes(senderEmail)) {
+      return NextResponse.json(
+        { error: 'Remitente no válido' },
         { status: 400 }
       );
     }
@@ -172,7 +181,8 @@ export async function POST(req: NextRequest) {
         to: emailList,
         subject,
         content,
-        showLogo: true
+        showLogo: true,
+        senderEmail: senderEmail || 'contacto@eduplanner.mx'
       });
       
       console.log('✅ Correo enviado exitosamente:', result);

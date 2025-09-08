@@ -24,6 +24,7 @@ interface EmailData {
   to: string | string[];
   subject: string;
   html: string;
+  senderEmail?: string;
   attachments?: Array<{
     filename: string;
     path: string;
@@ -35,7 +36,14 @@ interface EmailData {
 export async function sendEmailWithLogo(data: EmailData) {
   try {
     const eduPlannerLogo = getEduPlannerLogo();
-    const fromEmail = process.env.FROM_EMAIL || 'Eduplanner <onboarding@resend.dev>';
+    
+    // Usar el email del remitente especificado o el por defecto
+    let fromEmail: string;
+    if (data.senderEmail) {
+      fromEmail = `Eduplanner <${data.senderEmail}>`;
+    } else {
+      fromEmail = process.env.FROM_EMAIL || 'Eduplanner <contacto@eduplanner.mx>';
+    }
     
     console.log('🔍 sendEmailWithLogo configuración:', {
       fromEmail,
@@ -45,30 +53,23 @@ export async function sendEmailWithLogo(data: EmailData) {
       hasApiKey: !!process.env.RESEND_API_KEY
     });
     
-    // Agregar el logo como attachment si no se especifica lo contrario
-    const defaultAttachments = [
-      {
-        filename: 'logo.png',
-        path: eduPlannerLogo,
-        cid: 'eduplanner-logo'
-      }
-    ];
-    
-    const attachments = data.attachments ? [...defaultAttachments, ...data.attachments] : defaultAttachments;
+    // No agregar attachments del logo ya que está incrustado en el HTML
+    const attachments = data.attachments || [];
     
     const emailPayload = {
       from: fromEmail,
       to: Array.isArray(data.to) ? data.to : [data.to],
       subject: data.subject,
       html: data.html,
-      attachments
+      ...(attachments.length > 0 && { attachments })
     };
     
     console.log('📤 Enviando correo a Resend:', {
       from: emailPayload.from,
       to: emailPayload.to,
       subject: emailPayload.subject,
-      attachmentsCount: attachments.length
+      attachmentsCount: attachments.length,
+      logoInHTML: 'Logo incrustado en HTML'
     });
     
     const result = await resend.emails.send(emailPayload);
@@ -101,9 +102,9 @@ export function createEmailTemplate({
     <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; background-color: #f9f9f9;">
       <div style="background-color: white; padding: 30px; border-radius: 10px; box-shadow: 0 2px 10px rgba(0,0,0,0.1);">
         ${showLogo ? `
-        <!-- Logo de EduPlanner -->
+        <!-- Logo de EduPlanner incrustado -->
         <div style="text-align: center; margin-bottom: 20px;">
-          <img src="${eduPlannerLogo}" alt="EduPlanner" style="height: 60px; width: auto;" />
+          <img src="${eduPlannerLogo}" alt="EduPlanner" style="height: 60px; width: auto; display: block; margin: 0 auto;" />
         </div>
         ` : ''}
         <h1 style="color: #333; margin-bottom: 20px; text-align: center;">
@@ -115,11 +116,8 @@ export function createEmailTemplate({
         </div>
         
         <div style="text-align: center; margin-top: 30px; padding-top: 20px; border-top: 1px solid #eee;">
-          <p style="color: #6c757d; font-size: 14px; margin: 0;">
-            Este email fue enviado automáticamente desde EduPlanner
-          </p>
-          <p style="color: #6c757d; font-size: 12px; margin: 5px 0 0 0;">
-            Fecha: ${new Date().toLocaleString('es-ES', { 
+          <p style="color: #6c757d; font-size: 12px; margin: 0;">
+            ${new Date().toLocaleString('es-ES', { 
               timeZone: 'America/Mexico_City',
               year: 'numeric',
               month: 'long',
@@ -375,18 +373,21 @@ export async function sendCustomEmail({
   to,
   subject,
   content,
-  showLogo = true
+  showLogo = true,
+  senderEmail
 }: {
   to: string | string[];
   subject: string;
   content: string;
   showLogo?: boolean;
+  senderEmail?: string;
 }) {
   console.log('🔍 sendCustomEmail llamada con:', {
     to: Array.isArray(to) ? `${to.length} destinatarios` : to,
     subject,
     contentLength: content.length,
-    showLogo
+    showLogo,
+    senderEmail: senderEmail || 'por defecto'
   });
 
   // Verificar configuración de Resend
@@ -407,7 +408,8 @@ export async function sendCustomEmail({
     const result = await sendEmailWithLogo({
       to,
       subject,
-      html: emailHtml
+      html: emailHtml,
+      senderEmail
     });
     
     console.log('✅ sendCustomEmail exitoso:', result);
