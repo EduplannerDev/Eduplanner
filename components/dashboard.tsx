@@ -20,6 +20,7 @@ import { AdministracionPlantel } from "./sections/administracion-plantel"
 import { Agenda } from "./sections/agenda"
 import { DiarioProfesional } from "./sections/diario-profesional"
 import TomarAsistencia from "./sections/tomar-asistencia"
+import EnvioCorreos from "./sections/envio-correos"
 import { WelcomeMessage } from "./ui/welcome-message"
 import { SidebarInset, SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar"
 import { Separator } from "@/components/ui/separator"
@@ -88,6 +89,8 @@ export default function Dashboard() {
         return "Panel de Administración"
       case "administracion-plantel":
         return "Administración de Plantel"
+      case "envio-correos":
+        return "Envío de Correos"
       default:
         return "Dashboard"
     }
@@ -154,6 +157,8 @@ export default function Dashboard() {
           return <DashboardHome onSectionChange={setActiveSection} />
         }
         return <AdministracionPlantel isOpen={true} onClose={() => setActiveSection("admin-dashboard")} />
+      case "envio-correos":
+        return <EnvioCorreos />
       default:
         return <DashboardHome onSectionChange={setActiveSection} />
     }

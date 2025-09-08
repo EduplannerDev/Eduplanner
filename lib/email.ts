@@ -35,7 +35,15 @@ interface EmailData {
 export async function sendEmailWithLogo(data: EmailData) {
   try {
     const eduPlannerLogo = getEduPlannerLogo();
-    const fromEmail = process.env.FROM_EMAIL || 'Eduplanner <noreply@eduplanner.mx>';
+    const fromEmail = process.env.FROM_EMAIL || 'Eduplanner <onboarding@resend.dev>';
+    
+    console.log('🔍 sendEmailWithLogo configuración:', {
+      fromEmail,
+      eduPlannerLogo,
+      toCount: Array.isArray(data.to) ? data.to.length : 1,
+      subject: data.subject,
+      hasApiKey: !!process.env.RESEND_API_KEY
+    });
     
     // Agregar el logo como attachment si no se especifica lo contrario
     const defaultAttachments = [
@@ -48,17 +56,31 @@ export async function sendEmailWithLogo(data: EmailData) {
     
     const attachments = data.attachments ? [...defaultAttachments, ...data.attachments] : defaultAttachments;
     
-    const result = await resend.emails.send({
+    const emailPayload = {
       from: fromEmail,
       to: Array.isArray(data.to) ? data.to : [data.to],
       subject: data.subject,
       html: data.html,
       attachments
+    };
+    
+    console.log('📤 Enviando correo a Resend:', {
+      from: emailPayload.from,
+      to: emailPayload.to,
+      subject: emailPayload.subject,
+      attachmentsCount: attachments.length
     });
     
+    const result = await resend.emails.send(emailPayload);
+    
+    console.log('✅ Respuesta de Resend:', result);
     return result;
   } catch (error) {
-    console.error('Error sending email with logo:', error);
+    console.error('❌ Error en sendEmailWithLogo:', {
+      error,
+      message: error instanceof Error ? error.message : 'Error desconocido',
+      stack: error instanceof Error ? error.stack : undefined
+    });
     throw error;
   }
 }
@@ -346,4 +368,52 @@ export async function sendInvitationEmail({
     subject: `Invitación a EduPlanner - ${plantelName}`,
     html: emailHtml
   });
+}
+
+// Función para enviar correo personalizado (solo para administradores)
+export async function sendCustomEmail({
+  to,
+  subject,
+  content,
+  showLogo = true
+}: {
+  to: string | string[];
+  subject: string;
+  content: string;
+  showLogo?: boolean;
+}) {
+  console.log('🔍 sendCustomEmail llamada con:', {
+    to: Array.isArray(to) ? `${to.length} destinatarios` : to,
+    subject,
+    contentLength: content.length,
+    showLogo
+  });
+
+  // Verificar configuración de Resend
+  if (!process.env.RESEND_API_KEY) {
+    console.error('❌ RESEND_API_KEY no está configurada');
+    throw new Error('RESEND_API_KEY no está configurada en las variables de entorno');
+  }
+
+  const emailHtml = createEmailTemplate({
+    title: subject,
+    content,
+    showLogo
+  });
+  
+  console.log('📧 Enviando correo con template generado');
+  
+  try {
+    const result = await sendEmailWithLogo({
+      to,
+      subject,
+      html: emailHtml
+    });
+    
+    console.log('✅ sendCustomEmail exitoso:', result);
+    return result;
+  } catch (error) {
+    console.error('❌ Error en sendCustomEmail:', error);
+    throw error;
+  }
 }
