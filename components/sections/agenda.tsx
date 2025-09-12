@@ -85,13 +85,10 @@ export function Agenda({ onSectionChange }: AgendaProps) {
   }, [])
 
   const loadEvents = async () => {
-    console.log('🔄 loadEvents: Iniciando carga de eventos en componente...')
     setLoading(true)
     try {
       const result = await getUserEvents()
-      console.log('📦 Resultado de getUserEvents:', result)
       if (result.success && result.events) {
-        console.log('✅ Eventos cargados en componente:', result.events.length, 'eventos')
         setEvents(result.events)
         
         // Verificar si ya existen eventos del calendario escolar basándose en títulos
@@ -105,7 +102,6 @@ export function Agenda({ onSectionChange }: AgendaProps) {
           event.title.includes('Evaluación')
         )
         setHasSchoolEvents(schoolEvents.length > 0)
-        console.log('📅 Eventos del calendario escolar encontrados:', schoolEvents.length)
       } else {
         console.error('❌ Error al cargar eventos:', result.error)
       }

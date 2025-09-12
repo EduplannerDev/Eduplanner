@@ -132,7 +132,6 @@ export async function updateProfile(
       console.error(`Error updating profile for userId ${userId}:`, error.message);
       return false;
     }
-    console.log(`Profile for userId ${userId} updated successfully.`);
     return true;
   } catch (error) {
     console.error("Excepción en updateProfile:", (error as Error).message);
@@ -246,8 +245,6 @@ export async function uploadAvatar(userId: string, file: File): Promise<string |
     return null;
   }
 
-  console.log("uploadAvatar: Iniciando subida de avatar para usuario:", userId);
-  console.log("uploadAvatar: Archivo:", file.name, "Tamaño:", file.size, "Tipo:", file.type);
 
   const fileExt = file.name.split('.').pop();
   const fileName = `${userId}-${Math.random()}.${fileExt}`;
@@ -264,9 +261,6 @@ export async function uploadAvatar(userId: string, file: File): Promise<string |
       console.error("uploadAvatar: No hay sesión activa");
       throw new Error("No hay sesión activa de usuario");
     }
-    console.log("uploadAvatar: Usuario autenticado:", sessionData.session.user.id);
-
-    console.log("uploadAvatar: Intentando subir archivo a:", filePath);
     const { error: uploadError } = await supabase.storage
       .from('avatars') // Asegúrate de tener un bucket llamado 'avatars' en Supabase Storage
       .upload(filePath, file, { cacheControl: '3600', upsert: true });

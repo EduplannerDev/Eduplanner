@@ -86,17 +86,12 @@ export async function saveEvent(eventData: EventFormData): Promise<{ success: bo
 // Función para obtener eventos del usuario
 export async function getUserEvents(): Promise<{ success: boolean; events?: Event[]; error?: string }> {
   try {
-    console.log('🔍 getUserEvents: Iniciando obtención de eventos...')
     const { data: { user } } = await supabase.auth.getUser()
     
-    console.log('👤 Usuario actual:', user ? { id: user.id, email: user.email } : 'No autenticado')
-    
     if (!user) {
-      console.log('❌ Usuario no autenticado')
       return { success: false, error: 'Usuario no autenticado' }
     }
 
-    console.log('📊 Consultando eventos para user_id:', user.id)
     const { data, error } = await supabase
       .from('events')
       .select(`

@@ -142,7 +142,6 @@ export const GenerarExamen: React.FC<GenerarExamenProps> = ({ onBack, onSaveSucc
                 finalText = jsonMatch[0]; // Usar solo el JSON extraído
               }
             } catch (innerError) {
-              console.log("Usando formato de texto anterior");
             }
           }
         }

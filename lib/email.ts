@@ -45,13 +45,6 @@ export async function sendEmailWithLogo(data: EmailData) {
       fromEmail = process.env.FROM_EMAIL || 'Eduplanner <contacto@eduplanner.mx>';
     }
     
-    console.log('🔍 sendEmailWithLogo configuración:', {
-      fromEmail,
-      eduPlannerLogo,
-      toCount: Array.isArray(data.to) ? data.to.length : 1,
-      subject: data.subject,
-      hasApiKey: !!process.env.RESEND_API_KEY
-    });
     
     // No agregar attachments del logo ya que está incrustado en el HTML
     const attachments = data.attachments || [];
@@ -64,17 +57,9 @@ export async function sendEmailWithLogo(data: EmailData) {
       ...(attachments.length > 0 && { attachments })
     };
     
-    console.log('📤 Enviando correo a Resend:', {
-      from: emailPayload.from,
-      to: emailPayload.to,
-      subject: emailPayload.subject,
-      attachmentsCount: attachments.length,
-      logoInHTML: 'Logo incrustado en HTML'
-    });
     
     const result = await resend.emails.send(emailPayload);
     
-    console.log('✅ Respuesta de Resend:', result);
     return result;
   } catch (error) {
     console.error('❌ Error en sendEmailWithLogo:', {
@@ -382,13 +367,6 @@ export async function sendCustomEmail({
   showLogo?: boolean;
   senderEmail?: string;
 }) {
-  console.log('🔍 sendCustomEmail llamada con:', {
-    to: Array.isArray(to) ? `${to.length} destinatarios` : to,
-    subject,
-    contentLength: content.length,
-    showLogo,
-    senderEmail: senderEmail || 'por defecto'
-  });
 
   // Verificar configuración de Resend
   if (!process.env.RESEND_API_KEY) {
@@ -402,7 +380,6 @@ export async function sendCustomEmail({
     showLogo
   });
   
-  console.log('📧 Enviando correo con template generado');
   
   try {
     const result = await sendEmailWithLogo({
@@ -412,7 +389,6 @@ export async function sendCustomEmail({
       senderEmail
     });
     
-    console.log('✅ sendCustomEmail exitoso:', result);
     return result;
   } catch (error) {
     console.error('❌ Error en sendCustomEmail:', error);

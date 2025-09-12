@@ -134,7 +134,6 @@ export async function insertSchoolEventsForUser(userId: string, events: SchoolEv
       throw error
     }
 
-    console.log(`Successfully inserted ${eventsToInsert.length} events for user ${userId}`)
   } catch (error) {
     console.error(`Failed to insert events for user ${userId}:`, error)
     throw error
@@ -157,7 +156,6 @@ export async function removeExistingSchoolEvents(): Promise<void> {
       throw error
     }
 
-    console.log('Successfully removed existing school calendar events')
   } catch (error) {
     console.error('Failed to remove existing school events:', error)
     throw error
@@ -169,10 +167,8 @@ export async function removeExistingSchoolEvents(): Promise<void> {
  */
 export async function importSchoolCalendarForAllUsers(icsFilePath: string): Promise<void> {
   try {
-    console.log('Starting school calendar import process...')
     
     // 1. Parsear el archivo ICS
-    console.log('Parsing ICS file...')
     const events = parseICSFile(icsFilePath)
     console.log(`Found ${events.length} events in ICS file`)
 

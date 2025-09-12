@@ -4,7 +4,6 @@ import type React from "react"
 
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
-import { ScrollArea } from "@/components/ui/scroll-area"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Textarea } from "@/components/ui/textarea"
 import { ArrowLeft, Send, Bot, User, Loader2, Sparkles, AlertCircle, Save, CheckCircle, ThumbsUp, ThumbsDown, Crown, AlertTriangle } from "lucide-react"
@@ -19,18 +18,21 @@ import { extractPlaneacionInfo, getCleanContentForSaving } from "@/lib/planeacio
 import { WelcomeMessage } from "@/components/ui/welcome-message"
 import Swal from 'sweetalert2'
 
-interface ChatIAProps {
+interface ChatIADosificacionProps {
   onBack: () => void
   onSaveSuccess: () => void
-  initialMessage?: string
+  initialMessage: string
+  contenidosSeleccionados: any[]
+  contexto: any
+  mesActual: string
 }
 
-export function ChatIA({ onBack, onSaveSuccess, initialMessage }: ChatIAProps) {
-  const scrollAreaRef = useRef<HTMLDivElement>(null)
+export function ChatIADosificacion({ onBack, onSaveSuccess, initialMessage, contenidosSeleccionados, contexto, mesActual }: ChatIADosificacionProps) {
   const messagesEndRef = useRef<HTMLDivElement>(null)
   const [lastPlaneacionContent, setLastPlaneacionContent] = useState<string>("") 
   const [showSaveButton, setShowSaveButton] = useState(false)
   const [savedPlaneacionId, setSavedPlaneacionId] = useState<string | null>(null)
+  const [autoSendTriggered, setAutoSendTriggered] = useState(false)
   
   // Estados para el sistema de feedback de calidad
   const [showQualityFeedback, setShowQualityFeedback] = useState(false)
@@ -46,6 +48,25 @@ export function ChatIA({ onBack, onSaveSuccess, initialMessage }: ChatIAProps) {
   const getInitials = (email: string) => {
     return email.charAt(0).toUpperCase()
   }
+
+  // Función para convertir abreviaciones de meses a nombres completos
+  const getMesCompleto = (mesAbreviado: string) => {
+    const meses: { [key: string]: string } = {
+      'ENE': 'Enero',
+      'FEB': 'Febrero', 
+      'MAR': 'Marzo',
+      'ABR': 'Abril',
+      'MAY': 'Mayo',
+      'JUN': 'Junio',
+      'JUL': 'Julio',
+      'AGO': 'Agosto',
+      'SEP': 'Septiembre',
+      'OCT': 'Octubre',
+      'NOV': 'Noviembre',
+      'DIC': 'Diciembre'
+    }
+    return meses[mesAbreviado] || mesAbreviado
+  }
   const {
     createPlaneacion,
     creating,
@@ -58,7 +79,7 @@ export function ChatIA({ onBack, onSaveSuccess, initialMessage }: ChatIAProps) {
   const isPro = profile ? isUserPro(profile) : false
   const hasReachedLimit = !isPro && monthlyCount >= 5
 
-  const { messages, input, handleInputChange, handleSubmit: originalHandleSubmit, isLoading, error } = useChat({
+  const { messages, input, handleInputChange, handleSubmit: originalHandleSubmit, isLoading, error, append } = useChat({
     api: "/api/chat",
     onError: (error) => {
       console.error("Error en el chat:", error)
@@ -80,24 +101,15 @@ export function ChatIA({ onBack, onSaveSuccess, initialMessage }: ChatIAProps) {
       {
         id: "welcome",
         role: "assistant",
-        content: `¡Hola! 👋 Soy tu asistente de IA para crear planeaciones didácticas. 
+        content: `¡Hola! 👋 Soy tu asistente de IA para crear planeaciones didácticas desde dosificación. 
 
-Estoy aquí para ayudarte a diseñar una clase individual perfecta para tus estudiantes de primaria. 
+He recibido la información de los contenidos que seleccionaste para el mes de ${getMesCompleto(mesActual)} y estoy generando automáticamente tu planeación didáctica.
 
-Puedes contarme:
-• ¿Qué materia quieres enseñar?
-• ¿Para qué grado es la clase?
-• ¿Cuál es el tema específico?
-• ¿Cuánto tiempo durará la clase?
-• ¿Hay algún objetivo particular que quieras lograr?
+**Contenidos seleccionados:**
+${contenidosSeleccionados.map((c, i) => `${i + 1}. ${c.contenido}`).join('\n')}
 
-¡Empecemos a crear algo increíble juntos! ✨`,
+¡Generando tu planeación personalizada! ✨`,
       },
-      ...(initialMessage ? [{
-        id: "user-initial",
-        role: "user" as const,
-        content: initialMessage,
-      }] : []),
     ],
   })
 
@@ -105,6 +117,21 @@ Puedes contarme:
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" })
   }, [messages])
+
+  // Enviar automáticamente el mensaje inicial
+  useEffect(() => {
+    if (initialMessage && !autoSendTriggered && messages.length === 1) {
+      setAutoSendTriggered(true)
+      // Esperar un momento para que el usuario vea el mensaje de bienvenida
+      setTimeout(() => {
+        append({
+          id: "auto-generated",
+          role: "user",
+          content: initialMessage,
+        })
+      }, 1500)
+    }
+  }, [initialMessage, autoSendTriggered, messages.length, append])
 
   // Función personalizada para manejar el envío con validación de límites
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
@@ -127,124 +154,8 @@ Puedes contarme:
       })
       return
     }
-    
-    // Si no hay límite, proceder con el envío normal
-    originalHandleSubmit(e)
-  }
 
-  const handleQuickSuggestion = (suggestion: string) => {
-    const event = {
-      target: { value: suggestion },
-    } as React.ChangeEvent<HTMLInputElement>
-
-    handleInputChange(event)
-
-    setTimeout(() => {
-      const form = document.querySelector("form") as HTMLFormElement
-      if (form) {
-        form.requestSubmit()
-      }
-    }, 100)
-  }
-
-  // Funciones para manejar el feedback de calidad
-  const handleQualityRating = (rating: 'useful' | 'needs_improvement') => {
-    setQualityRating(rating)
-    setShowFollowUp(true)
-  }
-
-  const handleSubmitFeedback = async () => {
-    if (!qualityRating) return
-    
-    setSubmittingFeedback(true)
-    
-    try {
-      const feedbackData = {
-        planeacion_content: lastPlaneacionContent,
-        quality_rating: qualityRating,
-        feedback_text: feedbackText,
-        user_id: user?.id,
-        created_at: new Date().toISOString()
-      }
-      
-      const response = await fetch('/api/quality-feedback', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(feedbackData),
-      })
-      
-      if (response.ok) {
-        // Ocultar el feedback y mostrar mensaje de agradecimiento
-        setShowQualityFeedback(false)
-        Swal.fire({
-          icon: 'success',
-          title: '¡Gracias por tu feedback!',
-          text: 'Tu opinión nos ayuda a mejorar la calidad de las planeaciones.',
-          timer: 2000,
-          showConfirmButton: false
-        })
-      }
-    } catch (error) {
-      console.error('Error al enviar feedback:', error)
-      Swal.fire({
-        icon: 'error',
-        title: 'Error',
-        text: 'No se pudo enviar tu feedback. Inténtalo de nuevo.',
-      })
-    } finally {
-      setSubmittingFeedback(false)
-    }
-  }
-
-  const handleSkipFeedback = () => {
-    setShowQualityFeedback(false)
-  }
-
-  const handleSavePlaneacion = async () => {
-    if (!lastPlaneacionContent) return
-
-    const canCreate = await canCreateMore();
-    if (!canCreate) {
-      Swal.fire({
-        icon: 'warning',
-        title: 'Límite alcanzado',
-        text: 'Has alcanzado el límite de planeaciones para tu plan. Actualiza a PRO para crear ilimitadas.',
-        confirmButtonText: 'Entendido'
-      })
-      return
-    }
-
-    // Limpiar el contenido antes de extraer la información
-    const cleanContent = getCleanContentForSaving(lastPlaneacionContent)
-    const planeacionInfo = extractPlaneacionInfo(lastPlaneacionContent)
-
-    const newPlaneacion = await createPlaneacion({
-      titulo: planeacionInfo.titulo,
-      materia: planeacionInfo.materia,
-      grado: planeacionInfo.grado,
-      duracion: planeacionInfo.duracion,
-      objetivo: planeacionInfo.objetivo,
-      contenido: cleanContent, // Usar el contenido limpio
-      estado: "completada",
-    })
-
-    if (newPlaneacion) {
-      setSavedPlaneacionId(newPlaneacion.id)
-      setShowSaveButton(false)
-      // Navegar a mis planeaciones después de un breve delay para mostrar el mensaje de éxito
-      setTimeout(() => {
-        onSaveSuccess()
-      }, 2000)
-    }
-  }
-
-  const onSubmit = (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
-    if (!input.trim()) return
-
-    // Detectar si el usuario quiere guardar
+    // Verificar si el usuario quiere guardar la planeación
     const lowerInput = input.toLowerCase()
     const saveKeywords = ["guardar", "guarda", "sí", "si", "si, guardar"]
     const isSaveCommand = saveKeywords.some(keyword => lowerInput === keyword || lowerInput === keyword + "." || lowerInput === keyword + "!")
@@ -261,38 +172,117 @@ Puedes contarme:
       setLastPlaneacionContent(""); // Limpiar el contenido para evitar guardados accidentales
     }
 
-    handleSubmit(e)
+    originalHandleSubmit(e)
   }
 
-  const remainingPlaneaciones = getRemainingPlaneaciones()
+  // Función para guardar la planeación
+  const handleSavePlaneacion = async () => {
+    if (!lastPlaneacionContent || !user?.id) return
+
+    try {
+      const planeacionInfo = extractPlaneacionInfo(lastPlaneacionContent)
+      const cleanContent = getCleanContentForSaving(lastPlaneacionContent)
+      
+      const planeacionData = {
+        titulo: planeacionInfo.titulo || `Planeación desde Dosificación - ${getMesCompleto(mesActual)}`,
+        materia: planeacionInfo.materia || contenidosSeleccionados[0]?.campo_formativo || null,
+        grado: planeacionInfo.grado || contexto?.grado?.toString() || null,
+        duracion: planeacionInfo.duracion || '50 minutos',
+        objetivo: planeacionInfo.objetivo || 'Desarrollar los contenidos curriculares dosificados para el mes actual',
+        contenido: cleanContent,
+        estado: 'completada' as const,
+        // Marcar que viene desde dosificación
+        origen: 'dosificacion' as const,
+        contenidos_relacionados: contenidosSeleccionados.map(c => c.contenido_id)
+      }
+
+      const newPlaneacion = await createPlaneacion(planeacionData)
+      
+      if (newPlaneacion) {
+        setSavedPlaneacionId(newPlaneacion.id)
+        setShowSaveButton(false)
+        
+        // Crear las relaciones con los contenidos seleccionados
+        if (newPlaneacion.id) {
+          const relaciones = contenidosSeleccionados.map(contenido => ({
+            planeacion_id: newPlaneacion.id,
+            contenido_id: contenido.contenido_id
+          }))
+
+          // Aquí deberías llamar a una función para crear las relaciones
+          // await createPlaneacionContenidos(relaciones)
+        }
+        
+        Swal.fire({
+          title: '¡Planeación guardada!',
+          text: 'Tu planeación ha sido guardada exitosamente.',
+          icon: 'success',
+          confirmButtonText: 'Ver mis planeaciones',
+          confirmButtonColor: '#10b981',
+        }).then(() => {
+          onSaveSuccess()
+        })
+      }
+    } catch (error) {
+      console.error('Error guardando planeación:', error)
+      Swal.fire({
+        title: 'Error',
+        text: 'No se pudo guardar la planeación. Inténtalo de nuevo.',
+        icon: 'error',
+        confirmButtonText: 'Entendido',
+      })
+    }
+  }
+
+  // Función para manejar la calificación de calidad
+  const handleQualityRating = (rating: 'useful' | 'needs_improvement') => {
+    setQualityRating(rating)
+    setShowFollowUp(true)
+  }
+
+  // Función para omitir el feedback
+  const handleSkipFeedback = () => {
+    setShowQualityFeedback(false)
+    setQualityRating(null)
+    setShowFollowUp(false)
+    setFeedbackText('')
+  }
+
+  const handleSubmitFeedback = async () => {
+    if (!qualityRating) return
+
+    setSubmittingFeedback(true)
+    try {
+      // Aquí enviarías el feedback a tu API
+      console.log('Feedback enviado:', { rating: qualityRating, text: feedbackText })
+      
+      setShowQualityFeedback(false)
+      setShowFollowUp(false)
+      setFeedbackText('')
+    } catch (error) {
+      console.error('Error enviando feedback:', error)
+    } finally {
+      setSubmittingFeedback(false)
+    }
+  }
 
   return (
-    <div className="space-y-6 max-w-6xl mx-auto h-full  dark:text-gray-100">
-      {/* Header */}
+    <div className="space-y-6">
       <div className="flex items-center gap-4">
-        <Button variant="outline" size="sm" onClick={onBack}>
-          <ArrowLeft className="h-4 w-4 mr-2" />
-          Volver
+        <Button variant="outline" onClick={onBack}>
+          <ArrowLeft className="mr-2 h-4 w-4" />
+          Volver a Dosificación
         </Button>
-        <div className="flex-1">
-          <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100 flex items-center gap-2 select-none">
-            <Sparkles className="h-8 w-8 text-purple-600" />
+        <div>
+          <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100">
             Crear Clase con IA
           </h1>
-          <p className="text-gray-600 mt-2 select-none">Diseña tu clase individual con la ayuda de inteligencia artificial</p>
-        </div>
-        <div className="text-right">
-          <p className="text-sm text-gray-600 select-none">
-            Planeaciones restantes este mes:{" "}
-            <span className="font-medium">{remainingPlaneaciones === -1 ? "∞" : remainingPlaneaciones}</span>
+          <p className="text-gray-600 dark:text-gray-400 mt-2">
+            Diseña tu clase desde dosificación con la ayuda de inteligencia artificial
           </p>
         </div>
       </div>
 
-      {/* Welcome Message */}
-      <WelcomeMessage />
-
-      {/* Limit Warning */}
       {hasReachedLimit && (
         <Card className="border-orange-200 bg-orange-50 dark:bg-orange-950/20">
           <CardContent className="pt-6">
@@ -304,7 +294,6 @@ Puedes contarme:
                 </h3>
                 <p className="text-sm text-orange-700 dark:text-orange-300">
                   Has creado {monthlyCount} de 5 planeaciones permitidas este mes con tu plan gratuito.
-                  No puedes generar nuevas planeaciones hasta el próximo mes.
                 </p>
                 <div className="flex items-center gap-2 pt-2">
                   <Button size="sm" className="bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700">
@@ -321,40 +310,13 @@ Puedes contarme:
         </Card>
       )}
 
-      {/* Error Display */}
-      {(error || planeacionError) && (
-        <Card className="border-red-200 bg-red-50 dark:bg-red-950 dark:border-red-900">
-          <CardContent className="pt-6">
-            <div className="flex items-center gap-2 text-red-600 dark:text-red-300">
-              <AlertCircle className="h-5 w-5" />
-              <span className="font-medium">Error</span>
-            </div>
-            <p className="text-sm text-red-600 mt-1 dark:text-red-400">{error?.message || planeacionError}</p>
-          </CardContent>
-        </Card>
-      )}
-
-      {/* Save Success */}
-      {savedPlaneacionId && (
-        <Card className="border-green-200 bg-green-50 dark:bg-green-950 dark:border-green-900">
-          <CardContent className="pt-6">
-            <div className="flex items-center gap-2 text-green-600 dark:text-green-300">
-              <CheckCircle className="h-5 w-5" />
-              <span className="font-medium">¡Planeación guardada exitosamente!</span>
-            </div>
-            <p className="text-sm text-green-600 mt-1 dark:text-green-400">Puedes encontrarla en la sección "Mis Planeaciones"</p>
-          </CardContent>
-        </Card>
-      )}
-
-      {/* Main Layout */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 h-[calc(100vh-200px)]">
-        {/* Chat Container */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        {/* Chat principal */}
         <div className="lg:col-span-2">
-          <Card className="h-full flex flex-col dark:bg-gray-800 dark:border-gray-700">
-            <CardHeader className="border-b bg-gradient-to-r from-purple-50 to-blue-50 dark:from-gray-800 dark:to-gray-900 flex-shrink-0">
+          <Card className="min-h-[600px] flex flex-col">
+            <CardHeader className="pb-4">
               <CardTitle className="flex items-center gap-2">
-                <Bot className="h-5 w-5 text-purple-600" />
+                <Sparkles className="h-5 w-5 text-purple-600" />
                 Asistente de Planeación Educativa
               </CardTitle>
               <CardDescription className="select-none">
@@ -363,8 +325,8 @@ Puedes contarme:
             </CardHeader>
 
             {/* Messages Area */}
-            <div className="flex-1 overflow-hidden dark:bg-gray-800 dark:border-gray-700">
-              <ScrollArea className="h-full dark:bg-gray-800 dark:border-gray-700">
+            <div className="flex-1 dark:bg-gray-800 dark:border-gray-700">
+              <div className="dark:bg-gray-800 dark:border-gray-700">
                 <div className="p-4 space-y-4 dark:bg-gray-800 dark:border-gray-700">
                   {messages.map((message) => (
                     <div
@@ -389,14 +351,14 @@ Puedes contarme:
                       </div>
 
                       {message.role === "user" && (
-                        <Avatar className="h-8 w-8">
-                          <AvatarImage src={userData?.avatar_url || user?.user_metadata?.avatar_url || "/placeholder.svg"} />
-                          <AvatarFallback className="text-xs">{user?.email ? getInitials(user.email) : "U"}</AvatarFallback>
+                        <Avatar className="h-8 w-8 flex-shrink-0">
+                          <AvatarFallback className="bg-blue-100 text-blue-600">
+                            {userData?.email ? getInitials(userData.email) : <User className="h-4 w-4" />}
+                          </AvatarFallback>
                         </Avatar>
                       )}
                     </div>
                   ))}
-
                   {isLoading && (
                     <div className="flex gap-3 justify-start">
                       <Avatar className="h-8 w-8 flex-shrink-0">
@@ -509,20 +471,17 @@ Puedes contarme:
                                     className="bg-blue-600 hover:bg-blue-700 text-white"
                                   >
                                     {submittingFeedback ? (
-                                      <>
-                                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                                        Enviando...
-                                      </>
+                                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                                     ) : (
-                                      qualityRating === 'useful' ? 'Enviar Opinión' : 'Enviar Crítica Constructiva'
+                                      <CheckCircle className="mr-2 h-4 w-4" />
                                     )}
+                                    Enviar Feedback
                                   </Button>
                                   <Button
-                                    variant="ghost"
-                                    onClick={handleSkipFeedback}
-                                    disabled={submittingFeedback}
+                                    variant="outline"
+                                    onClick={() => setShowFollowUp(false)}
                                   >
-                                    Omitir
+                                    Cancelar
                                   </Button>
                                 </div>
                               </>
@@ -536,29 +495,25 @@ Puedes contarme:
                   {/* Botón para guardar planeación */}
                   {showSaveButton && !savedPlaneacionId && (
                     <div className="flex justify-center">
-                      <Card className="bg-gradient-to-r from-green-50 to-emerald-50 border-green-200 dark:from-green-950 dark:to-emerald-950 dark:border-green-900">
+                      <Card className="bg-gradient-to-r from-green-50 to-emerald-50 border-green-200 dark:from-green-950 dark:to-emerald-950 dark:border-green-900 max-w-2xl w-full">
                         <CardContent className="pt-6">
                           <div className="text-center">
                             <h3 className="font-medium select-none">¿Quieres guardar esta planeación?</h3>
-                            <p className="text-sm mb-4 ">
-                              Podrás encontrarla después en "Mis Planeaciones"
+                            <p className="text-sm text-gray-600 dark:text-gray-300 mt-1">
+                              Podrás encontrarla después en <strong>'Mis Planeaciones'</strong>
                             </p>
                             <Button
                               onClick={handleSavePlaneacion}
                               disabled={creating}
-
+                              className="mt-4 bg-black hover:bg-gray-800 text-white px-8 py-3 text-base"
+                              size="lg"
                             >
                               {creating ? (
-                                <>
-                                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                                  Guardando...
-                                </>
+                                <Loader2 className="mr-2 h-5 w-5 animate-spin" />
                               ) : (
-                                <>
-                                  <Save className="mr-2 h-4 w-4" />
-                                  Guardar Planeación
-                                </>
+                                <Save className="mr-2 h-5 w-5" />
                               )}
+                              Guardar Planeación
                             </Button>
                           </div>
                         </CardContent>
@@ -579,62 +534,67 @@ Puedes contarme:
 
                   <div ref={messagesEndRef} />
                 </div>
-              </ScrollArea>
+              </div>
             </div>
 
             {/* Input Area */}
             <div className="border-t p-4 flex-shrink-0">
-              <form onSubmit={onSubmit} className="flex gap-2">
+              <form onSubmit={handleSubmit} className="flex gap-2">
                 <Input
                   value={input}
                   onChange={handleInputChange}
-                  placeholder={hasReachedLimit ? "Límite de planeaciones alcanzado" : "Escribe tu mensaje aquí..."}
+                  placeholder="Escribe tu mensaje aquí..."
                   disabled={isLoading || hasReachedLimit}
                   className="flex-1"
                 />
-                <Button type="submit" disabled={isLoading || !input.trim() || hasReachedLimit}>
-                  {isLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
+                <Button type="submit" disabled={isLoading || hasReachedLimit}>
+                  {isLoading ? (
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                  ) : (
+                    <Send className="h-4 w-4" />
+                  )}
                 </Button>
               </form>
-              <p className="text-sm text-gray-500 mt-2 select-none">
-                💡 Tip: Cuando termine tu planeación, pregúntale si quieres guardarla
-              </p>
+              <div className="flex items-center gap-2 mt-2">
+                <div className="text-xs text-gray-500 dark:text-gray-400 flex items-center gap-1">
+                  <span>💡</span>
+                  <span>Tip:</span>
+                </div>
+                <span className="text-xs text-gray-500 dark:text-gray-400">
+                  Cuando termine tu planeación, pregúntale si quieres guardarla
+                </span>
+              </div>
             </div>
           </Card>
         </div>
 
-        {/* Quick Actions Sidebar */}
-        <div className="lg:col-span-1">
-          <Card className="h-full dark:bg-gray-800 dark:border-gray-700">
+        {/* Panel lateral */}
+        <div className="space-y-6">
+          {/* Sugerencias rápidas */}
+          <Card className="h-[600px] flex flex-col">
             <CardHeader className="flex-shrink-0">
-              <CardTitle className="text-lg select-none">Sugerencias Rápidas</CardTitle>
-              <CardDescription className="select-none">Haz clic para empezar rápidamente</CardDescription>
+              <CardTitle className="text-lg select-none">Info</CardTitle>
+              <CardDescription className="select-none">Información de la planeación</CardDescription>
             </CardHeader>
             <CardContent className="flex-1 overflow-hidden">
-              <ScrollArea className="h-full">
-                <div className="space-y-3 pr-2">
-                  {[
-                    "Crear una clase de matemáticas sobre fracciones para 4° grado",
-                    "Diseñar una lección de ciencias sobre el sistema solar para 5° grado",
-                    "Planificar una clase de español sobre comprensión lectora para 3° grado",
-                    "Crear una actividad de historia sobre la Revolución Mexicana para 6° grado",
-                    "Clase de educación física con juegos cooperativos para 2° grado",
-                    "Taller de arte sobre colores primarios para 1° grado",
-                    "Clase de geografía sobre los estados de México para 5° grado",
-                    "Actividad de valores sobre la amistad para 3° grado",
-                  ].map((suggestion, index) => (
-                    <Button
-                      key={index}
-                      variant="outline"
-                      className="w-full text-left h-auto p-3 justify-start whitespace-normal dark:bg-gray-700 dark:hover:bg-gray-600 dark:text-gray-100"
-                      onClick={() => handleQuickSuggestion(suggestion)}
-                      disabled={isLoading || hasReachedLimit}
-                    >
-                      <div className="text-sm leading-relaxed">{suggestion}</div>
-                    </Button>
-                  ))}
+              <div className="space-y-3">
+                <div>
+                  <span className="text-sm font-medium text-gray-600 dark:text-gray-400">Grado:</span>
+                  <p className="text-sm">{contexto?.grado}° Grado</p>
                 </div>
-              </ScrollArea>
+                <div>
+                  <span className="text-sm font-medium text-gray-600 dark:text-gray-400">Mes:</span>
+                  <p className="text-sm">{getMesCompleto(mesActual)}</p>
+                </div>
+                <div>
+                  <span className="text-sm font-medium text-gray-600 dark:text-gray-400">Contenidos:</span>
+                  <p className="text-sm">{contenidosSeleccionados.length} seleccionados</p>
+                </div>
+                <div>
+                  <span className="text-sm font-medium text-gray-600 dark:text-gray-400">Origen:</span>
+                  <p className="text-sm text-orange-600 font-medium">Desde Dosificación</p>
+                </div>
+              </div>
             </CardContent>
           </Card>
         </div>

@@ -302,11 +302,8 @@ export function GestionarUsuarios() {
 
   // Remover usuario del plantel
   const handleRemoveUser = async (userId: string) => {
-    console.log('handleRemoveUser called with userId:', userId)
-    console.log('selectedPlantel:', selectedPlantel)
     
     if (!selectedPlantel) {
-      console.log('No selectedPlantel, returning early')
       toast({
         title: "Error",
         description: "No hay plantel seleccionado",
@@ -316,12 +313,9 @@ export function GestionarUsuarios() {
     }
 
     try {
-      console.log('Calling removeUserFromPlantel...')
       const result = await removeUserFromPlantel(userId, selectedPlantel)
-      console.log('removeUserFromPlantel result:', result)
       
       if (result) {
-        console.log('Success! Showing toast and reloading users')
         toast({
           title: "Éxito",
           description: "Usuario removido del plantel correctamente"
@@ -831,7 +825,6 @@ export function GestionarUsuarios() {
                                   <AlertDialogCancel>Cancelar</AlertDialogCancel>
                                   <AlertDialogAction
                                      onClick={() => {
-                                       console.log('AlertDialogAction onClick triggered for user:', user.id)
                                        handleRemoveUser(user.id)
                                      }}
                                      className="bg-destructive text-destructive-foreground hover:bg-destructive/90"

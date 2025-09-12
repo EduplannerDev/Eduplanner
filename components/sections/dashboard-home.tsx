@@ -14,6 +14,8 @@ import {
   TrendingUp,
   Clock,
   CheckCircle,
+  CheckCircle2,
+  AlertCircle,
   Plus,
   GraduationCap,
   ClipboardCheck
@@ -54,6 +56,14 @@ export function DashboardHome({ onSectionChange }: DashboardHomeProps) {
   const [recentActivity, setRecentActivity] = useState<RecentActivity[]>([])
   const [monthlyPlaneaciones, setMonthlyPlaneaciones] = useState(0)
   const [loading, setLoading] = useState(true)
+  const [estadisticasCiclo, setEstadisticasCiclo] = useState({
+    totalPDAs: 0,
+    completados: 0,
+    enProgreso: 0,
+    pendientes: 0,
+    porcentajeCompletado: 0
+  })
+  const [cargandoEstadisticasCiclo, setCargandoEstadisticasCiclo] = useState(false)
 
   const displayName = user?.user_metadata?.full_name || userData?.full_name || "Profesor"
   const firstName = displayName.split(' ')[0]
@@ -61,6 +71,7 @@ export function DashboardHome({ onSectionChange }: DashboardHomeProps) {
   useEffect(() => {
     if (user?.id) {
       loadDashboardData()
+      cargarEstadisticasCicloEscolar()
     }
   }, [user?.id])
 
@@ -82,13 +93,6 @@ export function DashboardHome({ onSectionChange }: DashboardHomeProps) {
         getMonthlyPlaneacionesCount(user?.id || '')
       ])
 
-      // Debug logs
-      console.log('Dashboard stats debug:', {
-        planeaciones: { data: planeacionesRes.data, error: planeacionesRes.error, count: planeacionesRes.data?.length },
-        examenes: { data: examenesRes.data, error: examenesRes.error, count: examenesRes.data?.length },
-        grupos: { data: gruposRes.data, error: gruposRes.error, count: gruposRes.data?.length },
-        mensajes: { data: mensajesRes.data, error: mensajesRes.error, count: mensajesRes.data?.length }
-      })
 
       setStats({
         planeaciones: planeacionesRes.data?.length || 0,
@@ -143,6 +147,174 @@ export function DashboardHome({ onSectionChange }: DashboardHomeProps) {
     } finally {
       setLoading(false)
     }
+  }
+
+  // Función para cargar estadísticas del ciclo escolar (copiada del módulo de dosificación)
+  const cargarEstadisticasCicloEscolar = async () => {
+    if (!user?.id) return
+
+    try {
+      setCargandoEstadisticasCiclo(true)
+
+      // Obtener el contexto de trabajo del usuario usando RPC (igual que en dosificación)
+      const { data, error: errorContexto } = await supabase
+        .rpc('get_contexto_trabajo_activo', { profesor_id_param: user.id })
+
+      if (errorContexto) {
+        console.error('Error cargando contexto de trabajo:', errorContexto)
+        setCargandoEstadisticasCiclo(false)
+        return
+      }
+
+      if (!data || data.length === 0) {
+        setCargandoEstadisticasCiclo(false)
+        return
+      }
+
+      const contexto = data[0] // Tomar el primer elemento del array (igual que en dosificación)
+
+      // Obtener todos los contenidos dosificados para el contexto actual (igual que en dosificación)
+      const { data: contenidosDosificados, error: errorDosificados } = await supabase
+        .from('dosificacion_meses')
+        .select(`
+          contenido_id,
+          mes,
+          curriculo_sep!inner(
+            id,
+            pda,
+            grado,
+            campo_formativo
+          )
+        `)
+        .eq('profesor_id', user.id)
+        .eq('contexto_id', contexto.id)
+        .eq('seleccionado', true)
+
+      if (errorDosificados) {
+        console.error('Error cargando contenidos dosificados:', errorDosificados)
+        setCargandoEstadisticasCiclo(false)
+        return
+      }
+
+      // Obtener planeaciones que tienen contenidos relacionados (igual que en dosificación)
+      const { data: planeaciones, error: errorPlaneaciones } = await supabase
+        .from('planeaciones')
+        .select(`
+          id,
+          contenidos_relacionados,
+          estado,
+          origen
+        `)
+        .eq('user_id', user.id)
+        .is('deleted_at', null)
+
+      if (errorPlaneaciones) {
+        console.error('Error cargando planeaciones:', errorPlaneaciones)
+        setCargandoEstadisticasCiclo(false)
+        return
+      }
+
+      // Calcular estadísticas (igual que en dosificación)
+      const totalPDAs = contenidosDosificados?.length || 0
+      let completados = 0
+      let enProgreso = 0
+      let pendientes = 0
+
+      // Crear un mapa de contenidos con planeación
+      const contenidosConPlaneacion = new Set()
+      
+      planeaciones?.forEach(planeacion => {
+        if (planeacion.contenidos_relacionados && Array.isArray(planeacion.contenidos_relacionados)) {
+          planeacion.contenidos_relacionados.forEach(contenidoId => {
+            contenidosConPlaneacion.add(contenidoId)
+          })
+        }
+      })
+
+      // Clasificar cada contenido dosificado
+      contenidosDosificados?.forEach(contenido => {
+        if (contenidosConPlaneacion.has(contenido.contenido_id)) {
+          // Tiene planeación = Completado
+          completados++
+        } else {
+          // No tiene planeación pero tiene mes asignado = En Progreso
+          enProgreso++
+        }
+      })
+
+      // Los pendientes son los contenidos del currículo que NO están dosificados
+      const { data: totalContenidosGrado, error: errorTotal } = await supabase
+        .from('curriculo_sep')
+        .select('id')
+        .eq('grado', contexto.grado)
+
+      if (errorTotal) {
+        console.error('Error cargando total de contenidos:', errorTotal)
+        pendientes = 0
+      } else {
+        const totalContenidos = totalContenidosGrado?.length || 0
+        pendientes = totalContenidos - totalPDAs
+      }
+
+      const porcentajeCompletado = totalPDAs > 0 ? Math.round((completados / totalPDAs) * 100) : 0
+
+      setEstadisticasCiclo({
+        totalPDAs,
+        completados,
+        enProgreso,
+        pendientes,
+        porcentajeCompletado
+      })
+
+    } catch (error) {
+      console.error('Error cargando estadísticas del ciclo escolar:', error)
+    } finally {
+      setCargandoEstadisticasCiclo(false)
+    }
+  }
+
+  // Componente para gráfico circular de progreso
+  const GraficoCircularProgreso = ({ porcentaje, size = 120 }: { porcentaje: number, size?: number }) => {
+    const radio = (size - 8) / 2
+    const circunferencia = 2 * Math.PI * radio
+    const strokeDasharray = circunferencia
+    const strokeDashoffset = circunferencia - (porcentaje / 100) * circunferencia
+
+    return (
+      <div className="relative inline-flex items-center justify-center">
+        <svg width={size} height={size} className="transform -rotate-90">
+          {/* Círculo de fondo */}
+          <circle
+            cx={size / 2}
+            cy={size / 2}
+            r={radio}
+            stroke="currentColor"
+            strokeWidth="8"
+            fill="none"
+            className="text-gray-200 dark:text-gray-700"
+          />
+          {/* Círculo de progreso */}
+          <circle
+            cx={size / 2}
+            cy={size / 2}
+            r={radio}
+            stroke="currentColor"
+            strokeWidth="8"
+            fill="none"
+            strokeDasharray={strokeDasharray}
+            strokeDashoffset={strokeDashoffset}
+            strokeLinecap="round"
+            className="text-blue-600 transition-all duration-1000 ease-out"
+          />
+        </svg>
+        {/* Porcentaje en el centro */}
+        <div className="absolute inset-0 flex items-center justify-center">
+          <span className="text-lg font-bold text-gray-900 dark:text-gray-100">
+            {porcentaje}%
+          </span>
+        </div>
+      </div>
+    )
   }
 
   const getActivityIcon = (type: string) => {
@@ -294,7 +466,7 @@ export function DashboardHome({ onSectionChange }: DashboardHomeProps) {
         </CardContent>
       </Card>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 md:gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 md:gap-6">
         {/* Acciones rápidas */}
         <Card>
           <CardHeader className="px-4 md:px-6 pt-4 md:pt-6">
@@ -356,6 +528,103 @@ export function DashboardHome({ onSectionChange }: DashboardHomeProps) {
                 <FileText className="h-12 w-12 mx-auto mb-2 opacity-50" />
                 <p>No hay actividad reciente</p>
                 <p className="text-xs">Comienza creando tu primera planeación</p>
+              </div>
+            )}
+          </CardContent>
+        </Card>
+
+        {/* Resumen General del Ciclo Escolar */}
+        <Card>
+          <CardHeader className="px-4 md:px-6 pt-4 md:pt-6">
+            <CardTitle className="text-lg md:text-xl flex items-center gap-2">
+              <TrendingUp className="h-5 w-5 text-blue-600" />
+              Resumen del Ciclo Escolar
+            </CardTitle>
+            <CardDescription className="text-sm">
+              Progreso general de tu dosificación curricular
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="px-4 md:px-6 pb-4 md:pb-6">
+            {cargandoEstadisticasCiclo ? (
+              <div className="flex items-center justify-center py-8">
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+              </div>
+            ) : (estadisticasCiclo.totalPDAs === 0 && !cargandoEstadisticasCiclo) ? (
+              <div className="text-center py-8">
+                <BookOpen className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+                <h3 className="text-lg font-medium text-gray-900 dark:text-gray-100 mb-2">
+                  No hay dosificación configurada
+                </h3>
+                <p className="text-gray-600 dark:text-gray-400 text-sm">
+                  Ve al módulo de dosificación para comenzar
+                </p>
+                <Button 
+                  variant="outline" 
+                  size="sm" 
+                  className="mt-4"
+                  onClick={() => onSectionChange('dosificacion')}
+                >
+                  Ir a Dosificación
+                </Button>
+              </div>
+            ) : (
+              <div className="space-y-4">
+                {/* Gráfico circular de progreso */}
+                <div className="flex justify-center">
+                  <GraficoCircularProgreso 
+                    porcentaje={estadisticasCiclo.porcentajeCompletado} 
+                    size={100}
+                  />
+                </div>
+
+                {/* Tarjetas de estadísticas */}
+                <div className="grid grid-cols-3 gap-2">
+                  {/* PDAs Completados */}
+                  <div className="bg-green-50 dark:bg-green-950/20 border border-green-200 dark:border-green-800 rounded-lg p-3 text-center">
+                    <div className="flex items-center justify-center mb-1">
+                      <CheckCircle2 className="h-4 w-4 text-green-600 dark:text-green-400" />
+                    </div>
+                    <p className="text-xs font-medium text-green-600 dark:text-green-400 mb-1">
+                      Completados
+                    </p>
+                    <p className="text-lg font-bold text-green-700 dark:text-green-300">
+                      {estadisticasCiclo.completados}
+                    </p>
+                  </div>
+
+                  {/* PDAs en Progreso */}
+                  <div className="bg-blue-50 dark:bg-blue-950/20 border border-blue-200 dark:border-blue-800 rounded-lg p-3 text-center">
+                    <div className="flex items-center justify-center mb-1">
+                      <Clock className="h-4 w-4 text-blue-600 dark:text-blue-400" />
+                    </div>
+                    <p className="text-xs font-medium text-blue-600 dark:text-blue-400 mb-1">
+                      En Progreso
+                    </p>
+                    <p className="text-lg font-bold text-blue-700 dark:text-blue-300">
+                      {estadisticasCiclo.enProgreso}
+                    </p>
+                  </div>
+
+                  {/* PDAs Pendientes */}
+                  <div className="bg-orange-50 dark:bg-orange-950/20 border border-orange-200 dark:border-orange-800 rounded-lg p-3 text-center">
+                    <div className="flex items-center justify-center mb-1">
+                      <AlertCircle className="h-4 w-4 text-orange-600 dark:text-orange-400" />
+                    </div>
+                    <p className="text-xs font-medium text-orange-600 dark:text-orange-400 mb-1">
+                      Pendientes
+                    </p>
+                    <p className="text-lg font-bold text-orange-700 dark:text-orange-300">
+                      {estadisticasCiclo.pendientes}
+                    </p>
+                  </div>
+                </div>
+
+                {/* Información adicional */}
+                <div className="text-center pt-2">
+                  <p className="text-xs text-gray-500 dark:text-gray-500">
+                    {estadisticasCiclo.totalPDAs} dosificados de {estadisticasCiclo.totalPDAs + estadisticasCiclo.pendientes} total
+                  </p>
+                </div>
               </div>
             )}
           </CardContent>

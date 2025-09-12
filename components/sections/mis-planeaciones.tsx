@@ -50,7 +50,6 @@ export function MisPlaneaciones({ onCreateNew }: MisPlaneacionesProps) {
   const [deleting, setDeleting] = useState<string | null>(null)
   const [error, setError] = useState<string | null>(null)
 
-  console.log("Current Page:", currentPage, "Total Pages:", totalPages)
 
   const getEstadoColor = (estado: string) => {
     switch (estado) {
@@ -62,6 +61,22 @@ export function MisPlaneaciones({ onCreateNew }: MisPlaneacionesProps) {
         return "bg-blue-100 text-blue-800"
       default:
         return "bg-gray-100 text-gray-800"
+    }
+  }
+
+  // Función para obtener el texto y color del badge basado en origen y estado
+  const getOrigenInfo = (planeacion: any) => {
+    if (planeacion.origen === 'dosificacion') {
+      return {
+        text: 'Desde Dosificación',
+        className: 'bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-200'
+      }
+    } else {
+      // Para planeaciones manuales, mostrar el estado tradicional
+      return {
+        text: planeacion.estado.charAt(0).toUpperCase() + planeacion.estado.slice(1),
+        className: getEstadoColor(planeacion.estado)
+      }
     }
   }
 
@@ -184,8 +199,8 @@ export function MisPlaneaciones({ onCreateNew }: MisPlaneacionesProps) {
                       {planeacion.duracion && <span className="dark:text-gray-300">{cleanMarkdown(planeacion.duracion)}</span>}
                     </CardDescription>
                   </div>
-                  <Badge className={getEstadoColor(planeacion.estado)}>
-                    {planeacion.estado.charAt(0).toUpperCase() + planeacion.estado.slice(1)}
+                  <Badge className={getOrigenInfo(planeacion).className}>
+                    {getOrigenInfo(planeacion).text}
                   </Badge>
                 </div>
               </CardHeader>

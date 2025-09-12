@@ -7,7 +7,6 @@
  */
 export function forceAuthReset() {
   if (typeof window !== 'undefined') {
-    console.log('Forcing complete auth reset...')
     
     // Limpiar todo el localStorage y sessionStorage
     try {
@@ -105,7 +104,6 @@ export async function handleAuthError(error: any, supabaseClient: any) {
   console.warn('Auth error detected:', error)
   
   if (isRefreshTokenError(error)) {
-    console.log('Clearing invalid session due to refresh token error...')
     
     // Limpiar storage primero
     clearSupabaseStorage()
@@ -147,9 +145,6 @@ export async function initializeSession(supabaseClient: any) {
       const hash = window.location.hash
       const search = window.location.search
       
-      console.log('🔍 initializeSession - URL actual:', window.location.href)
-      console.log('🔍 initializeSession - Hash:', hash)
-      console.log('🔍 initializeSession - Search params:', search)
       
       // Verificar si hay parámetros de error en la URL
       const urlParams = new URLSearchParams(search)

@@ -119,13 +119,6 @@ const Examenes = () => {
   };
 
   const hasAnswerSheet = (examen: Examen): boolean => {
-    console.log('Verificando hoja de respuestas para examen:', {
-      id: examen.id,
-      title: examen.title,
-      contentType: typeof examen.content,
-      content: examen.content,
-      hasHojaRespuestas: examen.content && typeof examen.content === 'object' ? !!(examen.content.hoja_de_respuestas) : false
-    });
     
     if (typeof examen.content === 'object' && examen.content !== null) {
       return !!(examen.content.hoja_de_respuestas);

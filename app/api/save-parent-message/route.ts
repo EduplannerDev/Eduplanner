@@ -37,7 +37,6 @@ export async function POST(req: NextRequest) {
 
     // Si hay student_id, verificar que el alumno existe y que el usuario tiene permisos
     if (student_id) {
-      console.log('Validating student_id:', student_id)
       
       // Verificar que el alumno existe y que el usuario tiene acceso a través de sus grupos
       const { data: studentWithGroup, error: studentError } = await supabase
@@ -78,7 +77,6 @@ export async function POST(req: NextRequest) {
         }, { status: 403 })
       }
       
-      console.log('Student validated successfully:', studentWithGroup.nombre_completo)
     }
 
     // Insert the message
@@ -100,7 +98,6 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: insertError.message }, { status: 500 })
     }
 
-    console.log('Parent message saved successfully:', messageData)
     return NextResponse.json({ message: "Mensaje para padres guardado exitosamente", data: messageData })
   } catch (error) {
     console.error('Unexpected error:', error)

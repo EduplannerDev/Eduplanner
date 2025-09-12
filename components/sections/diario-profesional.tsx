@@ -98,9 +98,6 @@ export function DiarioProfesional({ isOpen, onClose, selectedDate }: DiarioProfe
       // Establecer la fecha inicial: selectedDate si existe, sino fecha actual
       const initialDate = selectedDate ? new Date(selectedDate) : new Date()
       setCurrentDate(initialDate)
-      console.log('=== DIALOG OPENED ===')
-      console.log('selectedDate prop:', selectedDate)
-      console.log('Setting currentDate to:', getLocalDateString(initialDate))
     }
   }, [isOpen])
 
@@ -109,9 +106,6 @@ export function DiarioProfesional({ isOpen, onClose, selectedDate }: DiarioProfe
     if (isOpen && selectedDate) {
       const newDate = new Date(selectedDate)
       setCurrentDate(newDate)
-      console.log('=== SELECTEDDATE CHANGED ===')
-      console.log('New selectedDate:', selectedDate)
-      console.log('Setting currentDate to:', getLocalDateString(newDate))
     }
   }, [selectedDate, isOpen])
 

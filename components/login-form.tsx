@@ -42,13 +42,6 @@ export default function LoginForm() {
     const error = hashError || queryError
     const errorDescription = hashErrorDescription || queryErrorDescription
 
-    console.log('🔍 LoginForm - URL actual:', window.location.href)
-    console.log('🔍 LoginForm - Hash error:', hashError)
-    console.log('🔍 LoginForm - Hash error_description:', hashErrorDescription)
-    console.log('🔍 LoginForm - Query error:', queryError)
-    console.log('🔍 LoginForm - Query error_description:', queryErrorDescription)
-    console.log('🔍 LoginForm - Error final:', error)
-    console.log('🔍 LoginForm - Error description final:', errorDescription)
 
     if (error || errorDescription) {
       let errorMessage = ''

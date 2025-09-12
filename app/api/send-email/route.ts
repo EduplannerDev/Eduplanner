@@ -171,11 +171,6 @@ export async function POST(req: NextRequest) {
 
     // Enviar email usando el servicio existente
     try {
-      console.log('🔍 Intentando enviar correo:', {
-        recipients: emailList.length,
-        subject,
-        contentLength: content.length
-      });
       
       const result = await sendCustomEmail({
         to: emailList,
@@ -185,7 +180,6 @@ export async function POST(req: NextRequest) {
         senderEmail: senderEmail || 'contacto@eduplanner.mx'
       });
       
-      console.log('✅ Correo enviado exitosamente:', result);
 
       // Registrar el envío en la base de datos para auditoría
       const { error: logError } = await supabase

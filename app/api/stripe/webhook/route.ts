@@ -42,7 +42,6 @@ export async function POST(req: NextRequest) {
         const customerId = session.customer as string
         const subscriptionId = session.subscription as string
 
-        console.log(`DEBUG: checkout.session.completed - userId: ${userId}, customerId: ${customerId}, subscriptionId: ${subscriptionId}`);
 
         if (!userId) {
           console.error('❌ No se encontró userId en metadata para checkout.session.completed');
@@ -82,7 +81,6 @@ export async function POST(req: NextRequest) {
           throw new Error(error.message);
         }
 
-        console.log(`✅ Suscripción activada para el usuario ${userId}`);
         break
       }
 
@@ -113,7 +111,6 @@ export async function POST(req: NextRequest) {
 
         if (error) throw new Error(error.message)
 
-        console.log(`✅ Suscripción cancelada para el usuario ${userId}`);
         break
       }
 
@@ -193,7 +190,6 @@ export async function POST(req: NextRequest) {
 
         if (error) throw new Error(error.message)
 
-        console.log(`✅ Suscripción actualizada para el usuario ${userId}: ${mappedStatus}`);
         break
       }
 
@@ -238,7 +234,6 @@ export async function POST(req: NextRequest) {
             throw new Error(error.message);
           }
 
-          console.log(`✅ Pago exitoso procesado para el usuario ${userId}`);
         } catch (err) {
           console.error('❌ Error al procesar invoice.payment_succeeded:', err);
         }

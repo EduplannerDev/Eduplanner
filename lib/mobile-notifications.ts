@@ -31,7 +31,6 @@ export async function saveMobileNotificationEmail(
       }
     }
 
-    console.log('Attempting to save email:', data.email)
 
     // Intentar insertar el email
     const { data: result, error } = await supabase
@@ -86,7 +85,6 @@ export async function saveMobileNotificationEmail(
       }
     }
 
-    console.log('Email saved successfully:', result)
     return {
       success: true,
       message: 'Email guardado exitosamente',

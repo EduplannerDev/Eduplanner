@@ -119,7 +119,6 @@ export function ViewPlaneacion({ planeacionId, onBack, onEdit }: ViewPlaneacionP
         WebkitTapHighlightColor: 'transparent'
       }}
       onContextMenu={(e) => e.preventDefault()}
-      onSelectStart={(e) => e.preventDefault()}
       onDragStart={(e) => e.preventDefault()}
     >
       {/* Header */}
@@ -197,7 +196,6 @@ export function ViewPlaneacion({ planeacionId, onBack, onEdit }: ViewPlaneacionP
               className="text-gray-900 dark:text-gray-100 leading-relaxed select-none"
               style={{ userSelect: 'none', WebkitUserSelect: 'none', MozUserSelect: 'none', msUserSelect: 'none' }}
               onContextMenu={(e) => e.preventDefault()}
-              onSelectStart={(e) => e.preventDefault()}
               onDragStart={(e) => e.preventDefault()}
             >
               {planeacion.objetivo ? cleanMarkdown(planeacion.objetivo) : ""}
@@ -217,7 +215,6 @@ export function ViewPlaneacion({ planeacionId, onBack, onEdit }: ViewPlaneacionP
             className="bg-gray-50 dark:bg-gray-800 p-6 rounded-lg border dark:border-gray-700 select-none"
             style={{ userSelect: 'none', WebkitUserSelect: 'none', MozUserSelect: 'none', msUserSelect: 'none' }}
             onContextMenu={(e) => e.preventDefault()}
-            onSelectStart={(e) => e.preventDefault()}
             onDragStart={(e) => e.preventDefault()}
             onCopy={(e) => e.preventDefault()}
             onCut={(e) => e.preventDefault()}
@@ -227,7 +224,6 @@ export function ViewPlaneacion({ planeacionId, onBack, onEdit }: ViewPlaneacionP
               style={{ userSelect: 'none', WebkitUserSelect: 'none', MozUserSelect: 'none', msUserSelect: 'none' }}
               dangerouslySetInnerHTML={{ __html: planeacion.contenido || "" }}
               onContextMenu={(e) => e.preventDefault()}
-              onSelectStart={(e) => e.preventDefault()}
               onDragStart={(e) => e.preventDefault()}
             />
           </div>

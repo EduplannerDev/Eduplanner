@@ -7,6 +7,7 @@ import { NuevaPlaneacion } from "./sections/nueva-planeacion"
 import { MisPlaneaciones } from "./sections/mis-planeaciones"
 import { Perfil } from "./sections/perfil"
 import { ChatIA } from "./sections/chat-ia"
+import { ChatIADosificacion } from "./sections/chat-ia-dosificacion"
 import Examenes from "./sections/examenes"
 import GenerarExamen from "./sections/generar-examen"
 import { GenerarMensajes } from "./sections/generar-mensajes"
@@ -39,6 +40,12 @@ export default function Dashboard() {
   const [activeSection, setActiveSection] = useState("dashboard")
   const [preselectedStudent, setPreselectedStudent] = useState<any>(null)
   const [selectedStudentForMessages, setSelectedStudentForMessages] = useState<any>(null)
+  const [initialChatMessage, setInitialChatMessage] = useState<string>("")
+  const [dosificacionData, setDosificacionData] = useState<{
+    contenidos: any[]
+    contexto: any
+    mesActual: string
+  } | null>(null)
   const { isDirector } = useRoles()
 
   const handleNavigateToMensajesPadres = (studentData: any) => {
@@ -49,6 +56,34 @@ export default function Dashboard() {
   const handleNavigateToMensajesPadresAlumno = (studentData: any) => {
     setSelectedStudentForMessages(studentData)
     setActiveSection("mensajes-padres-alumno")
+  }
+
+  const handleNavigateToChatWithMessage = (message: string) => {
+    clearChatStates() // Limpiar estados previos
+    setInitialChatMessage(message)
+    setActiveSection("chat-ia")
+  }
+
+  const handleNavigateToChatDosificacion = (data: {
+    contenidos: any[]
+    contexto: any
+    mesActual: string
+    message: string
+  }) => {
+    clearChatStates() // Limpiar estados previos
+    setDosificacionData({
+      contenidos: data.contenidos,
+      contexto: data.contexto,
+      mesActual: data.mesActual
+    })
+    setInitialChatMessage(data.message)
+    setActiveSection("chat-ia-dosificacion")
+  }
+
+  // Función para limpiar todos los estados de chat
+  const clearChatStates = () => {
+    setInitialChatMessage("")
+    setDosificacionData(null)
   }
 
   const getSectionTitle = (section: string) => {
@@ -63,6 +98,8 @@ export default function Dashboard() {
         return "Perfil"
       case "chat-ia":
         return "Crear Planeaciones con IA"
+      case "chat-ia-dosificacion":
+        return "Planeación desde Dosificación"
       case "examenes":
         return "Mis Exámenes"
       case "generar-examenes":
@@ -104,13 +141,48 @@ export default function Dashboard() {
       case "dashboard":
         return <DashboardHome onSectionChange={setActiveSection} />
       case "nueva-planeacion":
-        return <NuevaPlaneacion onCreateClass={() => setActiveSection("chat-ia")} />
+        return <NuevaPlaneacion 
+          onCreateClass={() => {
+            clearChatStates()
+            setActiveSection("chat-ia")
+          }} 
+          onNavigateToChatWithMessage={handleNavigateToChatWithMessage}
+          onNavigateToChatDosificacion={handleNavigateToChatDosificacion}
+        />
       case "mis-planeaciones":
-        return <MisPlaneaciones onCreateNew={() => setActiveSection("chat-ia")} />
+        return <MisPlaneaciones onCreateNew={() => {
+          clearChatStates()
+          setActiveSection("chat-ia")
+        }} />
       case "perfil":
         return <Perfil />
       case "chat-ia":
-        return <ChatIA onBack={() => setActiveSection("nueva-planeacion")} onSaveSuccess={() => setActiveSection("mis-planeaciones")} />
+        return <ChatIA 
+          onBack={() => {
+            setActiveSection("nueva-planeacion")
+            clearChatStates()
+          }} 
+          onSaveSuccess={() => {
+            setActiveSection("mis-planeaciones")
+            clearChatStates()
+          }}
+          initialMessage={initialChatMessage}
+        />
+      case "chat-ia-dosificacion":
+        return dosificacionData ? <ChatIADosificacion 
+          onBack={() => {
+            setActiveSection("nueva-planeacion")
+            clearChatStates()
+          }} 
+          onSaveSuccess={() => {
+            setActiveSection("mis-planeaciones")
+            clearChatStates()
+          }}
+          initialMessage={initialChatMessage}
+          contenidosSeleccionados={dosificacionData.contenidos}
+          contexto={dosificacionData.contexto}
+          mesActual={dosificacionData.mesActual}
+        /> : null
       case "examenes":
         return <Examenes />
       case "generar-examenes":
@@ -163,7 +235,10 @@ export default function Dashboard() {
       case "envio-correos":
         return <EnvioCorreos />
       case "dosificacion":
-        return <Dosificacion onCreateNew={() => setActiveSection("dosificacion")} />
+        return <Dosificacion 
+          onCreateNew={() => setActiveSection("dosificacion")} 
+          onNavigateToChatDosificacion={handleNavigateToChatDosificacion}
+        />
       default:
         return <DashboardHome onSectionChange={setActiveSection} />
     }

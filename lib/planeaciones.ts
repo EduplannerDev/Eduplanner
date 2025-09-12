@@ -11,6 +11,9 @@ export interface Planeacion {
   objetivo: string | null
   contenido: string
   estado: "borrador" | "completada" | "archivada"
+  origen: "manual" | "dosificacion" | null
+  contenidos_relacionados: string[] | null
+  mes_dosificacion: string | null
   created_at: string
   updated_at: string
   deleted_at: string | null
@@ -24,6 +27,9 @@ export interface PlaneacionCreate {
   objetivo?: string
   contenido: string
   estado?: "borrador" | "completada" | "archivada"
+  origen?: "manual" | "dosificacion"
+  contenidos_relacionados?: string[]
+  mes_dosificacion?: string
 }
 
 // Obtener planeaciones del usuario (excluye eliminadas) con paginación
@@ -106,7 +112,23 @@ export async function createPlaneacion(userId: string, planeacion: PlaneacionCre
     if (creationError) {
       console.error("Error registering planeacion creation:", creationError);
       // Considerar si se debe revertir la creación de la planeación principal
-    } else {
+    }
+
+    // Si hay contenidos relacionados, crear las relaciones en planeacion_contenidos
+    if (planeacion.contenidos_relacionados && planeacion.contenidos_relacionados.length > 0) {
+      const relaciones = planeacion.contenidos_relacionados.map(contenidoId => ({
+        planeacion_id: data.id,
+        contenido_id: contenidoId
+      }));
+
+      const { error: relacionesError } = await supabase
+        .from("planeacion_contenidos")
+        .insert(relaciones);
+
+      if (relacionesError) {
+        console.error("Error creating planeacion-contenido relations:", relacionesError);
+        // No revertimos la planeación principal, pero registramos el error
+      }
     }
 
     return data
