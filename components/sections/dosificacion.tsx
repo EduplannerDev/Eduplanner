@@ -863,13 +863,13 @@ Por favor, genera una planeación completa y detallada para este contenido, incl
               <div className="space-y-4">
                 {/* Tabla de dosificación */}
                 <div className="overflow-x-auto">
-                  <table className="w-full border-collapse border border-gray-300">
+                  <table className="w-full border-collapse border border-gray-300 dark:border-gray-600">
                     <thead>
-                      <tr className="bg-orange-400 text-white">
-                        <th className="border border-gray-300 p-2 text-left font-medium">CONTENIDO</th>
-                        <th className="border border-gray-300 p-2 text-left font-medium">PROCESO DE DESARROLLO Y APRENDIZAJE</th>
+                      <tr className="bg-orange-400 dark:bg-orange-600 text-white">
+                        <th className="border border-gray-300 dark:border-gray-600 p-2 text-left font-medium">CONTENIDO</th>
+                        <th className="border border-gray-300 dark:border-gray-600 p-2 text-left font-medium">PROCESO DE DESARROLLO Y APRENDIZAJE</th>
                         {mesesEscolares.map(mes => (
-                          <th key={mes} className="border border-gray-300 p-2 text-center font-medium min-w-[60px]">
+                          <th key={mes} className="border border-gray-300 dark:border-gray-600 p-2 text-center font-medium min-w-[60px]">
                             {mes}
                           </th>
                         ))}
@@ -877,15 +877,15 @@ Por favor, genera una planeación completa y detallada para este contenido, incl
                     </thead>
                     <tbody>
                       {curriculoData.map((item, index) => (
-                        <tr key={item.id} className={index % 2 === 0 ? "bg-white" : "bg-gray-50"}>
-                          <td className="border border-gray-300 p-3 font-medium">
+                        <tr key={item.id} className={index % 2 === 0 ? "bg-white dark:bg-gray-800" : "bg-gray-50 dark:bg-gray-700"}>
+                          <td className="border border-gray-300 dark:border-gray-600 p-3 font-medium text-gray-900 dark:text-gray-100">
                             {item.contenido}
                           </td>
-                          <td className="border border-gray-300 p-3 text-sm">
+                          <td className="border border-gray-300 dark:border-gray-600 p-3 text-sm text-gray-700 dark:text-gray-300">
                             {item.pda}
                           </td>
                           {mesesEscolares.map(mes => (
-                            <td key={mes} className="border border-gray-300 p-2 text-center">
+                            <td key={mes} className="border border-gray-300 dark:border-gray-600 p-2 text-center">
                               <Checkbox
                                 id={`${item.id}-${mes}`}
                                 checked={(() => {
@@ -894,7 +894,7 @@ Por favor, genera una planeación completa y detallada para este contenido, incl
                                   return isChecked
                                 })()}
                                 onCheckedChange={(checked) => handleSeleccionMes(item.id.toString(), mes, checked as boolean)}
-                                className="data-[state=checked]:bg-blue-600 data-[state=checked]:border-blue-600"
+                                className="data-[state=checked]:bg-blue-600 data-[state=checked]:border-blue-600 dark:data-[state=checked]:bg-blue-500 dark:data-[state=checked]:border-blue-500"
                               />
                             </td>
                           ))}
