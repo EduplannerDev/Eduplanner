@@ -93,10 +93,8 @@ export default function LoginForm() {
         }
       }
 
-      console.log('🔍 LoginForm - Mensaje de error final:', errorMessage)
+  
       setMessage(errorMessage)
-    } else {
-      console.log('🔍 LoginForm - No hay parámetros de error en la URL')
     }
   }, [searchParams])
 
@@ -211,7 +209,7 @@ export default function LoginForm() {
         }
 
         // Verificar si el usuario ya existe en la base de datos
-        console.log("🔍 Verificando usuario existente para email:", email)
+  
         
         // Verificar en la tabla profiles
         const { data: existingProfile, error: profileError } = await supabase
@@ -220,7 +218,7 @@ export default function LoginForm() {
           .eq('email', email)
           .maybeSingle()
 
-        console.log("📊 Resultado de la consulta profiles:", { existingProfile, profileError })
+
 
         if (profileError && profileError.code !== 'PGRST116') {
           console.error("❌ Error verificando usuario existente en profiles:", profileError)
@@ -228,13 +226,10 @@ export default function LoginForm() {
         }
 
         if (existingProfile) {
-          console.log("⚠️ Usuario ya existe en profiles, mostrando mensaje")
-          setMessage("Este email ya se encuentra registrado. Por favor, intenta iniciar sesión.")
+          setMessage("Este correo ya está registrado. Por favor, inicia sesión.")
           setIsLoading(false)
           return
         }
-
-        console.log("✅ Usuario no existe en profiles, procediendo con registro")
 
         // Ahora procedemos con el registro real
         const { data, error: signUpError } = await supabase.auth.signUp({

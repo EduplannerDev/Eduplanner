@@ -150,14 +150,13 @@ export async function initializeSession(supabaseClient: any) {
       const urlParams = new URLSearchParams(search)
       const errorParam = urlParams.get('error')
       if (errorParam) {
-        console.log('🚨 initializeSession - Error detectado en URL:', errorParam)
-        console.log('🚨 initializeSession - NO procesando tokens, permitiendo que el error se muestre')
+        
         // Si hay un error en los parámetros, no procesar tokens y permitir que el error se muestre
         return null
       }
       
       if (hash && hash.includes('access_token') && hash.includes('type=invite')) {
-        console.log('🔍 initializeSession - Tokens de invitación detectados en hash')
+  
         
         // Parsear los tokens del hash para extraer información
         const hashParams = new URLSearchParams(hash.substring(1))
@@ -167,7 +166,7 @@ export async function initializeSession(supabaseClient: any) {
         
         if (accessToken && type === 'invite') {
           try {
-            console.log('🔍 initializeSession - Validando token de invitación...')
+    
             
             // Verificar que el token tenga la estructura básica de un JWT antes de procesarlo
             const tokenParts = accessToken.split('.')
@@ -182,7 +181,7 @@ export async function initializeSession(supabaseClient: any) {
             
             // CRÍTICO: NO establecer sesión para invitaciones
             // Solo validar el token sin establecer sesión automáticamente
-            console.log('🔍 initializeSession - Validando token SIN establecer sesión...')
+            
             
             try {
               // Decodificar el token para extraer información del usuario SIN establecer sesión
@@ -197,7 +196,7 @@ export async function initializeSession(supabaseClient: any) {
                 return null
               }
               
-              console.log('✅ initializeSession - Token válido, procesando invitación SIN login automático...')
+              
               
               // Guardar información de la invitación en sessionStorage
               sessionStorage.setItem('invitation_tokens', hash.substring(1)) // Guardar todos los tokens
@@ -253,7 +252,7 @@ export async function initializeSession(supabaseClient: any) {
         
         // Si es un error de refresh token, manejarlo específicamente
         if (isRefreshTokenError(error)) {
-          console.log('Refresh token error during session initialization, clearing storage...')
+    
           clearSupabaseStorage()
           
           // Intentar obtener sesión una vez más después de limpiar

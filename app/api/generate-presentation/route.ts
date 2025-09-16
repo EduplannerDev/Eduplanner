@@ -16,7 +16,7 @@ export async function POST(req: Request) {
       return new Response("API key no configurada", { status: 500 })
     }
 
-    console.log('Generating presentation with messages:', messages);
+  
     
     const result = await streamText({
       model: google("gemini-1.5-flash"),
@@ -89,7 +89,7 @@ Cuando recibas una planeación, responde inmediatamente con el JSON de la presen
       messages,
     })
 
-    console.log('StreamText result created, returning response');
+
     return result.toDataStreamResponse()
   } catch (error) {
     console.error("Error en API route:", error)

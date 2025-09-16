@@ -58,7 +58,7 @@ export async function GET(request: NextRequest) {
     try {
       // Si es una invitación, manejar de manera especial
       if (type === 'invite') {
-        console.log('🔍 Procesando invitación - NO iniciar sesión automáticamente')
+
         
 
         
@@ -110,7 +110,7 @@ export async function GET(request: NextRequest) {
         }
 
         if (data.user && data.session) {
-          console.log('🔍 Invitación válida para usuario:', data.user.email)
+          
           
           // Crear una respuesta que redirige a invitation-setup con la información necesaria
           const response = NextResponse.redirect(`${requestUrl.origin}/invitation-setup`)
@@ -156,7 +156,7 @@ export async function GET(request: NextRequest) {
               })
             }
           } catch (profileError) {
-            console.log('No se pudo obtener información del plantel (normal para nuevos usuarios)')
+    
           }
           
           return response

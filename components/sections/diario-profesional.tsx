@@ -178,15 +178,10 @@ export function DiarioProfesional({ isOpen, onClose, selectedDate }: DiarioProfe
 
   const loadEntries = async () => {
     try {
-      console.log('=== LOADING ENTRIES ===')
-      console.log('currentDate:', currentDate)
-      console.log('selectedDate prop:', selectedDate)
-      
       // Limpiar entradas antes de cargar nuevas
       setEntries([])
       
       const diaryEntries = await getDiaryEntries()
-      console.log('Raw entries from DB:', diaryEntries.length)
       
       // Convertir el formato de la base de datos al formato del componente
       let formattedEntries = diaryEntries.map(entry => {
@@ -206,11 +201,7 @@ export function DiarioProfesional({ isOpen, onClose, selectedDate }: DiarioProfe
       
       // Filtrar por fecha actual seleccionada
       const currentDateString = getLocalDateString(currentDate) // Formato YYYY-MM-DD
-      console.log('Filtering by currentDate:', currentDateString)
-      console.log('Entries before filter:', formattedEntries.map(e => ({ title: e.title, date: e.date })))
       formattedEntries = formattedEntries.filter(entry => entry.date === currentDateString)
-      console.log('Entries after filter:', formattedEntries.map(e => ({ title: e.title, date: e.date })))
-      console.log('=== END LOADING ENTRIES ===')
       
       setEntries(formattedEntries)
     } catch (err) {

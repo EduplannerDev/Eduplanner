@@ -109,7 +109,7 @@ export function Agenda({ onSectionChange }: AgendaProps) {
       console.error('💥 Error al cargar eventos:', error)
     } finally {
       setLoading(false)
-      console.log('🏁 loadEvents: Carga completada')
+
     }
   }
 
@@ -961,15 +961,9 @@ export function Agenda({ onSectionChange }: AgendaProps) {
                   // Usar la fecha seleccionada o la fecha de hoy
                   const targetDate = selectedDate || todayStr
                   
-                  console.log('🗓️ SIDEBAR - targetDate:', targetDate)
-                  console.log('🗓️ SIDEBAR - events array:', events)
-                  console.log('🗓️ SIDEBAR - events length:', events.length)
-                  
                   const dayEvents = events.filter(event => {
-                    console.log('🔍 SIDEBAR - Checking event:', event.title, 'date:', event.event_date, 'matches target?', event.event_date === targetDate)
-                    return event.event_date === targetDate
-                  })
-                  console.log('🗓️ SIDEBAR - dayEvents:', dayEvents)
+      return event.event_date === targetDate
+    })
                   
                   if (dayEvents.length === 0) {
                     return (
@@ -1058,19 +1052,11 @@ export function Agenda({ onSectionChange }: AgendaProps) {
                     String(nextWeek.getMonth() + 1).padStart(2, '0') + '-' + 
                     String(nextWeek.getDate()).padStart(2, '0')
                   
-                  console.log('📅 SIDEBAR PRÓXIMOS - todayStr:', todayStr)
-                  console.log('📅 SIDEBAR PRÓXIMOS - nextWeekStr:', nextWeekStr)
-                  console.log('📅 SIDEBAR PRÓXIMOS - events array:', events)
-                  console.log('📅 SIDEBAR PRÓXIMOS - events length:', events.length)
-                  
                   const upcomingEvents = events.filter(event => {
                     const isAfterToday = event.event_date > todayStr
                     const isBeforeNextWeek = event.event_date <= nextWeekStr
-                    console.log('🔍 SIDEBAR PRÓXIMOS - Checking event:', event.title, 'date:', event.event_date, 'after today?', isAfterToday, 'before next week?', isBeforeNextWeek)
                     return isAfterToday && isBeforeNextWeek
                   }).sort((a, b) => a.event_date.localeCompare(b.event_date)).slice(0, 5) // Mostrar máximo 5 eventos ordenados por fecha
-                  
-                  console.log('📅 SIDEBAR PRÓXIMOS - upcomingEvents:', upcomingEvents)
                   
                   if (upcomingEvents.length === 0) {
                     return (

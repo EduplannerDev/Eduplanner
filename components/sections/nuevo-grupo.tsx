@@ -1,10 +1,9 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
 import { useAuth } from '@/hooks/use-auth'
 import { useRoles } from '@/hooks/use-roles'
 import { createGrupo, type CreateGrupoData } from '@/lib/grupos'
-import { getAllPlanteles, type Plantel } from '@/lib/planteles'
 import { useNotification } from '@/hooks/use-notification'
 import { ArrowLeft, Save, Loader2 } from 'lucide-react'
 import { Button } from "@/components/ui/button"
@@ -25,8 +24,6 @@ const NuevoGrupo = ({ onBack, onSaveSuccess }: NuevoGrupoProps) => {
   const { success, error } = useNotification()
   const [loading, setLoading] = useState(false)
   const [errorMsg, setErrorMsg] = useState<string | null>(null)
-  const [planteles, setPlanteles] = useState<Plantel[]>([])
-  const [selectedPlantel, setSelectedPlantel] = useState<string>('')
   const [formData, setFormData] = useState<CreateGrupoData>({
     nombre: '',
     grado: '',
@@ -50,40 +47,6 @@ const NuevoGrupo = ({ onBack, onSaveSuccess }: NuevoGrupoProps) => {
   }
 
   const grupos = ['A', 'B', 'C', 'D', 'E', 'F']
-
-  // Cargar planteles disponibles
-  const loadPlanteles = async () => {
-    try {
-      if (isAdmin) {
-        // Admins pueden seleccionar cualquier plantel (obligatorio)
-        const data: Plantel[] = await getAllPlanteles()
-        setPlanteles(data)
-        if (data.length > 0 && !selectedPlantel) {
-          setSelectedPlantel(data[0].id)
-        }
-      } else if (isProfesor && !plantel) {
-        // Profesores sin plantel pueden seleccionar cualquier plantel (opcional)
-        const data: Plantel[] = await getAllPlanteles()
-        setPlanteles(data)
-        // No seleccionar automáticamente para profesores sin plantel
-      } else if ((isDirector || isProfesor) && plantel) {
-        // Directores y profesores con plantel asignado solo pueden usar su plantel
-        setPlanteles([plantel])
-        setSelectedPlantel(plantel.id)
-      }
-    } catch (err) {
-      error("No se pudieron cargar los planteles", {
-        title: "Error"
-      })
-    }
-  }
-
-  // Optimizado: solo cargar planteles una vez cuando el rol esté definido
-  useEffect(() => {
-    if (!loading && (isAdmin || isDirector || isProfesor)) {
-      loadPlanteles()
-    }
-  }, [isAdmin, isDirector, isProfesor, loading])
 
   const getCurrentSchoolYear = () => {
     const currentYear = new Date().getFullYear()
@@ -127,16 +90,8 @@ const NuevoGrupo = ({ onBack, onSaveSuccess }: NuevoGrupoProps) => {
     setErrorMsg(null)
 
     try {
-      // Solo validar plantel para administradores y directores
-      if ((isAdmin || isDirector) && !selectedPlantel) {
-        error("Por favor selecciona un plantel", {
-          title: "Error"
-        })
-        return
-      }
-      
-      // Para profesores sin plantel, usar null como plantel_id
-      const plantelId = selectedPlantel || (isProfesor && !plantel ? null : selectedPlantel)
+      // Usar el plantel del usuario actual
+      const plantelId = plantel?.id || null
       
       await createGrupo(user.id, plantelId, {
         ...formData,
@@ -193,26 +148,6 @@ const NuevoGrupo = ({ onBack, onSaveSuccess }: NuevoGrupoProps) => {
           </CardHeader>
           <CardContent>
             <form onSubmit={handleSubmit} className="space-y-6">
-              {(isAdmin || (isProfesor && !plantel)) && planteles.length > 0 && (
-                <div className="space-y-2">
-                  <Label htmlFor="plantel">
-                    Plantel {isAdmin ? '*' : '(Opcional)'}
-                  </Label>
-                  <Select value={selectedPlantel} onValueChange={setSelectedPlantel}>
-                    <SelectTrigger>
-                      <SelectValue placeholder={isAdmin ? "Selecciona un plantel" : "Selecciona un plantel (opcional)"} />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {planteles.map((plantel) => (
-                        <SelectItem key={plantel.id} value={plantel.id}>
-                          {plantel.nombre}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-              )}
-              
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div className="space-y-2">
                   <Label htmlFor="nombre">Nombre del Grupo *</Label>

@@ -22,37 +22,22 @@ export async function GET(req: NextRequest) {
     const { data: { user }, error: authError } = await supabase.auth.getUser()
     
     if (authError || !user) {
-      console.log("[API Messages] Authentication error:", authError?.message || "No user")
       return NextResponse.json({ error: "No autorizado" }, { status: 401 })
-    }
+  }
 
-    const { searchParams } = new URL(req.url)
-    const user_id = searchParams.get("user_id")
-
-    console.log("[API Messages] Request received for user_id:", user_id)
-    console.log("[API Messages] Authenticated user:", user.id)
-
-    if (!user_id) {
-      console.log("[API Messages] Error: No user_id provided")
+  const { searchParams } = new URL(request.url)
+  const user_id = searchParams.get("user_id")
+  
+  if (!user_id) {
       return NextResponse.json({ error: "User ID es requerido" }, { status: 400 })
     }
 
     // Verificar que el usuario solo pueda acceder a sus propios mensajes
     if (user_id !== user.id) {
-      // Verificar si es administrador
-      const { data: profile } = await supabase
-        .from("profiles")
-        .select("role")
-        .eq("id", user.id)
-        .single()
-      
-      if (!profile || profile.role !== "administrador") {
-        console.log("[API Messages] Access denied: User trying to access other user's messages")
-        return NextResponse.json({ error: "Acceso denegado" }, { status: 403 })
-      }
+      return NextResponse.json({ error: "Acceso denegado" }, { status: 403 })
     }
 
-    console.log("[API Messages] Attempting to query messages table...")
+
     
     const { data, error } = await supabase
       .from("messages")
@@ -75,7 +60,7 @@ export async function GET(req: NextRequest) {
       }, { status: 500 })
     }
 
-    console.log("[API Messages] Query successful, found", data?.length || 0, "messages")
+
     return NextResponse.json(data)
   } catch (error) {
     console.error("[API Messages] Unexpected error:", error)

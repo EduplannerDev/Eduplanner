@@ -63,7 +63,7 @@ export async function POST(request: NextRequest) {
 
     // Select a random theme
     const selectedTheme = presentationThemes[Math.floor(Math.random() * presentationThemes.length)];
-    console.log('Tema seleccionado:', selectedTheme.name);
+  
 
     // Create PowerPoint presentation
     const pptx = new PptxGenJS();

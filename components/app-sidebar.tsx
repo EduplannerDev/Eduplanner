@@ -3,7 +3,7 @@
 import type React from "react";
 import { useState } from "react";
 
-import { FileText, User, LogOut, GraduationCap, Plus, MessageSquare, HelpCircle, Users, BookOpen, Calendar, Bot, Shield, Home, ChevronDown, ChevronRight, Notebook, Mail, BarChart3 } from "lucide-react"
+import { FileText, User, LogOut, GraduationCap, Plus, MessageSquare, HelpCircle, Users, BookOpen, Calendar, Bot, Shield, Home, ChevronDown, ChevronRight, Notebook, Mail, BarChart3, Sparkles } from "lucide-react"
 
 import {
   Sidebar,
@@ -333,6 +333,19 @@ export function AppSidebar({ activeSection, onSectionChange, ...props }: AppSide
                   </SidebarMenuButton>
                 </SidebarMenuItem>
               ))}
+              {/* Funcionalidades Beta - Visible para todos los usuarios */}
+              <SidebarMenuItem>
+                <SidebarMenuButton
+                  asChild
+                  isActive={activeSection === "beta-features"}
+                  tooltip="Explora las nuevas funcionalidades beta disponibles"
+                >
+                  <button onClick={() => handleNavigation("beta-features")} className="w-full">
+                    <Sparkles className="h-4 w-4" />
+                    <span>Funcionalidades Beta</span>
+                  </button>
+                </SidebarMenuButton>
+              </SidebarMenuItem>
             </SidebarMenu>
           </SidebarGroupContent>
         </SidebarGroup>
@@ -366,6 +379,18 @@ export function AppSidebar({ activeSection, onSectionChange, ...props }: AppSide
                     <button onClick={() => handleNavigation("envio-correos")} className="w-full">
                       <Mail className="h-4 w-4" />
                       <span>Envío de Correos</span>
+                    </button>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+                <SidebarMenuItem>
+                  <SidebarMenuButton
+                    asChild
+                    isActive={activeSection === "beta-testers"}
+                    tooltip="Gestionar usuarios beta testers y funcionalidades experimentales"
+                  >
+                    <button onClick={() => handleNavigation("beta-testers")} className="w-full">
+                      <Sparkles className="h-4 w-4" />
+                      <span>Beta Testers</span>
                     </button>
                   </SidebarMenuButton>
                 </SidebarMenuItem>
