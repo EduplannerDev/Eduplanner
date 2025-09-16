@@ -29,6 +29,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { useUserData } from "@/hooks/use-user-data"
 import { useRoles } from "@/hooks/use-roles"
 import { useIsMobile } from "@/hooks/use-mobile"
+import { useBetaTesterCheck } from "@/hooks/use-beta-features"
 
 // Estructura del menú con secciones desplegables
 const menuStructure = {
@@ -123,6 +124,8 @@ export function AppSidebar({ activeSection, onSectionChange, ...props }: AppSide
   const { user, signOut } = useAuth()
   const { userData } = useUserData(user?.id)
   const { isAdmin, isDirector } = useRoles()
+  const { isBetaTester } = useBetaTesterCheck()
+  console.log('Sidebar - isBetaTester value:', isBetaTester)
   const { state, setOpenMobile } = useSidebar()
   const isMobile = useIsMobile()
   
@@ -333,19 +336,21 @@ export function AppSidebar({ activeSection, onSectionChange, ...props }: AppSide
                   </SidebarMenuButton>
                 </SidebarMenuItem>
               ))}
-              {/* Funcionalidades Beta - Visible para todos los usuarios */}
-              <SidebarMenuItem>
-                <SidebarMenuButton
-                  asChild
-                  isActive={activeSection === "beta-features"}
-                  tooltip="Explora las nuevas funcionalidades beta disponibles"
-                >
-                  <button onClick={() => handleNavigation("beta-features")} className="w-full">
-                    <Sparkles className="h-4 w-4" />
-                    <span>Funcionalidades Beta</span>
-                  </button>
-                </SidebarMenuButton>
-              </SidebarMenuItem>
+              {/* Funcionalidades Beta - Solo para beta testers */}
+              {isBetaTester && (
+                <SidebarMenuItem>
+                  <SidebarMenuButton
+                    asChild
+                    isActive={activeSection === "beta-features"}
+                    tooltip="Explora las nuevas funcionalidades beta disponibles"
+                  >
+                    <button onClick={() => handleNavigation("beta-features")} className="w-full">
+                      <Sparkles className="h-4 w-4" />
+                      <span>Funcionalidades Beta</span>
+                    </button>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+              )}
             </SidebarMenu>
           </SidebarGroupContent>
         </SidebarGroup>

@@ -379,7 +379,7 @@ export function BetaTestersAdmin() {
                   {user.plantel && (
                     <p className="text-sm text-muted-foreground">{user.plantel.nombre}</p>
                   )}
-                  {user.is_beta_tester && user.beta_features.length > 0 && (
+                  {user.is_beta_tester && user.beta_features && user.beta_features.length > 0 && (
                     <div className="flex flex-wrap gap-1 mt-2">
                       {user.beta_features.map((feature) => (
                         <Badge key={feature.feature_key} variant="outline" className="text-xs">
