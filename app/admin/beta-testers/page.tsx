@@ -1,3 +1,5 @@
+'use client'
+
 import { BetaTestersAdmin } from '@/components/sections/beta-testers-admin'
 import { useAdminCheck } from '@/hooks/use-roles'
 import { redirect } from 'next/navigation'

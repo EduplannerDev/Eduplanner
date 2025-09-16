@@ -106,6 +106,11 @@ export function BetaTestersAdmin() {
       // Organizar las asignaciones por usuario
       const userFeaturesMap = new Map()
       userFeatures?.forEach(assignment => {
+        // Validar que beta_features existe y tiene las propiedades necesarias
+        if (!assignment.beta_features || !assignment.beta_features.feature_key) {
+          return // Saltar esta asignación si no tiene datos válidos
+        }
+        
         if (!userFeaturesMap.has(assignment.user_id)) {
           userFeaturesMap.set(assignment.user_id, [])
         }
