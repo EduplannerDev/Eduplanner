@@ -102,8 +102,7 @@ export async function getUserEvents(): Promise<{ success: boolean; events?: Even
       .eq('user_id', user.id)
       .order('event_date', { ascending: true })
 
-    console.log('📋 Respuesta de Supabase:', { data, error })
-    console.log('📊 Número de eventos encontrados:', data?.length || 0)
+    
 
     if (error) {
       console.error('❌ Error al obtener eventos:', error)
@@ -120,7 +119,7 @@ export async function getUserEvents(): Promise<{ success: boolean; events?: Even
       examenes: undefined
     })) || []
 
-    console.log('✅ Eventos procesados exitosamente:', processedEvents)
+  
     return { success: true, events: processedEvents }
   } catch (error) {
     console.error('💥 Error inesperado al obtener eventos:', error)

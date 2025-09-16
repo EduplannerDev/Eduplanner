@@ -65,7 +65,7 @@ Tu respuesta final debe ser únicamente un objeto JSON válido, sin ningún text
         adaptedMessage = jsonResponse.resumen_whatsapp
       }
     } catch (parseError) {
-      console.log("No se pudo parsear como JSON, usando texto directo:", parseError)
+
       // Si no se puede parsear como JSON, usar el texto tal como está
     }
 

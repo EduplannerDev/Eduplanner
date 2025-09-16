@@ -44,6 +44,22 @@ export function createClient() {
   )
 }
 
+// Función para crear un cliente de Supabase con service role (para API routes)
+export function createServiceClient() {
+  return createSupabaseClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.SUPABASE_SERVICE_ROLE_KEY!,
+    {
+      ...supabaseConfig,
+      auth: {
+        ...supabaseConfig.auth,
+        autoRefreshToken: false,
+        persistSession: false
+      }
+    }
+  )
+}
+
 // Agregar listener global para errores de autenticación
 if (typeof window !== 'undefined') {
   supabase.auth.onAuthStateChange((event, session) => {

@@ -270,14 +270,14 @@ export async function uploadAvatar(userId: string, file: File): Promise<string |
       throw new Error("Error al subir archivo: " + uploadError.message);
     }
 
-    console.log("uploadAvatar: Archivo subido exitosamente");
+;
 
     const { data: publicUrlData } = supabase.storage.from('avatars').getPublicUrl(filePath);
     const publicUrl = publicUrlData.publicUrl;
-    console.log("uploadAvatar: URL pública generada:", publicUrl);
+;
 
     // Actualizar la URL del avatar en el perfil del usuario
-    console.log("uploadAvatar: Actualizando perfil con nueva URL");
+;
     const success = await updateProfile(userId, { avatar_url: publicUrl });
 
     if (!success) {
@@ -285,7 +285,7 @@ export async function uploadAvatar(userId: string, file: File): Promise<string |
       throw new Error("Error al actualizar perfil con nueva URL del avatar");
     }
 
-    console.log("uploadAvatar: Proceso completado exitosamente");
+;
     return publicUrl;
   } catch (error) {
     console.error("uploadAvatar: Excepción capturada:", error);

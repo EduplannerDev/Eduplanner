@@ -94,10 +94,11 @@ export function GenerarMensajesPadres({ onBack, onNavigateToMessages, preselecte
       if (message.content.includes("**")) {
         const titleMatch = message.content.match(/\*\*(.*?)\*\*/);
         const title = titleMatch ? titleMatch[1] : "Mensaje para Padres";
-        const category = title.toLowerCase().includes("conducta") ? "conducta" :
+        // Mapeo corregido para coincidir con los valores permitidos en la base de datos
+        const category = title.toLowerCase().includes("conducta") ? "comportamiento" :
                         title.toLowerCase().includes("rendimiento") ? "academico" :
-                        title.toLowerCase().includes("felicit") ? "felicitaciones" :
-                        title.toLowerCase().includes("citar") ? "citatorios" : "padres";
+                        title.toLowerCase().includes("felicit") ? "general" :
+                        title.toLowerCase().includes("citar") ? "citatorio" : "general";
         
         setMessageToSave({
           title,
@@ -319,7 +320,11 @@ Puedo crear mensajes sobre:
       toast.success("Mensaje para padres guardado exitosamente");
       setMessageToSave(null);
       setIsDialogOpen(false);
-      // No navegamos a onNavigateToMessages() porque estos mensajes no aparecen en "Mis Mensajes"
+      
+      // Regresar a la vista del alumno después de guardar exitosamente
+      setTimeout(() => {
+        onBack();
+      }, 1000); // Pequeño delay para que el usuario vea el mensaje de éxito
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : "Error desconocido al guardar el mensaje";
       toast.error(errorMessage);
@@ -529,10 +534,10 @@ Puedo crear mensajes sobre:
                                 onClick={() => {
                                   const titleMatch = message.content.match(/\*\*(.*?)\*\*/);
                                   const title = titleMatch ? titleMatch[1] : "Mensaje para Padres";
-                                  const category = title.toLowerCase().includes("conducta") ? "conducta" :
+                                  const category = title.toLowerCase().includes("conducta") ? "comportamiento" :
                                                   title.toLowerCase().includes("rendimiento") ? "academico" :
-                                                  title.toLowerCase().includes("felicit") ? "felicitaciones" :
-                                                  title.toLowerCase().includes("citar") ? "citatorios" : "padres";
+                                                  title.toLowerCase().includes("felicit") ? "general" :
+                                                  title.toLowerCase().includes("citar") ? "citatorio" : "general";
                                   
                                   setEditingTitle(title);
                                   setMessageToEdit({

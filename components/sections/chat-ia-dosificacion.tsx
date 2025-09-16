@@ -254,7 +254,7 @@ ${contenidosSeleccionados.map((c, i) => `${i + 1}. ${c.contenido}`).join('\n')}
     setSubmittingFeedback(true)
     try {
       // Aquí enviarías el feedback a tu API
-      console.log('Feedback enviado:', { rating: qualityRating, text: feedbackText })
+
       
       setShowQualityFeedback(false)
       setShowFollowUp(false)

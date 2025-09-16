@@ -2,7 +2,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
 import stripe from '@/lib/stripe'
-import { cancelSubscription } from '@/lib/subscription-utils'
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -37,7 +36,7 @@ export async function POST(req: NextRequest) {
       customer: profile.stripe_customer_id,
       status: 'active',
     })
-    console.log('Subscriptions:', subscriptions)
+
 
     if (subscriptions.data.length === 0) {
       return NextResponse.json(
@@ -52,21 +51,18 @@ export async function POST(req: NextRequest) {
       cancel_at_period_end: true,
     })
 
-    console.log('Full updatedSubscription object:', updatedSubscription)
+
 
     let endDate: Date | null = null;
 
-    // Stripe's cancel_at is a Unix timestamp (seconds), convert to milliseconds for JavaScript Date object
-    if (updatedSubscription.cancel_at_period_end && updatedSubscription.cancel_at) {
-      endDate = new Date(updatedSubscription.cancel_at * 1000);
-    } else if (updatedSubscription.current_period_end) {
-      // Fallback to current_period_end if cancel_at is not available (e.g., immediate cancellation)
-      endDate = new Date(updatedSubscription.current_period_end * 1000);
-    }
-
-    // Ensure endDate is a valid Date object, otherwise set to null
-    if (endDate && isNaN(endDate.getTime())) {
-      endDate = null;
+    // Stripe's current_period_end is a Unix timestamp (seconds), convert to milliseconds for JavaScript Date object
+    if (subscription.current_period_end) {
+      endDate = new Date(subscription.current_period_end * 1000);
+      
+      // Ensure endDate is a valid Date object, otherwise set to null
+      if (isNaN(endDate.getTime())) {
+        endDate = null;
+      }
     }
 
     // 4. Actualizar el estado en Supabase usando las funciones utilitarias

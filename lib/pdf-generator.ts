@@ -349,7 +349,7 @@ function generatePDFFromHTML(content: string, title: string, filename: string, i
       .from(element)
       .save()
       .then(() => {
-        console.log('PDF generado exitosamente:', filename);
+    
         // Limpiar elemento temporal
         element.remove();
       })
@@ -386,13 +386,7 @@ export function generateExamPDF(examen: any): void {
     isStructured = processed.isStructured;
   }
   
-  console.log('Procesando examen:', {
-    contentType: typeof examen.content,
-    isStructured,
-    hasAnswerSheet: !!answerSheet,
-    examContentLength: examContent?.length || 0,
-    answerSheetLength: answerSheet?.length || 0
-  });
+
   
   // Generar PDF del examen
   const examTitle = cleanMarkdown(examen.title || 'Examen');
@@ -409,7 +403,7 @@ export function generateExamPDF(examen: any): void {
   
   generatePDFFromHTML(fullContent, examTitle, examFilename, false);
   
-  console.log('PDF del examen generado. Hoja de respuestas disponible por separado:', { isStructured, hasAnswerSheet: !!answerSheet });
+  
 }
 
 export function generateAnswerSheetPDF(examen: any, answerSheet: string): void {

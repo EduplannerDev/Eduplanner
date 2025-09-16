@@ -145,37 +145,31 @@ export async function generatePptx(planningData: any) {
         if (done) break;
         
         const chunk = decoder.decode(value);
-        console.log('Received chunk:', chunk);
+
         const lines = chunk.split('\n');
         
         for (const line of lines) {
-          if (line.trim()) {
-            console.log('Processing line:', line);
-            if (line.startsWith('0:')) {
-              try {
-                const jsonStr = line.substring(2);
-                const parsed = JSON.parse(jsonStr);
-                console.log('Parsed chunk data:', parsed);
-                // Acumular directamente el contenido de texto
-                aiResponse += parsed;
-              } catch (e) {
-                console.log('Error parsing chunk:', e);
-                // Si no se puede parsear como JSON, agregar el contenido directamente
-                aiResponse += line.substring(2);
+          if (line.trim() && line.startsWith('0:')) {
+            try {
+              const jsonStr = line.substring(2); // Remove "0:" prefix
+              const parsed = JSON.parse(jsonStr);
+              if (parsed.content) {
+                aiResponse += parsed.content;
               }
+            } catch (e) {
+              // Error parsing chunk - continue silently
             }
           }
         }
       }
     }
     
-    console.log('Final AI response length:', aiResponse.length);
-    console.log('Final AI response preview:', aiResponse.substring(0, 200));
+    
 
     // Extract JSON from AI response
     let presentationData;
     try {
-      console.log('AI Response:', aiResponse);
+  
       
       // Clean the response - remove any markdown code blocks or extra text
       let cleanResponse = aiResponse.trim();
@@ -189,7 +183,7 @@ export async function generatePptx(planningData: any) {
       
       if (firstBrace !== -1 && lastBrace !== -1 && lastBrace > firstBrace) {
         const jsonStr = cleanResponse.substring(firstBrace, lastBrace + 1);
-        console.log('Extracted JSON:', jsonStr);
+  
         presentationData = JSON.parse(jsonStr);
         
         // Validate the structure

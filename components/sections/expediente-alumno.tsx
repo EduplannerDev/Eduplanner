@@ -391,9 +391,9 @@ export function ExpedienteAlumno({ alumnoId, onBack, onNavigateToMensajesPadres,
                 </div>
               )}
               
-              {/* Acciones Rápidas */}
+              {/* Comunicaciones */}
               <div className="mt-6 border-t pt-4">
-                <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-3">Acciones Rápidas</h3>
+                <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-3">Comunicaciones</h3>
                 <div className="flex flex-wrap gap-3">
                   {onNavigateToMensajesPadres && (
                     <Button
@@ -436,7 +436,7 @@ export function ExpedienteAlumno({ alumnoId, onBack, onNavigateToMensajesPadres,
 
       {/* Pestañas del Expediente */}
       <Tabs value={activeTab} onValueChange={setActiveTab}>
-        <TabsList className="grid w-full grid-cols-3">
+        <TabsList className="grid w-full grid-cols-2">
           <TabsTrigger value="seguimiento" className="flex items-center space-x-2">
             <Calendar className="h-4 w-4" />
             <span>Seguimiento Diario</span>
@@ -444,10 +444,6 @@ export function ExpedienteAlumno({ alumnoId, onBack, onNavigateToMensajesPadres,
           <TabsTrigger value="academico" className="flex items-center space-x-2">
             <BookOpen className="h-4 w-4" />
             <span>Académico</span>
-          </TabsTrigger>
-          <TabsTrigger value="comunicaciones" className="flex items-center space-x-2">
-            <MessageSquare className="h-4 w-4" />
-            <span>Comunicaciones</span>
           </TabsTrigger>
         </TabsList>
 
@@ -634,54 +630,6 @@ export function ExpedienteAlumno({ alumnoId, onBack, onNavigateToMensajesPadres,
                 <p className="text-gray-600 dark:text-gray-300">
                   Esta sección mostrará el historial académico del alumno.
                 </p>
-              </div>
-            </CardContent>
-          </Card>
-        </TabsContent>
-
-        {/* Pestaña de Comunicaciones */}
-        <TabsContent value="comunicaciones">
-          <Card>
-            <CardHeader>
-              <CardTitle>Comunicaciones con Padres</CardTitle>
-              <CardDescription>
-                Historial de mensajes y comunicaciones
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="text-center py-8">
-                <MessageSquare className="h-12 w-12 text-gray-400 dark:text-gray-500 mx-auto mb-4" />
-                <h3 className="text-lg font-medium text-gray-900 dark:text-gray-100 mb-2">
-                  Próximamente
-                </h3>
-                <p className="text-gray-600 dark:text-gray-300 mb-4">
-                  Esta sección mostrará el historial de comunicaciones con los padres.
-                </p>
-                <Button 
-                  variant="outline" 
-                  onClick={() => {
-                    if (onNavigateToMensajesPadres && alumno && grupo) {
-                      onNavigateToMensajesPadres({
-                        id: alumno.id,
-                        nombre: alumno.nombre_completo,
-                        grupo: grupo.nombre || '',
-                        grado: grupo.grado || '',
-                        nivel: grupo.nivel || '',
-                        nombre_padre: alumno.nombre_padre || '',
-                        correo_padre: alumno.correo_padre || '',
-                        telefono_padre: alumno.telefono_padre || '',
-                        nombre_madre: alumno.nombre_madre || '',
-                        correo_madre: alumno.correo_madre || '',
-                        telefono_madre: alumno.telefono_madre || ''
-                      });
-                    }
-                  }}
-                  disabled={!alumno || (!alumno.nombre_padre && !alumno.nombre_madre) || !onNavigateToMensajesPadres}
-                  className="w-full"
-                >
-                  <MessageSquare className="h-4 w-4 mr-2" />
-                  Generar Mensaje para Padres
-                </Button>
               </div>
             </CardContent>
           </Card>

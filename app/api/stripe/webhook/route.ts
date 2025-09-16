@@ -271,7 +271,7 @@ export async function POST(req: NextRequest) {
             throw new Error(error.message);
           }
 
-          console.log(`⚠️ Pago fallido procesado para el usuario ${userId}`);
+    
         } catch (err) {
           console.error('❌ Error al procesar invoice.payment_failed:', err);
         }

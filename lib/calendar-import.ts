@@ -170,26 +170,20 @@ export async function importSchoolCalendarForAllUsers(icsFilePath: string): Prom
     
     // 1. Parsear el archivo ICS
     const events = parseICSFile(icsFilePath)
-    console.log(`Found ${events.length} events in ICS file`)
+  
 
     // 2. Obtener todos los usuarios activos
-    console.log('Fetching active users...')
     const userIds = await getAllActiveUsers()
-    console.log(`Found ${userIds.length} active users`)
 
     // 3. Eliminar eventos del calendario escolar existentes
-    console.log('Removing existing school calendar events...')
     await removeExistingSchoolEvents()
 
     // 4. Insertar eventos para cada usuario
-    console.log('Inserting events for all users...')
     const insertPromises = userIds.map(userId => 
       insertSchoolEventsForUser(userId, events)
     )
 
     await Promise.all(insertPromises)
-
-    console.log(`Successfully imported school calendar for ${userIds.length} users with ${events.length} events each`)
   } catch (error) {
     console.error('School calendar import failed:', error)
     throw error
@@ -201,15 +195,8 @@ export async function importSchoolCalendarForAllUsers(icsFilePath: string): Prom
  */
 export async function addSchoolCalendarToNewUser(userId: string, icsFilePath: string): Promise<void> {
   try {
-    console.log(`Adding school calendar to new user: ${userId}`)
-    
-    // Parsear el archivo ICS
     const events = parseICSFile(icsFilePath)
-    
-    // Insertar eventos para el nuevo usuario
     await insertSchoolEventsForUser(userId, events)
-    
-    console.log(`Successfully added school calendar to user ${userId}`)
   } catch (error) {
     console.error(`Failed to add school calendar to user ${userId}:`, error)
     throw error

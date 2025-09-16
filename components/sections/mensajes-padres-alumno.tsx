@@ -7,6 +7,7 @@ import { Badge } from "@/components/ui/badge"
 import { ScrollArea } from "@/components/ui/scroll-area"
 import { ArrowLeft, MessageSquare, Calendar, User, Copy, Trash2 } from "lucide-react"
 import { useAuth } from "@/hooks/use-auth"
+import { supabase } from "@/lib/supabase"
 import { toast } from "sonner"
 import { format } from "date-fns"
 import { es } from "date-fns/locale"
@@ -52,7 +53,20 @@ export function MensajesPadresAlumno({ onBack, studentId, studentName }: Mensaje
   const fetchMessages = async () => {
     try {
       setLoading(true)
-      const response = await fetch(`/api/parent-messages?user_id=${user?.id}&student_id=${studentId}`)
+      
+      // Obtener la sesión de autenticación
+      const { data: { session } } = await supabase.auth.getSession()
+      if (!session) {
+        toast.error('Sesión expirada')
+        return
+      }
+
+      const response = await fetch(`/api/parent-messages?user_id=${user?.id}&student_id=${studentId}`, {
+        headers: {
+          'Authorization': `Bearer ${session.access_token}`
+        }
+      })
+      
       if (!response.ok) {
         throw new Error('Error al cargar los mensajes')
       }

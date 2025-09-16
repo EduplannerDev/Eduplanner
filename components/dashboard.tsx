@@ -23,6 +23,8 @@ import { DiarioProfesional } from "./sections/diario-profesional"
 import TomarAsistencia from "./sections/tomar-asistencia"
 import EnvioCorreos from "./sections/envio-correos"
 import { Dosificacion } from "./sections/dosificacion"
+import { BetaTestersAdmin } from "./sections/beta-testers-admin"
+import { BetaFeaturesDemo } from "./sections/beta-features-demo"
 import { WelcomeMessage } from "./ui/welcome-message"
 import { SidebarInset, SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar"
 import { Separator } from "@/components/ui/separator"
@@ -46,9 +48,11 @@ export default function Dashboard() {
     contexto: any
     mesActual: string
   } | null>(null)
+  const [previousSection, setPreviousSection] = useState<string>("grupos")
   const { isDirector } = useRoles()
 
   const handleNavigateToMensajesPadres = (studentData: any) => {
+    setPreviousSection(activeSection) // Guardar la sección actual antes de navegar
     setPreselectedStudent(studentData)
     setActiveSection("generar-mensajes-padres")
   }
@@ -129,6 +133,10 @@ export default function Dashboard() {
         return "Administración de Plantel"
       case "envio-correos":
         return "Envío de Correos"
+      case "beta-testers":
+        return "Beta Testers"
+      case "beta-features":
+        return "Funcionalidades Beta"
       case "dosificacion":
         return "Dosificación"
       default:
@@ -192,7 +200,7 @@ export default function Dashboard() {
       case "generar-mensajes-padres":
         return <GenerarMensajesPadres 
           onBack={() => {
-            setActiveSection("grupos")
+            setActiveSection(previousSection)
             setPreselectedStudent(null)
           }} 
           onNavigateToMessages={() => setActiveSection("mis-mensajes")} 
@@ -234,6 +242,10 @@ export default function Dashboard() {
         return <AdministracionPlantel isOpen={true} onClose={() => setActiveSection("admin-dashboard")} />
       case "envio-correos":
         return <EnvioCorreos />
+      case "beta-testers":
+        return <BetaTestersAdmin />
+      case "beta-features":
+        return <BetaFeaturesDemo />
       case "dosificacion":
         return <Dosificacion 
           onCreateNew={() => setActiveSection("dosificacion")} 
