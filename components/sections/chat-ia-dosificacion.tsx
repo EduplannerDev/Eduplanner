@@ -6,6 +6,50 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Textarea } from "@/components/ui/textarea"
+import { convertMarkdownToHtml } from "@/components/ui/rich-text-editor"
+
+// Función específica para convertir contenido del chat
+function convertChatMarkdownToHtml(content: string): string {
+  if (!content) return ''
+  
+  let html = content
+  
+  // Convertir encabezados
+  html = html.replace(/^### (.*$)/gm, '<h3 class="text-lg font-semibold mb-2">$1</h3>')
+  html = html.replace(/^## (.*$)/gm, '<h2 class="text-xl font-semibold mb-3">$1</h2>')
+  html = html.replace(/^# (.*$)/gm, '<h1 class="text-2xl font-bold mb-4">$1</h1>')
+  
+  // Convertir texto en negrita
+  html = html.replace(/\*\*(.*?)\*\*/g, '<strong class="font-semibold">$1</strong>')
+  
+  // Convertir texto en cursiva
+  html = html.replace(/(?<!\*)\*([^*\n]+?)\*(?!\*)/g, '<em class="italic">$1</em>')
+  
+  // Convertir listas no ordenadas
+  html = html.replace(/^\s*[-*+]\s+(.*)$/gm, '<li class="ml-4 mb-1">• $1</li>')
+  html = html.replace(/((<li[^>]*>[\s\S]*?<\/li>\s*)+)/g, '<ul class="mb-3">$1</ul>')
+  
+  // Convertir listas ordenadas
+  html = html.replace(/^\s*(\d+)\.\s+(.*)$/gm, '<li class="ml-4 mb-1">$1. $2</li>')
+  
+  // Convertir saltos de línea dobles en párrafos
+  const paragraphs = html.split(/\n\s*\n/)
+  html = paragraphs.map(paragraph => {
+    const trimmed = paragraph.trim()
+    if (!trimmed) return ''
+    
+    // No envolver en <p> si ya tiene tags de bloque
+    if (trimmed.match(/^<(h[1-6]|ul|ol|li|div)/)) {
+      return trimmed
+    }
+    
+    // Convertir saltos de línea simples en <br>
+    const withBreaks = trimmed.replace(/\n/g, '<br>')
+    return `<p class="mb-3 leading-relaxed">${withBreaks}</p>`
+  }).filter(p => p).join('')
+  
+  return html
+}
 import { ArrowLeft, Send, Bot, User, Loader2, Sparkles, AlertCircle, Save, CheckCircle, ThumbsUp, ThumbsDown, Crown, AlertTriangle } from "lucide-react"
 import { useChat } from "ai/react"
 import { useEffect, useRef, useState } from "react"
@@ -348,7 +392,14 @@ ${contenidosSeleccionados.map((c, i) => `${i + 1}. ${c.contenido}`).join('\n')}
                             : "bg-gray-100 text-gray-900 dark:text-gray-100 border border-gray-200"
                           }`}
                       >
-                        <div className="whitespace-pre-wrap text-sm leading-relaxed select-none dark:bg-gray-900 dark:border-gray-500">{message.content}</div>
+                        {message.role === "assistant" ? (
+                          <div 
+                            className="text-sm text-gray-900 dark:text-gray-100 leading-relaxed select-none"
+                            dangerouslySetInnerHTML={{ __html: convertChatMarkdownToHtml(message.content) }}
+                          />
+                        ) : (
+                          <div className="whitespace-pre-wrap text-sm leading-relaxed select-none dark:bg-gray-900 dark:border-gray-500">{message.content}</div>
+                        )}
                       </div>
 
                       {message.role === "user" && (

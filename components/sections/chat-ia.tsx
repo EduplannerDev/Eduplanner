@@ -4,9 +4,52 @@ import type React from "react"
 
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
-import { ScrollArea } from "@/components/ui/scroll-area"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Textarea } from "@/components/ui/textarea"
+import { convertMarkdownToHtml } from "@/components/ui/rich-text-editor"
+
+// Función específica para convertir contenido del chat
+function convertChatMarkdownToHtml(content: string): string {
+  if (!content) return ''
+  
+  let html = content
+  
+  // Convertir encabezados
+  html = html.replace(/^### (.*$)/gm, '<h3 class="text-lg font-semibold mb-2">$1</h3>')
+  html = html.replace(/^## (.*$)/gm, '<h2 class="text-xl font-semibold mb-3">$1</h2>')
+  html = html.replace(/^# (.*$)/gm, '<h1 class="text-2xl font-bold mb-4">$1</h1>')
+  
+  // Convertir texto en negrita
+  html = html.replace(/\*\*(.*?)\*\*/g, '<strong class="font-semibold">$1</strong>')
+  
+  // Convertir texto en cursiva
+  html = html.replace(/(?<!\*)\*([^*\n]+?)\*(?!\*)/g, '<em class="italic">$1</em>')
+  
+  // Convertir listas no ordenadas
+  html = html.replace(/^\s*[-*+]\s+(.*)$/gm, '<li class="ml-4 mb-1">• $1</li>')
+  html = html.replace(/((<li[^>]*>[\s\S]*?<\/li>\s*)+)/g, '<ul class="mb-3">$1</ul>')
+  
+  // Convertir listas ordenadas
+  html = html.replace(/^\s*(\d+)\.\s+(.*)$/gm, '<li class="ml-4 mb-1">$1. $2</li>')
+  
+  // Convertir saltos de línea dobles en párrafos
+  const paragraphs = html.split(/\n\s*\n/)
+  html = paragraphs.map(paragraph => {
+    const trimmed = paragraph.trim()
+    if (!trimmed) return ''
+    
+    // No envolver en <p> si ya tiene tags de bloque
+    if (trimmed.match(/^<(h[1-6]|ul|ol|li|div)/)) {
+      return trimmed
+    }
+    
+    // Convertir saltos de línea simples en <br>
+    const withBreaks = trimmed.replace(/\n/g, '<br>')
+    return `<p class="mb-3 leading-relaxed">${withBreaks}</p>`
+  }).filter(p => p).join('')
+  
+  return html
+}
 import { ArrowLeft, Send, Bot, User, Loader2, Sparkles, AlertCircle, Save, CheckCircle, ThumbsUp, ThumbsDown, Crown, AlertTriangle } from "lucide-react"
 import { useChat } from "ai/react"
 import { useEffect, useRef, useState } from "react"
@@ -351,13 +394,13 @@ Puedes contarme:
       )}
 
       {/* Main Layout */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 h-[calc(100vh-200px)]">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Chat Container */}
         <div className="lg:col-span-2">
-          <Card className="h-full flex flex-col dark:bg-gray-800 dark:border-gray-700">
-            <CardHeader className="border-b bg-gradient-to-r from-purple-50 to-blue-50 dark:from-gray-800 dark:to-gray-900 flex-shrink-0">
+          <Card className="min-h-[600px] flex flex-col dark:bg-gray-800 dark:border-gray-700">
+            <CardHeader className="pb-4">
               <CardTitle className="flex items-center gap-2">
-                <Bot className="h-5 w-5 text-purple-600" />
+                <Sparkles className="h-5 w-5 text-purple-600" />
                 Asistente de Planeación Educativa
               </CardTitle>
               <CardDescription className="select-none">
@@ -366,8 +409,8 @@ Puedes contarme:
             </CardHeader>
 
             {/* Messages Area */}
-            <div className="flex-1 overflow-hidden dark:bg-gray-800 dark:border-gray-700">
-              <ScrollArea className="h-full dark:bg-gray-800 dark:border-gray-700">
+            <div className="flex-1 dark:bg-gray-800 dark:border-gray-700">
+              <div className="dark:bg-gray-800 dark:border-gray-700">
                 <div className="p-4 space-y-4 dark:bg-gray-800 dark:border-gray-700">
                   {messages.map((message) => (
                     <div
@@ -388,7 +431,14 @@ Puedes contarme:
                             : "bg-gray-100 text-gray-900 dark:text-gray-100 border border-gray-200"
                           }`}
                       >
-                        <div className="whitespace-pre-wrap text-sm leading-relaxed select-none dark:bg-gray-900 dark:border-gray-500">{message.content}</div>
+                        {message.role === "assistant" ? (
+                          <div 
+                            className="text-sm text-gray-900 dark:text-gray-100 leading-relaxed select-none"
+                            dangerouslySetInnerHTML={{ __html: convertChatMarkdownToHtml(message.content) }}
+                          />
+                        ) : (
+                          <div className="whitespace-pre-wrap text-sm leading-relaxed select-none dark:bg-gray-900 dark:border-gray-500">{message.content}</div>
+                        )}
                       </div>
 
                       {message.role === "user" && (
@@ -582,7 +632,7 @@ Puedes contarme:
 
                   <div ref={messagesEndRef} />
                 </div>
-              </ScrollArea>
+              </div>
             </div>
 
             {/* Input Area */}
@@ -604,15 +654,14 @@ Puedes contarme:
         </div>
 
         {/* Quick Actions Sidebar */}
-        <div className="lg:col-span-1">
-          <Card className="h-full dark:bg-gray-800 dark:border-gray-700">
+        <div className="space-y-6">
+          <Card className="h-[600px] flex flex-col">
             <CardHeader className="flex-shrink-0">
               <CardTitle className="text-lg select-none">Sugerencias Rápidas</CardTitle>
               <CardDescription className="select-none">Haz clic para empezar rápidamente</CardDescription>
             </CardHeader>
             <CardContent className="flex-1 overflow-hidden">
-              <ScrollArea className="h-full">
-                <div className="space-y-3 pr-2">
+              <div className="space-y-3">
                   {[
                     "Crear una clase de matemáticas sobre fracciones para 4° grado",
                     "Diseñar una lección de ciencias sobre el sistema solar para 5° grado",
@@ -634,7 +683,6 @@ Puedes contarme:
                     </Button>
                   ))}
                 </div>
-              </ScrollArea>
             </CardContent>
           </Card>
         </div>

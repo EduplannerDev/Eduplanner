@@ -204,8 +204,9 @@ export function RichTextEditor({
 export function convertMarkdownToHtml(content: string): string {
   if (!content) return ''
   
-  // Si ya es HTML (contiene tags), devolverlo tal como está
-  if (content.includes('<') && content.includes('>')) {
+  // Verificar si ya es HTML válido (contiene tags HTML estructurales)
+  const hasStructuralHtml = /<(p|div|h[1-6]|ul|ol|li|strong|em|br)\s*[^>]*>/i.test(content)
+  if (hasStructuralHtml) {
     return content
   }
   
@@ -219,8 +220,8 @@ export function convertMarkdownToHtml(content: string): string {
   // Convertir texto en negrita
   html = html.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
   
-  // Convertir texto en cursiva
-  html = html.replace(/\*(.*?)\*/g, '<em>$1</em>')
+  // Convertir texto en cursiva (solo asteriscos simples que no sean parte de negritas)
+  html = html.replace(/(?<!\*)\*([^*\n]+?)\*(?!\*)/g, '<em>$1</em>')
   
   // Convertir listas no ordenadas
   html = html.replace(/^\s*[-*+]\s+(.*)$/gm, '<li>$1</li>')
