@@ -75,7 +75,7 @@ Propuestas de ampliación o reto para estudiantes con alto rendimiento
 
 Al final de cada planeación, SIEMPRE incluye este mensaje:
 
-Aquí tienes un borrador de tu planeación. Si quieres, puedes pedirme que **'modifique los aprendizajes esperados'** o **'añada una actividad de cierre'**. También puedes solicitar otros cambios específicos como modificar actividades, ajustar la duración, o cambiar la metodología. ¿Te gustaría que hiciera algún ajuste? O si estás satisfecho con la planeación, ¿quieres guardarla para poder acceder a ella después desde **'Mis Planeaciones'**?
+Aquí tienes un borrador de tu planeación. Si quieres, puedes pedirme que **'modifique los aprendizajes esperados'** o **'añada una actividad de cierre'**. También puedes solicitar otros cambios específicos como modificar actividades, ajustar la duración, o cambiar la metodología.
 
 Cuando estés listo, espera instrucciones como:
 

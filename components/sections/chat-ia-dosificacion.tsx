@@ -43,7 +43,7 @@ export function ChatIADosificacion({ onBack, onSaveSuccess, initialMessage, cont
 
   const { user } = useAuth()
   const { userData } = useUserData(user?.id)
-  const { profile } = useProfile()
+  const { profile, loading: profileLoading } = useProfile()
 
   const getInitials = (email: string) => {
     return email.charAt(0).toUpperCase()
@@ -74,10 +74,11 @@ export function ChatIADosificacion({ onBack, onSaveSuccess, initialMessage, cont
     canCreateMore,
     getRemainingPlaneaciones,
     monthlyCount,
+    loading: planeacionesLoading,
   } = usePlaneaciones()
   
   const isPro = profile ? isUserPro(profile) : false
-  const hasReachedLimit = !isPro && monthlyCount >= 5
+  const hasReachedLimit = !planeacionesLoading && !profileLoading && !isPro && monthlyCount >= 5
 
   const { messages, input, handleInputChange, handleSubmit: originalHandleSubmit, isLoading, error, append } = useChat({
     api: "/api/chat",
@@ -555,15 +556,6 @@ ${contenidosSeleccionados.map((c, i) => `${i + 1}. ${c.contenido}`).join('\n')}
                   )}
                 </Button>
               </form>
-              <div className="flex items-center gap-2 mt-2">
-                <div className="text-xs text-gray-500 dark:text-gray-400 flex items-center gap-1">
-                  <span>💡</span>
-                  <span>Tip:</span>
-                </div>
-                <span className="text-xs text-gray-500 dark:text-gray-400">
-                  Cuando termine tu planeación, pregúntale si quieres guardarla
-                </span>
-              </div>
             </div>
           </Card>
         </div>

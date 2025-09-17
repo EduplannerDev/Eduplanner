@@ -43,8 +43,8 @@ interface ContenidoDosificado {
 }
 
 export function NuevaPlaneacion({ onCreateClass, onNavigateToChatWithMessage, onNavigateToChatDosificacion }: NuevaPlaneacionProps) {
-  const { monthlyCount, getRemainingPlaneaciones, canCreateMore } = usePlaneaciones()
-  const { profile } = useProfile()
+  const { monthlyCount, getRemainingPlaneaciones, canCreateMore, loading: planeacionesLoading } = usePlaneaciones()
+  const { profile, loading: profileLoading } = useProfile()
   const { user } = useAuth()
   const isPro = profile ? isUserPro(profile) : false
   const remainingPlaneaciones = getRemainingPlaneaciones()
@@ -67,7 +67,7 @@ export function NuevaPlaneacion({ onCreateClass, onNavigateToChatWithMessage, on
     }
     return meses[mesAbreviado] || mesAbreviado
   }
-  const hasReachedLimit = !isPro && monthlyCount >= 5
+  const hasReachedLimit = !planeacionesLoading && !profileLoading && !isPro && monthlyCount >= 5
   const [vistaActual, setVistaActual] = useState<"principal" | "dosificacion">("principal")
   
   // Estados para la funcionalidad de dosificación
@@ -556,6 +556,27 @@ export function NuevaPlaneacion({ onCreateClass, onNavigateToChatWithMessage, on
           </div>
         )}
       </div>
+    )
+  }
+
+  // Mostrar loader mientras se cargan los datos
+  if (planeacionesLoading || profileLoading) {
+    return (
+      <TooltipProvider>
+        <div className="space-y-6">
+          <div>
+            <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100">Nueva Planeación</h1>
+            <p className="text-gray-600 mt-2">Crea una nueva planeación didáctica para tus clases de primaria</p>
+          </div>
+          
+          <div className="flex items-center justify-center py-12">
+            <div className="flex items-center gap-3">
+              <Loader2 className="w-6 h-6 animate-spin text-blue-600" />
+              <span className="text-gray-600 dark:text-gray-400">Cargando...</span>
+            </div>
+          </div>
+        </div>
+      </TooltipProvider>
     )
   }
 

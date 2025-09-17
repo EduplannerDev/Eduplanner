@@ -41,7 +41,7 @@ export function ChatIA({ onBack, onSaveSuccess, initialMessage }: ChatIAProps) {
 
   const { user } = useAuth()
   const { userData } = useUserData(user?.id)
-  const { profile } = useProfile()
+  const { profile, loading: profileLoading } = useProfile()
 
   const getInitials = (email: string) => {
     return email.charAt(0).toUpperCase()
@@ -53,10 +53,11 @@ export function ChatIA({ onBack, onSaveSuccess, initialMessage }: ChatIAProps) {
     canCreateMore,
     getRemainingPlaneaciones,
     monthlyCount,
+    loading: planeacionesLoading,
   } = usePlaneaciones()
   
   const isPro = profile ? isUserPro(profile) : false
-  const hasReachedLimit = !isPro && monthlyCount >= 5
+  const hasReachedLimit = !planeacionesLoading && !profileLoading && !isPro && monthlyCount >= 5
 
   const { messages, input, handleInputChange, handleSubmit: originalHandleSubmit, isLoading, error } = useChat({
     api: "/api/chat",
@@ -90,6 +91,8 @@ Puedes contarme:
 • ¿Cuál es el tema específico?
 • ¿Cuánto tiempo durará la clase?
 • ¿Hay algún objetivo particular que quieras lograr?
+• ¿Tienes alumnos con barreras para el aprendizaje? 
+• ¿Necesitas hacer adecuaciones curriculares?
 
 ¡Empecemos a crear algo increíble juntos! ✨`,
       },
@@ -584,7 +587,7 @@ Puedes contarme:
 
             {/* Input Area */}
             <div className="border-t p-4 flex-shrink-0">
-              <form onSubmit={onSubmit} className="flex gap-2">
+              <form onSubmit={handleSubmit} className="flex gap-2">
                 <Input
                   value={input}
                   onChange={handleInputChange}
@@ -596,9 +599,6 @@ Puedes contarme:
                   {isLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
                 </Button>
               </form>
-              <p className="text-sm text-gray-500 mt-2 select-none">
-                💡 Tip: Cuando termine tu planeación, pregúntale si quieres guardarla
-              </p>
             </div>
           </Card>
         </div>
