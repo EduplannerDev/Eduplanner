@@ -1,9 +1,10 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useAuth } from '@/hooks/use-auth'
 import { useRoles } from '@/hooks/use-roles'
 import { createGrupo, type CreateGrupoData } from '@/lib/grupos'
+import { canUserCreateGroup } from '@/lib/subscription-utils'
 import { useNotification } from '@/hooks/use-notification'
 import { ArrowLeft, Save, Loader2 } from 'lucide-react'
 import { Button } from "@/components/ui/button"
@@ -20,10 +21,22 @@ interface NuevoGrupoProps {
 
 const NuevoGrupo = ({ onBack, onSaveSuccess }: NuevoGrupoProps) => {
   const { user } = useAuth()
-  const { plantel, isAdmin, isDirector, isProfesor } = useRoles()
+  const { plantel } = useRoles()
   const { success, error } = useNotification()
   const [loading, setLoading] = useState(false)
   const [errorMsg, setErrorMsg] = useState<string | null>(null)
+  const [limitCheck, setLimitCheck] = useState<{
+    canCreate: boolean;
+    currentCount: number;
+    limit: number;
+    message?: string;
+    loading: boolean;
+  }>({
+    canCreate: true,
+    currentCount: 0,
+    limit: -1,
+    loading: true
+  })
   const [formData, setFormData] = useState<CreateGrupoData>({
     nombre: '',
     grado: '',
@@ -47,6 +60,32 @@ const NuevoGrupo = ({ onBack, onSaveSuccess }: NuevoGrupoProps) => {
   }
 
   const grupos = ['A', 'B', 'C', 'D', 'E', 'F']
+
+  // Verificar límites de grupos al cargar el componente
+  useEffect(() => {
+    const checkGroupLimits = async () => {
+      if (!user?.id) return
+
+      try {
+        const result = await canUserCreateGroup(user.id)
+        setLimitCheck({
+          ...result,
+          loading: false
+        })
+      } catch (error) {
+        console.error('Error verificando límites:', error)
+        setLimitCheck({
+          canCreate: false,
+          currentCount: 0,
+          limit: 0,
+          message: 'Error al verificar límites',
+          loading: false
+        })
+      }
+    }
+
+    checkGroupLimits()
+  }, [user?.id])
 
   const getCurrentSchoolYear = () => {
     const currentYear = new Date().getFullYear()
@@ -83,6 +122,12 @@ const NuevoGrupo = ({ onBack, onSaveSuccess }: NuevoGrupoProps) => {
 
     if (!formData.nombre.trim() || !formData.grado || !formData.grupo || !formData.nivel || !formData.ciclo_escolar) {
       setErrorMsg('Por favor completa todos los campos obligatorios')
+      return
+    }
+
+    // Verificar límites antes de crear
+    if (!limitCheck.canCreate) {
+      setErrorMsg(limitCheck.message || 'No puedes crear más grupos')
       return
     }
 
@@ -125,28 +170,79 @@ const NuevoGrupo = ({ onBack, onSaveSuccess }: NuevoGrupoProps) => {
         </div>
       )}
 
-      {!isAdmin && !isDirector && !isProfesor && !plantel && (
+      {/* Mostrar estado de carga de límites */}
+      {limitCheck.loading && (
         <Card>
           <CardContent className="p-8 text-center">
-            <div className="text-red-600 mb-4">
-              <h3 className="text-lg font-semibold mb-2">Sin Permisos</h3>
-              <p className="text-muted-foreground">
-                No tienes permisos para crear grupos. Contacta al administrador.
-              </p>
+            <div className="flex items-center justify-center space-x-2">
+              <Loader2 className="h-4 w-4 animate-spin" />
+              <span>Verificando límites de grupos...</span>
             </div>
-            <Button variant="outline" onClick={onBack}>
-              Volver
-            </Button>
           </CardContent>
         </Card>
       )}
 
-      {(isAdmin || isDirector || isProfesor) && (
+      {/* Mostrar mensaje de límite alcanzado */}
+      {!limitCheck.loading && !limitCheck.canCreate && (
         <Card>
-          <CardHeader>
-            <CardTitle>Información del Grupo</CardTitle>
-          </CardHeader>
-          <CardContent>
+          <CardContent className="p-8 text-center">
+            <div className="text-orange-600 mb-4">
+              <h3 className="text-lg font-semibold mb-2">Límite de Grupos Alcanzado</h3>
+              <p className="text-muted-foreground mb-4">
+                {limitCheck.message}
+              </p>
+              <div className="bg-orange-50 border border-orange-200 rounded-lg p-4 mb-4">
+                <p className="text-sm text-orange-700">
+                  Tienes <strong>{limitCheck.currentCount}</strong> de <strong>{limitCheck.limit}</strong> grupos permitidos en el plan gratuito.
+                </p>
+              </div>
+              <div className="space-y-2">
+                <p className="text-sm text-muted-foreground">
+                  Actualiza a <strong>Plan PRO</strong> para crear grupos ilimitados
+                </p>
+                <div className="flex gap-2 justify-center">
+                  <Button variant="outline" onClick={onBack}>
+                    Volver
+                  </Button>
+                  <Button className="bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700">
+                    Actualizar a PRO
+                  </Button>
+                </div>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Formulario - solo mostrar si puede crear grupos */}
+      {!limitCheck.loading && limitCheck.canCreate && (
+        <Card>
+        <CardHeader>
+          <CardTitle>Información del Grupo</CardTitle>
+          {/* Mostrar progreso de grupos para usuarios free */}
+          {limitCheck.limit > 0 && (
+            <div className="mt-2 p-3 bg-blue-50 border border-blue-200 rounded-lg">
+              <div className="flex items-center justify-between mb-2">
+                <span className="text-sm font-medium text-blue-800">Grupos utilizados</span>
+                <span className="text-sm text-blue-600">
+                  {limitCheck.currentCount} / {limitCheck.limit}
+                </span>
+              </div>
+              <div className="w-full bg-blue-200 rounded-full h-2">
+                <div 
+                  className="bg-blue-600 h-2 rounded-full transition-all duration-300"
+                  style={{ 
+                    width: `${Math.min(100, (limitCheck.currentCount / limitCheck.limit) * 100)}%` 
+                  }}
+                ></div>
+              </div>
+              <p className="text-xs text-blue-600 mt-1">
+                Plan gratuito - Actualiza a PRO para grupos ilimitados
+              </p>
+            </div>
+          )}
+        </CardHeader>
+        <CardContent>
             <form onSubmit={handleSubmit} className="space-y-6">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div className="space-y-2">

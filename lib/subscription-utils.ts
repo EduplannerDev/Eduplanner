@@ -255,22 +255,97 @@ export async function reactivateSubscription(userId: string): Promise<boolean> {
 }
 
 /**
+ * Verifica si un usuario puede crear un nuevo grupo
+ */
+export async function canUserCreateGroup(userId: string): Promise<{
+  canCreate: boolean;
+  currentCount: number;
+  limit: number;
+  message?: string;
+}> {
+  try {
+    // Obtener el perfil del usuario
+    const { data: profile, error: profileError } = await supabase
+      .from('profiles')
+      .select('subscription_plan, subscription_status')
+      .eq('id', userId)
+      .single();
+
+    if (profileError || !profile) {
+      console.error('Error obteniendo perfil:', profileError);
+      return {
+        canCreate: false,
+        currentCount: 0,
+        limit: 0,
+        message: 'Error al verificar permisos'
+      };
+    }
+
+    // Verificar si es usuario Pro
+    const isPro = isUserPro(profile);
+    
+    // Si es Pro, puede crear grupos ilimitados
+    if (isPro) {
+      const { count } = await supabase
+        .from('grupos')
+        .select('*', { count: 'exact', head: true })
+        .eq('user_id', userId);
+      
+      return {
+        canCreate: true,
+        currentCount: count || 0,
+        limit: -1 // Ilimitado
+      };
+    }
+
+    // Para usuarios free, límite de 2 grupos
+    const { count: gruposCount } = await supabase
+      .from('grupos')
+      .select('*', { count: 'exact', head: true })
+      .eq('user_id', userId);
+
+    const currentCount = gruposCount || 0;
+    const limit = 2;
+    const canCreate = currentCount < limit;
+
+    return {
+      canCreate,
+      currentCount,
+      limit,
+      message: canCreate ? undefined : `Has alcanzado el límite de ${limit} grupos para el plan gratuito`
+    };
+
+  } catch (error) {
+    console.error('Error verificando límites de grupos:', error);
+    return {
+      canCreate: false,
+      currentCount: 0,
+      limit: 0,
+      message: 'Error al verificar límites'
+    };
+  }
+}
+
+/**
  * Obtiene estadísticas de uso de un usuario
  */
 export async function getUserUsageStats(userId: string): Promise<{
   planeaciones: { count: number; limit: number };
   examenes: { count: number; limit: number };
   mensajes: { count: number; limit: number };
+  grupos: { count: number; limit: number };
 }> {
-  const [planeaciones, examenes, mensajes] = await Promise.all([
+  const [planeaciones, examenes, mensajes, grupos] = await Promise.all([
     canUserCreate(userId, 'planeaciones'),
     canUserCreate(userId, 'examenes'),
-    canUserCreate(userId, 'mensajes')
+    canUserCreate(userId, 'mensajes'),
+    canUserCreateGroup(userId)
   ]);
   
   return {
     planeaciones: { count: planeaciones.currentCount, limit: planeaciones.limit },
     examenes: { count: examenes.currentCount, limit: examenes.limit },
-    mensajes: { count: mensajes.currentCount, limit: mensajes.limit }
+    mensajes: { count: mensajes.currentCount, limit: mensajes.limit },
+    grupos: { count: grupos.currentCount, limit: grupos.limit }
   };
 }

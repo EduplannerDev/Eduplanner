@@ -11,7 +11,7 @@ import { Badge } from '@/components/ui/badge'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Textarea } from '@/components/ui/textarea'
 import { toast } from '@/hooks/use-toast'
-import { Grupo, CreateGrupoData, UpdateGrupoData, createGrupo, getGruposByUserAndPlantel, getGruposByPlantel, updateGrupo, deactivateGrupo, getGruposStatsByPlantel } from '@/lib/grupos'
+import { Grupo, CreateGrupoData, UpdateGrupoData, createGrupo, getGruposByUserAndPlantel, getGruposByPlantel, getGruposByOwner, updateGrupo, deactivateGrupo, getGruposStatsByPlantel } from '@/lib/grupos'
 import { getAllPlanteles, Plantel } from '@/lib/planteles'
 import { useRoles } from '@/hooks/use-roles'
 import { useAuth } from '@/hooks/use-auth'
@@ -74,6 +74,10 @@ export function GestionarGrupos() {
       } else if ((isDirector || isProfesor) && userPlantel) {
         setPlanteles([userPlantel])
         setSelectedPlantel(userPlantel.id)
+      } else if (isProfesor && !userPlantel) {
+        // Profesor sin plantel asignado - puede crear grupos sin plantel
+        setPlanteles([])
+        setSelectedPlantel('sin-plantel')
       }
     } catch (error) {
       toast({
@@ -92,18 +96,21 @@ export function GestionarGrupos() {
     try {
       let data: GrupoWithProfesor[] = []
       
-      if (canViewAllGroups) {
+      if (canViewAllGroups && selectedPlantel !== 'sin-plantel') {
         // Directores y administradores ven todos los grupos del plantel
         data = await getGruposByPlantel(selectedPlantel) as GrupoWithProfesor[]
+      } else if (selectedPlantel === 'sin-plantel') {
+        // Profesores sin plantel ven todos sus grupos
+        data = await getGruposByOwner(user.id) as GrupoWithProfesor[]
       } else {
-        // Profesores solo ven sus grupos
+        // Profesores solo ven sus grupos del plantel específico
         data = await getGruposByUserAndPlantel(user.id, selectedPlantel) as GrupoWithProfesor[]
       }
       
       setGrupos(data)
       
-      // Cargar estadísticas si es director o admin
-      if (canViewAllGroups) {
+      // Cargar estadísticas si es director o admin y hay plantel específico
+      if (canViewAllGroups && selectedPlantel !== 'sin-plantel') {
         const statsData = await getGruposStatsByPlantel(selectedPlantel)
         setStats(statsData)
       }
@@ -144,7 +151,9 @@ export function GestionarGrupos() {
           description: "Grupo actualizado correctamente"
         })
       } else {
-        await createGrupo(user.id, selectedPlantel, formData)
+        // Para profesores sin plantel, usar null como plantelId
+        const plantelId = selectedPlantel === 'sin-plantel' ? null : selectedPlantel
+        await createGrupo(user.id, plantelId, formData)
         toast({
           title: "Éxito",
           description: "Grupo creado correctamente"
@@ -423,9 +432,11 @@ export function GestionarGrupos() {
         <CardHeader>
           <CardTitle>Grupos</CardTitle>
           <CardDescription>
-            {selectedPlantel ? 
-              `Grupos de ${planteles.find(p => p.id === selectedPlantel)?.nombre}` :
-              'Selecciona un plantel para ver sus grupos'
+            {selectedPlantel === 'sin-plantel' ? 
+              'Tus grupos (sin plantel asignado)' :
+              selectedPlantel ? 
+                `Grupos de ${planteles.find(p => p.id === selectedPlantel)?.nombre}` :
+                'Selecciona un plantel para ver sus grupos'
             }
           </CardDescription>
         </CardHeader>
