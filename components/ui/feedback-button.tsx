@@ -75,15 +75,15 @@ export function FeedbackButton({}: FeedbackButtonProps) {
         className="fixed bottom-4 right-4 rounded-full p-4 shadow-lg"
         onClick={() => setIsOpen(true)}
       >
-        💡 Envianos tus sugerencias
+        💬 Envíanos tu feedback
       </Button>
 
       <AlertDialog open={isOpen} onOpenChange={setIsOpen}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>¡Cuéntanos tu idea!</AlertDialogTitle>
+            <AlertDialogTitle>¡Comparte tu feedback!</AlertDialogTitle>
             <AlertDialogDescription>
-              Tu opinión es oro para nosotros. Cada sugerencia nos ayuda a construir la herramienta que necesitas. ¡Te leemos!
+              Tu opinión es muy valiosa para nosotros. Ya sea una sugerencia, reporte de error o comentario, nos ayuda a mejorar la herramienta que necesitas. ¡Te leemos!
             </AlertDialogDescription>
           </AlertDialogHeader>
           <div className="grid gap-4 py-4">

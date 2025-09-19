@@ -374,7 +374,11 @@ export async function sendCustomEmail({
     throw new Error('RESEND_API_KEY no está configurada en las variables de entorno');
   }
 
-  const emailHtml = createEmailTemplate({
+  // Detectar si el contenido ya es HTML completo
+  const isCompleteHtml = content.trim().toLowerCase().startsWith('<!doctype html') || 
+                        content.trim().toLowerCase().startsWith('<html');
+  
+  const emailHtml = isCompleteHtml ? content : createEmailTemplate({
     title: subject,
     content,
     showLogo
