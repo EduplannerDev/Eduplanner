@@ -189,6 +189,9 @@ export async function POST(req: NextRequest) {
           recipients_count: emailList.length,
           subject,
           content: content.substring(0, 500), // Solo primeros 500 caracteres para el log
+          full_content: content, // Contenido completo
+          recipients_list: emailList, // Lista específica de destinatarios
+          sender_email: senderEmail || 'contacto@eduplanner.mx', // Email del remitente
           sent_at: new Date().toISOString(),
           success: true,
           resend_id: result.data?.id
@@ -221,6 +224,9 @@ export async function POST(req: NextRequest) {
           recipients_count: emailList.length,
           subject,
           content: content.substring(0, 500),
+          full_content: content, // Contenido completo
+          recipients_list: emailList, // Lista específica de destinatarios
+          sender_email: senderEmail || 'contacto@eduplanner.mx', // Email del remitente
           sent_at: new Date().toISOString(),
           success: false,
           error_message: emailError instanceof Error ? emailError.message : 'Error desconocido'

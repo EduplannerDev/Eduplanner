@@ -12,6 +12,7 @@ import { Alert, AlertDescription } from '@/components/ui/alert'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Separator } from '@/components/ui/separator'
 import { ScrollArea } from '@/components/ui/scroll-area'
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { 
   Mail, 
   Send, 
@@ -24,7 +25,10 @@ import {
   Trash2,
   Clock,
   User,
-  Calendar
+  Calendar,
+  Eye,
+  Copy,
+  ExternalLink
 } from 'lucide-react'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { toast } from 'sonner'
@@ -39,6 +43,9 @@ interface EmailLog {
   recipients_count: number
   subject: string
   content: string
+  full_content?: string
+  recipients_list?: string[]
+  sender_email?: string
   sent_at: string
   success: boolean
   error_message?: string
@@ -67,6 +74,10 @@ export default function EnvioCorreos() {
   const [currentPage, setCurrentPage] = useState(1)
   const [totalPages, setTotalPages] = useState(1)
   const [totalLogs, setTotalLogs] = useState(0)
+  
+  // Estados para el modal de detalles
+  const [selectedEmail, setSelectedEmail] = useState<EmailLog | null>(null)
+  const [showEmailDetails, setShowEmailDetails] = useState(false)
 
   // Cargar historial de envíos
   const loadEmailHistory = async (page = 1) => {
@@ -129,6 +140,12 @@ export default function EnvioCorreos() {
   const isValidEmail = (email: string): boolean => {
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
     return emailRegex.test(email)
+  }
+
+  // Manejar clic en fila del historial
+  const handleEmailClick = (email: EmailLog) => {
+    setSelectedEmail(email)
+    setShowEmailDetails(true)
   }
 
   // Enviar correo
@@ -442,7 +459,8 @@ export default function EnvioCorreos() {
                     {emailLogs.map((log) => (
                       <div
                         key={log.id}
-                        className="border rounded-lg p-4 space-y-3"
+                        className="border rounded-lg p-4 space-y-3 cursor-pointer hover:bg-gray-50 transition-colors"
+                        onClick={() => handleEmailClick(log)}
                       >
                         <div className="flex items-start justify-between">
                           <div className="space-y-1">
@@ -462,17 +480,20 @@ export default function EnvioCorreos() {
                               </span>
                             </div>
                           </div>
-                          <Badge
-                            variant={log.success ? "default" : "destructive"}
-                            className="flex items-center gap-1"
-                          >
-                            {log.success ? (
-                              <Check className="h-3 w-3" />
-                            ) : (
-                              <X className="h-3 w-3" />
-                            )}
-                            {log.success ? 'Enviado' : 'Error'}
-                          </Badge>
+                          <div className="flex items-center gap-2">
+                            <Badge
+                              variant={log.success ? "default" : "destructive"}
+                              className="flex items-center gap-1"
+                            >
+                              {log.success ? (
+                                <Check className="h-3 w-3" />
+                              ) : (
+                                <X className="h-3 w-3" />
+                              )}
+                              {log.success ? 'Enviado' : 'Error'}
+                            </Badge>
+                            <Eye className="h-4 w-4 text-gray-400" />
+                          </div>
                         </div>
                         
                         {log.content && (
@@ -527,6 +548,178 @@ export default function EnvioCorreos() {
           </Card>
         </TabsContent>
       </Tabs>
+
+      {/* Modal de detalles del correo */}
+      <Dialog open={showEmailDetails} onOpenChange={setShowEmailDetails}>
+        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Mail className="h-5 w-5" />
+              Detalles del Correo
+            </DialogTitle>
+            <DialogDescription>
+              Información completa del correo enviado
+            </DialogDescription>
+          </DialogHeader>
+          
+          {selectedEmail && (
+            <div className="space-y-6">
+              {/* Información básica */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label className="text-sm font-medium text-gray-600">Asunto</Label>
+                  <p className="text-sm bg-gray-50 p-3 rounded">{selectedEmail.subject}</p>
+                </div>
+                
+                <div className="space-y-2">
+                  <Label className="text-sm font-medium text-gray-600">Estado</Label>
+                  <Badge
+                    variant={selectedEmail.success ? "default" : "destructive"}
+                    className="flex items-center gap-1 w-fit"
+                  >
+                    {selectedEmail.success ? (
+                      <Check className="h-3 w-3" />
+                    ) : (
+                      <X className="h-3 w-3" />
+                    )}
+                    {selectedEmail.success ? 'Enviado exitosamente' : 'Error en el envío'}
+                  </Badge>
+                </div>
+
+                <div className="space-y-2">
+                  <Label className="text-sm font-medium text-gray-600">Remitente</Label>
+                  <p className="text-sm bg-gray-50 p-3 rounded">
+                    {selectedEmail.sender_email || 'contacto@eduplanner.mx'}
+                  </p>
+                </div>
+
+                <div className="space-y-2">
+                  <Label className="text-sm font-medium text-gray-600">Fecha de envío</Label>
+                  <p className="text-sm bg-gray-50 p-3 rounded">
+                    {format(new Date(selectedEmail.sent_at), 'dd/MM/yyyy HH:mm:ss', { locale: es })}
+                  </p>
+                </div>
+
+                <div className="space-y-2">
+                  <Label className="text-sm font-medium text-gray-600">Destinatarios</Label>
+                  <div className="text-sm bg-gray-50 p-3 rounded max-h-24 overflow-y-auto">
+                    {selectedEmail.recipients_list && selectedEmail.recipients_list.length > 0 ? (
+                      <div className="space-y-1">
+                        {selectedEmail.recipients_list.map((email, index) => (
+                          <div key={index} className="flex items-center justify-between">
+                            <span className="text-xs">{email}</span>
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              className="h-6 w-6 p-0"
+                              onClick={() => {
+                                navigator.clipboard.writeText(email)
+                                toast.success('Email copiado')
+                              }}
+                            >
+                              <Copy className="h-3 w-3" />
+                            </Button>
+                          </div>
+                        ))}
+                      </div>
+                    ) : (
+                      <span>{selectedEmail.recipients_count} destinatario(s)</span>
+                    )}
+                  </div>
+                </div>
+
+                {selectedEmail.resend_id && (
+                  <div className="space-y-2">
+                    <Label className="text-sm font-medium text-gray-600">ID de Resend</Label>
+                    <div className="flex items-center gap-2">
+                      <p className="text-sm bg-gray-50 p-3 rounded flex-1 font-mono">
+                        {selectedEmail.resend_id}
+                      </p>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => {
+                          navigator.clipboard.writeText(selectedEmail.resend_id!)
+                          toast.success('ID copiado al portapapeles')
+                        }}
+                      >
+                        <Copy className="h-3 w-3" />
+                      </Button>
+                    </div>
+                  </div>
+                )}
+              </div>
+
+
+
+              {/* Error message si existe */}
+              {!selectedEmail.success && selectedEmail.error_message && (
+                <div className="space-y-2">
+                  <Label className="text-sm font-medium text-red-600">Mensaje de error</Label>
+                  <Alert variant="destructive">
+                    <AlertCircle className="h-4 w-4" />
+                    <AlertDescription>
+                      {selectedEmail.error_message}
+                    </AlertDescription>
+                  </Alert>
+                </div>
+              )}
+
+              {/* Contenido del correo */}
+              {(selectedEmail.full_content || selectedEmail.content) && (
+                <div className="space-y-2">
+                  <Label className="text-sm font-medium text-gray-600">Contenido del correo</Label>
+                  <Tabs defaultValue="preview" className="w-full">
+                    <TabsList>
+                      <TabsTrigger value="preview">Vista previa</TabsTrigger>
+                      <TabsTrigger value="html">Código HTML</TabsTrigger>
+                    </TabsList>
+                    
+                    <TabsContent value="preview" className="mt-4">
+                      <div className="border rounded p-4 bg-white min-h-32 max-h-96 overflow-y-auto">
+                        {selectedEmail.full_content || selectedEmail.content ? (
+                          <div 
+                            dangerouslySetInnerHTML={{ 
+                              __html: selectedEmail.full_content || selectedEmail.content 
+                            }} 
+                            className="prose prose-sm max-w-none"
+                          />
+                        ) : (
+                          <p className="text-gray-500 italic">No hay contenido disponible</p>
+                        )}
+                      </div>
+                    </TabsContent>
+                    
+                    <TabsContent value="html" className="mt-4">
+                      <div className="relative">
+                        <ScrollArea className="h-96 w-full border rounded p-4 bg-gray-50">
+                          <pre className="text-xs whitespace-pre-wrap font-mono">
+                            {selectedEmail.full_content || selectedEmail.content || 'No hay contenido disponible'}
+                          </pre>
+                        </ScrollArea>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          className="absolute top-2 right-2"
+                          onClick={() => {
+                            const content = selectedEmail.full_content || selectedEmail.content
+                            if (content) {
+                              navigator.clipboard.writeText(content)
+                              toast.success('HTML copiado al portapapeles')
+                            }
+                          }}
+                        >
+                          <Copy className="h-3 w-3" />
+                        </Button>
+                      </div>
+                    </TabsContent>
+                  </Tabs>
+                </div>
+              )}
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   )
 }
