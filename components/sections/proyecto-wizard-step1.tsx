@@ -176,6 +176,27 @@ export function ProyectoWizardStep1({ data, onDataChange, onNext, loading = fals
       badgePosition="top-right"
     >
       <div className="max-w-4xl mx-auto space-y-6">
+      {/* Botón Siguiente - Movido arriba */}
+      <div className="flex justify-end">
+        <Button
+          onClick={handleNext}
+          disabled={!isFormComplete || loading}
+          className="px-8 py-2"
+        >
+          {loading ? (
+            <>
+              <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+              Procesando...
+            </>
+          ) : (
+            <>
+              Siguiente Paso
+              <Lightbulb className="ml-2 h-4 w-4" />
+            </>
+          )}
+        </Button>
+      </div>
+
       {/* Header */}
       <div className="text-center space-y-2">
         <div className="flex items-center justify-center space-x-2">
@@ -364,26 +385,6 @@ export function ProyectoWizardStep1({ data, onDataChange, onNext, loading = fals
         </CardContent>
       </Card>
 
-      {/* Botón Siguiente */}
-      <div className="flex justify-end">
-        <Button
-          onClick={handleNext}
-          disabled={!isFormComplete || loading}
-          className="px-8 py-2"
-        >
-          {loading ? (
-            <>
-              <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
-              Procesando...
-            </>
-          ) : (
-            <>
-              Siguiente Paso
-              <Lightbulb className="ml-2 h-4 w-4" />
-            </>
-          )}
-        </Button>
-      </div>
       </div>
     </BetaFeatureWrapper>
   )

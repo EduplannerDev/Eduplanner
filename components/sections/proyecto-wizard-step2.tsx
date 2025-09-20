@@ -222,20 +222,30 @@ export function ProyectoWizardStep2({
   // Verificar si el formulario está completo
   const isFormComplete = selectedPdas.length > 0
 
-  // Efecto para pasar automáticamente al siguiente paso cuando se seleccionen PDAs
-  useEffect(() => {
-    if (selectedPdas.length > 0) {
-      // Pequeño delay para que el usuario vea la selección antes de avanzar
-      const timer = setTimeout(() => {
-        onNext()
-      }, 1000)
-      
-      return () => clearTimeout(timer)
-    }
-  }, [selectedPdas, onNext])
 
   return (
     <div className="max-w-7xl mx-auto space-y-6">
+      {/* Navegación - Movida arriba */}
+      <div className="flex justify-between">
+        <Button
+          variant="outline"
+          onClick={onPrevious}
+          disabled={loading}
+          className="flex items-center space-x-2"
+        >
+          <span>Anterior</span>
+        </Button>
+
+        <Button
+          onClick={onNext}
+          disabled={!isFormComplete || loading}
+          className="flex items-center space-x-2"
+        >
+          <span>Generar Plan Didáctico</span>
+          <Plus className="h-4 w-4" />
+        </Button>
+      </div>
+
       {/* Header */}
       <div className="text-center space-y-2">
         <div className="flex items-center justify-center space-x-2">
@@ -575,26 +585,6 @@ export function ProyectoWizardStep2({
         </Card>
       )}
 
-      {/* Navegación */}
-      <div className="flex justify-between">
-        <Button
-          variant="outline"
-          onClick={onPrevious}
-          disabled={loading}
-          className="flex items-center space-x-2"
-        >
-          <span>Anterior</span>
-        </Button>
-
-        <Button
-          onClick={onNext}
-          disabled={!isFormComplete || loading}
-          className="flex items-center space-x-2"
-        >
-          <span>Generar Plan Didáctico</span>
-          <Plus className="h-4 w-4" />
-        </Button>
-      </div>
     </div>
   )
 }

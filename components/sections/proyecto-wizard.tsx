@@ -136,6 +136,19 @@ export function ProyectoWizard({ onComplete }: ProyectoWizardProps = {}) {
       case 3:
         return (
           <div className="max-w-4xl mx-auto space-y-6">
+            {/* Solo mostrar botón Anterior - Movido arriba */}
+            <div className="flex justify-start">
+              <Button
+                variant="outline"
+                onClick={goToPreviousStep}
+                disabled={loading || isSaving}
+                className="flex items-center space-x-2"
+              >
+                <ArrowLeft className="h-4 w-4" />
+                <span>Anterior</span>
+              </Button>
+            </div>
+
             <div className="text-center space-y-2">
               <h1 className="text-3xl font-bold text-gray-900">Generar Plan Didáctico</h1>
               <p className="text-lg text-gray-600">
@@ -173,18 +186,6 @@ export function ProyectoWizard({ onComplete }: ProyectoWizardProps = {}) {
               </CardContent>
             </Card>
             
-            {/* Solo mostrar botón Anterior */}
-            <div className="flex justify-start">
-              <Button
-                variant="outline"
-                onClick={goToPreviousStep}
-                disabled={loading || isSaving}
-                className="flex items-center space-x-2"
-              >
-                <ArrowLeft className="h-4 w-4" />
-                <span>Anterior</span>
-              </Button>
-            </div>
           </div>
         )
       default:
