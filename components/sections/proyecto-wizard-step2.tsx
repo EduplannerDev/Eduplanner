@@ -222,6 +222,18 @@ export function ProyectoWizardStep2({
   // Verificar si el formulario está completo
   const isFormComplete = selectedPdas.length > 0
 
+  // Efecto para pasar automáticamente al siguiente paso cuando se seleccionen PDAs
+  useEffect(() => {
+    if (selectedPdas.length > 0) {
+      // Pequeño delay para que el usuario vea la selección antes de avanzar
+      const timer = setTimeout(() => {
+        onNext()
+      }, 1000)
+      
+      return () => clearTimeout(timer)
+    }
+  }, [selectedPdas, onNext])
+
   return (
     <div className="max-w-7xl mx-auto space-y-6">
       {/* Header */}

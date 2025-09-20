@@ -55,12 +55,18 @@ export function useProyectos() {
     setError(null)
 
     try {
+      // Obtener el token de sesión
+      const { data: { session }, error: sessionError } = await supabase.auth.getSession()
+      if (sessionError || !session?.access_token) {
+        throw new Error('No se pudo obtener el token de sesión')
+      }
 
-      // Llamar a la nueva API que maneja todo el proceso (con cookies automáticas)
+      // Llamar a la nueva API que maneja todo el proceso (con Bearer token)
       const response = await fetch('/api/proyectos/create', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
+          'Authorization': `Bearer ${session.access_token}`,
         },
         body: JSON.stringify(data)
       })

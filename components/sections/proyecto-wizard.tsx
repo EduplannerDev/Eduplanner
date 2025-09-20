@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Progress } from '@/components/ui/progress'
@@ -45,6 +45,13 @@ export function ProyectoWizard({ onComplete }: ProyectoWizardProps = {}) {
 
   // Calcular progreso
   const progress = (currentStep / 3) * 100
+
+  // Efecto para ejecutar automáticamente la generación cuando se entra al paso 3
+  useEffect(() => {
+    if (currentStep === 3 && !isSaving) {
+      handleSaveProject()
+    }
+  }, [currentStep])
 
   // Manejar guardar proyecto
   const handleSaveProject = async () => {
@@ -166,8 +173,8 @@ export function ProyectoWizard({ onComplete }: ProyectoWizardProps = {}) {
               </CardContent>
             </Card>
             
-            {/* Navegación para el Paso 3 */}
-            <div className="flex justify-between">
+            {/* Solo mostrar botón Anterior */}
+            <div className="flex justify-start">
               <Button
                 variant="outline"
                 onClick={goToPreviousStep}
@@ -176,24 +183,6 @@ export function ProyectoWizard({ onComplete }: ProyectoWizardProps = {}) {
               >
                 <ArrowLeft className="h-4 w-4" />
                 <span>Anterior</span>
-              </Button>
-
-              <Button
-                onClick={handleSaveProject}
-                disabled={loading || isSaving}
-                className="flex items-center space-x-2 bg-green-600 hover:bg-green-700"
-              >
-                {isSaving ? (
-                  <>
-                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
-                    <span>Generando y Guardando...</span>
-                  </>
-                ) : (
-                  <>
-                    <Save className="h-4 w-4" />
-                    <span>Generar y Crear Proyecto</span>
-                  </>
-                )}
               </Button>
             </div>
           </div>

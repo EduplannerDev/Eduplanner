@@ -34,24 +34,49 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // Crear cliente de Supabase con cookies (patrón estándar del proyecto)
-    const cookieStore = await cookies()
-    const supabase = createClient(supabaseUrl, supabaseAnonKey, {
-      cookies: {
-        get(name: string) {
-          return cookieStore.get(name)?.value
-        },
-      },
-    })
-
-    // Verificar autenticación
-    const { data: { user }, error: authError } = await supabase.auth.getUser()
+    let user: any = null
+    let supabase: any = null
     
-    if (authError || !user) {
-      return NextResponse.json(
-        { error: 'No autorizado' },
-        { status: 401 }
+    // Intentar autenticación con Bearer token primero
+    const authHeader = request.headers.get('authorization')
+    if (authHeader?.startsWith('Bearer ')) {
+      const token = authHeader.split(' ')[1]
+      
+      // Crear cliente con service role para verificar token
+      const serviceSupabase = createClient(
+        process.env.NEXT_PUBLIC_SUPABASE_URL!,
+        process.env.SUPABASE_SERVICE_ROLE_KEY!
       )
+      
+      const { data: { user: tokenUser }, error: tokenError } = await serviceSupabase.auth.getUser(token)
+      
+      if (!tokenError && tokenUser) {
+        user = tokenUser
+        supabase = serviceSupabase
+      }
+    }
+    
+    // Si no hay Bearer token o falló, intentar con cookies
+    if (!user) {
+      const cookieStore = await cookies()
+      supabase = createClient(supabaseUrl, supabaseAnonKey, {
+        cookies: {
+          get(name: string) {
+            return cookieStore.get(name)?.value
+          },
+        },
+      })
+      
+      const { data: { user: cookieUser }, error: authError } = await supabase.auth.getUser()
+      
+      if (authError || !cookieUser) {
+        return NextResponse.json(
+          { error: 'No autorizado' },
+          { status: 401 }
+        )
+      }
+      
+      user = cookieUser
     }
 
     const {
