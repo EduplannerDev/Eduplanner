@@ -125,7 +125,7 @@ export function ProyectoWizardStep2({
           },
           body: JSON.stringify({
             problematica,
-            grado: grupoInfo.grado,
+            grado: parseInt(grupoInfo.grado.toString().replace(/[^\d]/g, '')),
             limit: 8
           })
         })
@@ -156,10 +156,13 @@ export function ProyectoWizardStep2({
 
       try {
         setLoadingCurriculo(true)
+        // Limpiar el grado para que sea solo un número entero
+        const gradoLimpio = parseInt(grupoInfo.grado.toString().replace(/[^\d]/g, ''))
+        
         const { data: curriculo, error } = await supabase
           .from('curriculo_sep')
           .select('id, contenido, campo_formativo, grado, pda, ejes_articuladores')
-          .eq('grado', grupoInfo.grado)
+          .eq('grado', gradoLimpio)
           .order('campo_formativo', { ascending: true })
           .order('contenido', { ascending: true })
 
