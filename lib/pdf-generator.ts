@@ -198,13 +198,15 @@ function createPDFHtml(content: string, title: string, isAnswerSheet: boolean = 
     <style>
       body {
         font-family: 'Arial', 'Helvetica', sans-serif;
-        line-height: 1.4;
+        line-height: 1.5;
         margin: 20px;
         color: #000;
-        font-size: 12px;
+        font-size: 13px;
         -webkit-font-smoothing: antialiased;
         -moz-osx-font-smoothing: grayscale;
         text-rendering: optimizeLegibility;
+        max-width: 100%;
+        overflow-x: hidden;
       }
       .header {
         text-align: center;
@@ -257,17 +259,20 @@ function createPDFHtml(content: string, title: string, isAnswerSheet: boolean = 
         color: #555;
       }
       p {
-        margin-bottom: 10px;
-        margin-top: 5px;
+        margin-bottom: 12px;
+        margin-top: 8px;
         text-align: justify;
-        line-height: 1.5;
+        line-height: 1.6;
         display: block;
         clear: both;
         word-wrap: break-word;
         overflow-wrap: break-word;
         white-space: normal;
         max-width: 100%;
-        font-size: 12px;
+        font-size: 13px;
+        orphans: 3;
+        widows: 3;
+        page-break-inside: avoid;
       }
       ul, ol {
         margin-bottom: 10px;
@@ -334,29 +339,37 @@ function generatePDFFromHTML(content: string, title: string, filename: string, i
   // Crear HTML estructurado
   const htmlContent = createPDFHtml(content, title, isAnswerSheet);
   
-  // Configuración para html2pdf
+  // Configuración mejorada para html2pdf
   const options = {
-    margin: [10, 10, 10, 10],
+    margin: [15, 15, 15, 15],
     filename: filename,
-    image: { type: 'jpeg', quality: 0.98 },
+    image: { type: 'jpeg', quality: 0.95 },
     html2canvas: { 
-      scale: 2, // Aumentar la escala para mejor calidad
+      scale: 3, // Aumentar la escala para mejor calidad
       useCORS: true,
       allowTaint: true,
       backgroundColor: '#ffffff',
       height: null,
       width: null,
-      letterRendering: true, // Mejorar renderizado de texto
-      logging: false
+      letterRendering: true,
+      logging: false,
+      scrollX: 0,
+      scrollY: 0,
+      windowWidth: 1200,
+      windowHeight: 800
     },
     jsPDF: { 
       unit: 'mm', 
       format: 'a4', 
       orientation: 'portrait',
-      compress: true
+      compress: false, // Desactivar compresión para mejor calidad
+      precision: 2
     },
     pagebreak: { 
-      mode: ['avoid-all', 'css', 'legacy']
+      mode: ['avoid-all', 'css', 'legacy'],
+      before: '.page-break-before',
+      after: '.page-break-after',
+      avoid: '.no-break'
     },
     enableLinks: false
   };
@@ -368,6 +381,9 @@ function generatePDFFromHTML(content: string, title: string, filename: string, i
   element.style.minHeight = 'auto';
   element.style.overflow = 'visible';
   element.style.pageBreakInside = 'avoid';
+  element.style.maxWidth = '100%';
+  element.style.wordWrap = 'break-word';
+  element.style.overflowWrap = 'break-word';
   
   // Importación dinámica de html2pdf para evitar errores SSR
   import('html2pdf.js').then((html2pdfModule) => {

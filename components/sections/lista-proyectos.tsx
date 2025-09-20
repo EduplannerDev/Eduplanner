@@ -16,6 +16,7 @@ import { useProyectoWizard } from '@/hooks/use-proyecto-wizard'
 import { useRouter } from 'next/navigation'
 import { supabase } from '@/lib/supabase'
 import { useProfile } from '@/hooks/use-profile'
+import { useAuth } from '@/hooks/use-auth'
 import { isUserPro } from '@/lib/subscription-utils'
 import { BetaFeatureWrapper, BetaAccessDenied } from '@/components/ui/beta-feature-wrapper'
 import { ViewProyecto } from './view-proyecto'
@@ -37,6 +38,7 @@ export function ListaProyectos() {
   const router = useRouter()
   const { toast } = useToast()
   const { profile } = useProfile()
+  const { user } = useAuth()
   const [proyectos, setProyectos] = useState<any[]>([])
   const [initialLoad, setInitialLoad] = useState(true)
   const [selectedProyecto, setSelectedProyecto] = useState<string | null>(null)
@@ -107,7 +109,7 @@ export function ListaProyectos() {
   const handleDownload = async (proyecto: any, format: "pdf" | "docx") => {
     try {
       if (format === "pdf") {
-        // Importar dinámicamente la función de generación de PDF
+        // Usar la librería original mejorada para generar PDF
         const { generateProyectoPDF } = await import('@/lib/pdf-generator')
         generateProyectoPDF(proyecto)
         
