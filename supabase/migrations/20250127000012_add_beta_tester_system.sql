@@ -100,31 +100,31 @@ ON CONFLICT (feature_key) DO NOTHING;
 -- =====================================================
 
 -- Función para verificar si un usuario es beta tester
-CREATE OR REPLACE FUNCTION is_beta_tester(user_id UUID DEFAULT auth.uid())
-RETURNS BOOLEAN AS $$
+CREATE OR REPLACE FUNCTION is_beta_tester(p_user_id UUID DEFAULT auth.uid())
+RETURNS BOOLEAN AS $
 BEGIN
     RETURN EXISTS (
         SELECT 1 FROM profiles 
-        WHERE id = user_id 
+        WHERE id = p_user_id 
         AND is_beta_tester = true 
         AND activo = true
     );
 END;
-$$ LANGUAGE plpgsql SECURITY DEFINER;
+$ LANGUAGE plpgsql SECURITY DEFINER;
 
 -- Función para verificar si un usuario tiene acceso a una funcionalidad beta específica
 CREATE OR REPLACE FUNCTION has_beta_feature_access(
-    feature_key_param VARCHAR(100),
-    user_id UUID DEFAULT auth.uid()
+    p_feature_key VARCHAR(100),
+    p_user_id UUID DEFAULT auth.uid()
 )
-RETURNS BOOLEAN AS $$
+RETURNS BOOLEAN AS $
 DECLARE
     user_is_beta BOOLEAN;
     feature_exists BOOLEAN;
     has_access BOOLEAN;
 BEGIN
     -- Verificar si el usuario es beta tester
-    SELECT is_beta_tester(user_id) INTO user_is_beta;
+    SELECT is_beta_tester(p_user_id) INTO user_is_beta;
     
     IF NOT user_is_beta THEN
         RETURN false;
@@ -133,7 +133,7 @@ BEGIN
     -- Verificar si la funcionalidad existe y está activa
     SELECT EXISTS (
         SELECT 1 FROM beta_features 
-        WHERE feature_key = feature_key_param 
+        WHERE feature_key = p_feature_key 
         AND is_active = true
     ) INTO feature_exists;
     
@@ -145,26 +145,31 @@ BEGIN
     SELECT EXISTS (
         SELECT 1 FROM user_beta_features ubf
         JOIN beta_features bf ON ubf.feature_id = bf.id
-        WHERE ubf.user_id = user_id 
-        AND bf.feature_key = feature_key_param
+        WHERE ubf.user_id = p_user_id 
+        AND bf.feature_key = p_feature_key
         AND ubf.is_enabled = true
         AND (ubf.expires_at IS NULL OR ubf.expires_at > NOW())
     ) INTO has_access;
     
     RETURN has_access;
 END;
-$$ LANGUAGE plpgsql SECURITY DEFINER;
+$ LANGUAGE plpgsql SECURITY DEFINER;
 
 -- Función para obtener todas las funcionalidades beta de un usuario
-CREATE OR REPLACE FUNCTION get_user_beta_features(user_id UUID DEFAULT auth.uid())
+CREATE OR REPLACE FUNCTION get_user_beta_features(p_user_id UUID)
 RETURNS TABLE (
     feature_key VARCHAR(100),
     feature_name VARCHAR(255),
     description TEXT,
     granted_at TIMESTAMP WITH TIME ZONE,
     expires_at TIMESTAMP WITH TIME ZONE
-) AS $$
+) AS $
 BEGIN
+    -- Primero, verificar si el usuario es beta tester
+    IF NOT is_beta_tester(p_user_id) THEN
+        RETURN;
+    END IF;
+
     RETURN QUERY
     SELECT 
         bf.feature_key,
@@ -174,13 +179,13 @@ BEGIN
         ubf.expires_at
     FROM user_beta_features ubf
     JOIN beta_features bf ON ubf.feature_id = bf.id
-    WHERE ubf.user_id = user_id 
+    WHERE ubf.user_id = p_user_id 
     AND ubf.is_enabled = true
     AND bf.is_active = true
     AND (ubf.expires_at IS NULL OR ubf.expires_at > NOW())
     ORDER BY bf.feature_name;
 END;
-$$ LANGUAGE plpgsql SECURITY DEFINER;
+$ LANGUAGE plpgsql SECURITY DEFINER;
 
 -- 7. CONFIGURAR RLS (ROW LEVEL SECURITY)
 -- =====================================================

@@ -1,5 +1,6 @@
 "use client"
 
+import { useRouter } from 'next/navigation'
 import { BetaFeatureWrapper, BetaAccessDenied, useBetaAccess } from '@/components/ui/beta-feature-wrapper'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
@@ -7,6 +8,12 @@ import { Badge } from '@/components/ui/badge'
 import { Sparkles, MessageSquare, Zap, Lock, BarChart3, Settings, Code, FileText } from 'lucide-react'
 
 export function BetaFeaturesDemo() {
+  const router = useRouter()
+
+  const handleCreateProject = () => {
+    router.push('/proyectos/nuevo')
+  }
+
   return (
     <div className="space-y-6">
       <div>
@@ -80,7 +87,7 @@ export function BetaFeaturesDemo() {
               </div>
               
               <div className="pt-4">
-                <Button className="w-full">
+                <Button className="w-full" onClick={handleCreateProject}>
                   <Sparkles className="h-4 w-4 mr-2" />
                   Crear Nuevo Proyecto
                 </Button>

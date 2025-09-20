@@ -197,29 +197,34 @@ function createPDFHtml(content: string, title: string, isAnswerSheet: boolean = 
   const styles = `
     <style>
       body {
-        font-family: Arial, sans-serif;
-        line-height: 1.3;
+        font-family: 'Arial', 'Helvetica', sans-serif;
+        line-height: 1.4;
         margin: 20px;
-        color: #333;
+        color: #000;
+        font-size: 12px;
+        -webkit-font-smoothing: antialiased;
+        -moz-osx-font-smoothing: grayscale;
+        text-rendering: optimizeLegibility;
       }
       .header {
         text-align: center;
-        margin-bottom: 15px;
+        margin-bottom: 20px;
         border-bottom: 2px solid #333;
-        padding-bottom: 10px;
+        padding-bottom: 15px;
       }
       .title {
-        font-size: 24px;
+        font-size: 22px;
         font-weight: bold;
-        margin-bottom: 8px;
+        margin-bottom: 10px;
+        color: #000;
       }
       .subtitle {
-        font-size: 14px;
+        font-size: 12px;
         color: #666;
-        margin-bottom: 3px;
+        margin-bottom: 5px;
       }
       .content {
-        margin-top: 10px;
+        margin-top: 15px;
         margin-bottom: 30px;
         overflow: visible;
         word-wrap: break-word;
@@ -227,44 +232,66 @@ function createPDFHtml(content: string, title: string, isAnswerSheet: boolean = 
         white-space: normal;
       }
       h1, h2, h3 {
-        color: #000000;
+        color: #000;
         font-weight: bold;
-        margin-top: 16px;
-        margin-bottom: 8px;
+        margin-top: 20px;
+        margin-bottom: 10px;
         display: block;
         clear: both;
+        page-break-after: avoid;
       }
-      h1 { font-size: 20px; margin-top: 20px; }
-      h2 { font-size: 18px; margin-top: 18px; }
-      h3 { font-size: 16px; margin-top: 16px; }
+      h1 { 
+        font-size: 18px; 
+        margin-top: 25px; 
+        border-bottom: 1px solid #ccc;
+        padding-bottom: 5px;
+      }
+      h2 { 
+        font-size: 16px; 
+        margin-top: 20px; 
+        color: #333;
+      }
+      h3 { 
+        font-size: 14px; 
+        margin-top: 15px; 
+        color: #555;
+      }
       p {
-        margin-bottom: 8px;
-        margin-top: 4px;
+        margin-bottom: 10px;
+        margin-top: 5px;
         text-align: justify;
-        line-height: 1.4;
+        line-height: 1.5;
         display: block;
         clear: both;
         word-wrap: break-word;
         overflow-wrap: break-word;
         white-space: normal;
         max-width: 100%;
+        font-size: 12px;
       }
       ul, ol {
-        margin-bottom: 8px;
-        margin-top: 4px;
-        padding-left: 20px;
+        margin-bottom: 10px;
+        margin-top: 5px;
+        padding-left: 25px;
       }
       li {
-        margin-bottom: 3px;
-        line-height: 1.3;
+        margin-bottom: 5px;
+        line-height: 1.4;
+        font-size: 12px;
       }
       strong {
         font-weight: bold;
+        color: #000;
       }
       em {
         font-style: italic;
       }
-
+      @media print {
+        body { 
+          -webkit-print-color-adjust: exact;
+          print-color-adjust: exact;
+        }
+      }
     </style>
   `;
 
@@ -313,20 +340,23 @@ function generatePDFFromHTML(content: string, title: string, filename: string, i
     filename: filename,
     image: { type: 'jpeg', quality: 0.98 },
     html2canvas: { 
-      scale: 1,
+      scale: 2, // Aumentar la escala para mejor calidad
       useCORS: true,
       allowTaint: true,
       backgroundColor: '#ffffff',
       height: null,
-      width: null
+      width: null,
+      letterRendering: true, // Mejorar renderizado de texto
+      logging: false
     },
     jsPDF: { 
       unit: 'mm', 
       format: 'a4', 
-      orientation: 'portrait'
+      orientation: 'portrait',
+      compress: true
     },
     pagebreak: { 
-      mode: []
+      mode: ['avoid-all', 'css', 'legacy']
     },
     enableLinks: false
   };
@@ -452,6 +482,65 @@ export function generatePDF(planeacion: any): void {
   // Generar PDF
   const title = cleanMarkdown(planeacion.titulo);
   const filename = `${title.replace(/[^a-zA-Z0-9\s]/g, '').replace(/\s+/g, '_')}_Planeacion.pdf`;
+  
+  generatePDFFromHTML(content, title, filename, false);
+}
+
+export function generateProyectoPDF(proyecto: any): void {
+  // Crear contenido en formato markdown para procesamiento consistente
+  let markdownContent = `# PROYECTO EDUCATIVO\n\n`;
+  
+  // Información básica
+  markdownContent += `## INFORMACIÓN GENERAL\n\n`;
+  markdownContent += `**Nombre del Proyecto:** ${cleanMarkdown(proyecto.nombre)}\n\n`;
+  markdownContent += `**Grupo:** ${cleanMarkdown(proyecto.grupos?.nombre || "No especificado")} - ${cleanMarkdown(proyecto.grupos?.grado || "")}° ${cleanMarkdown(proyecto.grupos?.nivel || "")}\n\n`;
+  markdownContent += `**Metodología:** ${cleanMarkdown(proyecto.metodologia_nem)}\n\n`;
+  markdownContent += `**Estado:** ${proyecto.estado.charAt(0).toUpperCase() + proyecto.estado.slice(1)}\n\n`;
+  
+  // Problemática
+  markdownContent += `## PROBLEMÁTICA\n\n`;
+  markdownContent += `${cleanMarkdown(proyecto.problematica)}\n\n`;
+  
+  // Producto Final
+  markdownContent += `## PRODUCTO FINAL\n\n`;
+  markdownContent += `${cleanMarkdown(proyecto.producto_final)}\n\n`;
+  
+  // PDAs Seleccionados
+  if (proyecto.proyecto_curriculo && proyecto.proyecto_curriculo.length > 0) {
+    markdownContent += `## PDAs SELECCIONADOS\n\n`;
+    proyecto.proyecto_curriculo.forEach((pc: any) => {
+      markdownContent += `### ${cleanMarkdown(pc.curriculo_sep?.campo_formativo || "Campo Formativo")}\n\n`;
+      markdownContent += `**PDA:** ${cleanMarkdown(pc.curriculo_sep?.pda || "")}\n\n`;
+      if (pc.curriculo_sep?.contenido) {
+        markdownContent += `${cleanMarkdown(pc.curriculo_sep.contenido)}\n\n`;
+      }
+    });
+  }
+  
+  // Fases del Proyecto
+  if (proyecto.proyecto_fases && proyecto.proyecto_fases.length > 0) {
+    markdownContent += `## FASES Y MOMENTOS DEL PROYECTO\n\n`;
+    proyecto.proyecto_fases
+      .sort((a: any, b: any) => a.orden - b.orden)
+      .forEach((fase: any) => {
+        markdownContent += `### ${cleanMarkdown(fase.fase_nombre)}\n\n`;
+        markdownContent += `**${cleanMarkdown(fase.momento_nombre)}**\n\n`;
+        markdownContent += `${cleanMarkdown(fase.contenido)}\n\n`;
+      });
+  } else {
+    markdownContent += `## FASES Y MOMENTOS DEL PROYECTO\n\n`;
+    markdownContent += `No se generaron fases para este proyecto.\n\n`;
+  }
+  
+  // Información adicional
+  markdownContent += `*Fecha de creación: ${new Date(proyecto.created_at).toLocaleDateString("es-MX")}*\n`;
+  
+  // Procesar todo el contenido de manera consistente
+  const content = markdownToHtml(markdownContent);
+  
+  // Generar PDF
+  const title = cleanMarkdown(proyecto.nombre);
+  const filename = `${title.replace(/[^a-zA-Z0-9\s]/g, '').replace(/\s+/g, '_')}_Proyecto.pdf`;
   
   generatePDFFromHTML(content, title, filename, false);
 }

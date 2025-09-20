@@ -1,6 +1,7 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
+import { useSearchParams } from "next/navigation"
 import { AppSidebar } from "./app-sidebar"
 import { DashboardHome } from "./sections/dashboard-home"
 import { NuevaPlaneacion } from "./sections/nueva-planeacion"
@@ -25,6 +26,8 @@ import EnvioCorreos from "./sections/envio-correos"
 import { Dosificacion } from "./sections/dosificacion"
 import { BetaTestersAdmin } from "./sections/beta-testers-admin"
 import { BetaFeaturesDemo } from "./sections/beta-features-demo"
+import { ListaProyectos } from "./sections/lista-proyectos"
+import { ProyectoWizard } from "./sections/proyecto-wizard"
 import { WelcomeMessage } from "./ui/welcome-message"
 import { SidebarInset, SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar"
 import { Separator } from "@/components/ui/separator"
@@ -38,8 +41,22 @@ import {
 } from "@/components/ui/breadcrumb"
 import { useRoles } from "@/hooks/use-roles"
 
-export default function Dashboard() {
+interface DashboardProps {
+  children?: React.ReactNode
+  customContent?: boolean
+}
+
+export default function Dashboard({ children, customContent = false }: DashboardProps = {}) {
+  const searchParams = useSearchParams()
   const [activeSection, setActiveSection] = useState("dashboard")
+
+  // Leer parámetro de sección de la URL para proyectos (mantener compatibilidad)
+  useEffect(() => {
+    const section = searchParams.get('section')
+    if (section === 'proyectos' || section === 'crear-proyecto') {
+      setActiveSection(section)
+    }
+  }, [searchParams])
   const [preselectedStudent, setPreselectedStudent] = useState<any>(null)
   const [selectedStudentForMessages, setSelectedStudentForMessages] = useState<any>(null)
   const [initialChatMessage, setInitialChatMessage] = useState<string>("")
@@ -139,6 +156,8 @@ export default function Dashboard() {
         return "Funcionalidades Beta"
       case "dosificacion":
         return "Dosificación"
+      case "proyectos":
+        return "Proyectos"
       default:
         return "Dashboard"
     }
@@ -251,6 +270,10 @@ export default function Dashboard() {
           onCreateNew={() => setActiveSection("dosificacion")} 
           onNavigateToChatDosificacion={handleNavigateToChatDosificacion}
         />
+      case "proyectos":
+        return <ListaProyectos />
+      case "crear-proyecto":
+        return <ProyectoWizard onComplete={() => setActiveSection("proyectos")} />
       default:
         return <DashboardHome onSectionChange={setActiveSection} />
     }
@@ -282,7 +305,7 @@ export default function Dashboard() {
           <div
             className={isChat ? "flex-1 h-full p-4" : "min-h-[100vh] flex-1 rounded-xl bg-muted/50 md:min-h-min p-6"}
           >
-            {!isChat && <WelcomeMessage />}
+            {!isChat && !customContent && <WelcomeMessage />}
             {renderContent()}
           </div>
         </div>

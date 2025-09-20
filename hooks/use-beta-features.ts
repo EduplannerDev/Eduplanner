@@ -68,7 +68,7 @@ export function useBetaFeatures() {
 
         // Obtener funcionalidades beta del usuario
         const { data: features, error: featuresError } = await supabase
-          .rpc('get_user_beta_features', { user_id: user.id })
+          .rpc('get_user_beta_features', { p_user_id: user.id })
 
         if (featuresError) {
           throw new Error(`Error al obtener features beta: ${featuresError.message}`)

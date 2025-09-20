@@ -75,6 +75,7 @@ const menuStructure = {
         url: "#dosificacion",
         description: "Gestión de dosificación curricular",
       },
+      // Proyectos solo para beta testers - se maneja condicionalmente más abajo
     ],
   },
   gestionAula: {
@@ -125,7 +126,6 @@ export function AppSidebar({ activeSection, onSectionChange, ...props }: AppSide
   const { userData } = useUserData(user?.id)
   const { isAdmin, isDirector } = useRoles()
   const { isBetaTester } = useBetaTesterCheck()
-  console.log('Sidebar - isBetaTester value:', isBetaTester)
   const { state, setOpenMobile } = useSidebar()
   const isMobile = useIsMobile()
   
@@ -133,6 +133,7 @@ export function AppSidebar({ activeSection, onSectionChange, ...props }: AppSide
   const [expandedSections, setExpandedSections] = useState<Record<string, boolean>>({
     planeaciones: false,
     examenes: false,
+    proyectos: false,
     mensajes: false,
   })
 
@@ -150,6 +151,15 @@ export function AppSidebar({ activeSection, onSectionChange, ...props }: AppSide
       ...prev,
       [sectionKey]: !prev[sectionKey]
     }))
+  }
+
+  // Función helper para obtener la clave de la sección
+  const getSectionKey = (title: string) => {
+    if (title.includes('Planeaciones')) return 'planeaciones'
+    if (title.includes('Exámenes')) return 'examenes'
+    if (title.includes('Proyectos')) return 'proyectos'
+    if (title.includes('Mensajes')) return 'mensajes'
+    return 'default'
   }
 
   // Función para manejar la navegación y cerrar el sidebar en móvil
@@ -217,14 +227,14 @@ export function AppSidebar({ activeSection, onSectionChange, ...props }: AppSide
                   {section.items ? (
                     state === "expanded" ? (
                       <Collapsible
-                        open={expandedSections[section.title.includes('Planeaciones') ? 'planeaciones' : 'examenes']}
-                        onOpenChange={() => toggleSection(section.title.includes('Planeaciones') ? 'planeaciones' : 'examenes')}
+                        open={expandedSections[getSectionKey(section.title)]}
+                        onOpenChange={() => toggleSection(getSectionKey(section.title))}
                       >
                         <CollapsibleTrigger asChild>
                           <SidebarMenuButton className="w-full">
                             <section.icon className="h-4 w-4" />
                             <span>{section.title}</span>
-                            {expandedSections[section.title.includes('Planeaciones') ? 'planeaciones' : 'examenes'] ? (
+                            {expandedSections[getSectionKey(section.title)] ? (
                               <ChevronDown className="h-4 w-4 ml-auto" />
                             ) : (
                               <ChevronRight className="h-4 w-4 ml-auto" />
@@ -286,6 +296,80 @@ export function AppSidebar({ activeSection, onSectionChange, ...props }: AppSide
                    )}
                 </SidebarMenuItem>
               ))}
+              
+              {/* Proyectos - Solo para beta testers */}
+              {isBetaTester && (
+                <SidebarMenuItem>
+                  {state === "expanded" ? (
+                    <Collapsible
+                      open={expandedSections.proyectos}
+                      onOpenChange={() => toggleSection('proyectos')}
+                    >
+                      <CollapsibleTrigger asChild>
+                        <SidebarMenuButton className="w-full">
+                          <Bot className="h-4 w-4" />
+                          <span>Proyectos</span>
+                          {expandedSections.proyectos ? (
+                            <ChevronDown className="h-4 w-4 ml-auto" />
+                          ) : (
+                            <ChevronRight className="h-4 w-4 ml-auto" />
+                          )}
+                        </SidebarMenuButton>
+                      </CollapsibleTrigger>
+                      <CollapsibleContent>
+                        <SidebarMenuSub>
+                          <SidebarMenuSubItem>
+                            <SidebarMenuSubButton
+                              asChild
+                              isActive={activeSection === "crear-proyecto"}
+                            >
+                              <button onClick={() => handleNavigation("crear-proyecto")} className="w-full">
+                                <span>Crear Proyecto</span>
+                              </button>
+                            </SidebarMenuSubButton>
+                          </SidebarMenuSubItem>
+                          <SidebarMenuSubItem>
+                            <SidebarMenuSubButton
+                              asChild
+                              isActive={activeSection === "proyectos"}
+                            >
+                              <button onClick={() => handleNavigation("proyectos")} className="w-full">
+                                <span>Mis Proyectos</span>
+                              </button>
+                            </SidebarMenuSubButton>
+                          </SidebarMenuSubItem>
+                        </SidebarMenuSub>
+                      </CollapsibleContent>
+                    </Collapsible>
+                  ) : (
+                    <Popover>
+                      <PopoverTrigger asChild>
+                        <SidebarMenuButton
+                          tooltip="Proyectos"
+                        >
+                          <Bot className="h-4 w-4" />
+                        </SidebarMenuButton>
+                      </PopoverTrigger>
+                      <PopoverContent side="right" className="w-48 p-2">
+                        <div className="space-y-1">
+                          <button
+                            onClick={() => handleNavigation("crear-proyecto")}
+                            className="w-full text-left px-2 py-1 text-sm hover:bg-accent hover:text-accent-foreground rounded-sm transition-colors"
+                          >
+                            Crear Proyecto
+                          </button>
+                          <button
+                            onClick={() => handleNavigation("proyectos")}
+                            className="w-full text-left px-2 py-1 text-sm hover:bg-accent hover:text-accent-foreground rounded-sm transition-colors"
+                          >
+                            Mis Proyectos
+                          </button>
+                        </div>
+                      </PopoverContent>
+                    </Popover>
+                  )}
+                </SidebarMenuItem>
+              )}
             </SidebarMenu>
           </SidebarGroupContent>
         </SidebarGroup>
@@ -336,21 +420,6 @@ export function AppSidebar({ activeSection, onSectionChange, ...props }: AppSide
                   </SidebarMenuButton>
                 </SidebarMenuItem>
               ))}
-              {/* Funcionalidades Beta - Solo para beta testers */}
-              {isBetaTester && (
-                <SidebarMenuItem>
-                  <SidebarMenuButton
-                    asChild
-                    isActive={activeSection === "beta-features"}
-                    tooltip="Explora las nuevas funcionalidades beta disponibles"
-                  >
-                    <button onClick={() => handleNavigation("beta-features")} className="w-full">
-                      <Sparkles className="h-4 w-4" />
-                      <span>Funcionalidades Beta</span>
-                    </button>
-                  </SidebarMenuButton>
-                </SidebarMenuItem>
-              )}
             </SidebarMenu>
           </SidebarGroupContent>
         </SidebarGroup>
