@@ -523,3 +523,357 @@ export async function generateDocx(planeacion: any): Promise<void> {
     throw new Error(`Error al generar el documento Word: ${(error as Error).message ?? 'Unknown error'}`);
   }
 }
+
+export async function generateProyectoDocx(proyecto: any): Promise<void> {
+  try {
+    // Validar que proyecto existe y es un objeto
+    if (!proyecto || typeof proyecto !== 'object') {
+      throw new Error('Datos de proyecto inválidos');
+    }
+
+    // Crear los elementos del documento
+    const documentChildren: Paragraph[] = [];
+    
+    // Función helper para agregar espacios de manera consistente
+    const addSpacing = () => {
+      documentChildren.push(new Paragraph({ 
+        children: [new TextRun("")],
+        spacing: { after: 200 }
+      }));
+    };
+    
+    try {
+      // Título principal
+      const titulo = proyecto.nombre || "Proyecto Educativo";
+      documentChildren.push(new Paragraph({
+        children: processMarkdownText(titulo),
+        heading: HeadingLevel.HEADING_1,
+        alignment: AlignmentType.CENTER,
+        spacing: {
+          after: 400
+        }
+      }));
+      
+      addSpacing();
+      
+      // Información general
+      documentChildren.push(new Paragraph({
+        children: [new TextRun("INFORMACIÓN GENERAL")],
+        heading: HeadingLevel.HEADING_2,
+        spacing: {
+          before: 240,
+          after: 120
+        }
+      }));
+      
+      // Información básica con validación
+      const infoItems = [
+        `Nombre del Proyecto: ${String(proyecto.nombre || "No especificado")}`,
+        `Grupo: ${String(proyecto.grupos?.nombre || "No especificado")} - ${String(proyecto.grupos?.grado || "")}° ${String(proyecto.grupos?.nivel || "")}`,
+        `Metodología: ${String(proyecto.metodologia_nem || "No especificada")}`,
+        `Estado: ${proyecto.estado ? String(proyecto.estado).charAt(0).toUpperCase() + String(proyecto.estado).slice(1) : "No especificado"}`
+      ];
+      
+      infoItems.forEach(item => {
+        try {
+          documentChildren.push(new Paragraph({
+            children: processMarkdownText(item),
+            spacing: {
+              after: 120
+            }
+          }));
+        } catch (itemError) {
+          console.warn('Error procesando item de información:', itemError);
+          documentChildren.push(new Paragraph({
+            children: [new TextRun("Error procesando información")],
+            spacing: { after: 120 }
+          }));
+        }
+      });
+      
+      addSpacing();
+      
+      // Problemática
+      if (proyecto.problematica) {
+        try {
+          documentChildren.push(new Paragraph({
+            children: [new TextRun("PROBLEMÁTICA")],
+            heading: HeadingLevel.HEADING_2,
+            spacing: {
+              before: 240,
+              after: 120
+            }
+          }));
+          
+          documentChildren.push(new Paragraph({
+            children: processMarkdownText(String(proyecto.problematica)),
+            spacing: {
+              after: 200
+            }
+          }));
+        } catch (problematicaError) {
+          console.warn('Error procesando problemática:', problematicaError);
+        }
+      }
+      
+      // Producto Final
+      if (proyecto.producto_final) {
+        try {
+          documentChildren.push(new Paragraph({
+            children: [new TextRun("PRODUCTO FINAL")],
+            heading: HeadingLevel.HEADING_2,
+            spacing: {
+              before: 240,
+              after: 120
+            }
+          }));
+          
+          documentChildren.push(new Paragraph({
+            children: processMarkdownText(String(proyecto.producto_final)),
+            spacing: {
+              after: 200
+            }
+          }));
+        } catch (productoError) {
+          console.warn('Error procesando producto final:', productoError);
+        }
+      }
+      
+      // PDAs Seleccionados
+      if (proyecto.proyecto_curriculo && Array.isArray(proyecto.proyecto_curriculo) && proyecto.proyecto_curriculo.length > 0) {
+        try {
+          documentChildren.push(new Paragraph({
+            children: [new TextRun("PDAs SELECCIONADOS")],
+            heading: HeadingLevel.HEADING_2,
+            spacing: {
+              before: 240,
+              after: 120
+            }
+          }));
+          
+          proyecto.proyecto_curriculo.forEach((pc: any) => {
+            try {
+              if (pc.curriculo_sep) {
+                // Campo formativo
+                documentChildren.push(new Paragraph({
+                  children: processMarkdownText(String(pc.curriculo_sep.campo_formativo || "Campo Formativo")),
+                  heading: HeadingLevel.HEADING_3,
+                  spacing: {
+                    before: 200,
+                    after: 120
+                  }
+                }));
+                
+                // PDA
+                if (pc.curriculo_sep.pda) {
+                  documentChildren.push(new Paragraph({
+                    children: [
+                      new TextRun({
+                        text: "PDA: ",
+                        bold: true
+                      }),
+                      ...processMarkdownText(String(pc.curriculo_sep.pda))
+                    ],
+                    spacing: {
+                      after: 120
+                    }
+                  }));
+                }
+                
+                // Contenido
+                if (pc.curriculo_sep.contenido) {
+                  documentChildren.push(new Paragraph({
+                    children: processMarkdownText(String(pc.curriculo_sep.contenido)),
+                    spacing: {
+                      after: 200
+                    }
+                  }));
+                }
+              }
+            } catch (pdaError) {
+              console.warn('Error procesando PDA:', pdaError);
+            }
+          });
+        } catch (pdasError) {
+          console.warn('Error procesando PDAs:', pdasError);
+        }
+      }
+      
+      // Fases del Proyecto
+      if (proyecto.proyecto_fases && Array.isArray(proyecto.proyecto_fases) && proyecto.proyecto_fases.length > 0) {
+        try {
+          documentChildren.push(new Paragraph({
+            children: [new TextRun("FASES Y MOMENTOS DEL PROYECTO")],
+            heading: HeadingLevel.HEADING_2,
+            spacing: {
+              before: 240,
+              after: 120
+            }
+          }));
+          
+          // Ordenar fases por orden
+          const fasesOrdenadas = [...proyecto.proyecto_fases].sort((a: any, b: any) => (a.orden || 0) - (b.orden || 0));
+          
+          fasesOrdenadas.forEach((fase: any) => {
+            try {
+              // Nombre de la fase
+              if (fase.fase_nombre) {
+                documentChildren.push(new Paragraph({
+                  children: processMarkdownText(String(fase.fase_nombre)),
+                  heading: HeadingLevel.HEADING_3,
+                  spacing: {
+                    before: 200,
+                    after: 120
+                  }
+                }));
+              }
+              
+              // Momento
+              if (fase.momento_nombre) {
+                documentChildren.push(new Paragraph({
+                  children: [
+                    new TextRun({
+                      text: String(fase.momento_nombre),
+                      bold: true
+                    })
+                  ],
+                  spacing: {
+                    after: 120
+                  }
+                }));
+              }
+              
+              // Contenido
+              if (fase.contenido) {
+                documentChildren.push(new Paragraph({
+                  children: processMarkdownText(String(fase.contenido)),
+                  spacing: {
+                    after: 200
+                  }
+                }));
+              }
+            } catch (faseError) {
+              console.warn('Error procesando fase:', faseError);
+            }
+          });
+        } catch (fasesError) {
+          console.warn('Error procesando fases:', fasesError);
+        }
+      } else {
+        // Si no hay fases
+        try {
+          documentChildren.push(new Paragraph({
+            children: [new TextRun("FASES Y MOMENTOS DEL PROYECTO")],
+            heading: HeadingLevel.HEADING_2,
+            spacing: {
+              before: 240,
+              after: 120
+            }
+          }));
+          
+          documentChildren.push(new Paragraph({
+            children: [new TextRun("No se generaron fases para este proyecto.")],
+            spacing: {
+              after: 200
+            }
+          }));
+        } catch (noFasesError) {
+          console.warn('Error procesando mensaje de no fases:', noFasesError);
+        }
+      }
+      
+    } catch (contentError) {
+      console.warn('Error procesando contenido del proyecto:', contentError);
+      documentChildren.push(new Paragraph({
+        children: [new TextRun("Error procesando contenido del proyecto")],
+        spacing: { after: 200 }
+      }));
+    }
+    
+    // Información de generación
+    try {
+      const currentDate = new Date().toLocaleDateString("es-MX");
+      documentChildren.push(new Paragraph({
+        children: [
+          new TextRun({
+            text: `Generado por EduPlanner el ${currentDate}`,
+            italics: true,
+            size: 20 // 10pt
+          })
+        ],
+        alignment: AlignmentType.CENTER,
+        spacing: {
+          before: 400
+        }
+      }));
+      
+      if (proyecto.created_at) {
+        try {
+          const createdDate = new Date(proyecto.created_at).toLocaleDateString("es-MX");
+          documentChildren.push(new Paragraph({
+            children: [
+              new TextRun({
+                text: `Fecha de creación: ${createdDate}`,
+                italics: true,
+                size: 20 // 10pt
+              })
+            ],
+            alignment: AlignmentType.CENTER
+          }));
+        } catch (dateError) {
+          console.warn('Error procesando fecha de creación:', dateError);
+        }
+      }
+    } catch (footerError) {
+      console.warn('Error agregando información de generación:', footerError);
+    }
+    
+    // Crear el documento
+    const doc = new Document({
+      sections: [
+        {
+          properties: {
+            page: {
+              margin: {
+                top: 1440,    // 1 pulgada
+                right: 1440,  // 1 pulgada
+                bottom: 1440, // 1 pulgada
+                left: 1440,   // 1 pulgada
+              },
+            },
+          },
+          children: documentChildren,
+        },
+       ],
+     });
+
+    const buffer = await Packer.toBuffer(doc);
+
+    const blob = new Blob([buffer], { type: "application/vnd.openxmlformats-officedocument.wordprocessingml.document" });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    
+    // Crear nombre de archivo más limpio
+    try {
+      const safeFilename = String(proyecto.nombre || "Proyecto")
+        .replace(/[^a-zA-Z0-9\s]/g, '')
+        .replace(/\s+/g, '_')
+        .substring(0, 50);
+      
+      link.download = `${safeFilename}_Proyecto.docx`;
+    } catch (filenameError) {
+      console.warn('Error creando nombre de archivo:', filenameError);
+      link.download = "Proyecto.docx";
+    }
+    
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+    
+  } catch (error) {
+    console.error('Error generando documento Word del proyecto:', error);
+    throw new Error(`Error al generar el documento Word del proyecto: ${(error as Error).message ?? 'Unknown error'}`);
+  }
+}

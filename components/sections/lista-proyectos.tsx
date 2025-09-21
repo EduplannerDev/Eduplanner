@@ -119,11 +119,13 @@ export function ListaProyectos() {
           variant: "default"
         })
       } else if (format === "docx") {
-        // Para DOCX, necesitaremos crear una función similar a generateDocx
-        // Por ahora, mostraremos un mensaje de que está en desarrollo
+        // Usar la nueva función de generación de Word para proyectos
+        const { generateProyectoDocx } = await import('@/lib/docx-generator')
+        await generateProyectoDocx(proyecto)
+        
         toast({
-          title: "Función en desarrollo",
-          description: "La descarga en formato DOCX estará disponible próximamente.",
+          title: "Documento Word descargado",
+          description: `El proyecto "${proyecto.nombre}" se ha descargado en formato Word exitosamente.`,
           variant: "default"
         })
       }
