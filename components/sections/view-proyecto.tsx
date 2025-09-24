@@ -3,9 +3,18 @@
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
-import { ArrowLeft, BookOpen, Users, Calendar, Target, Lightbulb, Loader2 } from 'lucide-react'
+import { ArrowLeft, BookOpen, Users, Calendar, Target, Lightbulb, Loader2, CheckSquare } from 'lucide-react'
+import { toast } from 'sonner'
+import { useRouter } from 'next/navigation'
 import { useProyectos } from '@/hooks/use-proyectos'
 import { useState, useEffect } from 'react'
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog"
 
 interface ViewProyectoProps {
   proyectoId: string
@@ -37,12 +46,15 @@ interface ProyectoCompleto {
 }
 
 export function ViewProyecto({ proyectoId, onBack }: ViewProyectoProps) {
+  const router = useRouter()
   const { obtenerProyecto, obtenerFasesProyecto, loading, error } = useProyectos()
   const [proyecto, setProyecto] = useState<ProyectoCompleto | null>(null)
   const [fases, setFases] = useState<ProyectoFase[]>([])
   const [loadingFases, setLoadingFases] = useState(false)
   const [initialLoading, setInitialLoading] = useState(true)
   const [hasError, setHasError] = useState(false)
+  const [showInstrumentDialog, setShowInstrumentDialog] = useState(false)
+  const [generatingRubrica, setGeneratingRubrica] = useState(false)
 
   useEffect(() => {
     cargarProyecto()
@@ -121,6 +133,58 @@ export function ViewProyecto({ proyectoId, onBack }: ViewProyectoProps) {
     )
   }
 
+  // Pantalla de espera "Magia de la IA" para generación de rúbrica
+  if (generatingRubrica) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center">
+        <div className="text-center max-w-2xl mx-auto p-8">
+          <div className="mb-8">
+            <h1 className="text-4xl font-bold text-gray-900 mb-4">
+              ✨ Magia de la IA ✨
+            </h1>
+            <p className="text-lg text-gray-600">
+              La IA está generando tu rúbrica analítica personalizada
+            </p>
+          </div>
+          
+          <Card>
+            <CardHeader>
+              <CardTitle>Generación con IA</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="text-center space-y-4">
+                <div className="flex justify-center">
+                  <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+                </div>
+                <div className="space-y-2">
+                  <p className="text-lg font-medium text-gray-900">
+                    🤖 Analizando tu proyecto con Gemini...
+                  </p>
+                  <p className="text-sm text-gray-600">
+                    Creando criterios de evaluación para: <strong>{proyecto?.nombre}</strong>
+                  </p>
+                </div>
+                
+                <div className="bg-blue-50 p-4 rounded-lg">
+                  <p className="text-sm text-blue-800">
+                    <strong>Procesando:</strong> Fases y momentos del proyecto
+                  </p>
+                  <p className="text-sm text-blue-800">
+                    <strong>Metodología:</strong> {proyecto?.metodologia_nem}
+                  </p>
+                  <p className="text-sm text-blue-800">
+                    <strong>Grupo:</strong> {proyecto?.grupos?.nombre} - {proyecto?.grupos?.grado}° {proyecto?.grupos?.nivel}
+                  </p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+          
+        </div>
+      </div>
+    )
+  }
+
   return (
     <div className="min-h-screen bg-gray-50">
       <div className="max-w-6xl mx-auto p-6">
@@ -140,9 +204,17 @@ export function ViewProyecto({ proyectoId, onBack }: ViewProyectoProps) {
               <h1 className="text-3xl font-bold text-gray-900">{proyecto.nombre}</h1>
               <p className="text-lg text-gray-600 mt-2">{proyecto.grupos.nombre} - {proyecto.grupos.grado}° {proyecto.grupos.nivel}</p>
             </div>
-            <Badge variant="outline" className="text-sm">
-              {proyecto.estado}
-            </Badge>
+            <div className="flex items-center gap-3">
+              <Button 
+                onClick={() => setShowInstrumentDialog(true)}
+                variant="default"
+                size="sm"
+                className="bg-blue-600 hover:bg-blue-700 text-white font-medium"
+              >
+                <BookOpen className="h-4 w-4 mr-2" />
+                Crear Instrumento de Evaluación
+              </Button>
+            </div>
           </div>
         </div>
 
@@ -225,6 +297,95 @@ export function ViewProyecto({ proyectoId, onBack }: ViewProyectoProps) {
           </CardContent>
         </Card>
       </div>
+    
+      {/* Modal de selección de tipo de instrumento */}
+      <Dialog open={showInstrumentDialog} onOpenChange={setShowInstrumentDialog}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>¿Qué tipo de instrumento quieres crear?</DialogTitle>
+            <DialogDescription>
+              Selecciona el tipo de instrumento de evaluación que deseas crear para este proyecto.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="grid grid-cols-1 gap-4 py-4">
+            <Button 
+              onClick={async () => {
+                setShowInstrumentDialog(false);
+                setGeneratingRubrica(true);
+                
+                try {
+                  toast.info("Generando rúbrica analítica...", {
+                    description: "Esto puede tomar unos segundos",
+                    duration: 3000
+                  });
+                  
+                  const response = await fetch('/api/generate-rubrica', {
+                    method: 'POST',
+                    headers: {
+                      'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                      proyecto_id: proyectoId
+                    }),
+                    cache: 'no-store'
+                  });
+                  
+                  if (!response.ok) {
+                    throw new Error(`Error: ${response.status}`);
+                  }
+                  
+                  const data = await response.json();
+                  
+                  if (data.error) {
+                    throw new Error(data.error);
+                  }
+                  
+                  toast.success("¡Rúbrica generada con éxito!", {
+                    description: "Ya puedes utilizarla para evaluar el proyecto"
+                  });
+                  
+                  // Aquí se implementaría la redirección a la vista de la rúbrica
+                  // Por ahora, solo mostramos un mensaje de éxito
+                  
+                } catch (error) {
+                  console.error("Error al generar la rúbrica:", error);
+                  toast.error("Error al generar la rúbrica", {
+                    description: error instanceof Error ? error.message : "Ocurrió un error inesperado"
+                  });
+                } finally {
+                  setGeneratingRubrica(false);
+                }
+              }}
+              className="flex items-center justify-center gap-2 h-16"
+              variant="outline"
+              disabled={generatingRubrica}
+            >
+              {generatingRubrica ? (
+                <Loader2 className="h-5 w-5 animate-spin text-blue-600" />
+              ) : (
+                <BookOpen className="h-5 w-5 text-blue-600" />
+              )}
+              <span className="font-medium">
+                {generatingRubrica ? "Generando..." : "Rúbrica Analítica"}
+              </span>
+            </Button>
+            
+            <Button 
+              onClick={() => {
+                alert("Lista de Cotejo - Función futura");
+                setShowInstrumentDialog(false);
+              }}
+              className="flex items-center justify-center gap-2 h-16"
+              variant="outline"
+              disabled
+            >
+              <CheckSquare className="h-5 w-5 text-gray-400" />
+              <span className="font-medium">Lista de Cotejo</span>
+              <span className="text-xs bg-gray-200 px-2 py-1 rounded-full">Próximamente</span>
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   )
 }
