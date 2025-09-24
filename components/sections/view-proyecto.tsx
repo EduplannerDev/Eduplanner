@@ -3,7 +3,8 @@
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
-import { ArrowLeft, BookOpen, Users, Calendar, Target, Lightbulb, Loader2, CheckSquare } from 'lucide-react'
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
+import { ArrowLeft, BookOpen, Users, Calendar, Target, Lightbulb, Loader2, CheckSquare, FileText, FolderOpen, ClipboardList, ArrowRight, Plus, X, Bot, Trash2 } from 'lucide-react'
 import { toast } from 'sonner'
 import { useRouter } from 'next/navigation'
 import { useProyectos } from '@/hooks/use-proyectos'
@@ -15,6 +16,23 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog"
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog"
+import { Input } from "@/components/ui/input"
+import { Label } from "@/components/ui/label"
+import { Textarea } from "@/components/ui/textarea"
+import { Checkbox } from "@/components/ui/checkbox"
+import { ScrollArea } from "@/components/ui/scroll-area"
+import { generateRubricaPDF, generateListaCotejoPDF } from "@/lib/pdf-generator"
 
 interface ViewProyectoProps {
   proyectoId: string
@@ -27,6 +45,18 @@ interface ProyectoFase {
   momento_nombre: string
   contenido: string
   orden: number
+}
+
+interface InstrumentoEvaluacion {
+  id: string
+  proyecto_id: string
+  user_id: string
+  tipo: 'rubrica_analitica' | 'lista_cotejo' | 'escala_estimacion'
+  titulo: string
+  contenido: any
+  estado: 'borrador' | 'activo' | 'archivado'
+  created_at: string
+  updated_at: string
 }
 
 interface ProyectoCompleto {
@@ -45,6 +75,150 @@ interface ProyectoCompleto {
   fases: ProyectoFase[]
 }
 
+// Componente para visualizar rúbricas analíticas
+function RubricaViewer({ contenido }: { contenido: any }) {
+  if (!contenido || !contenido.criterios) {
+    return (
+      <div className="text-center py-8 text-muted-foreground">
+        <BookOpen className="h-12 w-12 mx-auto mb-4 opacity-50" />
+        <p>No se pudo cargar el contenido de la rúbrica</p>
+      </div>
+    )
+  }
+
+  const niveles = ['Sobresaliente', 'Logrado', 'En Proceso', 'Requiere Apoyo']
+  const colores = {
+    'Sobresaliente': 'bg-green-50 border-green-200',
+    'Logrado': 'bg-blue-50 border-blue-200', 
+    'En Proceso': 'bg-yellow-50 border-yellow-200',
+    'Requiere Apoyo': 'bg-red-50 border-red-200'
+  }
+
+  return (
+    <div className="space-y-6">
+      {/* Título de la rúbrica */}
+      {contenido.titulo_rubrica && (
+        <div className="text-center">
+          <h3 className="text-xl font-semibold text-gray-900 mb-2">
+            {contenido.titulo_rubrica}
+          </h3>
+        </div>
+      )}
+
+      {/* Tabla de rúbrica */}
+      <div className="w-full overflow-x-auto border rounded-lg">
+        <table className="w-full border-collapse">
+          <thead>
+            <tr className="bg-gray-50">
+              <th className="border border-gray-300 p-4 text-left font-semibold min-w-[250px] sticky left-0 bg-gray-50 z-10">
+                Criterio de Evaluación
+              </th>
+              {niveles.map((nivel) => (
+                <th key={nivel} className="border border-gray-300 p-4 text-center font-semibold min-w-[220px]">
+                  {nivel}
+                </th>
+              ))}
+            </tr>
+          </thead>
+          <tbody>
+            {contenido.criterios.map((criterio: any, index: number) => (
+              <tr key={index} className="hover:bg-gray-50">
+                <td className="border border-gray-300 p-4 font-medium bg-gray-50 sticky left-0 z-10">
+                  <div className="space-y-3">
+                    <div className="font-semibold text-gray-900 text-sm leading-relaxed">
+                      {criterio.criterio}
+                    </div>
+                    {criterio.pda_origen && (
+                      <div className="text-xs text-gray-600 bg-purple-50 p-2 rounded border-l-2 border-purple-200">
+                        <strong>PDA:</strong> {criterio.pda_origen}
+                      </div>
+                    )}
+                  </div>
+                </td>
+                {niveles.map((nivel) => (
+                  <td key={nivel} className={`border border-gray-300 p-4 text-sm leading-relaxed ${colores[nivel as keyof typeof colores]} align-top`}>
+                    <div className="whitespace-pre-wrap">
+                      {criterio.descriptores[nivel] || 'No definido'}
+                    </div>
+                  </td>
+                ))}
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+      
+      {/* Información adicional */}
+      <div className="text-sm text-gray-600 bg-blue-50 p-4 rounded-lg border-l-4 border-blue-200">
+        <p><strong>Nota:</strong> Esta rúbrica contiene {contenido.criterios.length} criterio{contenido.criterios.length !== 1 ? 's' : ''} de evaluación con 4 niveles de desempeño cada uno.</p>
+      </div>
+    </div>
+  )
+}
+
+// Componente para visualizar listas de cotejo
+function ListaCotejoViewer({ contenido }: { contenido: any }) {
+  if (!contenido || !contenido.criterios) {
+    return (
+      <div className="text-center py-8 text-muted-foreground">
+        <ClipboardList className="h-12 w-12 mx-auto mb-4 opacity-50" />
+        <p>No se pudo cargar el contenido de la lista de cotejo</p>
+      </div>
+    )
+  }
+
+  return (
+    <div className="space-y-6">
+      {/* Título */}
+      {contenido.titulo && (
+        <div className="text-center">
+          <h3 className="text-xl font-semibold text-gray-900 mb-2">
+            {contenido.titulo}
+          </h3>
+        </div>
+      )}
+
+      {/* Lista de criterios */}
+      <div className="space-y-4">
+        {contenido.criterios.map((criterio: any, index: number) => (
+          <Card key={index} className="p-5 hover:shadow-md transition-shadow">
+            <div className="flex items-start gap-4">
+              <div className="flex-shrink-0 mt-1">
+                <div className="w-6 h-6 border-2 border-gray-400 rounded bg-white shadow-sm"></div>
+              </div>
+              <div className="flex-1 space-y-3">
+                <div className="flex items-start justify-between">
+                  <h4 className="font-semibold text-gray-900 text-base leading-relaxed">
+                    {criterio.criterio}
+                  </h4>
+                  <Badge variant="outline" className="ml-2 text-xs">
+                    #{index + 1}
+                  </Badge>
+                </div>
+                {criterio.descripcion && (
+                  <p className="text-sm text-gray-600 leading-relaxed">
+                    {criterio.descripcion}
+                  </p>
+                )}
+                {criterio.pda_origen && (
+                  <div className="text-xs text-gray-600 bg-purple-50 p-3 rounded border-l-4 border-purple-200">
+                    <strong>PDA:</strong> {criterio.pda_origen}
+                  </div>
+                )}
+              </div>
+            </div>
+          </Card>
+        ))}
+      </div>
+      
+      {/* Información adicional */}
+      <div className="text-sm text-gray-600 bg-blue-50 p-4 rounded-lg border-l-4 border-blue-200">
+        <p><strong>Nota:</strong> Esta lista de cotejo contiene {contenido.criterios.length} criterio{contenido.criterios.length !== 1 ? 's' : ''} de evaluación para verificar.</p>
+      </div>
+    </div>
+  )
+}
+
 export function ViewProyecto({ proyectoId, onBack }: ViewProyectoProps) {
   const router = useRouter()
   const { obtenerProyecto, obtenerFasesProyecto, loading, error } = useProyectos()
@@ -55,9 +229,35 @@ export function ViewProyecto({ proyectoId, onBack }: ViewProyectoProps) {
   const [hasError, setHasError] = useState(false)
   const [showInstrumentDialog, setShowInstrumentDialog] = useState(false)
   const [generatingRubrica, setGeneratingRubrica] = useState(false)
+  const [instrumentos, setInstrumentos] = useState<InstrumentoEvaluacion[]>([])
+  const [activeTab, setActiveTab] = useState('plano-didactico')
+  
+  // Estado para el modal de crear instrumento
+  const [modalStep, setModalStep] = useState<'form' | 'criteria'>('form')
+  const [instrumentForm, setInstrumentForm] = useState({
+    titulo: '',
+    tipo: '' as 'rubrica_analitica' | 'lista_cotejo' | '',
+    descripcion: ''
+  })
+  const [formErrors, setFormErrors] = useState({
+    titulo: '',
+    tipo: ''
+  })
+  
+  // Estado para PDAs y criterios personalizados
+  const [pdasProyecto, setPdasProyecto] = useState<any[]>([])
+  const [pdasSeleccionados, setPdasSeleccionados] = useState<string[]>([])
+  const [criteriosPersonalizados, setCriteriosPersonalizados] = useState<string[]>([])
+  const [nuevoCriterio, setNuevoCriterio] = useState('')
+  const [loadingPdas, setLoadingPdas] = useState(false)
+  
+  // Estado para el modal de visualización de rúbricas
+  const [showViewDialog, setShowViewDialog] = useState(false)
+  const [instrumentoSeleccionado, setInstrumentoSeleccionado] = useState<InstrumentoEvaluacion | null>(null)
 
   useEffect(() => {
     cargarProyecto()
+    cargarInstrumentos()
   }, [proyectoId])
 
   const cargarProyecto = async () => {
@@ -67,22 +267,192 @@ export function ViewProyecto({ proyectoId, onBack }: ViewProyectoProps) {
     try {
       const proyectoData = await obtenerProyecto(proyectoId)
       if (proyectoData) {
-        setProyecto({
-          ...proyectoData,
-          fases: [] // Se cargará por separado
-        })
+        setProyecto(proyectoData)
         
-        // Cargar las fases del proyecto
-        await cargarFases()
+        // Cargar fases del proyecto
+        setLoadingFases(true)
+        const fasesData = await obtenerFasesProyecto(proyectoId)
+        setFases(fasesData || [])
       } else {
         setHasError(true)
+        toast.error('No se pudo cargar el proyecto')
       }
     } catch (error) {
-      console.error('Error cargando proyecto:', error)
+      console.error('Error al cargar proyecto:', error)
       setHasError(true)
+      toast.error('Error al cargar el proyecto')
     } finally {
       setInitialLoading(false)
+      setLoadingFases(false)
     }
+  }
+
+  const cargarInstrumentos = async () => {
+    try {
+      const response = await fetch(`/api/instrumentos-evaluacion?proyecto_id=${proyectoId}`)
+      if (response.ok) {
+        const data = await response.json()
+        setInstrumentos(data)
+      }
+    } catch (error) {
+      console.error('Error al cargar instrumentos:', error)
+    }
+  }
+
+  const cargarPdasProyecto = async () => {
+    setLoadingPdas(true)
+    try {
+      const response = await fetch(`/api/proyectos/${proyectoId}/pdas`)
+      if (response.ok) {
+        const data = await response.json()
+        setPdasProyecto(data)
+      } else {
+        toast.error('Error al cargar los PDAs del proyecto')
+      }
+    } catch (error) {
+      console.error('Error al cargar PDAs:', error)
+      toast.error('Error al cargar los PDAs del proyecto')
+    } finally {
+      setLoadingPdas(false)
+    }
+  }
+
+  const verInstrumento = (instrumento: InstrumentoEvaluacion) => {
+    setInstrumentoSeleccionado(instrumento)
+    setShowViewDialog(true)
+  }
+
+  const descargarPDF = () => {
+    if (!instrumentoSeleccionado) {
+      toast.error('No hay instrumento seleccionado')
+      return
+    }
+
+    console.log('Instrumento seleccionado para PDF:', instrumentoSeleccionado)
+    console.log('Contenido del instrumento:', instrumentoSeleccionado.contenido)
+
+    try {
+      if (instrumentoSeleccionado.tipo === 'rubrica_analitica') {
+        generateRubricaPDF(instrumentoSeleccionado)
+        toast.success('PDF de rúbrica descargado exitosamente')
+      } else if (instrumentoSeleccionado.tipo === 'lista_cotejo') {
+        generateListaCotejoPDF(instrumentoSeleccionado)
+        toast.success('PDF de lista de cotejo descargado exitosamente')
+      } else {
+        toast.error('Tipo de instrumento no soportado para descarga PDF')
+      }
+    } catch (error) {
+      console.error('Error al generar PDF:', error)
+      toast.error('Error al generar el PDF')
+    }
+  }
+
+  const togglePdaSelection = (pdaId: string) => {
+    setPdasSeleccionados(prev => 
+      prev.includes(pdaId) 
+        ? prev.filter(id => id !== pdaId)
+        : [...prev, pdaId]
+    )
+  }
+
+  const agregarCriterioPersonalizado = () => {
+    if (nuevoCriterio.trim()) {
+      setCriteriosPersonalizados(prev => [...prev, nuevoCriterio.trim()])
+      setNuevoCriterio('')
+    }
+  }
+
+  const eliminarCriterioPersonalizado = (index: number) => {
+    setCriteriosPersonalizados(prev => prev.filter((_, i) => i !== index))
+  }
+
+  const resetearSeleccionCriterios = () => {
+    setPdasSeleccionados([])
+    setCriteriosPersonalizados([])
+    setNuevoCriterio('')
+  }
+
+  const abrirModalCrearInstrumento = () => {
+    setShowInstrumentDialog(true)
+    resetInstrumentForm()
+    resetearSeleccionCriterios()
+    cargarPdasProyecto()
+  }
+
+  const editarInstrumento = (instrumento: InstrumentoEvaluacion) => {
+    // TODO: Implementar edición del instrumento
+    toast.info(`Editando: ${instrumento.titulo}`)
+    console.log('Editar instrumento:', instrumento)
+  }
+
+  const confirmarEliminarInstrumento = async (instrumento: InstrumentoEvaluacion) => {
+    try {
+      const response = await fetch(`/api/instrumentos-evaluacion/${instrumento.id}`, {
+        method: 'DELETE',
+      })
+
+      if (!response.ok) {
+        throw new Error('Error al eliminar el instrumento')
+      }
+
+      toast.success(`Instrumento "${instrumento.titulo}" eliminado correctamente`)
+      
+      // Recargar la lista de instrumentos
+      await cargarInstrumentos()
+    } catch (error) {
+      console.error('Error al eliminar instrumento:', error)
+      toast.error('Error al eliminar el instrumento')
+    }
+  }
+
+  // Funciones para el modal de crear instrumento
+  const resetInstrumentForm = () => {
+    setInstrumentForm({
+      titulo: '',
+      tipo: '',
+      descripcion: ''
+    })
+    setFormErrors({
+      titulo: '',
+      tipo: ''
+    })
+    setModalStep('form')
+  }
+
+  const handleCloseModal = () => {
+    setShowInstrumentDialog(false)
+    resetInstrumentForm()
+  }
+
+  const validateForm = () => {
+    const errors = {
+      titulo: '',
+      tipo: ''
+    }
+
+    if (!instrumentForm.titulo.trim()) {
+      errors.titulo = 'El título es obligatorio'
+    }
+
+    if (!instrumentForm.tipo) {
+      errors.tipo = 'Debe seleccionar un tipo de instrumento'
+    }
+
+    setFormErrors(errors)
+    return !errors.titulo && !errors.tipo
+  }
+
+  const handleNextStep = () => {
+    if (validateForm()) {
+      setModalStep('criteria')
+      if (pdasProyecto.length === 0) {
+        cargarPdasProyecto()
+      }
+    }
+  }
+
+  const handleBackStep = () => {
+    setModalStep('form')
   }
 
   const cargarFases = async () => {
@@ -199,191 +569,638 @@ export function ViewProyecto({ proyectoId, onBack }: ViewProyectoProps) {
             Volver a Proyectos
           </Button>
           
-          <div className="flex items-center justify-between">
-            <div>
-              <h1 className="text-3xl font-bold text-gray-900">{proyecto.nombre}</h1>
-              <p className="text-lg text-gray-600 mt-2">{proyecto.grupos.nombre} - {proyecto.grupos.grado}° {proyecto.grupos.nivel}</p>
-            </div>
-            <div className="flex items-center gap-3">
-              <Button 
-                onClick={() => setShowInstrumentDialog(true)}
-                variant="default"
-                size="sm"
-                className="bg-blue-600 hover:bg-blue-700 text-white font-medium"
-              >
-                <BookOpen className="h-4 w-4 mr-2" />
-                Crear Instrumento de Evaluación
-              </Button>
-            </div>
+          <div>
+            <h1 className="text-3xl font-bold text-gray-900">{proyecto.nombre}</h1>
+            <p className="text-lg text-gray-600 mt-2">{proyecto.grupos.nombre} - {proyecto.grupos.grado}° {proyecto.grupos.nivel}</p>
           </div>
         </div>
 
-        {/* Información del Proyecto */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
-          <Card>
-            <CardHeader className="pb-3">
-              <CardTitle className="flex items-center text-lg">
-                <Target className="h-5 w-5 mr-2 text-blue-600" />
-                Problemática
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <p className="text-gray-700 leading-relaxed">{proyecto.problematica}</p>
-            </CardContent>
-          </Card>
+        {/* Pestañas del Proyecto */}
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+          <TabsList className="grid w-full grid-cols-3">
+            <TabsTrigger value="plano-didactico" className="flex items-center gap-2">
+              <FileText className="h-4 w-4" />
+              Plano Didáctico
+            </TabsTrigger>
+            <TabsTrigger value="evaluacion" className="flex items-center gap-2">
+              <ClipboardList className="h-4 w-4" />
+              Evaluación
+            </TabsTrigger>
+            <TabsTrigger value="recursos" className="flex items-center gap-2">
+              <FolderOpen className="h-4 w-4" />
+              Recursos
+            </TabsTrigger>
+          </TabsList>
 
-          <Card>
-            <CardHeader className="pb-3">
-              <CardTitle className="flex items-center text-lg">
-                <BookOpen className="h-5 w-5 mr-2 text-green-600" />
-                Producto Final
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <p className="text-gray-700 leading-relaxed">{proyecto.producto_final}</p>
-            </CardContent>
-          </Card>
+          {/* Pestaña: Plano Didáctico */}
+          <TabsContent value="plano-didactico" className="mt-6">
+            {/* Información del Proyecto */}
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
+              <Card>
+                <CardHeader className="pb-3">
+                  <CardTitle className="flex items-center text-lg">
+                    <Target className="h-5 w-5 mr-2 text-blue-600" />
+                    Problemática
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <p className="text-gray-700 leading-relaxed">{proyecto.problematica}</p>
+                </CardContent>
+              </Card>
 
-          <Card>
-            <CardHeader className="pb-3">
-              <CardTitle className="flex items-center text-lg">
-                <Lightbulb className="h-5 w-5 mr-2 text-purple-600" />
-                Metodología
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <p className="text-gray-700 leading-relaxed">{proyecto.metodologia_nem}</p>
-            </CardContent>
-          </Card>
-        </div>
+              <Card>
+                <CardHeader className="pb-3">
+                  <CardTitle className="flex items-center text-lg">
+                    <BookOpen className="h-5 w-5 mr-2 text-green-600" />
+                    Producto Final
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <p className="text-gray-700 leading-relaxed">{proyecto.producto_final}</p>
+                </CardContent>
+              </Card>
 
-        {/* Fases del Proyecto */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center">
-              <Calendar className="h-5 w-5 mr-2 text-orange-600" />
-              Fases y Momentos del Proyecto
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            {loadingFases ? (
-              <div className="text-center py-8">
-                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-4"></div>
-                <p className="text-gray-600">Cargando fases del proyecto...</p>
-              </div>
-            ) : fases.length > 0 ? (
-              <div className="space-y-6">
-                {fases.map((fase, index) => (
-                  <div key={fase.id} className="border-l-4 border-blue-500 pl-6">
-                    <div className="mb-2">
-                      <h3 className="font-semibold text-lg text-blue-700">{fase.fase_nombre}</h3>
-                      <h4 className="font-medium text-md text-gray-700">{fase.momento_nombre}</h4>
-                    </div>
-                    <div className="bg-gray-50 p-4 rounded-lg">
-                      <p className="text-gray-700 leading-relaxed whitespace-pre-line">
-                        {fase.contenido}
-                      </p>
-                    </div>
+              <Card>
+                <CardHeader className="pb-3">
+                  <CardTitle className="flex items-center text-lg">
+                    <Lightbulb className="h-5 w-5 mr-2 text-purple-600" />
+                    Metodología
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <p className="text-gray-700 leading-relaxed">{proyecto.metodologia_nem}</p>
+                </CardContent>
+              </Card>
+            </div>
+
+            {/* Fases del Proyecto */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center">
+                  <Calendar className="h-5 w-5 mr-2 text-orange-600" />
+                  Fases y Momentos del Proyecto
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                {loadingFases ? (
+                  <div className="text-center py-8">
+                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-4"></div>
+                    <p className="text-gray-600">Cargando fases del proyecto...</p>
                   </div>
-                ))}
-              </div>
-            ) : (
-              <div className="text-center py-8 text-gray-500">
-                <Calendar className="h-12 w-12 mx-auto mb-4 text-gray-300" />
-                <p>No se encontraron fases para este proyecto.</p>
-                <p className="text-sm mt-2">Las fases se generan automáticamente cuando se crea el proyecto.</p>
-              </div>
-            )}
-          </CardContent>
-        </Card>
+                ) : fases.length > 0 ? (
+                  <div className="space-y-6">
+                    {fases.map((fase, index) => (
+                      <div key={fase.id} className="border-l-4 border-blue-500 pl-6">
+                        <div className="mb-2">
+                          <h3 className="font-semibold text-lg text-blue-700">{fase.fase_nombre}</h3>
+                          <h4 className="font-medium text-md text-gray-700">{fase.momento_nombre}</h4>
+                        </div>
+                        <div className="bg-gray-50 p-4 rounded-lg">
+                          <p className="text-gray-700 leading-relaxed whitespace-pre-line">
+                            {fase.contenido}
+                          </p>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="text-center py-8 text-gray-500">
+                    <Calendar className="h-12 w-12 mx-auto mb-4 text-gray-300" />
+                    <p>No se encontraron fases para este proyecto.</p>
+                    <p className="text-sm mt-2">Las fases se generan automáticamente cuando se crea el proyecto.</p>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          {/* Pestaña: Evaluación */}
+          <TabsContent value="evaluacion" className="mt-6">
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center justify-between">
+                  <span className="flex items-center">
+                    <ClipboardList className="h-5 w-5 mr-2 text-purple-600" />
+                    Instrumentos de Evaluación
+                  </span>
+                  <Button 
+                    onClick={abrirModalCrearInstrumento}
+                    variant="default"
+                    size="sm"
+                    className="bg-purple-600 hover:bg-purple-700 text-white font-medium"
+                  >
+                    <BookOpen className="h-4 w-4 mr-2" />
+                    Crear Instrumento
+                  </Button>
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                {instrumentos.length > 0 ? (
+                  <div className="space-y-4">
+                    {instrumentos.map((instrumento) => (
+                      <Card key={instrumento.id} className="border-l-4 border-purple-500">
+                        <CardHeader className="pb-3">
+                          <div className="flex items-center justify-between">
+                            <div>
+                              <CardTitle className="text-lg">{instrumento.titulo}</CardTitle>
+                              <p className="text-sm text-gray-600 mt-1">
+                                {instrumento.tipo === 'rubrica_analitica' ? 'Rúbrica Analítica' : 
+                                 instrumento.tipo === 'lista_cotejo' ? 'Lista de Cotejo' : 
+                                 'Escala de Estimación'}
+                              </p>
+                            </div>
+                            <div className="flex items-center gap-2">
+                              <Badge variant={instrumento.estado === 'activo' ? 'default' : 'secondary'}>
+                                {instrumento.estado}
+                              </Badge>
+                              <div className="flex gap-1">
+                                 <Button 
+                                   variant="outline" 
+                                   size="sm"
+                                   onClick={() => verInstrumento(instrumento)}
+                                 >
+                                   Ver
+                                 </Button>
+                                 <Button 
+                                   variant="outline" 
+                                   size="sm"
+                                   onClick={() => editarInstrumento(instrumento)}
+                                 >
+                                   Editar
+                                 </Button>
+                                 <AlertDialog>
+                                   <AlertDialogTrigger asChild>
+                                     <Button 
+                                       variant="outline" 
+                                       size="sm"
+                                       className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                                     >
+                                       <Trash2 className="h-4 w-4 mr-1" />
+                                       Eliminar
+                                     </Button>
+                                   </AlertDialogTrigger>
+                                   <AlertDialogContent>
+                                     <AlertDialogHeader>
+                                       <AlertDialogTitle>¿Eliminar instrumento?</AlertDialogTitle>
+                                       <AlertDialogDescription>
+                                         ¿Estás seguro de que quieres eliminar "{instrumento.titulo}"? 
+                                         Esta acción no se puede deshacer.
+                                       </AlertDialogDescription>
+                                     </AlertDialogHeader>
+                                     <AlertDialogFooter>
+                                       <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                                       <AlertDialogAction
+                                         onClick={() => confirmarEliminarInstrumento(instrumento)}
+                                         className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                                       >
+                                         Eliminar
+                                       </AlertDialogAction>
+                                     </AlertDialogFooter>
+                                   </AlertDialogContent>
+                                 </AlertDialog>
+                               </div>
+                            </div>
+                          </div>
+                        </CardHeader>
+                        <CardContent>
+                          <p className="text-sm text-gray-600">
+                            Creado el {new Date(instrumento.created_at).toLocaleDateString('es-ES')}
+                          </p>
+                        </CardContent>
+                      </Card>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="text-center py-12 text-gray-500">
+                    <ClipboardList className="h-16 w-16 mx-auto mb-4 text-gray-300" />
+                    <h3 className="text-lg font-medium mb-2">No hay instrumentos de evaluación</h3>
+                    <p className="mb-4">Crea tu primer instrumento de evaluación para este proyecto.</p>
+                    <Button 
+                      onClick={abrirModalCrearInstrumento}
+                      variant="default"
+                      className="bg-purple-600 hover:bg-purple-700 text-white"
+                    >
+                      <BookOpen className="h-4 w-4 mr-2" />
+                      Crear Instrumento
+                    </Button>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          {/* Pestaña: Recursos */}
+          <TabsContent value="recursos" className="mt-6">
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center">
+                  <FolderOpen className="h-5 w-5 mr-2 text-green-600" />
+                  Recursos del Proyecto
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="text-center py-12 text-gray-500">
+                  <FolderOpen className="h-16 w-16 mx-auto mb-4 text-gray-300" />
+                  <h3 className="text-lg font-medium mb-2">Recursos del Proyecto</h3>
+                  <p className="mb-4">Esta funcionalidad estará disponible en el Módulo 4.</p>
+                  <p className="text-sm">Aquí podrás gestionar materiales, archivos y recursos relacionados con el proyecto.</p>
+                </div>
+              </CardContent>
+            </Card>
+          </TabsContent>
+        </Tabs>
       </div>
     
-      {/* Modal de selección de tipo de instrumento */}
-      <Dialog open={showInstrumentDialog} onOpenChange={setShowInstrumentDialog}>
-        <DialogContent className="sm:max-w-md">
-          <DialogHeader>
-            <DialogTitle>¿Qué tipo de instrumento quieres crear?</DialogTitle>
-            <DialogDescription>
-              Selecciona el tipo de instrumento de evaluación que deseas crear para este proyecto.
-            </DialogDescription>
-          </DialogHeader>
-          <div className="grid grid-cols-1 gap-4 py-4">
-            <Button 
-              onClick={async () => {
-                setShowInstrumentDialog(false);
-                setGeneratingRubrica(true);
-                
-                try {
-                  toast.info("Generando rúbrica analítica...", {
-                    description: "Esto puede tomar unos segundos",
-                    duration: 3000
-                  });
+      {/* Modal de crear instrumento - Nueva estructura de 2 vistas */}
+      <Dialog open={showInstrumentDialog} onOpenChange={handleCloseModal}>
+        <DialogContent className="sm:max-w-lg">
+          {modalStep === 'form' ? (
+            // Primera vista: Formulario de información básica
+            <>
+              <DialogHeader>
+                <DialogTitle>Crear Instrumento de Evaluación</DialogTitle>
+                <DialogDescription>
+                  Completa la información básica del instrumento que deseas crear.
+                </DialogDescription>
+              </DialogHeader>
+              
+              <div className="space-y-6 py-4">
+                {/* Título del Instrumento */}
+                <div className="space-y-2">
+                  <Label htmlFor="titulo" className="text-sm font-medium">
+                    Título del Instrumento <span className="text-red-500">*</span>
+                  </Label>
+                  <Input
+                    id="titulo"
+                    placeholder="Ej: Rúbrica para Exposición Oral"
+                    value={instrumentForm.titulo}
+                    onChange={(e) => {
+                      setInstrumentForm(prev => ({ ...prev, titulo: e.target.value }))
+                      if (formErrors.titulo) {
+                        setFormErrors(prev => ({ ...prev, titulo: '' }))
+                      }
+                    }}
+                    className={formErrors.titulo ? "border-red-500" : ""}
+                  />
+                  {formErrors.titulo && (
+                    <p className="text-sm text-red-500">{formErrors.titulo}</p>
+                  )}
+                </div>
+
+                {/* Tipo de Instrumento */}
+                <div className="space-y-3">
+                  <Label className="text-sm font-medium">
+                    Tipo de Instrumento <span className="text-red-500">*</span>
+                  </Label>
+                  <div className="grid grid-cols-1 gap-3">
+                    <Button
+                      type="button"
+                      variant={instrumentForm.tipo === 'rubrica_analitica' ? 'default' : 'outline'}
+                      className={`h-auto p-4 justify-start ${
+                        instrumentForm.tipo === 'rubrica_analitica' 
+                          ? 'bg-purple-600 hover:bg-purple-700 text-white' 
+                          : 'hover:bg-purple-50'
+                      }`}
+                      onClick={() => {
+                        setInstrumentForm(prev => ({ ...prev, tipo: 'rubrica_analitica' }))
+                        if (formErrors.tipo) {
+                          setFormErrors(prev => ({ ...prev, tipo: '' }))
+                        }
+                      }}
+                    >
+                      <div className="flex items-center gap-3">
+                        <BookOpen className="h-5 w-5" />
+                        <div className="text-left">
+                          <div className="font-medium">Rúbrica Analítica</div>
+                          <div className="text-sm opacity-80">
+                            Evaluación detallada con criterios y niveles de desempeño
+                          </div>
+                        </div>
+                      </div>
+                    </Button>
+                    
+                    {/* Futuras opciones: Lista de Cotejo y Guías de Observación */}
+                    {/* 
+                    <Button
+                      type="button"
+                      variant={instrumentForm.tipo === 'lista_cotejo' ? 'default' : 'outline'}
+                      className={`h-auto p-4 justify-start ${
+                        instrumentForm.tipo === 'lista_cotejo' 
+                          ? 'bg-purple-600 hover:bg-purple-700 text-white' 
+                          : 'hover:bg-purple-50'
+                      }`}
+                      onClick={() => {
+                        setInstrumentForm(prev => ({ ...prev, tipo: 'lista_cotejo' }))
+                        if (formErrors.tipo) {
+                          setFormErrors(prev => ({ ...prev, tipo: '' }))
+                        }
+                      }}
+                    >
+                      <div className="flex items-center gap-3">
+                        <CheckSquare className="h-5 w-5" />
+                        <div className="text-left">
+                          <div className="font-medium">Lista de Cotejo</div>
+                          <div className="text-sm opacity-80">
+                            Verificación de presencia o ausencia de elementos
+                          </div>
+                        </div>
+                      </div>
+                    </Button>
+                    */}
+                  </div>
+                  {formErrors.tipo && (
+                    <p className="text-sm text-red-500">{formErrors.tipo}</p>
+                  )}
+                </div>
+
+                {/* Descripción (Opcional) */}
+                <div className="space-y-2">
+                  <Label htmlFor="descripcion" className="text-sm font-medium">
+                    Descripción (Opcional)
+                  </Label>
+                  <Textarea
+                    id="descripcion"
+                    placeholder="Añade notas o comentarios adicionales sobre este instrumento..."
+                    value={instrumentForm.descripcion}
+                    onChange={(e) => setInstrumentForm(prev => ({ ...prev, descripcion: e.target.value }))}
+                    rows={3}
+                    className="resize-none"
+                  />
+                </div>
+              </div>
+
+              <div className="flex justify-end gap-3 pt-4 border-t">
+                <Button variant="outline" onClick={handleCloseModal}>
+                  Cancelar
+                </Button>
+                <Button onClick={handleNextStep} className="bg-purple-600 hover:bg-purple-700">
+                  Siguiente: Seleccionar Criterios
+                  <ArrowRight className="h-4 w-4 ml-2" />
+                </Button>
+              </div>
+            </>
+          ) : (
+            // Segunda vista: Selección de criterios
+            <>
+              <DialogHeader>
+                <DialogTitle>Selecciona los Criterios a Evaluar</DialogTitle>
+                <DialogDescription>
+                  Elige los PDAs del proyecto y/o agrega criterios personalizados para generar tu {instrumentForm.tipo === 'rubrica_analitica' ? 'rúbrica analítica' : 'lista de cotejo'}.
+                </DialogDescription>
+              </DialogHeader>
+              
+              <div className="space-y-6 max-h-[60vh] overflow-y-auto">
+                {/* Sección de PDAs del Proyecto */}
+                <div className="space-y-4">
+                  <div className="flex items-center gap-2">
+                    <Target className="h-5 w-5 text-blue-600" />
+                    <h3 className="text-lg font-semibold">Criterios del Proyecto (PDAs)</h3>
+                  </div>
                   
-                  const response = await fetch('/api/generate-rubrica', {
-                    method: 'POST',
-                    headers: {
-                      'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify({
-                      proyecto_id: proyectoId
-                    }),
-                    cache: 'no-store'
-                  });
+                  {loadingPdas ? (
+                    <div className="flex items-center justify-center py-8">
+                      <Loader2 className="h-6 w-6 animate-spin text-blue-600" />
+                      <span className="ml-2 text-gray-600">Cargando PDAs...</span>
+                    </div>
+                  ) : pdasProyecto.length > 0 ? (
+                    <ScrollArea className="h-48 border rounded-lg p-4">
+                      <div className="space-y-3">
+                        {pdasProyecto.map((pda) => (
+                          <div key={pda.id} className="flex items-start space-x-3 p-3 border rounded-lg hover:bg-gray-50">
+                            <Checkbox
+                              id={`pda-${pda.id}`}
+                              checked={pdasSeleccionados.includes(pda.id)}
+                              onCheckedChange={() => togglePdaSelection(pda.id)}
+                              className="mt-1"
+                            />
+                            <div className="flex-1 min-w-0">
+                              <label 
+                                htmlFor={`pda-${pda.id}`}
+                                className="text-sm font-medium text-gray-900 cursor-pointer block"
+                              >
+                                {pda.pda}
+                              </label>
+                              <p className="text-xs text-gray-600 mt-1">{pda.contenido}</p>
+                              <div className="flex gap-2 mt-2">
+                                <Badge variant="secondary" className="text-xs">
+                                  {pda.campo_formativo}
+                                </Badge>
+                                <Badge variant="outline" className="text-xs">
+                                  {pda.grado} - {pda.materia}
+                                </Badge>
+                              </div>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </ScrollArea>
+                  ) : (
+                    <div className="text-center py-6 text-gray-500 border rounded-lg">
+                      <Target className="h-12 w-12 mx-auto mb-2 text-gray-300" />
+                      <p>No se encontraron PDAs para este proyecto</p>
+                    </div>
+                  )}
                   
-                  if (!response.ok) {
-                    throw new Error(`Error: ${response.status}`);
-                  }
+                  {pdasSeleccionados.length > 0 && (
+                    <p className="text-sm text-blue-600">
+                      {pdasSeleccionados.length} PDA{pdasSeleccionados.length !== 1 ? 's' : ''} seleccionado{pdasSeleccionados.length !== 1 ? 's' : ''}
+                    </p>
+                  )}
+                </div>
+
+                {/* Sección de Criterios Personalizados */}
+                <div className="space-y-4">
+                  <div className="flex items-center gap-2">
+                    <Lightbulb className="h-5 w-5 text-purple-600" />
+                    <h3 className="text-lg font-semibold">Criterios Personalizados</h3>
+                  </div>
                   
-                  const data = await response.json();
-                  
-                  if (data.error) {
-                    throw new Error(data.error);
-                  }
-                  
-                  toast.success("¡Rúbrica generada con éxito!", {
-                    description: "Ya puedes utilizarla para evaluar el proyecto"
-                  });
-                  
-                  // Aquí se implementaría la redirección a la vista de la rúbrica
-                  // Por ahora, solo mostramos un mensaje de éxito
-                  
-                } catch (error) {
-                  console.error("Error al generar la rúbrica:", error);
-                  toast.error("Error al generar la rúbrica", {
-                    description: error instanceof Error ? error.message : "Ocurrió un error inesperado"
-                  });
-                } finally {
-                  setGeneratingRubrica(false);
-                }
-              }}
-              className="flex items-center justify-center gap-2 h-16"
-              variant="outline"
-              disabled={generatingRubrica}
-            >
-              {generatingRubrica ? (
-                <Loader2 className="h-5 w-5 animate-spin text-blue-600" />
-              ) : (
-                <BookOpen className="h-5 w-5 text-blue-600" />
-              )}
-              <span className="font-medium">
-                {generatingRubrica ? "Generando..." : "Rúbrica Analítica"}
-              </span>
-            </Button>
-            
-            <Button 
-              onClick={() => {
-                alert("Lista de Cotejo - Función futura");
-                setShowInstrumentDialog(false);
-              }}
-              className="flex items-center justify-center gap-2 h-16"
-              variant="outline"
-              disabled
-            >
-              <CheckSquare className="h-5 w-5 text-gray-400" />
-              <span className="font-medium">Lista de Cotejo</span>
-              <span className="text-xs bg-gray-200 px-2 py-1 rounded-full">Próximamente</span>
-            </Button>
-          </div>
+                  <div className="space-y-3">
+                    <div className="flex gap-2">
+                      <Input
+                        placeholder="Escribe un criterio personalizado..."
+                        value={nuevoCriterio}
+                        onChange={(e) => setNuevoCriterio(e.target.value)}
+                        onKeyPress={(e) => {
+                          if (e.key === 'Enter') {
+                            e.preventDefault()
+                            agregarCriterioPersonalizado()
+                          }
+                        }}
+                        className="flex-1"
+                      />
+                      <Button
+                        onClick={agregarCriterioPersonalizado}
+                        disabled={!nuevoCriterio.trim()}
+                        size="sm"
+                        className="bg-purple-600 hover:bg-purple-700"
+                      >
+                        <Plus className="h-4 w-4 mr-1" />
+                        Añadir Criterio
+                      </Button>
+                    </div>
+                    
+                    {criteriosPersonalizados.length > 0 && (
+                      <div className="space-y-2">
+                        {criteriosPersonalizados.map((criterio, index) => (
+                          <div key={index} className="flex items-center justify-between p-3 bg-purple-50 border border-purple-200 rounded-lg">
+                            <span className="text-sm text-gray-900">{criterio}</span>
+                            <Button
+                              onClick={() => eliminarCriterioPersonalizado(index)}
+                              variant="ghost"
+                              size="sm"
+                              className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                            >
+                              <X className="h-4 w-4" />
+                            </Button>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                </div>
+
+                {/* Resumen de selección */}
+                {(pdasSeleccionados.length > 0 || criteriosPersonalizados.length > 0) && (
+                  <div className="bg-green-50 border border-green-200 rounded-lg p-4">
+                    <div className="flex items-center gap-2 mb-2">
+                      <CheckSquare className="h-5 w-5 text-green-600" />
+                      <span className="font-medium text-green-800">Criterios seleccionados</span>
+                    </div>
+                    <p className="text-sm text-green-700">
+                      {pdasSeleccionados.length} PDA{pdasSeleccionados.length !== 1 ? 's' : ''} del proyecto
+                      {pdasSeleccionados.length > 0 && criteriosPersonalizados.length > 0 ? ' y ' : ''}
+                      {criteriosPersonalizados.length > 0 && `${criteriosPersonalizados.length} criterio${criteriosPersonalizados.length !== 1 ? 's' : ''} personalizado${criteriosPersonalizados.length !== 1 ? 's' : ''}`}
+                    </p>
+                  </div>
+                )}
+              </div>
+
+              <div className="flex justify-between gap-3 pt-4 border-t">
+                <Button variant="outline" onClick={handleBackStep}>
+                  <ArrowLeft className="h-4 w-4 mr-2" />
+                  Volver
+                </Button>
+                <Button 
+                  onClick={async () => {
+                    // Validar que se haya seleccionado al menos un criterio
+                    if (pdasSeleccionados.length === 0 && criteriosPersonalizados.length === 0) {
+                      toast.error("Debe seleccionar al menos un PDA o agregar un criterio personalizado");
+                      return;
+                    }
+
+                    handleCloseModal();
+                    setGeneratingRubrica(true);
+                    
+                    try {
+                      toast.info(`Generando ${instrumentForm.tipo === 'rubrica_analitica' ? 'rúbrica analítica' : 'lista de cotejo'}...`, {
+                        description: "Esto puede tomar unos segundos",
+                        duration: 3000
+                      });
+                      
+                      const response = await fetch('/api/generate-rubrica', {
+                        method: 'POST',
+                        headers: {
+                          'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify({
+                          proyecto_id: proyectoId,
+                          titulo: instrumentForm.titulo,
+                          tipo: instrumentForm.tipo,
+                          descripcion: instrumentForm.descripcion,
+                          pdas_seleccionados: pdasSeleccionados,
+                          criterios_personalizados: criteriosPersonalizados
+                        }),
+                        cache: 'no-store'
+                      });
+                      
+                      if (!response.ok) {
+                        throw new Error(`Error: ${response.status}`);
+                      }
+                      
+                      const data = await response.json();
+                      
+                      if (data.error) {
+                        throw new Error(data.error);
+                      }
+                      
+                      toast.success(`¡${instrumentForm.tipo === 'rubrica_analitica' ? 'Rúbrica' : 'Lista de cotejo'} generada con éxito!`, {
+                        description: "Ya puedes utilizarla para evaluar el proyecto"
+                      });
+                      
+                      // Recargar instrumentos y cambiar a la pestaña de evaluación
+                      await cargarInstrumentos();
+                      setActiveTab('evaluacion');
+                      
+                    } catch (error) {
+                      console.error("Error al generar el instrumento:", error);
+                      toast.error("Error al generar el instrumento", {
+                        description: error instanceof Error ? error.message : "Ocurrió un error inesperado"
+                      });
+                    } finally {
+                      setGeneratingRubrica(false);
+                    }
+                  }}
+                  className="bg-purple-600 hover:bg-purple-700"
+                  disabled={generatingRubrica}
+                >
+                  {generatingRubrica ? (
+                    <>
+                      <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                      Generando...
+                    </>
+                  ) : (
+                    <>
+                      <Bot className="h-4 w-4 mr-2" />
+                      Generar Borrador con IA 🤖
+                    </>
+                  )}
+                </Button>
+              </div>
+            </>
+          )}
+        </DialogContent>
+      </Dialog>
+
+      {/* Modal de Visualización de Rúbricas */}
+      <Dialog open={showViewDialog} onOpenChange={setShowViewDialog}>
+        <DialogContent className="max-w-[95vw] w-full max-h-[95vh] h-full flex flex-col">
+          {instrumentoSeleccionado && (
+            <>
+              <DialogHeader className="flex-shrink-0">
+                <DialogTitle className="flex items-center gap-2">
+                  <BookOpen className="h-5 w-5" />
+                  {instrumentoSeleccionado.titulo}
+                </DialogTitle>
+                <DialogDescription>
+                  {instrumentoSeleccionado.tipo === 'rubrica_analitica' ? 'Rúbrica Analítica' : 'Lista de Cotejo'} • 
+                  Creado el {new Date(instrumentoSeleccionado.created_at).toLocaleDateString()}
+                </DialogDescription>
+              </DialogHeader>
+              
+              <ScrollArea className="flex-1 mt-6">
+                <div className="pr-4">
+                  {instrumentoSeleccionado.tipo === 'rubrica_analitica' ? (
+                    <RubricaViewer contenido={instrumentoSeleccionado.contenido} />
+                  ) : (
+                    <ListaCotejoViewer contenido={instrumentoSeleccionado.contenido} />
+                  )}
+                </div>
+              </ScrollArea>
+              
+              <div className="flex justify-end gap-3 pt-4 border-t mt-6 flex-shrink-0">
+                <Button variant="outline" onClick={() => setShowViewDialog(false)}>
+                  Cerrar
+                </Button>
+                <Button 
+                  className="bg-purple-600 hover:bg-purple-700"
+                  onClick={descargarPDF}
+                >
+                  Descargar PDF
+                </Button>
+              </div>
+            </>
+          )}
         </DialogContent>
       </Dialog>
     </div>

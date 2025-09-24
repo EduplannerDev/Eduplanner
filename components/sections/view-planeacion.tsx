@@ -25,6 +25,7 @@ export function ViewPlaneacion({ planeacionId, onBack, onEdit }: ViewPlaneacionP
   const { getPlaneacion } = usePlaneaciones()
   const [planeacion, setPlaneacion] = useState<Planeacion | null>(null)
   const [loading, setLoading] = useState(true)
+  const [generatingPDF, setGeneratingPDF] = useState(false)
 
   useEffect(() => {
     loadPlaneacion()
@@ -68,9 +69,16 @@ export function ViewPlaneacion({ planeacionId, onBack, onEdit }: ViewPlaneacionP
     setLoading(false)
   }
 
-  const handleDownload = () => {
+  const handleDownload = async () => {
     if (planeacion) {
-      generatePDF(planeacion)
+      setGeneratingPDF(true)
+      try {
+        await generatePDF(planeacion)
+      } catch (error) {
+        console.error('Error generando PDF:', error)
+      } finally {
+        setGeneratingPDF(false)
+      }
     }
   }
 
@@ -133,16 +141,22 @@ export function ViewPlaneacion({ planeacionId, onBack, onEdit }: ViewPlaneacionP
             <p className="text-gray-600 mt-1">Vista de planeación</p>
           </div>
         </div>
-        {/* <div className="flex gap-2">
-          <Button variant="outline" onClick={handleDownload}>
-            <Download className="h-4 w-4 mr-2" />
-            Descargar PDF
+        <div className="flex gap-2">
+          <Button variant="outline" onClick={handleDownload} disabled={generatingPDF}>
+            {generatingPDF ? (
+              <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+            ) : (
+              <Download className="h-4 w-4 mr-2" />
+            )}
+            {generatingPDF ? "Generando PDF..." : "Descargar PDF"}
           </Button>
-          <Button onClick={onEdit}>
-            <Edit className="h-4 w-4 mr-2" />
-            Editar
-          </Button>
-        </div> */}
+          {onEdit && (
+            <Button onClick={onEdit}>
+              <Edit className="h-4 w-4 mr-2" />
+              Editar
+            </Button>
+          )}
+        </div>
       </div>
 
       {/* Información General */}

@@ -8,10 +8,15 @@ export const maxDuration = 60
 export async function POST(req: Request) {
   try {
     // Capturar errores de parsing JSON
-    let proyecto_id;
+    let proyecto_id, titulo, tipo, descripcion, pdas_seleccionados, criterios_personalizados;
     try {
       const body = await req.json();
       proyecto_id = body.proyecto_id;
+      titulo = body.titulo;
+      tipo = body.tipo;
+      descripcion = body.descripcion;
+      pdas_seleccionados = body.pdas_seleccionados || [];
+      criterios_personalizados = body.criterios_personalizados || [];
     } catch (error) {
       console.error("Error al parsear el cuerpo de la solicitud:", error);
       return NextResponse.json(
@@ -23,6 +28,20 @@ export async function POST(req: Request) {
     if (!proyecto_id) {
       return NextResponse.json(
         { error: "Se requiere el ID del proyecto" },
+        { status: 400 }
+      )
+    }
+
+    if (!titulo || titulo.trim() === '') {
+      return NextResponse.json(
+        { error: "Se requiere el título del instrumento" },
+        { status: 400 }
+      )
+    }
+
+    if (!pdas_seleccionados || pdas_seleccionados.length === 0) {
+      return NextResponse.json(
+        { error: "Se requiere al menos un PDA seleccionado" },
         { status: 400 }
       )
     }
@@ -92,37 +111,40 @@ export async function POST(req: Request) {
       }
     }
 
-    // 2. Obtener PDAs asociados al proyecto
+    // 2. Obtener información de los PDAs seleccionados
     const { data: pdasData, error: pdasError } = await supabase
-      .from("proyecto_curriculo")
+      .from("curriculo_sep")
       .select(`
         id,
-        curriculo_sep (
-          id,
-          pda,
-          contenido,
-          campo_formativo,
-          grado
-        )
+        pda,
+        contenido,
+        campo_formativo,
+        grado
       `)
-      .eq("proyecto_id", proyecto_id)
+      .in("id", pdas_seleccionados)
 
     if (pdasError) {
       console.error("Error al obtener PDAs:", pdasError)
       return NextResponse.json(
-        { error: "Error al obtener PDAs asociados al proyecto" },
+        { error: "Error al obtener información de los PDAs seleccionados" },
         { status: 500 }
       )
     }
 
-    // Extraer textos de PDAs
+    // Extraer textos de PDAs seleccionados
     const pdasTextos = pdasData
-      .map((item) => item.curriculo_sep?.pda)
+      .map((item) => item.pda)
       .filter(Boolean)
 
-    if (pdasTextos.length === 0) {
+    // Agregar criterios personalizados si existen
+    const criteriosPersonalizadosTextos = criterios_personalizados || []
+
+    // Combinar PDAs y criterios personalizados
+    const todosCriterios = [...pdasTextos, ...criteriosPersonalizadosTextos]
+
+    if (todosCriterios.length === 0) {
       return NextResponse.json(
-        { error: "El proyecto no tiene PDAs asociados" },
+        { error: "Se requiere al menos un criterio (PDA o personalizado)" },
         { status: 400 }
       )
     }
@@ -131,11 +153,16 @@ export async function POST(req: Request) {
     const prompt = `
 Rol: Actúa como un experto en evaluación formativa y pedagogía, alineado con la Nueva Escuela Mexicana. Eres un especialista en crear instrumentos de evaluación claros y objetivos.
 
-Contexto: Estoy creando una rúbrica analítica para evaluar un proyecto llamado "${proyecto.nombre}" para el grado ${grupoInfo?.grado || 'no especificado'} de ${grupoInfo?.nivel || 'educación básica'}. Los Procesos de Desarrollo de Aprendizaje (PDAs) que se deben evaluar en este proyecto son los siguientes:
+Contexto: Estoy creando una rúbrica analítica para evaluar un proyecto llamado "${proyecto.nombre}" para el grado ${grupoInfo?.grado || 'no especificado'} de ${grupoInfo?.nivel || 'educación básica'}. Los criterios de evaluación que se deben incluir en esta rúbrica son los siguientes:
 
-${pdasTextos.map((texto, index) => `"${texto}"`).join("\n\n")}
+${pdasTextos.length > 0 ? `CRITERIOS BASADOS EN PDAs:
+${pdasTextos.map((texto, index) => `${index + 1}. "${texto}"`).join("\n")}` : ''}
 
-Tarea: Tu tarea es generar una rúbrica completa en formato JSON. Para cada PDA que te proporcioné, crea un "criterio" de evaluación claro y conciso. Luego, para cada criterio, escribe un "descriptor" de desempeño observable y específico para cada uno de los siguientes cuatro niveles de logro: Sobresaliente, Logrado, En Proceso, y Requiere Apoyo.
+${criteriosPersonalizadosTextos.length > 0 ? `
+CRITERIOS PERSONALIZADOS:
+${criteriosPersonalizadosTextos.map((texto, index) => `${pdasTextos.length + index + 1}. "${texto}"`).join("\n")}` : ''}
+
+Tarea: Tu tarea es generar una rúbrica completa en formato JSON. Para cada criterio que te proporcioné (ya sea basado en PDA o personalizado), crea un "criterio" de evaluación claro y conciso. Luego, para cada criterio, escribe un "descriptor" de desempeño observable y específico para cada uno de los siguientes cuatro niveles de logro: Sobresaliente, Logrado, En Proceso, y Requiere Apoyo.
 
 Formato de Salida Obligatorio: Tu respuesta debe ser únicamente un objeto JSON válido, con la siguiente estructura:
 
@@ -208,8 +235,8 @@ IMPORTANTE: Asegúrate de que tu respuesta sea ÚNICAMENTE el objeto JSON válid
       .insert({
         proyecto_id,
         user_id: proyecto.profesor_id,
-        tipo: "rubrica_analitica",
-        titulo: rubricaJSON.titulo_rubrica,
+        tipo: tipo || "rubrica_analitica",
+        titulo: titulo || rubricaJSON.titulo_rubrica,
         contenido: rubricaJSON,
         estado: "borrador"
       })

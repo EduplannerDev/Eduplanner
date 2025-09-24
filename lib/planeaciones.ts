@@ -463,7 +463,7 @@ export async function migrateMarkdownPlaneaciones(): Promise<{ migrated: number;
 // Función para generar PDF mejorada
 export function generatePDF(planeacion: Planeacion): void {
   // Importar la función del nuevo archivo
-  import("./pdf-generator").then(({ generatePDF: pdfGen }) => {
+  import("./pdf-generator").then(({ generatePlaneacionPDF: pdfGen }) => {
     pdfGen(planeacion)
   })
 }

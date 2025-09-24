@@ -25,6 +25,8 @@ const Examenes = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [showGenerarExamen, setShowGenerarExamen] = useState(false);
+  const [generatingPDF, setGeneratingPDF] = useState<string | null>(null);
+  const [generatingAnswerSheet, setGeneratingAnswerSheet] = useState<string | null>(null);
 
   const [selectedExamenId, setSelectedExamenId] = useState<string | null>(null);
   const [viewMode, setViewMode] = useState<"list" | "view" | "edit">("list");
@@ -81,21 +83,26 @@ const Examenes = () => {
     setViewMode("list");
   };
 
-  const handleDownloadPDF = (examen: Examen, event: React.MouseEvent) => {
+  const handleDownloadPDF = async (examen: Examen, event: React.MouseEvent) => {
     event.stopPropagation();
+    setGeneratingPDF(examen.id);
     try {
+      // Pequeño delay para testing del loader
+      await new Promise(resolve => setTimeout(resolve, 500));
+      
       // Importación dinámica para evitar errores SSR
-      import('@/lib/pdf-generator').then(({ generateExamPDF }) => {
-        generateExamPDF(examen);
-      });
+      const { generateExamPDF } = await import('@/lib/pdf-generator');
+      await generateExamPDF(examen);
     } catch (error) {
-      console.error('Error generando PDF:', error);
       alert('Error al generar el PDF. Por favor, intenta de nuevo.');
+    } finally {
+      setGeneratingPDF(null);
     }
   };
 
-  const handleDownloadAnswerSheet = (examen: Examen, event: React.MouseEvent) => {
+  const handleDownloadAnswerSheet = async (examen: Examen, event: React.MouseEvent) => {
     event.stopPropagation();
+    setGeneratingAnswerSheet(examen.id);
     try {
       // Verificar si el examen tiene hoja de respuestas
       let hasAnswerSheet = false;
@@ -108,13 +115,16 @@ const Examenes = () => {
         return;
       }
       
+      // Pequeño delay para testing del loader
+      await new Promise(resolve => setTimeout(resolve, 500));
+      
       // Generar solo la hoja de respuestas
-      import('@/lib/pdf-generator').then(({ generateAnswerSheetPDF }) => {
-        generateAnswerSheetPDF(examen, examen.content.hoja_de_respuestas);
-      });
+      const { generateAnswerSheetPDF } = await import('@/lib/pdf-generator');
+      await generateAnswerSheetPDF(examen, examen.content.hoja_de_respuestas);
     } catch (error) {
-      console.error('Error generando hoja de respuestas:', error);
       alert('Error al generar la hoja de respuestas. Por favor, intenta de nuevo.');
+    } finally {
+      setGeneratingAnswerSheet(null);
     }
   };
 
@@ -247,12 +257,32 @@ const Examenes = () => {
                         </Button>
                       </DropdownMenuTrigger>
                       <DropdownMenuContent>
-                        <DropdownMenuItem onClick={(e) => handleDownloadPDF(examen, e)}>
-                          Descargar como PDF
+                        <DropdownMenuItem 
+                          onClick={(e) => handleDownloadPDF(examen, e)}
+                          disabled={generatingPDF === examen.id}
+                        >
+                          {generatingPDF === examen.id ? (
+                            <>
+                              <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                              Generando PDF...
+                            </>
+                          ) : (
+                            "Descargar como PDF"
+                          )}
                         </DropdownMenuItem>
                         {hasAnswerSheet(examen) && profile && isUserPro(profile) && (
-                          <DropdownMenuItem onClick={(e) => handleDownloadAnswerSheet(examen, e)}>
-                            Descargar Hoja de Respuestas
+                          <DropdownMenuItem 
+                            onClick={(e) => handleDownloadAnswerSheet(examen, e)}
+                            disabled={generatingAnswerSheet === examen.id}
+                          >
+                            {generatingAnswerSheet === examen.id ? (
+                              <>
+                                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                                Generando Hoja...
+                              </>
+                            ) : (
+                              "Descargar Hoja de Respuestas"
+                            )}
                           </DropdownMenuItem>
                         )}
                         {hasAnswerSheet(examen) && (!profile || !isUserPro(profile)) && (

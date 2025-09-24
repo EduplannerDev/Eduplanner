@@ -48,6 +48,7 @@ export function MisPlaneaciones({ onCreateNew }: MisPlaneacionesProps) {
   const [selectedPlaneacion, setSelectedPlaneacion] = useState<any>(null)
   const [viewMode, setViewMode] = useState<"list" | "view" | "edit">("list")
   const [deleting, setDeleting] = useState<string | null>(null)
+  const [generatingPDF, setGeneratingPDF] = useState<string | null>(null)
   const [error, setError] = useState<string | null>(null)
 
 
@@ -107,12 +108,15 @@ export function MisPlaneaciones({ onCreateNew }: MisPlaneacionesProps) {
 
   const handleDownload = async (planeacion: any, format: "pdf" | "Word") => {
     if (format === "pdf") {
+      setGeneratingPDF(planeacion.id)
       try {
-        const { generatePDF } = await import("@/lib/pdf-generator")
-        generatePDF(planeacion)
+        const { generatePlaneacionPDF } = await import("@/lib/pdf-generator")
+        await generatePlaneacionPDF(planeacion)
       } catch (error) {
         console.error('Error generando PDF:', error)
         setError('Error al generar el PDF')
+      } finally {
+        setGeneratingPDF(null)
       }
     } else if (format === "Word") {
       generateDocx(planeacion)
@@ -222,14 +226,28 @@ export function MisPlaneaciones({ onCreateNew }: MisPlaneacionesProps) {
                     </Button>
                     <DropdownMenu>
                       <DropdownMenuTrigger asChild>
-                        <Button size="sm" variant="outline">
-                          <Download className="h-4 w-4" />
-                          Descargar
+                        <Button size="sm" variant="outline" disabled={generatingPDF === planeacion.id}>
+                          {generatingPDF === planeacion.id ? (
+                            <Loader2 className="h-4 w-4 animate-spin" />
+                          ) : (
+                            <Download className="h-4 w-4" />
+                          )}
+                          {generatingPDF === planeacion.id ? "Generando..." : "Descargar"}
                         </Button>
                       </DropdownMenuTrigger>
                       <DropdownMenuContent>
-                        <DropdownMenuItem onClick={() => handleDownload(planeacion, "pdf")}>
-                          Descargar como PDF
+                        <DropdownMenuItem 
+                          onClick={() => handleDownload(planeacion, "pdf")}
+                          disabled={generatingPDF === planeacion.id}
+                        >
+                          {generatingPDF === planeacion.id ? (
+                            <>
+                              <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                              Generando PDF...
+                            </>
+                          ) : (
+                            "Descargar como PDF"
+                          )}
                         </DropdownMenuItem>
                         {profile && isUserPro(profile) && (
                           <DropdownMenuItem onClick={() => handleDownload(planeacion, "Word")}>
