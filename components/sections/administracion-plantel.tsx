@@ -11,11 +11,18 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { Switch } from "@/components/ui/switch"
-import { Users, UserPlus, Settings, Shield, Edit, Save, X, RefreshCw } from "lucide-react"
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible"
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { Users, UserPlus, Settings, Shield, Edit, Save, X, RefreshCw, ChevronDown, Trash2, Mail } from "lucide-react"
 import { useRoles } from "@/hooks/use-roles"
 import { useNotification } from "@/hooks/use-notification"
 import { supabase } from "@/lib/supabase"
-import { getPlantelUsers } from "@/lib/planteles"
+import { getPlantelUsers, removeUserFromPlantel, canAddUserToPlantel, assignUserToPlantelWithValidation } from "@/lib/planteles"
+import { inviteUserByEmail } from "@/lib/profile"
+import { validateInvitation } from "@/lib/invitations"
+import { PlantelUsersWidget } from "@/components/widgets/plantel-users-widget"
 
 interface ProfesorPlantel {
   id: string
@@ -37,6 +44,7 @@ export function AdministracionPlantel({ isOpen, onClose }: AdministracionPlantel
   const [activeTab, setActiveTab] = useState("profesores")
   const [isEditing, setIsEditing] = useState(false)
   const [isInitialLoading, setIsInitialLoading] = useState(true)
+  const [isPlantelInfoOpen, setIsPlantelInfoOpen] = useState(false)
   const [editForm, setEditForm] = useState({
     nombre: "",
     direccion: "",
@@ -51,6 +59,14 @@ export function AdministracionPlantel({ isOpen, onClose }: AdministracionPlantel
   const [saving, setSaving] = useState(false)
   const [profesores, setProfesores] = useState<ProfesorPlantel[]>([])
   const [loadingProfesores, setLoadingProfesores] = useState(false)
+  
+  // Estados para gestión de profesores
+  const [isInviteDialogOpen, setIsInviteDialogOpen] = useState(false)
+  const [isAssignDialogOpen, setIsAssignDialogOpen] = useState(false)
+  const [inviteEmail, setInviteEmail] = useState('')
+  const [inviting, setInviting] = useState(false)
+  const [searchTerm, setSearchTerm] = useState('')
+  const [availableUsers, setAvailableUsers] = useState<any[]>([])
 
   // Controlar el estado de loading inicial
   useEffect(() => {
@@ -117,6 +133,17 @@ export function AdministracionPlantel({ isOpen, onClose }: AdministracionPlantel
       })
     }
   }, [plantel])
+
+  // Buscar usuarios disponibles cuando cambie el término de búsqueda
+  useEffect(() => {
+    const timeoutId = setTimeout(() => {
+      if (searchTerm.trim() && isAssignDialogOpen) {
+        loadAvailableUsers()
+      }
+    }, 300) // Debounce de 300ms
+
+    return () => clearTimeout(timeoutId)
+  }, [searchTerm, isAssignDialogOpen])
 
   const validateForm = () => {
     const errors = []
@@ -202,6 +229,164 @@ export function AdministracionPlantel({ isOpen, onClose }: AdministracionPlantel
     setIsEditing(false)
   }
 
+  // Funciones para gestión de profesores
+  const handleInviteProfesor = async () => {
+    if (!plantel || !inviteEmail.trim()) {
+      error("Por favor ingresa un email válido", { title: "Error" })
+      return
+    }
+
+    setInviting(true)
+    try {
+      // Validar la invitación antes de proceder
+      const validation = await validateInvitation(inviteEmail.trim(), plantel.id, 'profesor')
+      
+      if (!validation.valid) {
+        error(validation.error || "No se puede enviar la invitación", { title: "Error de validación" })
+        return
+      }
+
+      // Verificar límites antes de invitar
+      const canAdd = await canAddUserToPlantel(plantel.id, 'profesor')
+      
+      if (!canAdd) {
+        error("No se puede agregar más profesores. Se ha alcanzado el límite máximo para este plantel.", { title: "Límite alcanzado" })
+        return
+      }
+
+      const result = await inviteUserByEmail(
+        inviteEmail.trim(),
+        plantel.id,
+        'profesor',
+        plantel.id // TODO: obtener el ID del usuario actual
+      )
+
+      if (result.success) {
+        success(`Se ha enviado una invitación a ${inviteEmail}. El usuario recibirá un email para aceptar la invitación.`, { title: "Invitación enviada" })
+        setInviteEmail('')
+        setIsInviteDialogOpen(false)
+        loadProfesores()
+      } else {
+        error(result.error || "Error al enviar la invitación", { title: "Error" })
+      }
+    } catch (err) {
+      console.error('Error in handleInviteProfesor:', err)
+      error("Error al enviar la invitación", { title: "Error" })
+    } finally {
+      setInviting(false)
+    }
+  }
+
+  const handleRemoveProfesor = async (userId: string) => {
+    if (!plantel) {
+      error("No hay plantel seleccionado", { title: "Error" })
+      return
+    }
+
+    try {
+      const result = await removeUserFromPlantel(userId, plantel.id)
+      
+      if (result) {
+        success("Profesor removido del plantel correctamente", { title: "Éxito" })
+        loadProfesores()
+      } else {
+        error("Error al remover el profesor del plantel", { title: "Error" })
+      }
+    } catch (err) {
+      console.error('Error in handleRemoveProfesor:', err)
+      error("Error al remover el profesor del plantel", { title: "Error" })
+    }
+  }
+
+  const loadAvailableUsers = async () => {
+    if (!searchTerm.trim()) {
+      setAvailableUsers([])
+      return
+    }
+
+    try {
+      console.log('Buscando usuarios con término:', searchTerm)
+      
+      // Primero, buscar todos los usuarios que coincidan (sin filtro de rol)
+      const { data: allProfiles, error: allProfilesError } = await supabase
+        .from('profiles')
+        .select('*')
+        .or(`full_name.ilike.%${searchTerm}%,email.ilike.%${searchTerm}%`)
+        .limit(20)
+
+      if (allProfilesError) {
+        console.error('Error en la consulta general:', allProfilesError)
+      } else {
+        console.log('Todos los perfiles encontrados:', allProfiles)
+        console.log('Roles de los usuarios encontrados:', allProfiles?.map(p => ({ name: p.full_name, email: p.email, role: p.role })))
+      }
+
+      // Buscar usuarios que puedan ser asignados como profesores
+      // Incluimos 'profesor' y usuarios sin rol asignado (null)
+      const { data: profiles, error: profilesError } = await supabase
+        .from('profiles')
+        .select('*')
+        .or(`full_name.ilike.%${searchTerm}%,email.ilike.%${searchTerm}%`)
+        .or('role.eq.profesor,role.is.null')
+        .limit(10)
+
+      if (profilesError) {
+        console.error('Error en la consulta de profesores:', profilesError)
+        throw profilesError
+      }
+
+      console.log('Profesores y usuarios sin rol encontrados:', profiles)
+
+      // Filtrar usuarios que no estén ya asignados al plantel
+      const currentUserIds = profesores.map(p => p.user_id)
+      console.log('IDs de profesores ya asignados:', currentUserIds)
+      
+      const available = profiles?.filter(profile => !currentUserIds.includes(profile.id)) || []
+      
+      console.log('Usuarios disponibles después del filtro:', available)
+      setAvailableUsers(available)
+
+      // Si no se encontraron usuarios compatibles, mostrar mensaje informativo
+      if (profiles && profiles.length === 0) {
+        console.log('No se encontraron profesores o usuarios sin rol con el término de búsqueda:', searchTerm)
+      }
+    } catch (err) {
+      console.error('Error loading available users:', err)
+      error("Error al buscar usuarios", { title: "Error" })
+    }
+  }
+
+  const handleAssignProfesor = async (userId: string) => {
+    if (!plantel) {
+      error("No hay plantel seleccionado", { title: "Error" })
+      return
+    }
+
+    try {
+      const canAdd = await canAddUserToPlantel(plantel.id, 'profesor')
+      
+      if (!canAdd) {
+        error("No se puede agregar más profesores. Se ha alcanzado el límite máximo para este plantel.", { title: "Límite alcanzado" })
+        return
+      }
+
+      const result = await assignUserToPlantelWithValidation(userId, plantel.id, 'profesor')
+      
+      if (result.success) {
+        success("Profesor asignado al plantel correctamente", { title: "Éxito" })
+        loadProfesores()
+        setIsAssignDialogOpen(false)
+        setSearchTerm('')
+        setAvailableUsers([])
+      } else {
+        error(result.error || "Error al asignar el profesor al plantel", { title: "Error" })
+      }
+    } catch (err) {
+      console.error('Error in handleAssignProfesor:', err)
+      error("Error al asignar el profesor al plantel", { title: "Error" })
+    }
+  }
+
   // Verificar permisos y estado de carga
   if (loading || isInitialLoading) {
     return (
@@ -260,9 +445,18 @@ export function AdministracionPlantel({ isOpen, onClose }: AdministracionPlantel
         </Badge>
       </div>
 
-
-
-      {/* Información del Plantel */}
+      {/* Información del Plantel - Colapsable */}
+      <Collapsible open={isPlantelInfoOpen} onOpenChange={setIsPlantelInfoOpen}>
+        <CollapsibleTrigger asChild>
+          <Button variant="outline" className="w-full justify-between">
+            <div className="flex items-center gap-2">
+              <Settings className="h-4 w-4" />
+              Información del Plantel
+            </div>
+            <ChevronDown className={`h-4 w-4 transition-transform ${isPlantelInfoOpen ? 'rotate-180' : ''}`} />
+          </Button>
+        </CollapsibleTrigger>
+        <CollapsibleContent className="space-y-4">
       <Card>
         <CardHeader>
           <div className="flex items-center justify-between">
@@ -445,6 +639,11 @@ export function AdministracionPlantel({ isOpen, onClose }: AdministracionPlantel
           )}
         </CardContent>
       </Card>
+        </CollapsibleContent>
+      </Collapsible>
+
+      {/* Widget de Usuarios Asignados */}
+      <PlantelUsersWidget plantelId={plantel.id} />
 
       {/* Tabs de Gestión */}
       <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-4">
@@ -469,10 +668,130 @@ export function AdministracionPlantel({ isOpen, onClose }: AdministracionPlantel
                     Administra los profesores asignados a tu plantel
                   </CardDescription>
                 </div>
-                <Button onClick={loadProfesores} variant="outline" size="sm">
-                  <RefreshCw className="h-4 w-4 mr-2" />
-                  Actualizar
-                </Button>
+                <div className="flex gap-2">
+                  <Dialog open={isInviteDialogOpen} onOpenChange={setIsInviteDialogOpen}>
+                    <DialogTrigger asChild>
+                      <Button variant="outline" size="sm">
+                        <Mail className="h-4 w-4 mr-2" />
+                        Invitar
+                      </Button>
+                    </DialogTrigger>
+                    <DialogContent>
+                      <DialogHeader>
+                        <DialogTitle>Invitar Profesor</DialogTitle>
+                        <DialogDescription>
+                          Envía una invitación por email a un nuevo profesor para que se una al plantel.
+                        </DialogDescription>
+                      </DialogHeader>
+                      <div className="space-y-4">
+                        <div className="space-y-2">
+                          <Label htmlFor="invite-email">Email del profesor</Label>
+                          <Input
+                            id="invite-email"
+                            type="email"
+                            placeholder="profesor@ejemplo.com"
+                            value={inviteEmail}
+                            onChange={(e) => setInviteEmail(e.target.value)}
+                          />
+                        </div>
+                        <div className="flex justify-end gap-2">
+                          <Button
+                            variant="outline"
+                            onClick={() => {
+                              setIsInviteDialogOpen(false)
+                              setInviteEmail('')
+                            }}
+                          >
+                            Cancelar
+                          </Button>
+                          <Button
+                            onClick={handleInviteProfesor}
+                            disabled={inviting || !inviteEmail.trim()}
+                          >
+                            {inviting ? "Enviando..." : "Enviar Invitación"}
+                          </Button>
+                        </div>
+                      </div>
+                    </DialogContent>
+                  </Dialog>
+
+                  <Dialog open={isAssignDialogOpen} onOpenChange={setIsAssignDialogOpen}>
+                    <DialogTrigger asChild>
+                      <Button variant="outline" size="sm">
+                        <UserPlus className="h-4 w-4 mr-2" />
+                        Asignar
+                      </Button>
+                    </DialogTrigger>
+                    <DialogContent>
+                      <DialogHeader>
+                        <DialogTitle>Asignar Profesor Existente</DialogTitle>
+                        <DialogDescription>
+                          Busca y asigna un profesor existente en el sistema al plantel.
+                        </DialogDescription>
+                      </DialogHeader>
+                      <div className="space-y-4">
+                        <div className="space-y-2">
+                          <Label htmlFor="search-user">Buscar profesor</Label>
+                          <Input
+                            id="search-user"
+                            placeholder="Buscar por nombre o email..."
+                            value={searchTerm}
+                            onChange={(e) => setSearchTerm(e.target.value)}
+                          />
+                        </div>
+                        {searchTerm.trim() && (
+                          <div className="space-y-2">
+                            <Label>Profesores disponibles</Label>
+                            {availableUsers.length > 0 ? (
+                              <div className="max-h-48 overflow-y-auto space-y-2">
+                                {availableUsers.map((user) => (
+                                  <div
+                                    key={user.id}
+                                    className="flex items-center justify-between p-3 border rounded-lg"
+                                  >
+                                    <div>
+                                      <p className="font-medium">{user.full_name}</p>
+                                      <p className="text-sm text-muted-foreground">{user.email}</p>
+                                    </div>
+                                    <Button
+                                      size="sm"
+                                      onClick={() => handleAssignProfesor(user.id)}
+                                    >
+                                      Asignar
+                                    </Button>
+                                  </div>
+                                ))}
+                              </div>
+                            ) : (
+                              <div className="text-center py-4 text-muted-foreground">
+                                <Users className="h-8 w-8 mx-auto mb-2 opacity-50" />
+                                <p>No se encontraron usuarios con "{searchTerm}"</p>
+                                <p className="text-sm">Verifica que el usuario tenga rol de profesor o sin rol asignado</p>
+                              </div>
+                            )}
+                          </div>
+                        )}
+                        <div className="flex justify-end">
+                          <Button
+                            variant="outline"
+                            onClick={() => {
+                              setIsAssignDialogOpen(false)
+                              setSearchTerm('')
+                              setAvailableUsers([])
+                            }}
+                          >
+                            Cerrar
+                          </Button>
+                        </div>
+                      </div>
+                    </DialogContent>
+                  </Dialog>
+
+                  <Button onClick={loadProfesores} variant="outline" size="sm">
+                    <RefreshCw className="h-4 w-4 mr-2" />
+                    Actualizar
+                  </Button>
+                </div>
               </div>
             </CardHeader>
             <CardContent>
@@ -503,6 +822,7 @@ export function AdministracionPlantel({ isOpen, onClose }: AdministracionPlantel
                         <TableHead>Email</TableHead>
                         <TableHead>Estado</TableHead>
                         <TableHead>Fecha de Asignación</TableHead>
+                        <TableHead>Acciones</TableHead>
                       </TableRow>
                     </TableHeader>
                     <TableBody>
@@ -523,6 +843,33 @@ export function AdministracionPlantel({ isOpen, onClose }: AdministracionPlantel
                               month: 'short',
                               day: 'numeric'
                             })}
+                          </TableCell>
+                          <TableCell>
+                            <AlertDialog>
+                              <AlertDialogTrigger asChild>
+                                <Button variant="outline" size="sm">
+                                  <Trash2 className="h-4 w-4" />
+                                </Button>
+                              </AlertDialogTrigger>
+                              <AlertDialogContent>
+                                <AlertDialogHeader>
+                                  <AlertDialogTitle>¿Remover profesor?</AlertDialogTitle>
+                                  <AlertDialogDescription>
+                                    ¿Estás seguro de que deseas remover a {profesor.nombre} del plantel? 
+                                    Esta acción no se puede deshacer.
+                                  </AlertDialogDescription>
+                                </AlertDialogHeader>
+                                <AlertDialogFooter>
+                                  <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                                  <AlertDialogAction
+                                    onClick={() => handleRemoveProfesor(profesor.user_id)}
+                                    className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                                  >
+                                    Remover
+                                  </AlertDialogAction>
+                                </AlertDialogFooter>
+                              </AlertDialogContent>
+                            </AlertDialog>
                           </TableCell>
                         </TableRow>
                       ))}

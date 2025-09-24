@@ -160,7 +160,9 @@ export async function assignUserToPlantel(
       .from('profiles')
       .update({
         plantel_id: plantelId,
-        role: role
+        role: role,
+        subscription_plan: 'pro',
+        updated_at: new Date().toISOString()
       })
       .eq('id', userId);
 
@@ -253,7 +255,8 @@ export async function removeUserFromPlantel(userId: string, plantelId: string): 
       .from('profiles')
       .update({
         plantel_id: null,
-        role: null
+        subscription_plan: 'free',
+        updated_at: new Date().toISOString()
       })
       .eq('id', userId);
 
@@ -452,6 +455,35 @@ export async function isUserAssignedToPlantel(userId: string, plantelId: string)
   }
 }
 
+export async function hasUserPlantelAssignment(userId: string, plantelId: string): Promise<{ exists: boolean; isActive: boolean; assignmentId?: string }> {
+  try {
+    const { data, error } = await supabase
+      .from('user_plantel_assignments')
+      .select('id, activo')
+      .eq('user_id', userId)
+      .eq('plantel_id', plantelId)
+      .single();
+
+    if (error && error.code !== 'PGRST116') { // PGRST116 = no rows found
+      console.error('Error checking user assignment:', error.message);
+      return { exists: false, isActive: false };
+    }
+
+    if (!data) {
+      return { exists: false, isActive: false };
+    }
+
+    return { 
+      exists: true, 
+      isActive: data.activo,
+      assignmentId: data.id
+    };
+  } catch (error) {
+    console.error('Exception in hasUserPlantelAssignment:', (error as Error).message);
+    return { exists: false, isActive: false };
+  }
+}
+
 export async function canAddUserToPlantel(plantelId: string, userRole: UserRole): Promise<boolean> {
   try {
     console.log('DEBUG canAddUserToPlantel: plantelId:', plantelId, 'userRole:', userRole);
@@ -569,14 +601,57 @@ export async function assignUserToPlantelWithValidation(
   assignedBy?: string
 ): Promise<{ success: boolean; error?: string; data?: UserPlantelAssignment }> {
   try {
-    // Primero verificar si el usuario ya está asignado al plantel
-    const isAlreadyAssigned = await isUserAssignedToPlantel(userId, plantelId);
+    // Verificar si existe alguna asignación (activa o inactiva)
+    const assignmentStatus = await hasUserPlantelAssignment(userId, plantelId);
     
-    if (isAlreadyAssigned) {
-      return {
-        success: false,
-        error: 'El usuario ya está asignado a este plantel.'
-      };
+    if (assignmentStatus.exists) {
+      if (assignmentStatus.isActive) {
+        return {
+          success: false,
+          error: 'El usuario ya está asignado activamente a este plantel.'
+        };
+      } else {
+        // Reactivar la asignación existente
+        const { data, error } = await supabase
+          .from('user_plantel_assignments')
+          .update({
+            activo: true,
+            role: role,
+            assigned_by: assignedBy,
+            updated_at: new Date().toISOString()
+          })
+          .eq('id', assignmentStatus.assignmentId)
+          .select()
+          .single();
+
+        if (error) {
+          console.error('Error reactivating assignment:', error.message);
+          return {
+            success: false,
+            error: 'Error al reactivar la asignación del usuario.'
+          };
+        }
+
+        // También actualizar la tabla profiles
+        const { error: profileError } = await supabase
+          .from('profiles')
+          .update({
+            plantel_id: plantelId,
+            role: role,
+            subscription_plan: 'pro',
+            updated_at: new Date().toISOString()
+          })
+          .eq('id', userId);
+
+        if (profileError) {
+          console.error('Error updating profile with reactivated assignment:', profileError.message);
+        }
+
+        return {
+          success: true,
+          data: data
+        };
+      }
     }
 
     // Verificar si se puede agregar el usuario (límites)
@@ -589,7 +664,7 @@ export async function assignUserToPlantelWithValidation(
       };
     }
 
-    // Si se puede agregar, proceder con la asignación
+    // Si no existe asignación, crear una nueva
     const assignment = await assignUserToPlantel(userId, plantelId, role, assignedBy);
     
     if (!assignment) {
