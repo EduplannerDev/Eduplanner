@@ -15,23 +15,16 @@ import {
   BookOpen, 
   FileText, 
   MessageSquare, 
-  TrendingUp, 
   DollarSign,
   Activity,
-  Calendar,
-  UserCheck,
-  AlertCircle
+  UserCheck
 } from 'lucide-react'
 import { 
   getPlatformStats, 
   getRecentActivity, 
-  getSubscriptionStats, 
-  getTopPlanteles,
   getUsuariosSinPlantel,
   type PlatformStats,
   type RecentActivity,
-  type SubscriptionStats,
-  type TopPlanteles,
   type UsuariosSinPlantel
 } from '@/lib/admin-stats'
 
@@ -42,8 +35,6 @@ export function AdminDashboard() {
   // Estados para las estadísticas
   const [platformStats, setPlatformStats] = useState<PlatformStats | null>(null)
   const [recentActivity, setRecentActivity] = useState<RecentActivity | null>(null)
-  const [subscriptionStats, setSubscriptionStats] = useState<SubscriptionStats | null>(null)
-  const [topPlanteles, setTopPlanteles] = useState<TopPlanteles[]>([])
   const [usuariosSinPlantel, setUsuariosSinPlantel] = useState<UsuariosSinPlantel | null>(null)
   const [statsLoading, setStatsLoading] = useState(true)
 
@@ -57,18 +48,14 @@ export function AdminDashboard() {
   const loadDashboardStats = async () => {
     try {
       setStatsLoading(true)
-      const [stats, activity, subscription, planteles, usuariosSinPlantelData] = await Promise.all([
+      const [stats, activity, usuariosSinPlantelData] = await Promise.all([
         getPlatformStats(),
         getRecentActivity(),
-        getSubscriptionStats(),
-        getTopPlanteles(),
         getUsuariosSinPlantel()
       ])
       
       setPlatformStats(stats)
       setRecentActivity(activity)
-      setSubscriptionStats(subscription)
-      setTopPlanteles(planteles)
       setUsuariosSinPlantel(usuariosSinPlantelData)
     } catch (error) {
       console.error('Error cargando estadísticas del dashboard:', error)
@@ -148,20 +135,7 @@ export function AdminDashboard() {
           ) : (
             <>
               {/* Estadísticas principales */}
-              <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-                <Card>
-                  <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                    <CardTitle className="text-sm font-medium">Total Planteles</CardTitle>
-                    <Building2 className="h-4 w-4 text-muted-foreground" />
-                  </CardHeader>
-                  <CardContent>
-                    <div className="text-2xl font-bold">{platformStats?.totalPlanteles || 0}</div>
-                    <p className="text-xs text-muted-foreground">
-                      Instituciones registradas
-                    </p>
-                  </CardContent>
-                </Card>
-
+              <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
                 <Card>
                   <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                     <CardTitle className="text-sm font-medium">Total Usuarios</CardTitle>
@@ -190,15 +164,13 @@ export function AdminDashboard() {
 
                 <Card>
                   <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                    <CardTitle className="text-sm font-medium">Ingresos Mensuales</CardTitle>
-                    <DollarSign className="h-4 w-4 text-muted-foreground" />
+                    <CardTitle className="text-sm font-medium">Contenido Creado</CardTitle>
+                    <BookOpen className="h-4 w-4 text-muted-foreground" />
                   </CardHeader>
                   <CardContent>
-                    <div className="text-2xl font-bold">
-                      ${subscriptionStats?.ingresosMensuales?.toLocaleString() || 0}
-                    </div>
+                    <div className="text-2xl font-bold">{(platformStats?.totalPlaneaciones || 0) + (platformStats?.totalExamenes || 0)}</div>
                     <p className="text-xs text-muted-foreground">
-                      {subscriptionStats?.plantelesActivos || 0} planteles activos
+                      {platformStats?.totalPlaneaciones || 0} planeaciones, {platformStats?.totalExamenes || 0} exámenes
                     </p>
                   </CardContent>
                 </Card>
@@ -326,8 +298,8 @@ export function AdminDashboard() {
                 </Card>
               </div>
 
-              {/* Actividad reciente y suscripciones */}
-              <div className="grid gap-6 md:grid-cols-2">
+              {/* Actividad reciente */}
+              <div className="grid gap-6">
                 <Card>
                   <CardHeader>
                     <CardTitle className="flex items-center gap-2">
@@ -372,139 +344,12 @@ export function AdminDashboard() {
                   </CardContent>
                 </Card>
 
-                <Card>
-                  <CardHeader>
-                    <CardTitle className="flex items-center gap-2">
-                      <TrendingUp className="h-5 w-5" />
-                      Estado de Suscripciones
-                    </CardTitle>
-                    <CardDescription>
-                      Resumen de planteles por estado
-                    </CardDescription>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="space-y-4">
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-2">
-                          <div className="w-3 h-3 bg-green-500 rounded-full"></div>
-                          <span className="text-sm">Planteles activos</span>
-                        </div>
-                        <Badge variant="default">{subscriptionStats?.plantelesActivos || 0}</Badge>
-                      </div>
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-2">
-                          <div className="w-3 h-3 bg-yellow-500 rounded-full"></div>
-                          <span className="text-sm">En período de prueba</span>
-                        </div>
-                        <Badge variant="secondary">{subscriptionStats?.plantelesPendientes || 0}</Badge>
-                      </div>
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-2">
-                          <div className="w-3 h-3 bg-red-500 rounded-full"></div>
-                          <span className="text-sm">Vencidos/Cancelados</span>
-                        </div>
-                        <Badge variant="destructive">{subscriptionStats?.plantelesVencidos || 0}</Badge>
-                      </div>
-                      <div className="pt-2 border-t">
-                        <div className="flex items-center justify-between font-medium">
-                          <span className="text-sm">Ingresos estimados</span>
-                          <span className="text-lg">${subscriptionStats?.ingresosMensuales?.toLocaleString() || 0}/mes</span>
-                        </div>
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
+
               </div>
 
-              {/* Top planteles */}
-              <Card>
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <Building2 className="h-5 w-5" />
-                    Planteles Más Activos
-                  </CardTitle>
-                  <CardDescription>
-                    Planteles con mayor actividad en la plataforma
-                  </CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <div className="space-y-4">
-                    {topPlanteles.length > 0 ? (
-                      topPlanteles.map((plantel, index) => (
-                        <div key={plantel.id} className="flex items-center justify-between p-3 border rounded-lg">
-                          <div className="flex items-center gap-3">
-                            <div className="flex items-center justify-center w-8 h-8 bg-primary/10 rounded-full">
-                              <span className="text-sm font-medium">#{index + 1}</span>
-                            </div>
-                            <div>
-                              <p className="font-medium">{plantel.nombre}</p>
-                              <p className="text-sm text-muted-foreground">
-                                {plantel.totalUsuarios} usuarios • {plantel.totalGrupos} grupos • {plantel.totalAlumnos} alumnos
-                              </p>
-                            </div>
-                          </div>
-                          <Badge 
-                            variant={plantel.estado_suscripcion === 'active' ? 'default' : 'secondary'}
-                          >
-                            {plantel.estado_suscripcion === 'active' ? 'Activo' : 'Inactivo'}
-                          </Badge>
-                        </div>
-                      ))
-                    ) : (
-                      <div className="text-center py-8 text-muted-foreground">
-                        <Building2 className="h-12 w-12 mx-auto mb-4 opacity-50" />
-                        <p>No hay planteles registrados aún</p>
-                      </div>
-                    )}
-                  </div>
-                </CardContent>
-              </Card>
 
-              {/* Acciones rápidas */}
-              <Card>
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <Calendar className="h-5 w-5" />
-                    Acciones Rápidas
-                  </CardTitle>
-                  <CardDescription>
-                    Tareas comunes de administración
-                  </CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <div className="grid gap-3 md:grid-cols-2 lg:grid-cols-3">
-                    <button
-                      onClick={() => setActiveTab('planteles')}
-                      className="flex items-center gap-3 p-3 text-left border rounded-lg hover:bg-accent transition-colors"
-                    >
-                      <Building2 className="h-5 w-5 text-blue-500" />
-                      <div>
-                        <p className="font-medium">Gestionar Planteles</p>
-                        <p className="text-sm text-muted-foreground">Crear y administrar instituciones</p>
-                      </div>
-                    </button>
-                    
-                    <button
-                      onClick={() => loadDashboardStats()}
-                      className="flex items-center gap-3 p-3 text-left border rounded-lg hover:bg-accent transition-colors"
-                    >
-                      <Activity className="h-5 w-5 text-green-500" />
-                      <div>
-                        <p className="font-medium">Actualizar Estadísticas</p>
-                        <p className="text-sm text-muted-foreground">Refrescar datos del dashboard</p>
-                      </div>
-                    </button>
 
-                    <div className="flex items-center gap-3 p-3 text-left border rounded-lg opacity-50">
-                      <AlertCircle className="h-5 w-5 text-orange-500" />
-                      <div>
-                        <p className="font-medium">Configuración</p>
-                        <p className="text-sm text-muted-foreground">Próximamente disponible</p>
-                      </div>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
+
             </>
           )}
         </TabsContent>

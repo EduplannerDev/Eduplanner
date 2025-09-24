@@ -587,19 +587,9 @@ export function GestionarUsuarios() {
               <div className="space-y-2">
                 <div className="flex items-center justify-between">
                   <span className="text-sm font-medium">Usuarios Totales</span>
-                  <Badge variant={selectedPlantelInfo.usuarios_disponibles && selectedPlantelInfo.usuarios_disponibles > 0 ? 'default' : 'destructive'}>
-                    {selectedPlantelInfo.usuarios_actuales || 0} / {selectedPlantelInfo.max_usuarios || 0}
+                  <Badge variant="default">
+                    {selectedPlantelInfo.usuarios_actuales || 0}
                   </Badge>
-                </div>
-                <div className="w-full bg-gray-200 rounded-full h-2">
-                  <div 
-                    className={`h-2 rounded-full ${
-                      (selectedPlantelInfo.usuarios_disponibles || 0) > 0 ? 'bg-green-500' : 'bg-red-500'
-                    }`}
-                    style={{ 
-                      width: `${Math.min(100, ((selectedPlantelInfo.usuarios_actuales || 0) / (selectedPlantelInfo.max_usuarios || 1)) * 100)}%` 
-                    }}
-                  ></div>
                 </div>
                 <p className="text-xs text-muted-foreground">
                   {selectedPlantelInfo.usuarios_disponibles || 0} disponibles
@@ -653,28 +643,7 @@ export function GestionarUsuarios() {
               </div>
             </div>
 
-            {/* Información de suscripción */}
-            <div className="mt-4 pt-4 border-t">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm font-medium">Plan de Suscripción</p>
-                  <p className="text-xs text-muted-foreground">
-                    {selectedPlantelInfo?.plan_suscripcion ? (selectedPlantelInfo.plan_suscripcion.charAt(0).toUpperCase() + selectedPlantelInfo.plan_suscripcion.slice(1)) : 'No definido'}
-                  </p>
-                </div>
-                <Badge variant={
-                  selectedPlantelInfo.estado_suscripcion === 'activa' ? 'default' :
-                  selectedPlantelInfo.estado_suscripcion === 'suspendida' ? 'destructive' : 'secondary'
-                }>
-                  {selectedPlantelInfo?.estado_suscripcion ? (selectedPlantelInfo.estado_suscripcion.charAt(0).toUpperCase() + selectedPlantelInfo.estado_suscripcion.slice(1)) : 'No definido'}
-                </Badge>
-              </div>
-              {selectedPlantelInfo.fecha_vencimiento && (
-                <p className="text-xs text-muted-foreground mt-1">
-                  Vence: {new Date(selectedPlantelInfo.fecha_vencimiento).toLocaleDateString()}
-                </p>
-              )}
-            </div>
+
           </CardContent>
         </Card>
       )}
@@ -851,7 +820,7 @@ export function GestionarUsuarios() {
                 </p>
                 {selectedPlantelInfo && (
                   <p>
-                    Límite: {selectedPlantelInfo.usuarios_actuales || 0} / {selectedPlantelInfo.max_usuarios || 0} usuarios
+                    Usuarios actuales: {selectedPlantelInfo.usuarios_actuales || 0}
                   </p>
                 )}
               </div>

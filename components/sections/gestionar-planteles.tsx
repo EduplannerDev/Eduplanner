@@ -14,6 +14,7 @@ import { toast } from '@/hooks/use-toast'
 import { Plantel } from '@/lib/profile'
 import { getAllPlanteles, createPlantel, updatePlantel, deactivatePlantel, getPlantelWithLimits, PlantelWithLimits } from '@/lib/planteles'
 import { useAdminCheck } from '@/hooks/use-roles'
+import { useAuth } from '@/hooks/use-auth'
 import { Plus, Trash2, Building2, Users, Shield, Eye } from 'lucide-react'
 
 interface PlantelFormData {
@@ -26,7 +27,6 @@ interface PlantelFormData {
   ciudad: string
   estado: string
   codigo_postal: string
-  max_usuarios: number
   max_profesores: number
   max_directores: number
 }
@@ -43,10 +43,13 @@ interface GestionarPlantelesProps {
 }
 
 export function GestionarPlanteles({ onViewPlantel }: GestionarPlantelesProps) {
+  const { user, loading: authLoading } = useAuth()
   const { isAdmin, loading: roleLoading } = useAdminCheck()
   const [planteles, setPlanteles] = useState<Plantel[]>([])  
   const [plantelesWithLimits, setPlantelesWithLimits] = useState<PlantelWithLimits[]>([])
   const [loading, setLoading] = useState(true)
+
+
   const [isDialogOpen, setIsDialogOpen] = useState(false)
   const [formData, setFormData] = useState<PlantelFormData>({
     nombre: '',
@@ -58,7 +61,6 @@ export function GestionarPlanteles({ onViewPlantel }: GestionarPlantelesProps) {
     ciudad: '',
     estado: '',
     codigo_postal: '',
-    max_usuarios: 50,
     max_profesores: 10,
     max_directores: 3
   })
@@ -70,33 +72,17 @@ export function GestionarPlanteles({ onViewPlantel }: GestionarPlantelesProps) {
       const data = await getAllPlanteles()
       setPlanteles(data)
       
-      // Cargar información de límites para cada plantel
+      // Cargar límites para cada plantel
       const plantelesWithLimitsData = await Promise.all(
         data.map(async (plantel) => {
-          try {
-            return await getPlantelWithLimits(plantel.id)
-          } catch (error) {
-            console.error(`Error loading limits for plantel ${plantel.id}:`, error)
-            return {
-              ...plantel,
-              usuarios_actuales: 0,
-              max_usuarios: 0,
-              usuarios_disponibles: 0,
-              profesores_actuales: 0,
-              max_profesores: 0,
-              profesores_disponibles: 0,
-              directores_actuales: 0,
-              max_directores: 0,
-              directores_disponibles: 0,
-              plan_suscripcion: null,
-              estado_suscripcion: null,
-              fecha_vencimiento: null
-            }
-          }
+          const plantelWithLimits = await getPlantelWithLimits(plantel.id)
+          return plantelWithLimits || plantel
         })
       )
-      setPlantelesWithLimits(plantelesWithLimitsData.filter((plantel): plantel is PlantelWithLimits => plantel !== null))
+      
+      setPlantelesWithLimits(plantelesWithLimitsData)
     } catch (error) {
+      console.error('Error loading planteles:', error)
       toast({
         title: "Error",
         description: "No se pudieron cargar los planteles",
@@ -109,10 +95,10 @@ export function GestionarPlanteles({ onViewPlantel }: GestionarPlantelesProps) {
 
   // Optimizado: solo cargar planteles una vez cuando el usuario es admin
   useEffect(() => {
-    if (isAdmin && !loading) {
+    if (user && !authLoading && isAdmin && !roleLoading) {
       loadPlanteles()
     }
-  }, [isAdmin, loading])
+  }, [user, authLoading, isAdmin, roleLoading])
 
   // Manejar envío del formulario
   const handleSubmit = async (e: React.FormEvent) => {
@@ -164,7 +150,6 @@ export function GestionarPlanteles({ onViewPlantel }: GestionarPlantelesProps) {
       ciudad: '',
       estado: '',
       codigo_postal: '',
-      max_usuarios: 50,
       max_profesores: 10,
       max_directores: 3
     })
@@ -199,7 +184,7 @@ export function GestionarPlanteles({ onViewPlantel }: GestionarPlantelesProps) {
     }
   }
 
-  if (roleLoading) {
+  if (authLoading || roleLoading) {
     return <div className="flex justify-center p-8">Cargando...</div>
   }
 
@@ -353,18 +338,7 @@ export function GestionarPlanteles({ onViewPlantel }: GestionarPlantelesProps) {
                   <Shield className="h-4 w-4 text-muted-foreground" />
                   <Label className="text-base font-medium">Límites de Usuarios</Label>
                 </div>
-                <div className="grid grid-cols-3 gap-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="max_usuarios">Máximo Usuarios</Label>
-                    <Input
-                      id="max_usuarios"
-                      type="number"
-                      min="1"
-                      value={formData.max_usuarios}
-                      onChange={(e) => setFormData(prev => ({ ...prev, max_usuarios: parseInt(e.target.value) || 0 }))}
-                      placeholder="50"
-                    />
-                  </div>
+                <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-2">
                     <Label htmlFor="max_profesores">Máximo Profesores</Label>
                     <Input
@@ -419,16 +393,10 @@ export function GestionarPlanteles({ onViewPlantel }: GestionarPlantelesProps) {
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <div className="text-center p-4 bg-blue-50 dark:bg-blue-950 rounded-lg">
                 <div className="text-2xl font-bold text-blue-600">{plantelesWithLimits.length}</div>
                 <div className="text-sm text-muted-foreground">Planteles Activos</div>
-              </div>
-              <div className="text-center p-4 bg-green-50 dark:bg-green-950 rounded-lg">
-                <div className="text-2xl font-bold text-green-600">
-                  {plantelesWithLimits.reduce((sum, p) => sum + (p.usuarios_actuales || 0), 0)}
-                </div>
-                <div className="text-sm text-muted-foreground">Total Usuarios</div>
               </div>
               <div className="text-center p-4 bg-purple-50 dark:bg-purple-950 rounded-lg">
                 <div className="text-2xl font-bold text-purple-600">
@@ -445,15 +413,20 @@ export function GestionarPlanteles({ onViewPlantel }: GestionarPlantelesProps) {
             </div>
             
             {/* Planteles con límites alcanzados */}
-            {plantelesWithLimits.some(p => (p.usuarios_disponibles || 0) <= 0) && (
+            {plantelesWithLimits.some(p => 
+              (p.profesores_disponibles || 0) <= 0 || (p.directores_disponibles || 0) <= 0
+            ) && (
               <div className="mt-4 p-4 bg-red-50 dark:bg-red-950 rounded-lg">
                 <h4 className="font-medium text-red-800 dark:text-red-200 mb-2">⚠️ Planteles con límites alcanzados:</h4>
                 <div className="space-y-1">
                   {plantelesWithLimits
-                    .filter(p => (p.usuarios_disponibles || 0) <= 0)
+                    .filter(p => (p.profesores_disponibles || 0) <= 0 || (p.directores_disponibles || 0) <= 0)
                     .map(p => (
                       <div key={p.id} className="text-sm text-red-700 dark:text-red-300">
-                        • {p.nombre} - {p.usuarios_actuales}/{p.max_usuarios} usuarios
+                        • {p.nombre} - 
+                        {(p.profesores_disponibles || 0) <= 0 && ` Profesores: ${p.profesores_actuales}/${p.max_profesores}`}
+                        {(p.profesores_disponibles || 0) <= 0 && (p.directores_disponibles || 0) <= 0 && ', '}
+                        {(p.directores_disponibles || 0) <= 0 && ` Directores: ${p.directores_actuales}/${p.max_directores}`}
                       </div>
                     ))
                   }
@@ -483,10 +456,8 @@ export function GestionarPlanteles({ onViewPlantel }: GestionarPlantelesProps) {
               <TableHeader>
                 <TableRow>
                   <TableHead>Plantel</TableHead>
-                  <TableHead>Usuarios</TableHead>
                   <TableHead>Profesores</TableHead>
                   <TableHead>Directores</TableHead>
-                  <TableHead>Suscripción</TableHead>
                   <TableHead>Estado</TableHead>
                   <TableHead>Acciones</TableHead>
                 </TableRow>
@@ -499,26 +470,6 @@ export function GestionarPlanteles({ onViewPlantel }: GestionarPlantelesProps) {
                         <div className="font-medium">{plantel.nombre}</div>
                         <div className="text-sm text-muted-foreground">
                           {plantel.nivel_educativo} • {plantel.ciudad || 'Sin ciudad'}
-                        </div>
-                      </div>
-                    </TableCell>
-                    <TableCell>
-                      <div className="flex items-center space-x-2">
-                        <Users className="h-4 w-4 text-muted-foreground" />
-                        <div>
-                          <div className="text-sm font-medium">
-                            {plantel.usuarios_actuales || 0} / {plantel.max_usuarios || 0}
-                          </div>
-                          <div className="w-16 bg-gray-200 rounded-full h-1.5">
-                            <div 
-                              className={`h-1.5 rounded-full ${
-                                (plantel.usuarios_disponibles || 0) > 0 ? 'bg-green-500' : 'bg-red-500'
-                              }`}
-                              style={{ 
-                                width: `${Math.min(100, ((plantel.usuarios_actuales || 0) / (plantel.max_usuarios || 1)) * 100)}%` 
-                              }}
-                            ></div>
-                          </div>
                         </div>
                       </div>
                     </TableCell>
@@ -554,21 +505,6 @@ export function GestionarPlanteles({ onViewPlantel }: GestionarPlantelesProps) {
                             }}
                           ></div>
                         </div>
-                      </div>
-                    </TableCell>
-                    <TableCell>
-                      <div className="text-sm">
-                        <Badge variant={
-                          plantel.estado_suscripcion === 'activa' ? 'default' :
-                          plantel.estado_suscripcion === 'suspendida' ? 'destructive' : 'secondary'
-                        }>
-{plantel.plan_suscripcion ? plantel.plan_suscripcion.charAt(0).toUpperCase() + plantel.plan_suscripcion.slice(1) : 'No definido'}
-                        </Badge>
-                        {plantel.fecha_vencimiento && (
-                          <div className="text-xs text-muted-foreground mt-1">
-                            Vence: {new Date(plantel.fecha_vencimiento).toLocaleDateString()}
-                          </div>
-                        )}
                       </div>
                     </TableCell>
                     <TableCell>

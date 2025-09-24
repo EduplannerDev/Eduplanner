@@ -15,7 +15,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { useToast } from '@/components/ui/use-toast'
 import { useNotification } from '@/hooks/use-notification'
 import { Plantel } from '@/lib/profile'
-import { getPlantelWithLimits, PlantelWithLimits, updatePlantel, getPlantelUsers, getUserPlantelAssignments, assignUserToPlantel, canAddUserToPlantel } from '@/lib/planteles'
+import { getPlantelWithLimits, PlantelWithLimits, updatePlantel, updatePlantelLimits, getPlantelUsers, getUserPlantelAssignments, assignUserToPlantelWithValidation, canAddUserToPlantel, removeUserFromPlantel } from '@/lib/planteles'
 // Removed import for searchUsers - will be defined locally
 import { inviteUserByEmail } from '@/lib/profile'
 import { useAdminCheck } from '@/hooks/use-roles'
@@ -25,6 +25,8 @@ type Profile = {
   email: string
   full_name?: string
   activo: boolean
+  isAssigned?: boolean
+  currentRole?: string | null
 }
 
 type UserRole = 'profesor' | 'director' | 'administrador'
@@ -90,13 +92,13 @@ export function VistaPlantel({ plantelId, onBack }: VistaPlantelProps) {
   const [inviteEmail, setInviteEmail] = useState('')
   const [inviteRole, setInviteRole] = useState<UserRole>('profesor')
   const [inviting, setInviting] = useState(false)
+  
+  // Estados para confirmación de eliminación
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false)
+  const [userToDelete, setUserToDelete] = useState<{id: string, name: string} | null>(null)
   const [editFormData, setEditFormData] = useState({
-    max_usuarios: 0,
     max_profesores: 0,
-    max_directores: 0,
-    plan_suscripcion: '',
-    estado_suscripcion: '',
-    fecha_vencimiento: ''
+    max_directores: 0
   })
   const [editInfoFormData, setEditInfoFormData] = useState({
     nombre: '',
@@ -115,6 +117,7 @@ export function VistaPlantel({ plantelId, onBack }: VistaPlantelProps) {
     setLoading(true)
     try {
       const plantelData = await getPlantelWithLimits(plantelId)
+      console.log('DEBUG: Datos del plantel cargados:', plantelData)
       setPlantel(plantelData)
       
       // Cargar usuarios del plantel
@@ -134,12 +137,8 @@ export function VistaPlantel({ plantelId, onBack }: VistaPlantelProps) {
       setUsuarios(usuariosFormateados)
       
       setEditFormData({
-        max_usuarios: plantelData?.max_usuarios || 0,
         max_profesores: plantelData?.max_profesores || 0,
-        max_directores: plantelData?.max_directores || 0,
-        plan_suscripcion: plantelData?.plan_suscripcion || '',
-        estado_suscripcion: plantelData?.estado_suscripcion || '',
-        fecha_vencimiento: plantelData?.fecha_vencimiento || ''
+        max_directores: plantelData?.max_directores || 0
       })
       
       setEditInfoFormData({
@@ -169,7 +168,7 @@ export function VistaPlantel({ plantelId, onBack }: VistaPlantelProps) {
   // Actualizar límites del plantel
   const handleUpdateLimits = async () => {
     try {
-      const result = await updatePlantel(plantelId, editFormData)
+      const result = await updatePlantelLimits(plantelId, editFormData)
       if (result) {
         success("Límites actualizados correctamente", {
           title: "Éxito"
@@ -241,9 +240,37 @@ export function VistaPlantel({ plantelId, onBack }: VistaPlantelProps) {
 
     setIsSearching(true)
     try {
-      const results = await searchUsers(searchTerm)
-      setSearchResults(results)
+      const { data, error } = await supabase
+        .from('profiles')
+        .select('id, email, full_name, activo')
+        .or(`email.ilike.%${searchTerm}%,full_name.ilike.%${searchTerm}%`)
+        .eq('activo', true)
+        .limit(10)
+
+      if (error) throw error
+
+      // Verificar cuáles usuarios ya están asignados a este plantel
+      const usersWithAssignmentStatus = await Promise.all(
+        (data || []).map(async (user) => {
+          const { data: assignment } = await supabase
+            .from('user_plantel_assignments')
+            .select('id, role')
+            .eq('user_id', user.id)
+            .eq('plantel_id', plantelId)
+            .eq('activo', true)
+            .single()
+
+          return {
+            ...user,
+            isAssigned: !!assignment,
+            currentRole: assignment?.role || null
+          }
+        })
+      )
+
+      setSearchResults(usersWithAssignmentStatus)
     } catch (error) {
+      console.error('Error searching users:', error)
       toast({
         title: "Error",
         description: "Error al buscar usuarios",
@@ -258,40 +285,36 @@ export function VistaPlantel({ plantelId, onBack }: VistaPlantelProps) {
   const handleAssignUser = async (userId: string) => {
     if (!plantel) return
 
-    // Verificar si se puede agregar el usuario
-    const canAdd = await canAddUserToPlantel(plantelId, selectedRole)
-    if (!canAdd) {
-      toast({
-        title: "Error",
-        description: "No se puede agregar el usuario. Se ha alcanzado el límite máximo para este plantel.",
-        variant: "destructive"
-      })
-      return
-    }
+    console.log('DEBUG: Intentando asignar usuario con rol:', selectedRole)
+    console.log('DEBUG: Plantel ID:', plantelId)
+    console.log('DEBUG: Usuario ID:', userId)
 
     setIsAssigning(true)
     try {
-      const assignment = await assignUserToPlantel(userId, plantelId, selectedRole)
-      if (assignment) {
+      const result = await assignUserToPlantelWithValidation(userId, plantelId, selectedRole)
+      
+      if (result.success) {
         toast({
-          title: "Éxito",
-          description: "Usuario asignado correctamente al plantel"
+          title: "Usuario asignado",
+          description: "El usuario ha sido asignado exitosamente al plantel"
         })
+        // Recargar la lista de usuarios
+        await loadPlantelData()
         setIsAddUserDialogOpen(false)
         setSearchTerm('')
         setSearchResults([])
-        loadPlantelData()
       } else {
         toast({
           title: "Error",
-          description: "Error al asignar el usuario",
+          description: result.error || "No se pudo asignar el usuario al plantel",
           variant: "destructive"
         })
       }
     } catch (error) {
+      console.error('Error assigning user:', error)
       toast({
         title: "Error",
-        description: "Error al asignar el usuario",
+        description: "Ocurrió un error al asignar el usuario",
         variant: "destructive"
       })
     } finally {
@@ -357,6 +380,43 @@ export function VistaPlantel({ plantelId, onBack }: VistaPlantelProps) {
     }
   }
 
+  // Abrir diálogo de confirmación para eliminar usuario
+  const handleRemoveUser = (userId: string, userName: string) => {
+    setUserToDelete({ id: userId, name: userName })
+    setIsDeleteDialogOpen(true)
+  }
+
+  // Confirmar eliminación de usuario del plantel
+  const confirmRemoveUser = async () => {
+    if (!userToDelete) return
+
+    try {
+      const result = await removeUserFromPlantel(userToDelete.id, plantelId)
+      if (result) {
+        toast({
+          title: "Usuario eliminado",
+          description: `${userToDelete.name} ha sido eliminado del plantel correctamente`
+        })
+        loadPlantelData() // Recargar la lista de usuarios
+      } else {
+        toast({
+          title: "Error",
+          description: "Error al eliminar el usuario del plantel",
+          variant: "destructive"
+        })
+      }
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Error al eliminar el usuario del plantel",
+        variant: "destructive"
+      })
+    } finally {
+      setIsDeleteDialogOpen(false)
+      setUserToDelete(null)
+    }
+  }
+
   if (loading) {
     return (
       <div className="flex items-center justify-center h-64">
@@ -410,28 +470,21 @@ export function VistaPlantel({ plantelId, onBack }: VistaPlantelProps) {
           <Badge variant={plantel.activo ? 'default' : 'secondary'}>
             {plantel.activo ? 'Activo' : 'Inactivo'}
           </Badge>
-          <Badge variant={
-            plantel.estado_suscripcion === 'activa' ? 'default' :
-            plantel.estado_suscripcion === 'suspendida' ? 'destructive' : 'secondary'
-          }>
-            {plantel.plan_suscripcion ? plantel.plan_suscripcion.charAt(0).toUpperCase() + plantel.plan_suscripcion.slice(1) : 'Sin plan'}
-          </Badge>
         </div>
       </div>
 
       {/* Tabs */}
       <Tabs value={activeTab} onValueChange={setActiveTab}>
-        <TabsList className="grid w-full grid-cols-4">
+        <TabsList className="grid w-full grid-cols-3">
           <TabsTrigger value="overview">Resumen</TabsTrigger>
           <TabsTrigger value="users">Usuarios</TabsTrigger>
           <TabsTrigger value="settings">Configuración</TabsTrigger>
-          <TabsTrigger value="subscription">Suscripción</TabsTrigger>
         </TabsList>
 
         {/* Tab: Resumen */}
         <TabsContent value="overview" className="space-y-6">
           {/* Información básica */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div className="grid grid-cols-1 gap-6">
             <Card>
               <CardHeader>
                 <CardTitle className="flex items-center space-x-2">
@@ -458,67 +511,10 @@ export function VistaPlantel({ plantelId, onBack }: VistaPlantelProps) {
                 </div>
               </CardContent>
             </Card>
-
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center space-x-2">
-                  <CreditCard className="h-5 w-5" />
-                  <span>Suscripción</span>
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div>
-                  <p className="text-sm text-muted-foreground">Plan actual</p>
-                  <p className="font-medium">{plantel.plan_suscripcion || 'Sin plan'}</p>
-                </div>
-                <div>
-                  <p className="text-sm text-muted-foreground">Estado</p>
-                  <Badge variant={
-                    plantel.estado_suscripcion === 'activa' ? 'default' :
-                    plantel.estado_suscripcion === 'suspendida' ? 'destructive' : 'secondary'
-                  }>
-                    {plantel.estado_suscripcion || 'No definido'}
-                  </Badge>
-                </div>
-                {plantel.fecha_vencimiento && (
-                  <div>
-                    <p className="text-sm text-muted-foreground">Fecha de vencimiento</p>
-                    <p className="font-medium">{new Date(plantel.fecha_vencimiento).toLocaleDateString()}</p>
-                  </div>
-                )}
-              </CardContent>
-            </Card>
           </div>
 
           {/* Estadísticas de usuarios */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            <Card>
-              <CardHeader className="pb-3">
-                <CardTitle className="flex items-center justify-between">
-                  <div className="flex items-center space-x-2">
-                    <Users className="h-5 w-5 text-blue-500" />
-                    <span>Usuarios Totales</span>
-                  </div>
-                  <span className="text-2xl font-bold">{plantel.usuarios_actuales || 0}</span>
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-2">
-                  <div className="flex justify-between text-sm">
-                    <span>Utilizados</span>
-                    <span>{plantel.usuarios_actuales || 0} / {plantel.max_usuarios || 0}</span>
-                  </div>
-                  <Progress 
-                    value={((plantel.usuarios_actuales || 0) / (plantel.max_usuarios || 1)) * 100} 
-                    className="h-2"
-                  />
-                  <p className="text-xs text-muted-foreground">
-                    {plantel.usuarios_disponibles || 0} disponibles
-                  </p>
-                </div>
-              </CardContent>
-            </Card>
-
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <Card>
               <CardHeader className="pb-3">
                 <CardTitle className="flex items-center justify-between">
@@ -689,6 +685,7 @@ export function VistaPlantel({ plantelId, onBack }: VistaPlantelProps) {
                             <TableRow>
                               <TableHead>Usuario</TableHead>
                               <TableHead>Email</TableHead>
+                              <TableHead>Estado</TableHead>
                               <TableHead>Acción</TableHead>
                             </TableRow>
                           </TableHeader>
@@ -700,12 +697,23 @@ export function VistaPlantel({ plantelId, onBack }: VistaPlantelProps) {
                                 </TableCell>
                                 <TableCell>{user.email}</TableCell>
                                 <TableCell>
+                                  {user.isAssigned ? (
+                                    <Badge variant="secondary">
+                                      Ya asignado como {user.currentRole}
+                                    </Badge>
+                                  ) : (
+                                    <Badge variant="outline">
+                                      Disponible
+                                    </Badge>
+                                  )}
+                                </TableCell>
+                                <TableCell>
                                   <Button
                                     size="sm"
                                     onClick={() => handleAssignUser(user.id)}
-                                    disabled={isAssigning}
+                                    disabled={isAssigning || user.isAssigned}
                                   >
-                                    {isAssigning ? 'Asignando...' : 'Asignar'}
+                                    {user.isAssigned ? 'Ya asignado' : (isAssigning ? 'Asignando...' : 'Asignar')}
                                   </Button>
                                 </TableCell>
                               </TableRow>
@@ -779,7 +787,11 @@ export function VistaPlantel({ plantelId, onBack }: VistaPlantelProps) {
                             <Button size="sm" variant="outline">
                               <Edit className="h-4 w-4" />
                             </Button>
-                            <Button size="sm" variant="outline">
+                            <Button 
+                              size="sm" 
+                              variant="outline"
+                              onClick={() => handleRemoveUser(usuario.user_id, usuario.nombre)}
+                            >
                               <Trash2 className="h-4 w-4" />
                             </Button>
                           </div>
@@ -938,64 +950,51 @@ export function VistaPlantel({ plantelId, onBack }: VistaPlantelProps) {
                 </DialogTrigger>
                 <DialogContent>
                   <DialogHeader>
-                  <DialogTitle>Editar Límites de Usuarios</DialogTitle>
-                  <DialogDescription>
-                    Modifica los límites máximos de usuarios para este plantel
-                  </DialogDescription>
-                </DialogHeader>
-                <div className="space-y-4">
-                  <div className="grid grid-cols-3 gap-4">
-                    <div className="space-y-2">
-                      <Label htmlFor="max_usuarios">Máximo Usuarios</Label>
-                      <Input
-                        id="max_usuarios"
-                        type="number"
-                        min="1"
-                        value={editFormData.max_usuarios}
-                        onChange={(e) => setEditFormData(prev => ({ 
-                          ...prev, 
-                          max_usuarios: parseInt(e.target.value) || 0 
-                        }))}
-                      />
+                    <DialogTitle>Editar Límites de Usuarios</DialogTitle>
+                    <DialogDescription>
+                      Modifica los límites máximos de usuarios para este plantel
+                    </DialogDescription>
+                  </DialogHeader>
+                  <div className="space-y-4">
+                    <div className="grid grid-cols-2 gap-4">
+                      <div className="space-y-2">
+                        <Label htmlFor="max_profesores">Máximo Profesores</Label>
+                        <Input
+                          id="max_profesores"
+                          type="number"
+                          min="1"
+                          value={editFormData.max_profesores}
+                          onChange={(e) => setEditFormData(prev => ({ 
+                            ...prev, 
+                            max_profesores: parseInt(e.target.value) || 0 
+                          }))}
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <Label htmlFor="max_directores">Máximo Directores</Label>
+                        <Input
+                          id="max_directores"
+                          type="number"
+                          min="1"
+                          value={editFormData.max_directores}
+                          onChange={(e) => setEditFormData(prev => ({ 
+                            ...prev, 
+                            max_directores: parseInt(e.target.value) || 0 
+                          }))}
+                        />
+                      </div>
                     </div>
-                    <div className="space-y-2">
-                      <Label htmlFor="max_profesores">Máximo Profesores</Label>
-                      <Input
-                        id="max_profesores"
-                        type="number"
-                        min="1"
-                        value={editFormData.max_profesores}
-                        onChange={(e) => setEditFormData(prev => ({ 
-                          ...prev, 
-                          max_profesores: parseInt(e.target.value) || 0 
-                        }))}
-                      />
-                    </div>
-                    <div className="space-y-2">
-                      <Label htmlFor="max_directores">Máximo Directores</Label>
-                      <Input
-                        id="max_directores"
-                        type="number"
-                        min="1"
-                        value={editFormData.max_directores}
-                        onChange={(e) => setEditFormData(prev => ({ 
-                          ...prev, 
-                          max_directores: parseInt(e.target.value) || 0 
-                        }))}
-                      />
+                    <div className="flex justify-end space-x-2">
+                      <Button variant="outline" onClick={() => setIsEditDialogOpen(false)}>
+                        Cancelar
+                      </Button>
+                      <Button onClick={handleUpdateLimits}>
+                        Guardar Cambios
+                      </Button>
                     </div>
                   </div>
-                  <div className="flex justify-end space-x-2">
-                    <Button variant="outline" onClick={() => setIsEditDialogOpen(false)}>
-                      Cancelar
-                    </Button>
-                    <Button onClick={handleUpdateLimits}>
-                      Guardar Cambios
-                    </Button>
-                  </div>
-                </div>
-              </DialogContent>
-            </Dialog>
+                </DialogContent>
+              </Dialog>
           </div>
 
           {/* Información Básica */}
@@ -1062,15 +1061,7 @@ export function VistaPlantel({ plantelId, onBack }: VistaPlantelProps) {
               </CardDescription>
             </CardHeader>
             <CardContent>
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <div className="p-4 border rounded-lg">
-                  <div className="flex items-center space-x-2 mb-2">
-                    <Users className="h-4 w-4 text-blue-500" />
-                    <span className="font-medium">Usuarios Totales</span>
-                  </div>
-                  <p className="text-2xl font-bold">{plantel.max_usuarios || 0}</p>
-                  <p className="text-sm text-muted-foreground">Límite máximo</p>
-                </div>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="p-4 border rounded-lg">
                   <div className="flex items-center space-x-2 mb-2">
                     <GraduationCap className="h-4 w-4 text-green-500" />
@@ -1092,65 +1083,38 @@ export function VistaPlantel({ plantelId, onBack }: VistaPlantelProps) {
           </Card>
         </TabsContent>
 
-        {/* Tab: Suscripción */}
-        <TabsContent value="subscription" className="space-y-6">
-          <h3 className="text-lg font-semibold">Información de Suscripción</h3>
-          
-          <Card>
-            <CardHeader>
-              <CardTitle>Estado de la Suscripción</CardTitle>
-              <CardDescription>
-                Detalles del plan y estado de suscripción del plantel
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div>
-                  <Label className="text-sm font-medium">Plan de Suscripción</Label>
-                  <p className="text-lg font-semibold mt-1">
-                    {plantel.plan_suscripcion ? plantel.plan_suscripcion.charAt(0).toUpperCase() + plantel.plan_suscripcion.slice(1) : 'Sin plan asignado'}
-                  </p>
-                </div>
-                <div>
-                  <Label className="text-sm font-medium">Estado</Label>
-                  <div className="mt-1">
-                    <Badge variant={
-                      plantel.estado_suscripcion === 'activa' ? 'default' :
-                      plantel.estado_suscripcion === 'suspendida' ? 'destructive' : 'secondary'
-                    }>
-                      {plantel.estado_suscripcion || 'No definido'}
-                    </Badge>
-                  </div>
-                </div>
-                {plantel.fecha_vencimiento && (
-                  <div>
-                    <Label className="text-sm font-medium">Fecha de Vencimiento</Label>
-                    <p className="text-lg font-semibold mt-1">
-                      {new Date(plantel.fecha_vencimiento).toLocaleDateString()}
-                    </p>
-                  </div>
-                )}
-              </div>
-              
-              {plantel.estado_suscripcion === 'activa' && plantel.fecha_vencimiento && (
-                <div className="mt-4 p-4 bg-green-50 dark:bg-green-950 rounded-lg">
-                  <p className="text-sm text-green-800 dark:text-green-200">
-                    ✅ Suscripción activa hasta el {new Date(plantel.fecha_vencimiento).toLocaleDateString()}
-                  </p>
-                </div>
-              )}
-              
-              {plantel.estado_suscripcion === 'suspendida' && (
-                <div className="mt-4 p-4 bg-red-50 dark:bg-red-950 rounded-lg">
-                  <p className="text-sm text-red-800 dark:text-red-200">
-                    ⚠️ Suscripción suspendida. Contacte al administrador para reactivar.
-                  </p>
-                </div>
-              )}
-            </CardContent>
-          </Card>
-        </TabsContent>
+
       </Tabs>
+
+      {/* Diálogo de confirmación para eliminar usuario */}
+      <Dialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Confirmar eliminación</DialogTitle>
+            <DialogDescription>
+              ¿Estás seguro de que deseas eliminar a <strong>{userToDelete?.name}</strong> del plantel?
+              Esta acción no se puede deshacer.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="flex justify-end space-x-2 mt-4">
+            <Button 
+              variant="outline" 
+              onClick={() => {
+                setIsDeleteDialogOpen(false)
+                setUserToDelete(null)
+              }}
+            >
+              Cancelar
+            </Button>
+            <Button 
+              variant="destructive" 
+              onClick={confirmRemoveUser}
+            >
+              Eliminar
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   )
 }

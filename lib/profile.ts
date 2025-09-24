@@ -19,12 +19,8 @@ export interface Plantel {
   created_at: string;
   updated_at: string;
   // Campos de límites de usuarios
-  max_usuarios?: number;
   max_profesores?: number;
   max_directores?: number;
-  plan_suscripcion?: string;
-  estado_suscripcion?: string;
-  fecha_vencimiento?: string;
 }
 
 // Interface actualizada para perfiles

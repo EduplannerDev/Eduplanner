@@ -10,20 +10,13 @@ export interface PlantelLimits {
 }
 
 export interface PlantelWithLimits extends Plantel {
-  max_usuarios?: number;
   max_profesores?: number;
   max_directores?: number;
-  plan_suscripcion?: string;
-  estado_suscripcion?: string;
-  fecha_vencimiento?: string;
-  usuarios_actuales?: number;
   profesores_actuales?: number;
   directores_actuales?: number;
   administradores_actuales?: number;
-  usuarios_disponibles?: number;
   profesores_disponibles?: number;
   directores_disponibles?: number;
-  suscripcion_vigente?: boolean;
 }
 
 // =====================================================
@@ -436,30 +429,62 @@ export async function getPlantelUserCount(plantelId: string): Promise<PlantelLim
 }
 
 // Verificar si se puede agregar un usuario al plantel
-export async function canAddUserToPlantel(plantelId: string, userRole: UserRole): Promise<boolean> {
+// Verificar si un usuario ya está asignado a un plantel
+export async function isUserAssignedToPlantel(userId: string, plantelId: string): Promise<boolean> {
   try {
-    // Obtener información del plantel con límites
-    const plantelInfo = await getPlantelWithLimits(plantelId);
-    
-    if (!plantelInfo || plantelInfo.estado_suscripcion !== 'activa') {
+    const { data, error } = await supabase
+      .from('user_plantel_assignments')
+      .select('id')
+      .eq('user_id', userId)
+      .eq('plantel_id', plantelId)
+      .eq('activo', true)
+      .single();
+
+    if (error && error.code !== 'PGRST116') { // PGRST116 = no rows found
+      console.error('Error checking user assignment:', error.message);
       return false;
     }
 
-    // Verificar límite total de usuarios
-    if ((plantelInfo.usuarios_actuales || 0) >= (plantelInfo.max_usuarios || 0)) {
+    return !!data;
+  } catch (error) {
+    console.error('Exception in isUserAssignedToPlantel:', (error as Error).message);
+    return false;
+  }
+}
+
+export async function canAddUserToPlantel(plantelId: string, userRole: UserRole): Promise<boolean> {
+  try {
+    console.log('DEBUG canAddUserToPlantel: plantelId:', plantelId, 'userRole:', userRole);
+    
+    // Obtener información del plantel con límites
+    const plantelInfo = await getPlantelWithLimits(plantelId);
+    console.log('DEBUG canAddUserToPlantel: plantelInfo:', plantelInfo);
+    
+    if (!plantelInfo) {
+      console.log('DEBUG canAddUserToPlantel: No se encontró información del plantel');
       return false;
     }
 
     // Verificar límites específicos por rol
     switch (userRole) {
       case 'profesor':
-        return (plantelInfo.profesores_actuales || 0) < (plantelInfo.max_profesores || 0);
+        const profesoresActuales = plantelInfo.profesores_actuales || 0;
+        const maxProfesores = plantelInfo.max_profesores || 0;
+        const canAddProfesor = profesoresActuales < maxProfesores;
+        console.log(`DEBUG canAddUserToPlantel: Profesores - actuales: ${profesoresActuales}, max: ${maxProfesores}, puede agregar: ${canAddProfesor}`);
+        return canAddProfesor;
       case 'director':
-        return (plantelInfo.directores_actuales || 0) < (plantelInfo.max_directores || 0);
+        const directoresActuales = plantelInfo.directores_actuales || 0;
+        const maxDirectores = plantelInfo.max_directores || 0;
+        const canAddDirector = directoresActuales < maxDirectores;
+        console.log(`DEBUG canAddUserToPlantel: Directores - actuales: ${directoresActuales}, max: ${maxDirectores}, puede agregar: ${canAddDirector}`);
+        return canAddDirector;
       case 'administrador':
         // Los administradores no tienen límite específico por plantel
+        console.log('DEBUG canAddUserToPlantel: Administrador - sin límite');
         return true;
       default:
+        console.log('DEBUG canAddUserToPlantel: Rol no válido');
         return false;
     }
   } catch (error) {
@@ -514,12 +539,8 @@ export async function getAllPlantelesWithLimits(): Promise<PlantelWithLimits[]> 
 export async function updatePlantelLimits(
   plantelId: string, 
   limits: {
-    max_usuarios?: number;
     max_profesores?: number;
     max_directores?: number;
-    plan_suscripcion?: string;
-    estado_suscripcion?: string;
-    fecha_vencimiento?: string;
   }
 ): Promise<boolean> {
   try {
@@ -548,13 +569,23 @@ export async function assignUserToPlantelWithValidation(
   assignedBy?: string
 ): Promise<{ success: boolean; error?: string; data?: UserPlantelAssignment }> {
   try {
-    // Primero verificar si se puede agregar el usuario
+    // Primero verificar si el usuario ya está asignado al plantel
+    const isAlreadyAssigned = await isUserAssignedToPlantel(userId, plantelId);
+    
+    if (isAlreadyAssigned) {
+      return {
+        success: false,
+        error: 'El usuario ya está asignado a este plantel.'
+      };
+    }
+
+    // Verificar si se puede agregar el usuario (límites)
     const canAdd = await canAddUserToPlantel(plantelId, role);
     
     if (!canAdd) {
       return {
         success: false,
-        error: 'No se puede agregar el usuario. Se ha alcanzado el límite máximo para este plantel.'
+        error: `No se puede agregar más usuarios con el rol ${role}. Se ha alcanzado el límite máximo para este plantel.`
       };
     }
 
