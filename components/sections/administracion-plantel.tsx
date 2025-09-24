@@ -647,14 +647,10 @@ export function AdministracionPlantel({ isOpen, onClose }: AdministracionPlantel
 
       {/* Tabs de Gestión */}
       <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-4">
-        <TabsList className="grid w-full grid-cols-2">
+        <TabsList className="grid w-full grid-cols-1">
           <TabsTrigger value="profesores" className="flex items-center gap-2">
             <Users className="h-4 w-4" />
             Profesores
-          </TabsTrigger>
-          <TabsTrigger value="invitaciones" className="flex items-center gap-2">
-            <UserPlus className="h-4 w-4" />
-            Invitaciones
           </TabsTrigger>
         </TabsList>
 
@@ -669,52 +665,6 @@ export function AdministracionPlantel({ isOpen, onClose }: AdministracionPlantel
                   </CardDescription>
                 </div>
                 <div className="flex gap-2">
-                  <Dialog open={isInviteDialogOpen} onOpenChange={setIsInviteDialogOpen}>
-                    <DialogTrigger asChild>
-                      <Button variant="outline" size="sm">
-                        <Mail className="h-4 w-4 mr-2" />
-                        Invitar
-                      </Button>
-                    </DialogTrigger>
-                    <DialogContent>
-                      <DialogHeader>
-                        <DialogTitle>Invitar Profesor</DialogTitle>
-                        <DialogDescription>
-                          Envía una invitación por email a un nuevo profesor para que se una al plantel.
-                        </DialogDescription>
-                      </DialogHeader>
-                      <div className="space-y-4">
-                        <div className="space-y-2">
-                          <Label htmlFor="invite-email">Email del profesor</Label>
-                          <Input
-                            id="invite-email"
-                            type="email"
-                            placeholder="profesor@ejemplo.com"
-                            value={inviteEmail}
-                            onChange={(e) => setInviteEmail(e.target.value)}
-                          />
-                        </div>
-                        <div className="flex justify-end gap-2">
-                          <Button
-                            variant="outline"
-                            onClick={() => {
-                              setIsInviteDialogOpen(false)
-                              setInviteEmail('')
-                            }}
-                          >
-                            Cancelar
-                          </Button>
-                          <Button
-                            onClick={handleInviteProfesor}
-                            disabled={inviting || !inviteEmail.trim()}
-                          >
-                            {inviting ? "Enviando..." : "Enviar Invitación"}
-                          </Button>
-                        </div>
-                      </div>
-                    </DialogContent>
-                  </Dialog>
-
                   <Dialog open={isAssignDialogOpen} onOpenChange={setIsAssignDialogOpen}>
                     <DialogTrigger asChild>
                       <Button variant="outline" size="sm">
@@ -881,25 +831,7 @@ export function AdministracionPlantel({ isOpen, onClose }: AdministracionPlantel
           </Card>
         </TabsContent>
 
-        <TabsContent value="invitaciones" className="space-y-4">
-          <Card>
-            <CardHeader>
-              <CardTitle>Invitaciones Pendientes</CardTitle>
-              <CardDescription>
-                Gestiona las invitaciones enviadas a nuevos profesores
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="text-center py-8">
-                <UserPlus className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-                <h3 className="text-lg font-semibold mb-2">Módulo en Desarrollo</h3>
-                <p className="text-muted-foreground">
-                  El sistema de invitaciones estará disponible próximamente.
-                </p>
-              </div>
-            </CardContent>
-          </Card>
-        </TabsContent>
+
       </Tabs>
     </div>
   )

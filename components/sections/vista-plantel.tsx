@@ -576,61 +576,6 @@ export function VistaPlantel({ plantelId, onBack }: VistaPlantelProps) {
           <div className="flex justify-between items-center">
             <h3 className="text-lg font-semibold">Usuarios del Plantel</h3>
             <div className="flex space-x-2">
-              <Dialog open={isInviteDialogOpen} onOpenChange={setIsInviteDialogOpen}>
-                <DialogTrigger asChild>
-                  <Button variant="outline">
-                    <Mail className="h-4 w-4 mr-2" />
-                    Invitar Usuario
-                  </Button>
-                </DialogTrigger>
-                <DialogContent>
-                  <DialogHeader>
-                    <DialogTitle>Invitar Usuario por Email</DialogTitle>
-                    <DialogDescription>
-                      Envía una invitación por email para que se una a este plantel
-                    </DialogDescription>
-                  </DialogHeader>
-                  <div className="space-y-4">
-                    <div className="space-y-2">
-                      <Label htmlFor="inviteEmail">Email del Usuario</Label>
-                      <Input
-                        id="inviteEmail"
-                        type="email"
-                        placeholder="usuario@ejemplo.com"
-                        value={inviteEmail}
-                        onChange={(e) => setInviteEmail(e.target.value)}
-                      />
-                    </div>
-                    
-                    <div className="space-y-2">
-                      <Label htmlFor="inviteRole">Rol del Usuario</Label>
-                      <Select value={inviteRole} onValueChange={(value: UserRole) => setInviteRole(value)}>
-                        <SelectTrigger>
-                          <SelectValue placeholder="Selecciona un rol" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="profesor">Profesor</SelectItem>
-                          <SelectItem value="director">Director</SelectItem>
-                          <SelectItem value="administrador">Administrador</SelectItem>
-                        </SelectContent>
-                      </Select>
-                    </div>
-                  </div>
-                  <div className="flex justify-end space-x-2">
-                    <Button variant="outline" onClick={() => {
-                      setIsInviteDialogOpen(false)
-                      setInviteEmail('')
-                      setInviteRole('profesor')
-                    }}>
-                      Cancelar
-                    </Button>
-                    <Button onClick={handleInviteUser} disabled={inviting}>
-                      {inviting ? 'Enviando...' : 'Enviar Invitación'}
-                    </Button>
-                  </div>
-                </DialogContent>
-              </Dialog>
-              
               <Dialog open={isAddUserDialogOpen} onOpenChange={setIsAddUserDialogOpen}>
                 <DialogTrigger asChild>
                   <Button>
