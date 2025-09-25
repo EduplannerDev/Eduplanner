@@ -484,6 +484,18 @@ export function AppSidebar({ activeSection, onSectionChange, ...props }: AppSide
                 <SidebarMenuItem>
                   <SidebarMenuButton
                     asChild
+                    isActive={activeSection === "director-dashboard"}
+                    tooltip="Dashboard del Director - Pulso de la Plataforma"
+                  >
+                    <button onClick={() => handleNavigation("director-dashboard")} className="w-full">
+                      <BarChart3 className="h-4 w-4" />
+                      <span>Dashboard Director</span>
+                    </button>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+                <SidebarMenuItem>
+                  <SidebarMenuButton
+                    asChild
                     isActive={activeSection === "administracion-plantel"}
                     tooltip="Gestión de plantel educativo"
                   >

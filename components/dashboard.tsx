@@ -18,6 +18,7 @@ import { MensajesPadresAlumno } from "./sections/mensajes-padres-alumno"
 import { FAQ } from "./sections/faq"
 import MisGrupos from "./sections/mis-grupos"
 import { AdminDashboard } from "./sections/admin-dashboard"
+import { DirectorDashboard } from "./sections/director-dashboard"
 import { AdministracionPlantel } from "./sections/administracion-plantel"
 import { Agenda } from "./sections/agenda"
 import { DiarioProfesional } from "./sections/diario-profesional"
@@ -251,6 +252,14 @@ export default function Dashboard({ children, customContent = false }: Dashboard
         return <DiarioProfesional isOpen={true} onClose={() => setActiveSection("agenda")} />
       case "admin-dashboard":
         return <AdminDashboard />
+      case "director-dashboard":
+        // Validar que solo los directores puedan acceder
+        if (!isDirector) {
+          // Redirigir al dashboard si no es director
+          setActiveSection("dashboard")
+          return <DashboardHome onSectionChange={setActiveSection} />
+        }
+        return <DirectorDashboard onSectionChange={setActiveSection} />
       case "administracion-plantel":
         // Validar que solo los directores puedan acceder
         if (!isDirector) {
