@@ -46,7 +46,7 @@ export default function MaintenancePage() {
             Estamos en Mantenimiento
           </h1>
           <p className="text-xl text-gray-600 max-w-md mx-auto">
-            Estamos mejorando EduPlanner para ofrecerte una mejor experiencia
+            Estamos mejorando Eduplanner para ofrecerte una mejor experiencia
           </p>
         </div>
 
@@ -122,7 +122,7 @@ export default function MaintenancePage() {
         {/* Footer */}
         <div className="text-center text-gray-500 text-sm">
           <p>Gracias por tu paciencia. Volveremos pronto con mejoras increíbles.</p>
-          <p className="mt-2">© 2024 EduPlanner - Plataforma educativa para profesores</p>
+          <p className="mt-2">© 2025 EduPlanner - Plataforma educativa para profesores</p>
         </div>
       </div>
     </div>
