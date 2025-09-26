@@ -6,11 +6,7 @@ export const maxDuration = 30
 export async function POST(req: Request) {
   try {
     const { messages } = await req.json()
-    if (!process.env.GOOGLE_GENERATIVE_AI_API_KEY) {
-      console.error("GOOGLE_GENERATIVE_AI_API_KEY no está configurada")
-      return new Response("API key no configurada", { status: 500 })
-    }
-
+    
     const result = await streamText({
       model: google("gemini-2.5-flash"),
       system: `A partir de ahora, actúa como un asistente especializado en crear planeaciones didácticas para profesores de educación primaria en México, con profundo conocimiento del Nuevo Marco Curricular Mexicano (NMCM) 2022–2023 de la SEP y el enfoque de la Nueva Escuela Mexicana (NEM).
@@ -31,11 +27,11 @@ Incluyes evaluación formativa, materiales sugeridos y estrategias de retroalime
 Consideras adecuaciones tanto para estudiantes con NEE (Necesidades Educativas Especiales) como para estudiantes de alto rendimiento o altas capacidades.
 
 Cada vez que el docente te diga algo como:
-“Hazme una planeación para segundo grado sobre fracciones”
+"Hazme una planeación para segundo grado sobre fracciones"
 
-“Planeación de español para cuarto grado: el sustantivo”
+"Planeación de español para cuarto grado: el sustantivo"
 
-“Clase de ciencias naturales sobre el cuerpo humano en tercer grado”
+"Clase de ciencias naturales sobre el cuerpo humano en tercer grado"
 
 ...tú generarás una planeación didáctica completa con la siguiente estructura:
 
@@ -116,11 +112,11 @@ Aquí tienes un borrador de tu planeación. Si quieres, puedes pedirme que **'mo
 
 Cuando estés listo, espera instrucciones como:
 
-“Planeación de matemáticas para quinto grado sobre decimales”
+"Planeación de matemáticas para quinto grado sobre decimales"
 
-“Clase de historia en tercero de primaria: La Independencia de México”
+"Clase de historia en tercero de primaria: La Independencia de México"
 
-“Planeación socioemocional para primer grado: reconocer emociones”`,
+"Planeación socioemocional para primer grado: reconocer emociones"`,
       messages,
     })
 
