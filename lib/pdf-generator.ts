@@ -744,26 +744,34 @@ async function generateListaCotejoPDFPuppeteer(instrumento: any): Promise<void> 
   try {
     const { contenido, titulo } = instrumento;
     
-    if (!contenido || !contenido.criterios) {
+    // Verificar si el contenido es de la nueva estructura (con indicadores) o la antigua (con criterios)
+    const indicadores = contenido?.indicadores || contenido?.criterios || []
+    const tituloInstrumento = contenido?.titulo_instrumento || titulo || "Lista de Cotejo"
+    
+    if (!contenido || indicadores.length === 0) {
       throw new Error('Datos de lista de cotejo inválidos');
     }
 
     // Crear tabla HTML para la lista de cotejo con estilos optimizados para PDF
-    const tableRows = contenido.criterios.map((criterio: any, index: number) => `
+    const tableRows = indicadores.map((indicador: any, index: number) => `
       <tr class="criterio-row">
-        <td style="border: 1px solid #333; padding: 8px; text-align: center; width: 8%; font-weight: bold; font-size: 10px;">
+        <td style="text-align: center; width: 8%; font-weight: bold; font-size: 10px;">
           ${index + 1}
         </td>
-        <td style="border: 1px solid #333; padding: 8px; width: 60%; font-size: 9px;">
-          <strong>${criterio.criterio || 'Criterio ' + (index + 1)}</strong>
-          ${criterio.descripcion ? `<br><span style="font-size: 8px; color: #666;">${criterio.descripcion}</span>` : ''}
-          ${criterio.pda_origen ? `<br><small style="color: #8B5CF6; font-weight: bold; font-size: 8px;">PDA: ${criterio.pda_origen}</small>` : ''}
+        <td style="width: 50%; font-size: 9px;">
+          <strong>${indicador.indicador || indicador.criterio || 'Indicador ' + (index + 1)}</strong>
+          ${indicador.descripcion ? `<br><span style="font-size: 8px; color: #666;">${indicador.descripcion}</span>` : ''}
+          ${(indicador.criterio_origen || indicador.pda_origen) ? `<br><small style="color: #8B5CF6; font-weight: bold; font-size: 8px;">Origen: ${indicador.criterio_origen || indicador.pda_origen}</small>` : ''}
         </td>
-        <td style="border: 1px solid #333; padding: 8px; text-align: center; width: 16%;">
-          <div style="width: 15px; height: 15px; border: 2px solid #333; margin: 0 auto;"></div>
+        <td style="text-align: center; width: 10%;">
+          <div style="width: 12px; height: 12px; border: 1.5px solid #333; margin: 0 auto;"></div>
         </td>
-        <td style="border: 1px solid #333; padding: 8px; text-align: center; width: 16%;">
-          <div style="width: 15px; height: 15px; border: 2px solid #333; margin: 0 auto;"></div>
+        <td style="text-align: center; width: 10%;">
+          <div style="width: 12px; height: 12px; border: 1.5px solid #333; margin: 0 auto;"></div>
+        </td>
+        <td style="width: 22%; font-size: 8px;">
+          <div style="min-height: 15px; margin-bottom: 2px;"></div>
+          <div style="min-height: 15px;"></div>
         </td>
       </tr>
     `).join('');
@@ -773,72 +781,80 @@ async function generateListaCotejoPDFPuppeteer(instrumento: any): Promise<void> 
       <html>
       <head>
         <meta charset="UTF-8">
-        <title>${titulo}</title>
+        <title>${tituloInstrumento}</title>
         <style>
           @page {
             size: A4 landscape;
-            margin: 15mm;
+            margin: 10mm;
+          }
+          * {
+            box-sizing: border-box;
           }
           body {
             font-family: 'Arial', sans-serif;
             margin: 0;
             padding: 0;
             color: #333;
-            line-height: 1.4;
+            line-height: 1.3;
+            font-size: 9px;
           }
           .header {
             text-align: center;
-            margin-bottom: 20px;
+            margin-bottom: 15px;
             page-break-inside: avoid;
           }
           .header h1 {
             color: #333;
-            margin-bottom: 5px;
-            font-size: 18px;
+            margin: 0 0 5px 0;
+            font-size: 16px;
           }
           .header p {
             color: #666;
             font-style: italic;
-            margin: 5px 0;
-            font-size: 12px;
+            margin: 0;
+            font-size: 11px;
           }
           table {
             width: 100%;
             border-collapse: collapse;
-            margin-bottom: 15px;
+            margin-bottom: 10px;
             font-size: 9px;
-            page-break-inside: avoid;
           }
           th {
             background-color: #8B5CF6 !important;
             color: white !important;
             border: 1px solid #333;
-            padding: 8px;
+            padding: 6px;
             text-align: center;
             font-size: 10px;
             font-weight: bold;
           }
+          td {
+            border: 1px solid #333;
+            padding: 6px;
+            vertical-align: top;
+          }
           .footer {
-            margin-top: 20px;
-            padding: 10px;
+            margin-top: 15px;
+            padding: 8px;
             background-color: #f8f9fa;
             border-left: 4px solid #8B5CF6;
             page-break-inside: avoid;
-            font-size: 10px;
+            font-size: 9px;
           }
           .footer h3 {
-            margin-top: 0;
+            margin: 0 0 5px 0;
             color: #8B5CF6;
-            font-size: 12px;
+            font-size: 11px;
           }
           .footer p {
-            margin: 3px 0;
+            margin: 2px 0;
           }
         </style>
       </head>
       <body>
         <div class="header">
-          <h1>${titulo}</h1>
+          <h1>${tituloInstrumento}</h1>
           <p>Lista de Cotejo</p>
         </div>
         
@@ -846,9 +862,10 @@ async function generateListaCotejoPDFPuppeteer(instrumento: any): Promise<void> 
           <thead>
             <tr>
               <th>#</th>
-              <th>Criterio de Evaluación</th>
+              <th>Indicador de Logro</th>
               <th>Sí</th>
               <th>No</th>
+              <th>Observaciones</th>
             </tr>
           </thead>
           <tbody>
@@ -858,7 +875,7 @@ async function generateListaCotejoPDFPuppeteer(instrumento: any): Promise<void> 
         
         <div class="footer">
           <h3>Información Adicional</h3>
-          <p><strong>Total de criterios:</strong> ${contenido.criterios.length}</p>
+          <p><strong>Total de indicadores:</strong> ${indicadores.length}</p>
           <p><strong>Fecha de creación:</strong> ${new Date().toLocaleDateString('es-ES')}</p>
           <p><strong>Tipo de instrumento:</strong> Lista de Cotejo</p>
         </div>
@@ -866,7 +883,7 @@ async function generateListaCotejoPDFPuppeteer(instrumento: any): Promise<void> 
       </html>
     `;
 
-    const filename = `lista_cotejo_${titulo.replace(/\s+/g, '_').toLowerCase()}_${Date.now()}.pdf`;
+    const filename = `lista_cotejo_${tituloInstrumento.replace(/\s+/g, '_').toLowerCase()}_${Date.now()}.pdf`;
     
     const options = {
       format: 'A4',
@@ -885,45 +902,50 @@ async function generateListaCotejoPDFPuppeteer(instrumento: any): Promise<void> 
       console.warn('Puppeteer falló, usando fallback html2canvas:', error);
       // Fallback a html2canvas
       const content = `
-        <table style="width: 100%; border-collapse: collapse; margin-bottom: 20px; font-size: 11px;">
+        <table style="width: 100%; border-collapse: collapse; margin-bottom: 15px; font-size: 10px;">
           <thead>
             <tr style="background-color: #8B5CF6; color: white;">
-              <th style="border: 1px solid #333; padding: 10px; text-align: center;">#</th>
-              <th style="border: 1px solid #333; padding: 10px; text-align: center;">Criterio de Evaluación</th>
-              <th style="border: 1px solid #333; padding: 10px; text-align: center;">Sí</th>
-              <th style="border: 1px solid #333; padding: 10px; text-align: center;">No</th>
+              <th style="border: 1px solid #333; padding: 8px; text-align: center;">#</th>
+              <th style="border: 1px solid #333; padding: 8px; text-align: center;">Indicador de Logro</th>
+              <th style="border: 1px solid #333; padding: 8px; text-align: center;">Sí</th>
+              <th style="border: 1px solid #333; padding: 8px; text-align: center;">No</th>
+              <th style="border: 1px solid #333; padding: 8px; text-align: center;">Observaciones</th>
             </tr>
           </thead>
           <tbody>
-            ${contenido.criterios.map((criterio: any, index: number) => `
+            ${indicadores.map((indicador: any, index: number) => `
               <tr class="criterio-row">
-                <td style="border: 1px solid #333; padding: 10px; text-align: center; width: 8%; font-weight: bold;">
+                <td style="border: 1px solid #333; padding: 8px; text-align: center; width: 8%; font-weight: bold;">
                   ${index + 1}
                 </td>
-                <td style="border: 1px solid #333; padding: 10px; width: 60%;">
-                  <strong>${criterio.criterio || 'Criterio ' + (index + 1)}</strong>
-                  ${criterio.descripcion ? `<br><span style="font-size: 10px; color: #666;">${criterio.descripcion}</span>` : ''}
-                  ${criterio.pda_origen ? `<br><small style="color: #8B5CF6; font-weight: bold;">PDA: ${criterio.pda_origen}</small>` : ''}
+                <td style="border: 1px solid #333; padding: 8px; width: 50%;">
+                  <strong>${indicador.indicador || indicador.criterio || 'Indicador ' + (index + 1)}</strong>
+                  ${indicador.descripcion ? `<br><span style="font-size: 9px; color: #666;">${indicador.descripcion}</span>` : ''}
+                  ${(indicador.criterio_origen || indicador.pda_origen) ? `<br><small style="color: #8B5CF6; font-weight: bold; font-size: 9px;">Origen: ${indicador.criterio_origen || indicador.pda_origen}</small>` : ''}
                 </td>
-                <td style="border: 1px solid #333; padding: 10px; text-align: center; width: 16%;">
-                  <div style="width: 20px; height: 20px; border: 2px solid #333; margin: 0 auto;"></div>
+                <td style="border: 1px solid #333; padding: 8px; text-align: center; width: 10%;">
+                  <div style="width: 14px; height: 14px; border: 1.5px solid #333; margin: 0 auto;"></div>
                 </td>
-                <td style="border: 1px solid #333; padding: 10px; text-align: center; width: 16%;">
-                  <div style="width: 20px; height: 20px; border: 2px solid #333; margin: 0 auto;"></div>
+                <td style="border: 1px solid #333; padding: 8px; text-align: center; width: 10%;">
+                  <div style="width: 14px; height: 14px; border: 1.5px solid #333; margin: 0 auto;"></div>
+                </td>
+                <td style="border: 1px solid #333; padding: 8px; width: 22%;">
+                  <div style="min-height: 15px; margin-bottom: 2px;"></div>
+                  <div style="min-height: 15px;"></div>
                 </td>
               </tr>
             `).join('')}
           </tbody>
         </table>
         
-        <div style="margin-top: 30px; padding: 15px; background-color: #f8f9fa; border-left: 4px solid #8B5CF6;">
-          <h3 style="margin-top: 0; color: #8B5CF6;">Información Adicional</h3>
-          <p><strong>Total de criterios:</strong> ${contenido.criterios.length}</p>
-          <p><strong>Fecha de creación:</strong> ${new Date().toLocaleDateString('es-ES')}</p>
-          <p style="margin-bottom: 0;"><strong>Tipo de instrumento:</strong> Lista de Cotejo</p>
+        <div style="margin-top: 20px; padding: 12px; background-color: #f8f9fa; border-left: 4px solid #8B5CF6;">
+          <h3 style="margin-top: 0; color: #8B5CF6; font-size: 12px;">Información Adicional</h3>
+          <p style="font-size: 10px;"><strong>Total de indicadores:</strong> ${indicadores.length}</p>
+          <p style="font-size: 10px;"><strong>Fecha de creación:</strong> ${new Date().toLocaleDateString('es-ES')}</p>
+          <p style="margin-bottom: 0; font-size: 10px;"><strong>Tipo de instrumento:</strong> Lista de Cotejo</p>
         </div>
       `;
-      await generateListaCotejoPDFLandscape(content, titulo, filename);
+      await generateListaCotejoPDFLandscape(content, tituloInstrumento, filename);
     }
   } catch (error) {
     console.error('Error generando PDF de lista de cotejo:', error);
@@ -1386,26 +1408,34 @@ export async function generateListaCotejoPDF(instrumento: any) {
     // Fallback a html2canvas
     const { contenido, titulo } = instrumento;
     
-    if (!contenido || !contenido.criterios) {
+    // Verificar si el contenido es de la nueva estructura (con indicadores) o la antigua (con criterios)
+    const indicadores = contenido?.indicadores || contenido?.criterios || []
+    const tituloInstrumento = contenido?.titulo_instrumento || titulo || "Lista de Cotejo"
+    
+    if (!contenido || indicadores.length === 0) {
       throw new Error('Datos de lista de cotejo inválidos');
     }
 
     // Crear tabla HTML para la lista de cotejo
-    const tableRows = contenido.criterios.map((criterio: any, index: number) => `
+    const tableRows = indicadores.map((indicador: any, index: number) => `
       <tr class="criterio-row">
         <td style="border: 1px solid #333; padding: 10px; text-align: center; width: 8%; font-weight: bold;">
           ${index + 1}
         </td>
-        <td style="border: 1px solid #333; padding: 10px; width: 60%;">
-          <strong>${criterio.criterio || 'Criterio ' + (index + 1)}</strong>
-          ${criterio.descripcion ? `<br><span style="font-size: 10px; color: #666;">${criterio.descripcion}</span>` : ''}
-          ${criterio.pda_origen ? `<br><small style="color: #8B5CF6; font-weight: bold;">PDA: ${criterio.pda_origen}</small>` : ''}
+        <td style="border: 1px solid #333; padding: 10px; width: 50%;">
+          <strong>${indicador.indicador || indicador.criterio || 'Indicador ' + (index + 1)}</strong>
+          ${indicador.descripcion ? `<br><span style="font-size: 10px; color: #666;">${indicador.descripcion}</span>` : ''}
+          ${(indicador.criterio_origen || indicador.pda_origen) ? `<br><small style="color: #8B5CF6; font-weight: bold;">Origen: ${indicador.criterio_origen || indicador.pda_origen}</small>` : ''}
         </td>
-        <td style="border: 1px solid #333; padding: 10px; text-align: center; width: 16%;">
+        <td style="border: 1px solid #333; padding: 10px; text-align: center; width: 10%;">
           <div style="width: 20px; height: 20px; border: 2px solid #333; margin: 0 auto;"></div>
         </td>
-        <td style="border: 1px solid #333; padding: 10px; text-align: center; width: 16%;">
+        <td style="border: 1px solid #333; padding: 10px; text-align: center; width: 10%;">
           <div style="width: 20px; height: 20px; border: 2px solid #333; margin: 0 auto;"></div>
+        </td>
+        <td style="border: 1px solid #333; padding: 10px; width: 22%;">
+          <div style="min-height: 40px; border-bottom: 1px dotted #ccc; margin-bottom: 10px;"></div>
+          <div style="min-height: 40px; border-bottom: 1px dotted #ccc;"></div>
         </td>
       </tr>
     `).join('');
@@ -1415,9 +1445,10 @@ export async function generateListaCotejoPDF(instrumento: any) {
         <thead>
           <tr style="background-color: #8B5CF6; color: white;">
             <th style="border: 1px solid #333; padding: 10px; text-align: center;">#</th>
-            <th style="border: 1px solid #333; padding: 10px; text-align: center;">Criterio de Evaluación</th>
+            <th style="border: 1px solid #333; padding: 10px; text-align: center;">Indicador de Logro</th>
             <th style="border: 1px solid #333; padding: 10px; text-align: center;">Sí</th>
             <th style="border: 1px solid #333; padding: 10px; text-align: center;">No</th>
+            <th style="border: 1px solid #333; padding: 10px; text-align: center;">Observaciones</th>
           </tr>
         </thead>
         <tbody>
@@ -1427,16 +1458,16 @@ export async function generateListaCotejoPDF(instrumento: any) {
       
       <div style="margin-top: 30px; padding: 15px; background-color: #f8f9fa; border-left: 4px solid #8B5CF6;">
         <h3 style="margin-top: 0; color: #8B5CF6;">Información Adicional</h3>
-        <p><strong>Total de criterios:</strong> ${contenido.criterios.length}</p>
+        <p><strong>Total de indicadores:</strong> ${indicadores.length}</p>
         <p><strong>Fecha de creación:</strong> ${new Date().toLocaleDateString('es-ES')}</p>
         <p style="margin-bottom: 0;"><strong>Tipo de instrumento:</strong> Lista de Cotejo</p>
       </div>
     `;
 
-    const filename = `lista_cotejo_${titulo.replace(/\s+/g, '_').toLowerCase()}_${Date.now()}.pdf`;
+    const filename = `lista_cotejo_${tituloInstrumento.replace(/\s+/g, '_').toLowerCase()}_${Date.now()}.pdf`;
     
     // Usar html2canvas como fallback
-    await generateListaCotejoPDFLandscape(content, titulo, filename);
+    await generateListaCotejoPDFLandscape(content, tituloInstrumento, filename);
   }
 }
 

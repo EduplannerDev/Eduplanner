@@ -148,8 +148,50 @@ export async function POST(req: Request) {
       )
     }
 
-    // 3. Construir el prompt para Gemini
-    const prompt = `
+    // 3. Construir el prompt para Gemini según el tipo de instrumento
+    let prompt = '';
+    
+    if (tipo === 'lista_cotejo') {
+      prompt = `
+Rol: Actúa como un experto en evaluación, especializado en crear instrumentos prácticos y fáciles de usar.
+
+Contexto: Estoy creando una Lista de Cotejo para el proyecto "${proyecto.nombre}" para el grado ${grupoInfo?.grado || 'no especificado'} de ${grupoInfo?.nivel || 'educación básica'}. Los aspectos a verificar, basados en PDAs y criterios personalizados, son los siguientes:
+
+${pdasTextos.length > 0 ? `CRITERIOS BASADOS EN PDAs:
+${pdasTextos.map((texto, index) => `${index + 1}. "${texto}"`).join("\n")}` : ''}
+
+${criteriosPersonalizadosTextos.length > 0 ? `
+CRITERIOS PERSONALIZADOS:
+${criteriosPersonalizadosTextos.map((texto, index) => `${pdasTextos.length + index + 1}. "${texto}"`).join("\n")}` : ''}
+
+Tarea: Tu tarea es tomar cada uno de los aspectos que te proporcioné y convertirlo en un indicador de logro claro, observable y binario (que se pueda responder con Sí/No). El resultado debe ser un objeto JSON que contenga un array de indicadores.
+
+Formato de Salida Obligatorio: Tu respuesta debe ser únicamente un objeto JSON válido, con la siguiente estructura:
+
+{
+  "titulo_instrumento": "${titulo}",
+  "tipo": "Lista de Cotejo",
+  "indicadores": [
+    {
+      "indicador": "El ensayo presenta una introducción clara que expone el tema principal.",
+      "criterio_origen": "PDA sobre textos argumentativos..."
+    },
+    {
+      "indicador": "El trabajo incluye una portada con todos los datos solicitados (nombre, grado, fecha).",
+      "criterio_origen": "Criterio personalizado: Incluye portada"
+    },
+    {
+      "indicador": "Se utilizan correctamente las mayúsculas al inicio de cada oración y en nombres propios.",
+      "criterio_origen": "PDA sobre reglas de ortografía..."
+    }
+  ]
+}
+
+IMPORTANTE: Asegúrate de que tu respuesta sea ÚNICAMENTE el objeto JSON válido, sin texto adicional, comentarios o explicaciones.
+`;
+    } else {
+      // Prompt original para rúbrica analítica
+      prompt = `
 Rol: Actúa como un experto en evaluación formativa y pedagogía, alineado con la Nueva Escuela Mexicana. Eres un especialista en crear instrumentos de evaluación claros y objetivos.
 
 Contexto: Estoy creando una rúbrica analítica para evaluar un proyecto llamado "${proyecto.nombre}" para el grado ${grupoInfo?.grado || 'no especificado'} de ${grupoInfo?.nivel || 'educación básica'}. Los criterios de evaluación que se deben incluir en esta rúbrica son los siguientes:
@@ -182,7 +224,8 @@ Formato de Salida Obligatorio: Tu respuesta debe ser únicamente un objeto JSON 
 }
 
 IMPORTANTE: Asegúrate de que tu respuesta sea ÚNICAMENTE el objeto JSON válido, sin texto adicional, comentarios o explicaciones.
-`
+`;
+    }
 
     // 4. Llamar a la API de Gemini
     const { text: geminiResponse } = await generateText({
@@ -192,7 +235,7 @@ IMPORTANTE: Asegúrate de que tu respuesta sea ÚNICAMENTE el objeto JSON válid
     })
 
     // 5. Procesar la respuesta de Gemini
-    let rubricaJSON
+    let instrumentoJSON
     try {
       // Limpiar la respuesta de Gemini (remover markdown si existe)
       let cleanResponse = geminiResponse.trim()
@@ -204,11 +247,17 @@ IMPORTANTE: Asegúrate de que tu respuesta sea ÚNICAMENTE el objeto JSON válid
         cleanResponse = cleanResponse.replace(/^```\s*/, '').replace(/\s*```$/, '')
       }
       
-      rubricaJSON = JSON.parse(cleanResponse)
+      instrumentoJSON = JSON.parse(cleanResponse)
       
-      // Validar estructura básica
-      if (!rubricaJSON.titulo_rubrica || !Array.isArray(rubricaJSON.criterios)) {
-        throw new Error('Estructura de rúbrica inválida')
+      // Validar estructura según el tipo de instrumento
+      if (tipo === 'lista_cotejo') {
+        if (!instrumentoJSON.titulo_instrumento || !Array.isArray(instrumentoJSON.indicadores)) {
+          throw new Error('Estructura de lista de cotejo inválida')
+        }
+      } else {
+        if (!instrumentoJSON.titulo_rubrica || !Array.isArray(instrumentoJSON.criterios)) {
+          throw new Error('Estructura de rúbrica inválida')
+        }
       }
       
     } catch (parseError) {
@@ -229,31 +278,114 @@ IMPORTANTE: Asegúrate de que tu respuesta sea ÚNICAMENTE el objeto JSON válid
       )
     }
 
-    const { data: rubrica, error: rubricaError } = await supabase
+    // Log para diagnosticar el problema
+    console.log("Intentando insertar instrumento con datos:", {
+      proyecto_id,
+      user_id: proyecto.profesor_id,
+      tipo: tipo || "rubrica_analitica",
+      titulo: titulo || (tipo === 'lista_cotejo' ? instrumentoJSON.titulo_instrumento : instrumentoJSON.titulo_rubrica),
+      estado: "borrador"
+    })
+
+    const { data: instrumento, error: instrumentoError } = await supabase
       .from("instrumentos_evaluacion")
       .insert({
         proyecto_id,
         user_id: proyecto.profesor_id,
         tipo: tipo || "rubrica_analitica",
-        titulo: titulo || rubricaJSON.titulo_rubrica,
-        contenido: rubricaJSON,
+        titulo: titulo || (tipo === 'lista_cotejo' ? instrumentoJSON.titulo_instrumento : instrumentoJSON.titulo_rubrica),
+        contenido: instrumentoJSON,
         estado: "borrador"
       })
       .select()
       .single()
 
-    if (rubricaError) {
-      console.error("Error al guardar la rúbrica:", rubricaError)
-      return NextResponse.json(
-        { error: "Error al guardar la rúbrica en la base de datos" },
-        { status: 500 }
-      )
+    if (instrumentoError) {
+      console.error("Error al guardar el instrumento:", instrumentoError)
+      
+      // Manejo específico del error PGRST204 (columna no encontrada en caché del esquema)
+      if (instrumentoError.code === 'PGRST204') {
+        console.error("Error PGRST204: Problema con el caché del esquema de Supabase")
+        console.error("Esto puede indicar que las migraciones no se han aplicado correctamente o hay un problema de sincronización")
+        
+        // Intentar verificar la estructura de la tabla
+        const { data: tableInfo, error: tableError } = await supabase
+          .from("instrumentos_evaluacion")
+          .select("*")
+          .limit(1)
+        
+        if (tableError) {
+          console.error("Error al verificar la tabla instrumentos_evaluacion:", tableError)
+        } else {
+          console.log("La tabla instrumentos_evaluacion existe y es accesible")
+        }
+        
+        // Intentar una estrategia de respaldo: insertar sin user_id y luego actualizarlo
+        console.log("Intentando estrategia de respaldo sin user_id...")
+        
+        try {
+          const { data: instrumentoRespaldo, error: errorRespaldo } = await supabase
+            .from("instrumentos_evaluacion")
+            .insert({
+              proyecto_id,
+              tipo: tipo || "rubrica_analitica",
+              titulo: titulo || (tipo === 'lista_cotejo' ? instrumentoJSON.titulo_instrumento : instrumentoJSON.titulo_rubrica),
+              contenido: instrumentoJSON,
+              estado: "borrador"
+            })
+            .select()
+            .single()
+          
+          if (errorRespaldo) {
+            console.error("Error en estrategia de respaldo:", errorRespaldo)
+            return NextResponse.json(
+              { 
+                error: "Error de esquema de base de datos. Por favor, contacta al administrador.",
+                details: "No se pudo insertar el instrumento usando métodos alternativos."
+              },
+              { status: 500 }
+            )
+          }
+          
+          // Si la inserción fue exitosa, intentar actualizar con user_id
+          if (instrumentoRespaldo) {
+            const { error: updateError } = await supabase
+              .from("instrumentos_evaluacion")
+              .update({ user_id: proyecto.profesor_id })
+              .eq('id', instrumentoRespaldo.id)
+            
+            if (updateError) {
+              console.error("Error actualizando user_id:", updateError)
+              // Continuar sin user_id si es necesario
+            }
+            
+            console.log("Instrumento insertado exitosamente usando estrategia de respaldo")
+            // Usar instrumentoRespaldo como instrumento para continuar
+            instrumento = instrumentoRespaldo
+          }
+          
+        } catch (respaldoError) {
+          console.error("Error en estrategia de respaldo:", respaldoError)
+          return NextResponse.json(
+            { 
+              error: "Error de esquema de base de datos. Por favor, contacta al administrador.",
+              details: "La columna 'user_id' no se encuentra en el esquema. Esto puede indicar un problema de sincronización con la base de datos."
+            },
+            { status: 500 }
+          )
+        }
+      } else {
+        return NextResponse.json(
+          { error: "Error al guardar el instrumento en la base de datos" },
+          { status: 500 }
+        )
+      }
     }
 
     return NextResponse.json({
       success: true,
-      rubrica_id: rubrica.id,
-      rubrica: rubricaJSON
+      instrumento_id: instrumento.id,
+      instrumento: instrumentoJSON
     })
     
   } catch (error) {

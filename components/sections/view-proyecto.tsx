@@ -158,7 +158,13 @@ function RubricaViewer({ contenido }: { contenido: any }) {
 
 // Componente para visualizar listas de cotejo
 function ListaCotejoViewer({ contenido }: { contenido: any }) {
-  if (!contenido || !contenido.criterios) {
+  const [evaluaciones, setEvaluaciones] = useState<{[key: number]: {si: boolean, no: boolean, observaciones: string}}>({})
+
+  // Verificar si el contenido es de la nueva estructura (con indicadores) o la antigua (con criterios)
+  const indicadores = contenido?.indicadores || contenido?.criterios || []
+  const titulo = contenido?.titulo_instrumento || contenido?.titulo || "Lista de Cotejo"
+
+  if (!contenido || indicadores.length === 0) {
     return (
       <div className="text-center py-8 text-muted-foreground">
         <ClipboardList className="h-12 w-12 mx-auto mb-4 opacity-50" />
@@ -167,53 +173,151 @@ function ListaCotejoViewer({ contenido }: { contenido: any }) {
     )
   }
 
+  const handleCheckboxChange = (index: number, tipo: 'si' | 'no') => {
+    setEvaluaciones(prev => ({
+      ...prev,
+      [index]: {
+        ...prev[index],
+        si: tipo === 'si' ? !prev[index]?.si : false,
+        no: tipo === 'no' ? !prev[index]?.no : false,
+        observaciones: prev[index]?.observaciones || ''
+      }
+    }))
+  }
+
+  const handleObservacionChange = (index: number, observacion: string) => {
+    setEvaluaciones(prev => ({
+      ...prev,
+      [index]: {
+        ...prev[index],
+        observaciones: observacion,
+        si: prev[index]?.si || false,
+        no: prev[index]?.no || false
+      }
+    }))
+  }
+
+  const exportarResultados = async (formato: 'excel' | 'pdf' = 'excel') => {
+    const resultados = indicadores.map((indicador: any, index: number) => ({
+      indicador: indicador.indicador || indicador.criterio,
+      cumple: evaluaciones[index]?.si ? 'Sí' : evaluaciones[index]?.no ? 'No' : 'Sin evaluar',
+      observaciones: evaluaciones[index]?.observaciones || ''
+    }))
+    
+    try {
+      if (formato === 'excel') {
+        const { exportarListaCotejoExcel } = await import('@/lib/excel-generator')
+        const resultado = exportarListaCotejoExcel(
+          contenido.titulo_instrumento || 'Lista de Cotejo',
+          resultados
+        )
+        
+        toast.success(`Archivo Excel exportado: ${resultado.filename}`, {
+          description: `${resultado.stats.cumplidos}/${resultado.stats.total} indicadores cumplidos (${resultado.stats.porcentajeCumplimiento}%)`
+        })
+      } else if (formato === 'pdf') {
+        // Crear un objeto instrumento compatible con el generador de PDF
+        const instrumentoParaPDF = {
+          titulo: contenido.titulo_instrumento || 'Lista de Cotejo',
+          contenido: {
+            titulo_instrumento: contenido.titulo_instrumento || 'Lista de Cotejo',
+            indicadores: indicadores.map((indicador: any, index: number) => ({
+              ...indicador,
+              evaluacion: evaluaciones[index]?.si ? 'Sí' : evaluaciones[index]?.no ? 'No' : 'Sin evaluar',
+              observaciones_evaluacion: evaluaciones[index]?.observaciones || ''
+            }))
+          }
+        }
+        
+        const { generateListaCotejoPDF } = await import('@/lib/pdf-generator')
+        await generateListaCotejoPDF(instrumentoParaPDF)
+        
+        toast.success('PDF exportado exitosamente')
+      }
+    } catch (error) {
+      console.error('Error exportando:', error)
+      toast.error(`Error al exportar ${formato === 'excel' ? 'Excel' : 'PDF'}`)
+    }
+  }
+
   return (
     <div className="space-y-6">
       {/* Título */}
-      {contenido.titulo && (
-        <div className="text-center">
-          <h3 className="text-xl font-semibold text-gray-900 mb-2">
-            {contenido.titulo}
-          </h3>
-        </div>
-      )}
+      <div className="text-center">
+        <h3 className="text-xl font-semibold text-gray-900 mb-2">
+          {titulo}
+        </h3>
+        <p className="text-sm text-gray-600">
+          Marque "Sí" o "No" para cada indicador y agregue observaciones si es necesario
+        </p>
+      </div>
 
-      {/* Lista de criterios */}
-      <div className="space-y-4">
-        {contenido.criterios.map((criterio: any, index: number) => (
-          <Card key={index} className="p-5 hover:shadow-md transition-shadow">
-            <div className="flex items-start gap-4">
-              <div className="flex-shrink-0 mt-1">
-                <div className="w-6 h-6 border-2 border-gray-400 rounded bg-white shadow-sm"></div>
-              </div>
-              <div className="flex-1 space-y-3">
-                <div className="flex items-start justify-between">
-                  <h4 className="font-semibold text-gray-900 text-base leading-relaxed">
-                    {criterio.criterio}
-                  </h4>
-                  <Badge variant="outline" className="ml-2 text-xs">
-                    #{index + 1}
-                  </Badge>
-                </div>
-                {criterio.descripcion && (
-                  <p className="text-sm text-gray-600 leading-relaxed">
-                    {criterio.descripcion}
+      {/* Tabla interactiva */}
+      <div className="border rounded-lg overflow-hidden">
+        <div className="bg-gray-50 px-6 py-3 border-b">
+          <div className="grid grid-cols-12 gap-4 font-semibold text-sm text-gray-700">
+            <div className="col-span-6">Indicador de Logro</div>
+            <div className="col-span-1 text-center">Sí</div>
+            <div className="col-span-1 text-center">No</div>
+            <div className="col-span-4">Observaciones</div>
+          </div>
+        </div>
+        
+        <div className="divide-y">
+          {indicadores.map((indicador: any, index: number) => (
+            <div key={index} className="px-6 py-4 hover:bg-gray-50 transition-colors">
+              <div className="grid grid-cols-12 gap-4 items-start">
+                {/* Indicador */}
+                <div className="col-span-6">
+                  <p className="text-sm font-medium text-gray-900 leading-relaxed">
+                    {indicador.indicador || indicador.criterio}
                   </p>
-                )}
-                {criterio.pda_origen && (
-                  <div className="text-xs text-gray-600 bg-purple-50 p-3 rounded border-l-4 border-purple-200">
-                    <strong>PDA:</strong> {criterio.pda_origen}
-                  </div>
-                )}
+                  {(indicador.criterio_origen || indicador.pda_origen) && (
+                    <p className="text-xs text-gray-500 mt-1">
+                      <strong>Origen:</strong> {indicador.criterio_origen || indicador.pda_origen}
+                    </p>
+                  )}
+                </div>
+                
+                {/* Checkbox Sí */}
+                <div className="col-span-1 flex justify-center">
+                  <Checkbox
+                    checked={evaluaciones[index]?.si || false}
+                    onCheckedChange={() => handleCheckboxChange(index, 'si')}
+                    className="w-5 h-5"
+                  />
+                </div>
+                
+                {/* Checkbox No */}
+                <div className="col-span-1 flex justify-center">
+                  <Checkbox
+                    checked={evaluaciones[index]?.no || false}
+                    onCheckedChange={() => handleCheckboxChange(index, 'no')}
+                    className="w-5 h-5"
+                  />
+                </div>
+                
+                {/* Campo de observaciones */}
+                <div className="col-span-4">
+                  <Textarea
+                    placeholder="Observaciones opcionales..."
+                    value={evaluaciones[index]?.observaciones || ''}
+                    onChange={(e) => handleObservacionChange(index, e.target.value)}
+                    className="min-h-[60px] text-sm resize-none"
+                  />
+                </div>
               </div>
             </div>
-          </Card>
-        ))}
+          ))}
+        </div>
       </div>
-      
-      {/* Información adicional */}
-      <div className="text-sm text-gray-600 bg-blue-50 p-4 rounded-lg border-l-4 border-blue-200">
-        <p><strong>Nota:</strong> Esta lista de cotejo contiene {contenido.criterios.length} criterio{contenido.criterios.length !== 1 ? 's' : ''} de evaluación para verificar.</p>
+
+      {/* Resumen */}
+      <div className="flex items-center justify-center bg-blue-50 p-4 rounded-lg border-l-4 border-blue-200">
+        <div className="text-sm text-gray-600 text-center">
+          <p><strong>Total de indicadores:</strong> {indicadores.length}</p>
+          <p><strong>Evaluados:</strong> {Object.values(evaluaciones).filter(e => e.si || e.no).length}</p>
+        </div>
       </div>
     </div>
   )
@@ -505,6 +609,8 @@ export function ViewProyecto({ proyectoId, onBack }: ViewProyectoProps) {
 
   // Pantalla de espera "Magia de la IA" para generación de rúbrica
   if (generatingRubrica) {
+    const tipoInstrumento = instrumentForm.tipo === 'rubrica_analitica' ? 'rúbrica analítica' : 'lista de cotejo';
+    
     return (
       <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center">
         <div className="text-center max-w-2xl mx-auto p-8">
@@ -513,7 +619,7 @@ export function ViewProyecto({ proyectoId, onBack }: ViewProyectoProps) {
               ✨ Magia de la IA ✨
             </h1>
             <p className="text-lg text-gray-600">
-              La IA está generando tu rúbrica analítica personalizada
+              La IA está generando tu {tipoInstrumento} personalizada
             </p>
           </div>
           
@@ -528,7 +634,7 @@ export function ViewProyecto({ proyectoId, onBack }: ViewProyectoProps) {
                 </div>
                 <div className="space-y-2">
                   <p className="text-lg font-medium text-gray-900">
-                    🤖 Analizando tu proyecto con Gemini...
+                    🤖 Analizando tu proyecto...
                   </p>
                   <p className="text-sm text-gray-600">
                     Creando criterios de evaluación para: <strong>{proyecto?.nombre}</strong>
@@ -813,7 +919,7 @@ export function ViewProyecto({ proyectoId, onBack }: ViewProyectoProps) {
     
       {/* Modal de crear instrumento - Nueva estructura de 2 vistas */}
       <Dialog open={showInstrumentDialog} onOpenChange={handleCloseModal}>
-        <DialogContent className="sm:max-w-lg">
+        <DialogContent className="sm:max-w-4xl">
           {modalStep === 'form' ? (
             // Primera vista: Formulario de información básica
             <>
@@ -879,8 +985,6 @@ export function ViewProyecto({ proyectoId, onBack }: ViewProyectoProps) {
                       </div>
                     </Button>
                     
-                    {/* Futuras opciones: Lista de Cotejo y Guías de Observación */}
-                    {/* 
                     <Button
                       type="button"
                       variant={instrumentForm.tipo === 'lista_cotejo' ? 'default' : 'outline'}
@@ -906,7 +1010,6 @@ export function ViewProyecto({ proyectoId, onBack }: ViewProyectoProps) {
                         </div>
                       </div>
                     </Button>
-                    */}
                   </div>
                   {formErrors.tipo && (
                     <p className="text-sm text-red-500">{formErrors.tipo}</p>
@@ -949,7 +1052,7 @@ export function ViewProyecto({ proyectoId, onBack }: ViewProyectoProps) {
                 </DialogDescription>
               </DialogHeader>
               
-              <div className="space-y-6 max-h-[60vh] overflow-y-auto">
+              <div className="space-y-6 max-h-[75vh] overflow-y-auto">
                 {/* Sección de PDAs del Proyecto */}
                 <div className="space-y-4">
                   <div className="flex items-center gap-2">
@@ -963,29 +1066,30 @@ export function ViewProyecto({ proyectoId, onBack }: ViewProyectoProps) {
                       <span className="ml-2 text-gray-600">Cargando PDAs...</span>
                     </div>
                   ) : pdasProyecto.length > 0 ? (
-                    <ScrollArea className="h-48 border rounded-lg p-4">
-                      <div className="space-y-3">
+                    <ScrollArea className="h-80 border rounded-lg p-4">
+                      <div className="space-y-4">
                         {pdasProyecto.map((pda) => (
-                          <div key={pda.id} className="flex items-start space-x-3 p-3 border rounded-lg hover:bg-gray-50">
+                          <div 
+                            key={pda.id} 
+                            className="flex items-start space-x-4 p-4 border rounded-lg hover:bg-gray-50 transition-colors cursor-pointer"
+                            onClick={() => togglePdaSelection(pda.id)}
+                          >
                             <Checkbox
                               id={`pda-${pda.id}`}
                               checked={pdasSeleccionados.includes(pda.id)}
                               onCheckedChange={() => togglePdaSelection(pda.id)}
-                              className="mt-1"
+                              className="mt-2 h-5 w-5 pointer-events-none"
                             />
                             <div className="flex-1 min-w-0">
-                              <label 
-                                htmlFor={`pda-${pda.id}`}
-                                className="text-sm font-medium text-gray-900 cursor-pointer block"
-                              >
+                              <div className="text-base font-medium text-gray-900 block leading-relaxed">
                                 {pda.pda}
-                              </label>
-                              <p className="text-xs text-gray-600 mt-1">{pda.contenido}</p>
-                              <div className="flex gap-2 mt-2">
-                                <Badge variant="secondary" className="text-xs">
+                              </div>
+                              <p className="text-sm text-gray-600 mt-2 leading-relaxed">{pda.contenido}</p>
+                              <div className="flex gap-3 mt-3">
+                                <Badge variant="secondary" className="text-sm px-3 py-1">
                                   {pda.campo_formativo}
                                 </Badge>
-                                <Badge variant="outline" className="text-xs">
+                                <Badge variant="outline" className="text-sm px-3 py-1">
                                   {pda.grado} - {pda.materia}
                                 </Badge>
                               </div>
@@ -1002,9 +1106,11 @@ export function ViewProyecto({ proyectoId, onBack }: ViewProyectoProps) {
                   )}
                   
                   {pdasSeleccionados.length > 0 && (
-                    <p className="text-sm text-blue-600">
-                      {pdasSeleccionados.length} PDA{pdasSeleccionados.length !== 1 ? 's' : ''} seleccionado{pdasSeleccionados.length !== 1 ? 's' : ''}
-                    </p>
+                    <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
+                      <p className="text-sm font-medium text-blue-700">
+                        ✓ {pdasSeleccionados.length} PDA{pdasSeleccionados.length !== 1 ? 's' : ''} seleccionado{pdasSeleccionados.length !== 1 ? 's' : ''}
+                      </p>
+                    </div>
                   )}
                 </div>
 
@@ -1041,10 +1147,10 @@ export function ViewProyecto({ proyectoId, onBack }: ViewProyectoProps) {
                     </div>
                     
                     {criteriosPersonalizados.length > 0 && (
-                      <div className="space-y-2">
+                      <div className="space-y-3">
                         {criteriosPersonalizados.map((criterio, index) => (
-                          <div key={index} className="flex items-center justify-between p-3 bg-purple-50 border border-purple-200 rounded-lg">
-                            <span className="text-sm text-gray-900">{criterio}</span>
+                          <div key={index} className="flex items-center justify-between p-4 bg-purple-50 border border-purple-200 rounded-lg">
+                            <span className="text-base text-gray-900 leading-relaxed">{criterio}</span>
                             <Button
                               onClick={() => eliminarCriterioPersonalizado(index)}
                               variant="ghost"
@@ -1093,10 +1199,6 @@ export function ViewProyecto({ proyectoId, onBack }: ViewProyectoProps) {
                     setGeneratingRubrica(true);
                     
                     try {
-                      toast.info(`Generando ${instrumentForm.tipo === 'rubrica_analitica' ? 'rúbrica analítica' : 'lista de cotejo'}...`, {
-                        description: "Esto puede tomar unos segundos",
-                        duration: 3000
-                      });
                       
                       const response = await fetch('/api/generate-rubrica', {
                         method: 'POST',
