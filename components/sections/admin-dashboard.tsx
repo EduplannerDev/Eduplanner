@@ -4,8 +4,13 @@ import { useState, useEffect } from 'react'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
+import { Switch } from '@/components/ui/switch'
+import { Button } from '@/components/ui/button'
+import { Alert, AlertDescription } from '@/components/ui/alert'
 import { AdministracionPlanteles } from './administracion-planteles'
 import { useRoles } from '@/hooks/use-roles'
+import { useToast } from '@/hooks/use-toast'
+import { createClient } from '@/lib/supabase'
 import { 
   Building2, 
   Shield, 
@@ -17,7 +22,10 @@ import {
   MessageSquare, 
   DollarSign,
   Activity,
-  UserCheck
+  UserCheck,
+  Settings,
+  AlertTriangle,
+  CheckCircle
 } from 'lucide-react'
 import { 
   getPlatformStats, 
@@ -30,6 +38,7 @@ import {
 
 export function AdminDashboard() {
   const { isAdmin, isDirector, plantel, role, loading } = useRoles()
+  const { toast } = useToast()
   const [activeTab, setActiveTab] = useState('overview')
   
   // Estados para las estadísticas
@@ -37,11 +46,16 @@ export function AdminDashboard() {
   const [recentActivity, setRecentActivity] = useState<RecentActivity | null>(null)
   const [usuariosSinPlantel, setUsuariosSinPlantel] = useState<UsuariosSinPlantel | null>(null)
   const [statsLoading, setStatsLoading] = useState(true)
+  
+  // Estados para modo mantenimiento
+  const [maintenanceMode, setMaintenanceMode] = useState(false)
+  const [maintenanceLoading, setMaintenanceLoading] = useState(false)
 
   // Cargar estadísticas cuando el componente se monta
   useEffect(() => {
     if (isAdmin) {
       loadDashboardStats()
+      loadMaintenanceStatus()
     }
   }, [isAdmin])
 
@@ -61,6 +75,74 @@ export function AdminDashboard() {
       console.error('Error cargando estadísticas del dashboard:', error)
     } finally {
       setStatsLoading(false)
+    }
+  }
+
+  const loadMaintenanceStatus = async () => {
+    try {
+      const response = await fetch('/api/maintenance')
+      if (response.ok) {
+        const data = await response.json()
+        setMaintenanceMode(data.maintenanceMode)
+      }
+    } catch (error) {
+      console.error('Error cargando estado de mantenimiento:', error)
+    }
+  }
+
+  const toggleMaintenanceMode = async () => {
+    // Verificar que el usuario sea admin antes de proceder
+    if (!isAdmin) {
+      toast({
+        title: "Error",
+        description: "Solo los administradores pueden modificar la configuración del sistema",
+        variant: "destructive",
+      })
+      return
+    }
+
+    try {
+      setMaintenanceLoading(true)
+      
+      // Obtener el token de sesión
+      const supabase = createClient()
+      const { data: { session } } = await supabase.auth.getSession()
+      
+      if (!session?.access_token) {
+        throw new Error('No se pudo obtener el token de autenticación')
+      }
+
+      const response = await fetch('/api/maintenance', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${session.access_token}`
+        },
+        body: JSON.stringify({ maintenanceMode: !maintenanceMode }),
+      })
+
+      if (response.ok) {
+        const data = await response.json()
+        setMaintenanceMode(!maintenanceMode) // Toggle the current state
+        toast({
+          title: !maintenanceMode ? "Modo mantenimiento activado" : "Modo mantenimiento desactivado",
+          description: !maintenanceMode 
+            ? "Los usuarios serán redirigidos a la página de mantenimiento" 
+            : "Los usuarios pueden acceder normalmente a la plataforma",
+        })
+      } else {
+        const errorData = await response.json().catch(() => ({ error: 'Error desconocido' }))
+        throw new Error(errorData.error || `Error ${response.status}: ${response.statusText}`)
+      }
+    } catch (error) {
+      console.error('Error cambiando modo de mantenimiento:', error)
+      toast({
+        title: "Error",
+        description: error instanceof Error ? error.message : "No se pudo cambiar el modo de mantenimiento",
+        variant: "destructive",
+      })
+    } finally {
+      setMaintenanceLoading(false)
     }
   }
 
@@ -112,7 +194,7 @@ export function AdminDashboard() {
 
       {/* Tabs de navegación */}
       <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-        <TabsList className="grid w-full grid-cols-2">
+        <TabsList className="grid w-full grid-cols-3">
           <TabsTrigger value="overview" className="flex items-center gap-2">
             <BarChart3 className="h-4 w-4" />
             Resumen
@@ -120,6 +202,10 @@ export function AdminDashboard() {
           <TabsTrigger value="planteles" className="flex items-center gap-2">
             <Building2 className="h-4 w-4" />
             Planteles
+          </TabsTrigger>
+          <TabsTrigger value="system" className="flex items-center gap-2">
+            <Settings className="h-4 w-4" />
+            Sistema
           </TabsTrigger>
         </TabsList>
 
@@ -370,6 +456,71 @@ export function AdminDashboard() {
           )}
         </TabsContent>
 
+        <TabsContent value="system" className="space-y-6">
+          {isAdmin ? (
+            <>
+              {/* Modo Mantenimiento */}
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <Settings className="h-5 w-5" />
+                    Configuración del Sistema
+                  </CardTitle>
+                  <CardDescription>
+                    Controla el estado general de la plataforma
+                  </CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-6">
+                  {/* Modo Mantenimiento */}
+                  <div className="space-y-4">
+                    <div className="flex items-center justify-between">
+                      <div className="space-y-1">
+                        <h4 className="text-sm font-medium">Modo Mantenimiento</h4>
+                        <p className="text-sm text-muted-foreground">
+                          Activa el modo mantenimiento para mostrar una página informativa a los usuarios
+                        </p>
+                      </div>
+                      <Switch
+                        checked={maintenanceMode}
+                        onCheckedChange={toggleMaintenanceMode}
+                        disabled={maintenanceLoading}
+                      />
+                    </div>
+                    
+                    {maintenanceMode && (
+                      <Alert>
+                        <AlertTriangle className="h-4 w-4" />
+                        <AlertDescription>
+                          <strong>Modo mantenimiento activo:</strong> Los usuarios están siendo redirigidos a la página de mantenimiento. 
+                          Solo los administradores pueden acceder al sistema.
+                        </AlertDescription>
+                      </Alert>
+                    )}
+                    
+                    {!maintenanceMode && (
+                      <Alert>
+                        <CheckCircle className="h-4 w-4" />
+                        <AlertDescription>
+                          <strong>Sistema operativo:</strong> Los usuarios pueden acceder normalmente a todas las funciones de la plataforma.
+                        </AlertDescription>
+                      </Alert>
+                    )}
+                  </div>
+                </CardContent>
+              </Card>
+            </>
+          ) : (
+            <Card>
+              <CardContent className="p-8 text-center">
+                <Settings className="mx-auto h-12 w-12 text-muted-foreground mb-4" />
+                <h3 className="text-lg font-semibold mb-2">Acceso Restringido</h3>
+                <p className="text-muted-foreground">
+                  Solo los administradores pueden acceder a la configuración del sistema.
+                </p>
+              </CardContent>
+            </Card>
+          )}
+        </TabsContent>
 
       </Tabs>
     </div>
