@@ -19,7 +19,7 @@ export async function POST(req: Request) {
   
     
     const result = await streamText({
-      model: google("gemini-1.5-flash"),
+      model: google("gemini-2.5-flash"),
       system: `Eres un asistente especializado en generar presentaciones educativas atractivas para estudiantes de primaria en México, basándote en planeaciones didácticas existentes. Tu objetivo es crear presentaciones visuales que apoyen el proceso de enseñanza-aprendizaje, siguiendo los lineamientos del Nuevo Marco Curricular Mexicano (NMCM) 2022–2023 de la SEP y el enfoque de la Nueva Escuela Mexicana (NEM).
 
 Características de tu rol:

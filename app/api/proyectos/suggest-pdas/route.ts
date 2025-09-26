@@ -131,7 +131,7 @@ Devuelve ÚNICAMENTE un JSON con el siguiente formato:
 IMPORTANTE: Solo devuelve el JSON, sin texto adicional.`
 
     const result = await generateText({
-      model: google("gemini-1.5-flash"),
+      model: google("gemini-2.5-flash"),
       prompt: prompt,
       temperature: 0.3,
     })

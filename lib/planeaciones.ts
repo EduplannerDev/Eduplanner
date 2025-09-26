@@ -230,6 +230,7 @@ function cleanPlaneacionContent(content: string): string {
 
   // Eliminar texto introductorio común
   const introPatterns = [
+    /^¡[^!]*!\s*[^.]*\.\s*Aquí tienes[^:]*:\s*/i, // Captura cualquier exclamación inicial + explicación + "Aquí tienes"
     /^¡Perfecto!\s*Aquí tienes una planeación didáctica[^:]*:\s*/i,
     /^Aquí tienes una planeación didáctica[^:]*:\s*/i,
     /^Te presento una planeación didáctica[^:]*:\s*/i,
@@ -281,6 +282,7 @@ export function extractPlaneacionInfo(content: string): {
     /^Aquí tienes una planeación didáctica[^:]*:\s*/i,
     /^Te presento una planeación didáctica[^:]*:\s*/i,
     /^Esta es una planeación didáctica[^:]*:\s*/i,
+    /^¡Excelente elección!\s*[^.]*\.\s*Aquí tienes[^:]*:\s*/i,
   ]
 
   introPatterns.forEach((pattern) => {

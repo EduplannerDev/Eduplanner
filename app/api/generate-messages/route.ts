@@ -12,7 +12,7 @@ export async function POST(req: Request) {
     }
 
     const result = await streamText({
-      model: google("gemini-1.5-flash"),
+      model: google("gemini-2.5-flash"),
       system: `A partir de ahora, actúa como un asistente especializado en generar mensajes profesionales para la comunicación entre docentes y padres de familia. Tu objetivo es ayudar a crear mensajes claros, respetuosos y efectivos que aborden diferentes situaciones escolares.
 
 TONO SELECCIONADO: ${tone || "Formal y Profesional"}

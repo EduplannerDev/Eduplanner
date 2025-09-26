@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { createClient } from '@supabase/supabase-js'
+import { createClient, SupabaseClient } from '@supabase/supabase-js'
 import { cookies } from 'next/headers'
 import { google } from "@ai-sdk/google"
 import { generateText } from "ai"
@@ -35,7 +35,7 @@ export async function POST(request: NextRequest) {
     }
 
     let user: any = null
-    let supabase: any = null
+    let supabase: SupabaseClient | null = null
     
     // Intentar autenticación con Bearer token primero
     const authHeader = request.headers.get('authorization')
@@ -225,7 +225,7 @@ Ejemplo de la estructura de tu respuesta:
 
     // PASO 6: Ejecutar la IA
     const { text: geminiResponse } = await generateText({
-      model: google("gemini-1.5-flash"),
+        model: google("gemini-2.5-flash"),
       prompt,
       temperature: 0.7,
     })
@@ -238,13 +238,27 @@ Ejemplo de la estructura de tu respuesta:
       // Limpiar la respuesta de Gemini (remover markdown si existe)
       let cleanResponse = geminiResponse.trim()
       
-      // Remover ```json y ``` si existen
-      if (cleanResponse.startsWith('```json')) {
-        cleanResponse = cleanResponse.replace(/^```json\s*/, '').replace(/\s*```$/, '')
-      } else if (cleanResponse.startsWith('```')) {
-        cleanResponse = cleanResponse.replace(/^```\s*/, '').replace(/\s*```$/, '')
+      // Función para extraer JSON válido de la respuesta
+      function extractJSON(response: string): string {
+        // Buscar el primer [ y el último ] para extraer el array JSON
+        const firstBracket = response.indexOf('[')
+        const lastBracket = response.lastIndexOf(']')
+        
+        if (firstBracket !== -1 && lastBracket !== -1 && lastBracket > firstBracket) {
+          return response.substring(firstBracket, lastBracket + 1)
+        }
+        
+        // Si no encuentra brackets, intentar limpiar markdown
+        if (response.startsWith('```json')) {
+          response = response.replace(/^```json\s*/, '').replace(/\s*```$/, '')
+        } else if (response.startsWith('```')) {
+          response = response.replace(/^```\s*/, '').replace(/\s*```$/, '')
+        }
+        
+        return response
       }
       
+      cleanResponse = extractJSON(cleanResponse)
       
       fasesGeneradas = JSON.parse(cleanResponse)
       
@@ -261,7 +275,8 @@ Ejemplo de la estructura de tu respuesta:
       
     } catch (parseError) {
       console.error('❌ Error parseando respuesta de Gemini:', parseError)
-      console.error('📝 Respuesta completa:', geminiResponse)
+      console.error('📝 Respuesta completa:', geminiResponse.substring(0, 1000) + (geminiResponse.length > 1000 ? '...(truncated)' : ''))
+      console.error('🧹 Respuesta limpia intentada:', cleanResponse?.substring(0, 500) + (cleanResponse?.length > 500 ? '...(truncated)' : ''))
       return NextResponse.json(
         { 
           error: 'Error procesando respuesta de la IA',

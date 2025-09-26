@@ -8,13 +8,12 @@ export const maxDuration = 60
 export async function POST(req: Request) {
   try {
     // Capturar errores de parsing JSON
-    let proyecto_id, titulo, tipo, descripcion, pdas_seleccionados, criterios_personalizados;
+    let proyecto_id, titulo, tipo, pdas_seleccionados, criterios_personalizados;
     try {
       const body = await req.json();
       proyecto_id = body.proyecto_id;
       titulo = body.titulo;
       tipo = body.tipo;
-      descripcion = body.descripcion;
       pdas_seleccionados = body.pdas_seleccionados || [];
       criterios_personalizados = body.criterios_personalizados || [];
     } catch (error) {
@@ -187,7 +186,7 @@ IMPORTANTE: Asegúrate de que tu respuesta sea ÚNICAMENTE el objeto JSON válid
 
     // 4. Llamar a la API de Gemini
     const { text: geminiResponse } = await generateText({
-      model: google("gemini-1.5-flash"),
+      model: google("gemini-2.5-flash"),
       prompt,
       temperature: 0.3,
     })

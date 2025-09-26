@@ -167,7 +167,7 @@ export function ProyectoWizard({ onComplete }: ProyectoWizardProps = {}) {
                   </div>
                   <div className="space-y-2">
                     <p className="text-lg font-medium text-gray-900">
-                      🤖 Analizando tu proyecto con Gemini...
+                      🤖 Analizando tu proyecto...
                     </p>
                     <p className="text-sm text-gray-600">
                       Generando fases y momentos personalizados para: <strong>{wizardData.nombre}</strong>

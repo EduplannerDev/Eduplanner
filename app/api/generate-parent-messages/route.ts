@@ -104,7 +104,7 @@ ${teacherInfo?.telefono ? `Teléfono: ${teacherInfo.telefono}` : ''}
 Recuerda: Cada mensaje debe ser único, personalizado y utilizar la información específica del estudiante proporcionada.`;
 
     const result = await streamText({
-      model: google('gemini-1.5-flash'),
+        model: google('gemini-2.5-flash'),
       system: systemPrompt,
       messages,
       temperature: 0.7,

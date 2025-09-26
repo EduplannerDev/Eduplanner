@@ -42,7 +42,7 @@ Tu respuesta final debe ser únicamente un objeto JSON válido, sin ningún text
 - **REGLA PRINCIPAL:** El propósito del mensaje **NO ES** avisar que se envió un correo. El propósito es **RESUMIR** los puntos clave. La mención al correo es secundaria.`
 
     const { text } = await generateText({
-      model: google("gemini-1.5-flash"),
+      model: google("gemini-2.5-flash"),
       prompt,
       temperature: 0.7,
       maxTokens: 200,
