@@ -1,0 +1,224 @@
+===============================================================================
+                        GUÍA: CÓMO CREAR UN PROYECTO EDUCATIVO
+===============================================================================
+
+DESCRIPCIÓN:
+Esta guía te explica paso a paso cómo crear un proyecto educativo completo 
+usando el Asistente de Proyectos con inteligencia artificial. El sistema 
+genera automáticamente las fases y momentos del proyecto.
+
+ANTES DE EMPEZAR:
+✓ Debes estar logueado en la plataforma
+✓ Debes tener un grupo asignado en tu perfil
+✓ Ten clara la problemática que quieres abordar con el proyecto
+
+===============================================================================
+                         CÓMO CREAR UN PROYECTO PASO A PASO
+===============================================================================
+
+PASO 1: ACCEDER AL CREADOR DE PROYECTOS
+1. En el menú lateral izquierdo, expande "Proyectos"
+2. Haz clic en "Crear Proyecto"
+3. Se abrirá el "Asistente de Proyectos" con una barra de progreso
+
+===============================================================================
+                    FASE 1: DEFINE TU PROYECTO (33% del proceso)
+===============================================================================
+
+PASO 2: COMPLETAR INFORMACIÓN BÁSICA
+1. Verás el formulario "Información del Proyecto"
+2. Completa los siguientes campos obligatorios:
+
+   **Nombre del Proyecto** (obligatorio):
+   - Escribe un título descriptivo
+   - Ejemplo: "Los Tesoros Escondidos: Leyendas y Relatos de Nuestra Comunidad"
+
+   **Problemática o Tema Central** (obligatorio):
+   - Describe el problema o tema que abordará el proyecto
+   - Mínimo 20 caracteres
+   - Ejemplo: "Cada lugar tiene historias que solo la gente mayor conoce: leyendas sobre por qué una calle se llama así, relatos de cómo era el barrio antes, o cuentos que solo se han pasado de voz en voz. Muchos de estos 'tesoros' se están perdiendo. ¿Cómo podemos convertirnos en 'cazadores de historias' para rescatar, comprender y compartir un relato de nuestra propia comunidad?"
+
+   **Producto Final** (obligatorio):
+   - Describe qué crearán los estudiantes
+   - Ejemplo: "La creación de un 'Pequeño Libro de Relatos Locales', ilustrado por los alumnos. Cada equipo investigará y escribirá una historia, y al final, se compilarán en un libro para la biblioteca de la escuela."
+
+   **Grupo** (obligatorio):
+   - Selecciona del menú desplegable tu grupo
+   - Ejemplo: "Español - 2°* Primaria"
+
+   **Metodología NEM** (obligatorio):
+   - Selecciona del menú desplegable
+   - Ejemplo: "Aprendizaje Basado en Proyectos Comunitarios"
+
+PASO 3: REVISAR RESUMEN
+1. Al completar los campos, aparecerá un "Resumen del Proyecto" en verde
+2. Verifica que toda la información sea correcta:
+   - Nombre del proyecto
+   - Grupo asignado
+   - Metodología seleccionada
+   - Producto final descrito
+
+PASO 4: CONTINUAR AL SIGUIENTE PASO
+1. Haz clic en "Siguiente Paso" para avanzar
+2. El progreso cambiará a 67%
+
+===============================================================================
+                    FASE 2: SELECCIONA PDAs (67% del proceso)
+===============================================================================
+
+PASO 5: CONECTAR CON EL CURRÍCULO
+1. Verás la sección "Conecta el Currículo"
+2. La IA analizará tu problemática y sugerirá PDAs relevantes
+3. Se mostrará tu grupo (ejemplo: "Español - 2°* Primaria")
+
+PASO 6: REVISAR SUGERENCIAS DE LA IA
+1. En el lado izquierdo verás "Sugerencias de la IA"
+2. La IA mostrará PDAs organizados por campo formativo:
+
+   **LENGUAJES** (ejemplo: 98% relevante):
+   - Descripción del contenido
+   - PDA específico: "Formula y ajusta sus preguntas en función de la información que requiere"
+
+   **ÉTICA NATURALEZA Y SOCIEDADES** (ejemplo: 97% relevante):
+   - Descripción del contenido
+   - PDA específico: "Indaga en fuentes orales"
+
+   **DE LO HUMANO Y LO COMUNITARIO** (ejemplo: 96% relevante):
+   - Descripción del contenido
+   - PDA específico: "Entrevista a familiares o integrantes de su comunidad..."
+
+PASO 7: SELECCIONAR PDAs
+1. Revisa cada sugerencia de la IA
+2. Haz clic en el círculo junto a los PDAs que quieres incluir
+3. Los PDAs seleccionados aparecerán en "PDAs Seleccionados" (lado derecho)
+4. Puedes seleccionar múltiples PDAs de diferentes campos formativos
+5. El contador mostrará cuántos PDAs has seleccionado (ejemplo: "0")
+
+PASO 8: CONTINUAR A GENERACIÓN
+1. Una vez seleccionados los PDAs deseados
+2. Haz clic en "Siguiente Paso" o "Generar Plan Didáctico"
+3. El progreso cambiará a 100%
+
+===============================================================================
+                    FASE 3: GENERAR CONTENIDO (100% del proceso)
+===============================================================================
+
+PASO 9: GENERACIÓN AUTOMÁTICA CON IA
+1. Verás la pantalla "Generar Plan Didáctico"
+2. Aparecerá el mensaje "La IA está generando las fases y momentos de tu proyecto"
+3. Se mostrará un indicador de carga con "Analizando tu proyecto..."
+
+PASO 10: REVISAR INFORMACIÓN DE PROCESAMIENTO
+1. El sistema mostrará:
+   - **Generando fases y momentos personalizados para**: [Nombre de tu proyecto]
+   - **Procesando**: [Número] PDAs seleccionados
+   - **Metodología**: [La metodología que elegiste]
+
+2. Espera mientras la IA procesa (puede tomar 30-60 segundos)
+
+PASO 11: REVISAR PROYECTO GENERADO
+1. Una vez completado, se mostrará el proyecto completo
+2. Podrás ver todas las fases y actividades generadas
+3. Revisa que el contenido sea apropiado para tu grupo
+
+PASO 12: GUARDAR EL PROYECTO
+1. Si estás satisfecho con el proyecto generado
+2. Haz clic en "Guardar Proyecto"
+3. El proyecto se guardará en tu lista de proyectos
+
+PASO 13: VERIFICAR QUE SE GUARDÓ
+1. Ve a "Mis Proyectos" en el menú lateral
+2. Tu nuevo proyecto aparecerá en la lista
+3. Podrás ver el estado y fecha de creación
+
+===============================================================================
+                              ACCIONES ADICIONALES
+===============================================================================
+
+CÓMO VER UN PROYECTO COMPLETO:
+1. Ve a "Mis Proyectos" en el menú lateral
+2. Busca el proyecto que quieres revisar
+3. Haz clic en el título del proyecto
+4. Se abrirá la vista completa con todas las fases
+
+CÓMO EDITAR UN PROYECTO:
+1. Ve a "Mis Proyectos" en el menú lateral
+2. Busca el proyecto que quieres modificar
+3. Haz clic en el ícono de "Editar"
+4. Podrás modificar la información básica
+5. Guarda los cambios cuando termines
+
+CÓMO GENERAR DOCUMENTOS DEL PROYECTO:
+1. Desde la vista del proyecto, busca opciones de exportación
+2. Puedes generar PDFs del proyecto completo
+3. También puedes exportar fases individuales
+
+===============================================================================
+                              CONSEJOS Y BUENAS PRÁCTICAS
+===============================================================================
+
+PARA DEFINIR MEJOR TU PROYECTO:
+✓ Sé específico en la problemática que quieres abordar
+✓ Conecta el proyecto con la realidad de tus estudiantes
+✓ Define un producto final tangible y significativo
+✓ Considera los recursos disponibles en tu escuela
+
+PARA SELECCIONAR PDAs EFECTIVAMENTE:
+✓ Elige PDAs que se complementen entre sí
+✓ Incluye diferentes campos formativos para proyectos integrales
+✓ Considera el nivel de dificultad apropiado para tu grado
+✓ Prioriza PDAs que se alineen con tu problemática
+
+PARA PROYECTOS EXITOSOS:
+✓ Involucra a la comunidad cuando sea posible
+✓ Planifica tiempo suficiente para cada fase
+✓ Considera evaluación formativa durante el proceso
+✓ Documenta el progreso de los estudiantes
+
+===============================================================================
+                              TIPOS DE METODOLOGÍAS NEM
+===============================================================================
+
+METODOLOGÍAS DISPONIBLES:
+- **Aprendizaje Basado en Proyectos Comunitarios**
+- **Aprendizaje Basado en Problemas**
+- **Aprendizaje Basado en Investigación**
+- **Aprendizaje Colaborativo**
+- **Aprendizaje Servicio**
+
+CADA METODOLOGÍA GENERA:
+- Fases específicas del proyecto
+- Actividades adaptadas al enfoque
+- Estrategias de evaluación apropiadas
+- Momentos de reflexión y síntesis
+
+===============================================================================
+                              PROBLEMAS COMUNES Y SOLUCIONES
+===============================================================================
+
+PROBLEMA: "No aparecen sugerencias de PDAs"
+SOLUCIÓN: Verifica que hayas completado correctamente la problemática.
+          Debe ser específica y tener al menos 20 caracteres.
+
+PROBLEMA: "La IA no genera contenido"
+SOLUCIÓN: Asegúrate de haber seleccionado al menos un PDA.
+          Verifica tu conexión a internet y vuelve a intentar.
+
+PROBLEMA: "El proyecto generado no es apropiado"
+SOLUCIÓN: Revisa la problemática y los PDAs seleccionados.
+          Puedes volver atrás y ajustar la información.
+
+PROBLEMA: "No puedo guardar el proyecto"
+SOLUCIÓN: Verifica que todos los campos obligatorios estén completos
+          y que tengas conexión a internet.
+
+===============================================================================
+                              CONTACTO Y SOPORTE
+===============================================================================
+
+Si tienes problemas técnicos o necesitas ayuda adicional:
+- Usa la función de feedback dentro de la aplicación
+- Contacta al soporte técnico desde el menú de ayuda
+- Revisa la documentación adicional en la sección "Docs"
+
+===============================================================================

@@ -1,0 +1,220 @@
+===============================================================================
+                    GUÍA: CÓMO GESTIONAR MIS PROYECTOS
+===============================================================================
+
+DESCRIPCIÓN:
+Esta guía te explica cómo ver, gestionar y trabajar con tus proyectos 
+educativos existentes, incluyendo la creación de instrumentos de evaluación 
+y la gestión de recursos del proyecto.
+
+ANTES DE EMPEZAR:
+✓ Debes tener al menos un proyecto creado previamente
+✓ Debes estar logueado en la plataforma
+
+===============================================================================
+                         ACCEDER A MIS PROYECTOS
+===============================================================================
+
+PASO 1: VER LISTA DE PROYECTOS
+1. En el menú lateral izquierdo, expande "Proyectos"
+2. Haz clic en "Mis Proyectos"
+3. Se abrirá la página con todos tus proyectos
+
+PASO 2: ENTENDER LA VISTA DE PROYECTOS
+En la lista verás cada proyecto con:
+- **Título del proyecto** (ejemplo: "Los Tesoros Escondidos: Leyendas y Relatos de...")
+- **Estado**: "activo" (badge verde)
+- **Grupo**: Ejemplo "Español - 2°* Primaria"
+- **Metodología**: Ejemplo "Aprendizaje Basado en Proyectos..."
+- **Fecha de creación**: Ejemplo "26 sept 2025"
+- **Descripción breve** del proyecto
+
+PASO 3: ACCIONES DISPONIBLES POR PROYECTO
+Para cada proyecto verás 3 botones:
+- **Ver** (ojo): Para visualizar el proyecto completo
+- **Descargar** (flecha hacia abajo): Para exportar documentos
+- **Eliminar** (basurero): Para eliminar el proyecto
+
+===============================================================================
+                         VISUALIZAR UN PROYECTO COMPLETO
+===============================================================================
+
+PASO 1: ABRIR PROYECTO
+1. En la lista de proyectos, busca el que quieres ver
+2. Haz clic en el botón "Ver" (ícono de ojo)
+3. Se abrirá la vista completa del proyecto
+
+PASO 2: NAVEGAR POR LAS SECCIONES
+Verás 3 pestañas principales:
+- **Plano Didáctico**: Información general y fases del proyecto
+- **Evaluación**: Instrumentos de evaluación
+- **Recursos**: Materiales y recursos del proyecto
+
+PASO 3: REVISAR INFORMACIÓN GENERAL
+En la parte superior verás:
+- **Problemática**: La problemática que aborda el proyecto
+- **Producto Final**: Lo que crearán los estudiantes
+- **Metodología**: El enfoque pedagógico utilizado
+
+PASO 4: EXPLORAR FASES Y MOMENTOS
+1. En "Fases y Momentos del Proyecto" verás la estructura completa:
+   - **Fase 1: Planeación**
+     - Momento 1: Identificación
+     - Momento 2: Recuperación
+   - **Fase 2: Desarrollo** (si aplica)
+   - **Fase 3: Cierre** (si aplica)
+
+2. Cada momento incluye actividades detalladas y sugerencias pedagógicas
+
+===============================================================================
+                    GESTIONAR INSTRUMENTOS DE EVALUACIÓN
+===============================================================================
+
+PASO 1: ACCEDER A EVALUACIÓN
+1. Desde la vista del proyecto, haz clic en la pestaña "Evaluación"
+2. Verás la sección "Instrumentos de Evaluación"
+
+PASO 2: VER INSTRUMENTOS EXISTENTES
+Verás una lista de instrumentos ya creados, como:
+- **Exposición** - Rúbrica Analítica (Creado el 26/9/2025)
+- **Lista de cotejo** - Lista de Cotejo (Creado el 26/9/2025)
+- **Rúbrica para el Proyecto** - Rúbrica Analítica (Creado el 23/9/2025)
+
+PASO 3: ACCIONES CON INSTRUMENTOS EXISTENTES
+Para cada instrumento puedes:
+- **Ver**: Haz clic en "Ver" para revisar el contenido completo
+- **Eliminar**: Haz clic en "Eliminar" para borrar el instrumento
+
+PASO 4: CREAR NUEVO INSTRUMENTO DE EVALUACIÓN
+1. Haz clic en el botón "Crear Instrumento" (morado, parte superior derecha)
+2. Se abrirá el modal "Crear Instrumento de Evaluación"
+
+PASO 5: CONFIGURAR NUEVO INSTRUMENTO
+1. **Título del Instrumento** (obligatorio):
+   - Escribe un nombre descriptivo
+   - Ejemplo: "nueva rubrica"
+
+2. **Tipo de Instrumento** (obligatorio):
+   - **Rúbrica Analítica**: Evaluación detallada con criterios y niveles de desempeño
+   - **Lista de Cotejo**: Verificación de presencia o ausencia de elementos
+
+3. **Descripción** (opcional):
+   - Añade notas o comentarios adicionales sobre el instrumento
+
+PASO 6: SELECCIONAR CRITERIOS A EVALUAR
+1. Haz clic en "Siguiente: Seleccionar Criterios"
+2. Se abrirá el modal "Selecciona los Criterios a Evaluar"
+
+PASO 7: ELEGIR CRITERIOS DEL PROYECTO (PDAs)
+1. En "Criterios del Proyecto (PDAs)" verás los PDAs de tu proyecto:
+   - Ejemplo: "Entrevista a familiares o integrantes de su comunidad..."
+   - Campo formativo: "DE LO HUMANO Y LO COMUNITARIO"
+   - Ejemplo: "Recupera la información que escuchó"
+   - Campo formativo: "LENGUAJES"
+
+2. Marca las casillas de los PDAs que quieres evaluar
+
+PASO 8: AGREGAR CRITERIOS PERSONALIZADOS (OPCIONAL)
+1. En "Criterios Personalizados" puedes agregar criterios adicionales
+2. Escribe en el campo "Escribe un criterio personalizado..."
+3. Haz clic en "Añadir Criterio" para agregarlo
+
+PASO 9: GENERAR INSTRUMENTO
+1. Una vez seleccionados los criterios
+2. Haz clic en "Generar Borrador con IA"
+3. La IA creará automáticamente el instrumento de evaluación
+4. Podrás revisar y editar el contenido generado
+
+===============================================================================
+                              ACCIONES ADICIONALES
+===============================================================================
+
+CÓMO DESCARGAR UN PROYECTO:
+1. En "Mis Proyectos", busca el proyecto deseado
+2. Haz clic en el botón "Descargar" (flecha hacia abajo)
+3. Se generará un PDF con todo el contenido del proyecto
+4. El archivo se descargará automáticamente
+
+CÓMO ELIMINAR UN PROYECTO:
+1. En "Mis Proyectos", busca el proyecto que quieres eliminar
+2. Haz clic en el botón "Eliminar" (basurero)
+3. Aparecerá un mensaje de confirmación
+4. Confirma la eliminación
+5. El proyecto se eliminará permanentemente
+
+CÓMO CREAR NUEVO PROYECTO DESDE MIS PROYECTOS:
+1. En la página "Mis Proyectos"
+2. Haz clic en el botón "Nuevo Proyecto" (azul, parte superior derecha)
+3. Te llevará al asistente de creación de proyectos
+
+CÓMO VOLVER A LA LISTA DESDE UN PROYECTO:
+1. Desde cualquier vista de proyecto
+2. Haz clic en "Volver a Proyectos" (parte superior izquierda)
+3. Regresarás a la lista principal
+
+===============================================================================
+                              GESTIÓN DE RECURSOS
+===============================================================================
+
+CÓMO ACCEDER A RECURSOS DEL PROYECTO:
+1. Desde la vista del proyecto, haz clic en la pestaña "Recursos"
+2. Aquí encontrarás materiales y recursos relacionados con el proyecto
+3. Puedes agregar, editar o eliminar recursos según necesites
+
+ORGANIZACIÓN DE RECURSOS:
+- Materiales didácticos
+- Enlaces útiles
+- Documentos de apoyo
+- Recursos multimedia
+
+===============================================================================
+                              CONSEJOS Y BUENAS PRÁCTICAS
+===============================================================================
+
+PARA GESTIONAR MEJOR TUS PROYECTOS:
+✓ Revisa regularmente el progreso de tus proyectos activos
+✓ Mantén actualizados los instrumentos de evaluación
+✓ Documenta las modificaciones que hagas durante la implementación
+✓ Usa nombres descriptivos para los instrumentos de evaluación
+
+PARA INSTRUMENTOS DE EVALUACIÓN EFECTIVOS:
+✓ Incluye criterios específicos y medibles
+✓ Combina PDAs curriculares con criterios personalizados
+✓ Crea diferentes tipos de instrumentos según la actividad
+✓ Revisa y ajusta los instrumentos según la experiencia de uso
+
+ORGANIZACIÓN DE PROYECTOS:
+✓ Mantén activos solo los proyectos que estés implementando
+✓ Archiva o elimina proyectos completados
+✓ Usa la función de descarga para conservar copias importantes
+
+===============================================================================
+                              PROBLEMAS COMUNES Y SOLUCIONES
+===============================================================================
+
+PROBLEMA: "No aparecen mis proyectos"
+SOLUCIÓN: Verifica que hayas creado proyectos previamente.
+          Si el problema persiste, cierra sesión y vuelve a entrar.
+
+PROBLEMA: "No puedo crear instrumentos de evaluación"
+SOLUCIÓN: Asegúrate de estar en la pestaña "Evaluación" del proyecto.
+          Verifica que el proyecto tenga PDAs asignados.
+
+PROBLEMA: "Los instrumentos no se generan correctamente"
+SOLUCIÓN: Verifica que hayas seleccionado al menos un criterio.
+          Revisa tu conexión a internet y vuelve a intentar.
+
+PROBLEMA: "No puedo descargar el proyecto"
+SOLUCIÓN: Verifica tu conexión a internet y que el proyecto esté completo.
+          Intenta nuevamente después de unos minutos.
+
+===============================================================================
+                              CONTACTO Y SOPORTE
+===============================================================================
+
+Si tienes problemas técnicos o necesitas ayuda adicional:
+- Usa la función de feedback dentro de la aplicación
+- Contacta al soporte técnico desde el menú de ayuda
+- Revisa la documentación adicional en la sección "Docs"
+
+===============================================================================

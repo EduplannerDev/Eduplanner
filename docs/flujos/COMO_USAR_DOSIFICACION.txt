@@ -1,0 +1,182 @@
+===============================================================================
+                        GUÍA: CÓMO USAR EL MÓDULO DE DOSIFICACIÓN
+===============================================================================
+
+DESCRIPCIÓN:
+El módulo de Dosificación te permite gestionar la dosificación curricular y 
+distribución de contenidos de manera inteligente. Organiza contenidos, 
+distribuye por períodos y realiza seguimiento del progreso académico.
+
+ANTES DE EMPEZAR:
+✓ Debes estar logueado en la plataforma
+✓ Debes tener un grado asignado en tu perfil
+✓ El sistema configurará automáticamente el ciclo escolar actual
+
+===============================================================================
+                         ACCESO AL MÓDULO DE DOSIFICACIÓN
+===============================================================================
+
+PASO 1: ACCEDER AL MÓDULO
+1. En el menú lateral izquierdo, haz clic en "Dosificación"
+2. Se abrirá la página principal con 3 opciones disponibles
+
+PASO 2: VERIFICAR CONFIGURACIÓN INICIAL
+1. Verás tu grado configurado (ejemplo: "2° Grado - 2025-2026")
+2. El sistema mostrará el estado de cada función:
+   - **Distribución Temporal**: Disponible
+   - **Contenidos Curriculares**: Próximamente
+   - **Seguimiento**: Disponible
+
+===============================================================================
+                    FUNCIÓN 1: DISTRIBUCIÓN TEMPORAL
+===============================================================================
+
+PASO 1: ACCEDER A DISTRIBUCIÓN TEMPORAL
+1. Haz clic en la tarjeta "Distribución Temporal"
+2. Descripción: "Organiza contenidos por trimestres de forma inteligente"
+3. Se abrirá la interfaz de campos formativos
+
+PASO 2: SELECCIONAR CAMPO FORMATIVO
+1. Verás 4 campos formativos disponibles:
+   - **DE LO HUMANO Y LO COMUNITARIO** (azul)
+   - **ÉTICA NATURALEZA Y SOCIEDADES** (morado)
+   - **LENGUAJES** (verde)
+   - **SABERES Y PENSAMIENTO CIENTÍFICO** (naranja)
+
+2. Haz clic en "Haz clic para continuar" en el campo que te interese
+
+PASO 3: GESTIONAR CONTENIDOS CURRICULARES
+1. Se abrirá una tabla con todos los contenidos del campo formativo
+2. La tabla muestra:
+   - **CONTENIDO**: Descripción del tema
+   - **PROCESO DE DESARROLLO Y APRENDIZAJE**: PDA específico
+   - **Meses del año**: SEP, OCT, NOV, DIC, ENE, FEB, MAR, ABR, MAY, JUN, JUL
+
+3. Para asignar contenidos a meses:
+   - Marca las casillas en los meses donde quieres trabajar cada contenido
+   - Puedes asignar el mismo contenido a múltiples meses
+   - Las casillas marcadas se mostrarán en azul
+
+4. Ejemplo de asignación:
+   - "Compara alimentos naturales y frescos" → Marcar SEP
+   - "Reflexiona acerca de situaciones..." → Marcar SEP y OCT
+
+PASO 4: GUARDAR DISTRIBUCIÓN
+1. Una vez configurada la distribución, guarda los cambios
+2. El sistema recordará tu configuración para futuras consultas
+
+===============================================================================
+                    FUNCIÓN 2: SEGUIMIENTO
+===============================================================================
+
+PASO 1: ACCEDER AL SEGUIMIENTO
+1. Desde la página principal de Dosificación, haz clic en "Seguimiento"
+2. Se abrirá el dashboard de seguimiento académico
+
+PASO 2: REVISAR RESUMEN GENERAL
+1. Verás un círculo de progreso con el porcentaje completado (ejemplo: 11%)
+2. Debajo encontrarás 3 indicadores:
+   - **Completados**: Número en verde (ejemplo: 2)
+   - **En Progreso**: Número en azul (ejemplo: 17)
+   - **Pendientes**: Número en naranja (ejemplo: 157)
+
+PASO 3: ANALIZAR PROGRESO POR CAMPO FORMATIVO
+1. En el lado derecho verás barras de progreso por campo:
+   - **LENGUAJES**: 33% (1/3)
+   - **DE LO HUMANO Y LO COMUNITARIO**: 14% (1/7)
+   - **SABERES Y PENSAMIENTO CIENTÍFICO**: 0% (0/5)
+   - **ÉTICA NATURALEZA Y SOCIEDADES**: 0% (0/4)
+
+2. El **Promedio** general se muestra al final (ejemplo: 12%)
+
+PASO 4: REVISAR CARGA DE TRABAJO POR TRIMESTRE
+1. En la parte inferior verás 3 tarjetas de trimestres:
+   - **Trimestre 1** (Actual): PDAs asignados, Completados, Progreso %
+   - **Trimestre 2**: Estado de planificación
+   - **Trimestre 3**: Estado de planificación
+
+PASO 5: USAR ACCIONES SUGERIDAS
+1. En el lado derecho verás "Acciones Sugeridas"
+2. Muestra próximos PDAs a cubrir en el trimestre actual
+3. Para cada sugerencia puedes:
+   - Ver el campo formativo y mes sugerido
+   - Hacer clic en "Crear Planeación" para generar contenido automáticamente
+
+EJEMPLO DE ACCIÓN SUGERIDA:
+- "Indaga con personas de la comunidad u otr..."
+- Campo: SABERES Y PENSAMIENTO CIENTÍFICO
+- Mes: Septiembre
+- Botón: "Crear Planeación"
+
+===============================================================================
+                              ACCIONES ADICIONALES
+===============================================================================
+
+CÓMO CREAR PLANEACIÓN DESDE SEGUIMIENTO:
+1. Ve al módulo "Dosificación" → "Seguimiento"
+2. En "Acciones Sugeridas", busca el contenido que quieres trabajar
+3. Haz clic en "Crear Planeación" junto al contenido deseado
+4. Se abrirá automáticamente el creador de planeaciones con el contenido preseleccionado
+
+CÓMO MODIFICAR DISTRIBUCIÓN TEMPORAL:
+1. Ve a "Dosificación" → "Distribución Temporal"
+2. Selecciona el campo formativo que quieres modificar
+3. Cambia las asignaciones de meses según tus necesidades
+4. Guarda los cambios
+
+CÓMO INTERPRETAR EL PROGRESO:
+- **Verde (Completados)**: Contenidos ya trabajados y finalizados
+- **Azul (En Progreso)**: Contenidos que estás trabajando actualmente
+- **Naranja (Pendientes)**: Contenidos aún no iniciados
+
+===============================================================================
+                              CONSEJOS Y BUENAS PRÁCTICAS
+===============================================================================
+
+PARA UNA MEJOR DISTRIBUCIÓN TEMPORAL:
+✓ Distribuye contenidos de manera equilibrada entre trimestres
+✓ Considera la complejidad de cada tema al asignar tiempo
+✓ Deja tiempo para refuerzo y evaluación
+✓ Coordina contenidos relacionados entre campos formativos
+
+PARA SEGUIMIENTO EFECTIVO:
+✓ Revisa el progreso semanalmente
+✓ Usa las acciones sugeridas para mantener el ritmo
+✓ Ajusta la planificación si te atrasas en algún campo
+✓ Documenta las razones de cambios en la distribución
+
+INTEGRACIÓN CON PLANEACIONES:
+✓ Usa las acciones sugeridas para crear planeaciones alineadas
+✓ Las planeaciones desde dosificación mantienen coherencia curricular
+✓ El seguimiento se actualiza automáticamente con tus planeaciones
+
+===============================================================================
+                              PROBLEMAS COMUNES Y SOLUCIONES
+===============================================================================
+
+PROBLEMA: "No aparecen contenidos en Distribución Temporal"
+SOLUCIÓN: Verifica que tu grado esté correctamente configurado en tu perfil.
+          Contacta soporte si el problema persiste.
+
+PROBLEMA: "El progreso no se actualiza"
+SOLUCIÓN: Asegúrate de que tus planeaciones estén marcadas como "completadas"
+          en el módulo de planeaciones.
+
+PROBLEMA: "No puedo modificar la distribución"
+SOLUCIÓN: Verifica que tengas permisos de edición y que no haya restricciones
+          por fechas del ciclo escolar.
+
+PROBLEMA: "Las acciones sugeridas no aparecen"
+SOLUCIÓN: Primero configura tu Distribución Temporal para que el sistema
+          pueda generar sugerencias personalizadas.
+
+===============================================================================
+                              CONTACTO Y SOPORTE
+===============================================================================
+
+Si tienes problemas técnicos o necesitas ayuda adicional:
+- Usa la función de feedback dentro de la aplicación
+- Contacta al soporte técnico desde el menú de ayuda
+- Revisa la documentación adicional en la sección "Docs"
+
+===============================================================================

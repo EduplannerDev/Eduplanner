@@ -1,0 +1,166 @@
+===============================================================================
+                        GUÍA: CÓMO GENERAR UN EXAMEN
+===============================================================================
+
+DESCRIPCIÓN:
+Esta guía te explica paso a paso cómo generar exámenes automáticamente usando 
+la inteligencia artificial, basándose en tus planeaciones didácticas existentes.
+
+ANTES DE EMPEZAR:
+✓ Debes tener al menos una planeación creada previamente
+✓ Debes estar logueado en la plataforma
+✓ Verifica que tengas permisos para generar exámenes
+
+===============================================================================
+                         CÓMO GENERAR UN EXAMEN CON IA
+===============================================================================
+
+PASO 1: ACCEDER AL GENERADOR DE EXÁMENES
+1. En el menú lateral izquierdo, haz clic en "Generar Examen"
+2. Se abrirá directamente la interfaz de generación de exámenes
+
+PASO 2: SELECCIONAR PLANEACIONES BASE
+1. Verás una lista de todas tus planeaciones disponibles
+2. Selecciona las planeaciones en las que quieres basar el examen
+   - Puedes seleccionar una o múltiples planeaciones
+   - Haz clic en las casillas de verificación junto a cada planeación
+3. Las planeaciones seleccionadas se marcarán visualmente
+
+PASO 3: AGREGAR INSTRUCCIONES ADICIONALES (OPCIONAL)
+1. Haz clic en el botón "Generar Examen con X Planeación(es)"
+2. Se abrirá un modal con un campo de texto
+3. Puedes agregar instrucciones específicas como:
+   - "Incluye más preguntas de opción múltiple"
+   - "Enfócate en problemas prácticos"
+   - "Agrega preguntas de verdadero/falso"
+   - "Hazlo más fácil para estudiantes con dificultades"
+   - "Duración máxima de 45 minutos"
+
+PASO 4: GENERAR EL EXAMEN
+1. Haz clic en "Confirmar y Generar"
+2. Espera mientras la IA procesa las planeaciones (puede tomar 10-30 segundos)
+3. La IA generará automáticamente:
+   - Preguntas variadas (opción múltiple, verdadero/falso, respuesta corta)
+   - Hoja de respuestas separada
+   - Formato profesional siguiendo el currículo mexicano
+
+PASO 5: REVISAR EL EXAMEN GENERADO
+1. Se mostrará una vista previa del examen completo
+2. Revisa las preguntas y el formato
+3. Verifica que el contenido sea apropiado para el grado
+
+PASO 6: GUARDAR EL EXAMEN
+1. Si estás satisfecho con el examen, haz clic en "Guardar Examen"
+2. Asigna un título descriptivo si es necesario
+3. El examen se guardará en tu lista de exámenes
+
+PASO 7: VERIFICAR QUE SE GUARDÓ
+1. Ve al módulo "Mis Exámenes" en el menú lateral
+2. Tu nuevo examen aparecerá en la parte superior de la lista
+3. Podrás ver la fecha de creación y el título
+
+===============================================================================
+                              ACCIONES ADICIONALES
+===============================================================================
+
+CÓMO VER UN EXAMEN COMPLETO:
+1. Ve al módulo "Mis Exámenes" en el menú lateral
+2. Busca el examen que quieres revisar en la lista
+3. Haz clic en el título del examen o en el ícono de "Ver"
+4. Se abrirá la vista completa del examen
+
+CÓMO DESCARGAR PDF DEL EXAMEN:
+1. Ve a "Mis Exámenes" en el menú lateral
+2. En la lista de exámenes, busca el examen deseado
+3. Haz clic en el ícono de "Descargar PDF" (documento)
+4. Espera mientras se genera el PDF
+5. El archivo se descargará automáticamente
+6. Tendrás el examen listo para imprimir
+
+CÓMO DESCARGAR HOJA DE RESPUESTAS:
+1. Ve a "Mis Exámenes" en el menú lateral
+2. En la lista de exámenes, busca el examen deseado
+3. Haz clic en el menú de opciones (tres puntos)
+4. Selecciona "Descargar Hoja de Respuestas"
+5. Se descargará un PDF separado con las respuestas correctas
+
+CÓMO EDITAR UN EXAMEN:
+1. Ve a "Mis Exámenes" en el menú lateral
+2. En la lista de exámenes, busca el examen que quieres modificar
+3. Haz clic en el ícono de "Editar" (lápiz)
+4. Podrás modificar el contenido del examen
+5. Haz clic en "Guardar cambios" cuando termines
+
+===============================================================================
+                              CONSEJOS Y BUENAS PRÁCTICAS
+===============================================================================
+
+PARA GENERAR MEJORES EXÁMENES:
+✓ Selecciona planeaciones relacionadas al mismo tema o unidad
+✓ Usa instrucciones específicas sobre el tipo de preguntas que necesitas
+✓ Especifica la duración deseada del examen
+✓ Menciona el nivel de dificultad apropiado para tus estudiantes
+
+EJEMPLOS DE INSTRUCCIONES EFECTIVAS:
+✓ "Genera 15 preguntas: 10 de opción múltiple y 5 de respuesta corta"
+✓ "Enfócate en aplicación práctica, no solo memorización"
+✓ "Incluye preguntas que requieran análisis y reflexión"
+✓ "Adapta el lenguaje para estudiantes de bajo rendimiento"
+
+ORGANIZACIÓN DE EXÁMENES:
+✓ Usa títulos descriptivos que incluyan materia, grado y tema
+✓ Genera exámenes por unidades temáticas completas
+✓ Mantén una biblioteca organizada de exámenes por materia
+
+===============================================================================
+                              TIPOS DE PREGUNTAS DISPONIBLES
+===============================================================================
+
+LA IA PUEDE GENERAR:
+- Preguntas de opción múltiple (A, B, C, D)
+- Preguntas de verdadero/falso
+- Preguntas de respuesta corta
+- Preguntas de completar espacios
+- Preguntas de relacionar columnas
+- Problemas matemáticos paso a paso
+- Preguntas de análisis y reflexión
+
+ADAPTACIÓN POR GRADO:
+- 1° y 2°: Preguntas simples, vocabulario básico
+- 3° y 4°: Mayor complejidad, análisis básico
+- 5° y 6°: Preguntas de síntesis y evaluación
+
+===============================================================================
+                              PROBLEMAS COMUNES Y SOLUCIONES
+===============================================================================
+
+PROBLEMA: "No aparecen mis planeaciones"
+SOLUCIÓN: Verifica que tengas planeaciones creadas previamente. 
+          Ve al módulo "Planeaciones" y crea al menos una planeación.
+
+PROBLEMA: "El examen generado es muy difícil/fácil"
+SOLUCIÓN: Usa instrucciones específicas como "Hazlo más fácil" o 
+          "Aumenta la dificultad" en el campo de instrucciones adicionales.
+
+PROBLEMA: "No se genera la hoja de respuestas"
+SOLUCIÓN: La hoja de respuestas se genera automáticamente. Búscala en el 
+          menú de opciones del examen o descárgala por separado.
+
+PROBLEMA: "El examen no se guarda"
+SOLUCIÓN: Verifica tu conexión a internet y que hayas completado todos 
+          los campos requeridos. Intenta generar el examen nuevamente.
+
+PROBLEMA: "Las preguntas no coinciden con mi planeación"
+SOLUCIÓN: Asegúrate de seleccionar las planeaciones correctas y agrega 
+          instrucciones específicas sobre qué temas enfatizar.
+
+===============================================================================
+                              CONTACTO Y SOPORTE
+===============================================================================
+
+Si tienes problemas técnicos o necesitas ayuda adicional:
+- Usa la función de feedback dentro de la aplicación
+- Contacta al soporte técnico desde el menú de ayuda
+- Revisa la documentación adicional en la sección "Docs"
+
+===============================================================================
