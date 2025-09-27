@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
-import { Plus, BookOpen, Users, Calendar, Eye, Edit, Trash2, Download } from 'lucide-react'
+import { Plus, BookOpen, Users, Calendar, Eye, Edit, Trash2, Download, Loader2 } from 'lucide-react'
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -43,6 +43,7 @@ export function ListaProyectos() {
   const [initialLoad, setInitialLoad] = useState(true)
   const [selectedProyecto, setSelectedProyecto] = useState<string | null>(null)
   const [viewMode, setViewMode] = useState<"list" | "view">("list")
+  const [generatingPDF, setGeneratingPDF] = useState<string | null>(null)
 
   useEffect(() => {
     if (initialLoad) {
@@ -109,9 +110,10 @@ export function ListaProyectos() {
   const handleDownload = async (proyecto: any, format: "pdf" | "docx") => {
     try {
       if (format === "pdf") {
+        setGeneratingPDF(proyecto.id)
         // Usar la librería original mejorada para generar PDF
         const { generateProyectoPDF } = await import('@/lib/pdf-generator')
-        generateProyectoPDF(proyecto)
+        await generateProyectoPDF(proyecto)
         
         toast({
           title: "PDF descargado",
@@ -136,6 +138,8 @@ export function ListaProyectos() {
         description: "No se pudo descargar el archivo. Inténtalo de nuevo.",
         variant: "destructive"
       })
+    } finally {
+      setGeneratingPDF(null)
     }
   }
 
@@ -290,8 +294,18 @@ export function ListaProyectos() {
                         </Button>
                       </DropdownMenuTrigger>
                       <DropdownMenuContent>
-                        <DropdownMenuItem onClick={() => handleDownload(proyecto, "pdf")}>
-                          Descargar como PDF
+                        <DropdownMenuItem 
+                          onClick={() => handleDownload(proyecto, "pdf")}
+                          disabled={generatingPDF === proyecto.id}
+                        >
+                          {generatingPDF === proyecto.id ? (
+                            <>
+                              <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                              Generando PDF...
+                            </>
+                          ) : (
+                            "Descargar como PDF"
+                          )}
                         </DropdownMenuItem>
                         {profile && isUserPro(profile) ? (
                           <DropdownMenuItem onClick={() => handleDownload(proyecto, "docx")}>

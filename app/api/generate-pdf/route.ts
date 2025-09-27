@@ -19,13 +19,13 @@ export async function POST(req: NextRequest) {
       format: 'A4',
       orientation: 'portrait',
       margin: {
-        top: '15mm',
-        right: '15mm',
-        bottom: '15mm',
-        left: '15mm'
+        top: '10mm',
+        right: '10mm',
+        bottom: '10mm',
+        left: '10mm'
       },
       printBackground: true,
-      preferCSSPageSize: true,
+      preferCSSPageSize: false,
       ...options
     }
 
@@ -75,8 +75,8 @@ export async function POST(req: NextRequest) {
       })
     })
 
-    // Esperar un poco más para asegurar renderizado completo
-    await new Promise(resolve => setTimeout(resolve, 2000))
+    // Esperar un poco para asegurar renderizado completo
+    await new Promise(resolve => setTimeout(resolve, 1000))
 
     // Generar PDF con configuración mejorada
     const pdfBuffer = await page.pdf({
@@ -87,7 +87,8 @@ export async function POST(req: NextRequest) {
       preferCSSPageSize: defaultOptions.preferCSSPageSize,
       timeout: 30000,
       scale: 1.0,
-      displayHeaderFooter: false
+      displayHeaderFooter: false,
+      omitBackground: false
     })
 
     // Cerrar página antes de retornar

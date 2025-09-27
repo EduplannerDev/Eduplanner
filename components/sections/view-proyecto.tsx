@@ -335,6 +335,7 @@ export function ViewProyecto({ proyectoId, onBack }: ViewProyectoProps) {
   const [generatingRubrica, setGeneratingRubrica] = useState(false)
   const [instrumentos, setInstrumentos] = useState<InstrumentoEvaluacion[]>([])
   const [activeTab, setActiveTab] = useState('plano-didactico')
+  const [generatingPDF, setGeneratingPDF] = useState(false)
   
   // Estado para el modal de crear instrumento
   const [modalStep, setModalStep] = useState<'form' | 'criteria'>('form')
@@ -426,7 +427,7 @@ export function ViewProyecto({ proyectoId, onBack }: ViewProyectoProps) {
     setShowViewDialog(true)
   }
 
-  const descargarPDF = () => {
+  const descargarPDF = async () => {
     if (!instrumentoSeleccionado) {
       toast.error('No hay instrumento seleccionado')
       return
@@ -435,12 +436,13 @@ export function ViewProyecto({ proyectoId, onBack }: ViewProyectoProps) {
     console.log('Instrumento seleccionado para PDF:', instrumentoSeleccionado)
     console.log('Contenido del instrumento:', instrumentoSeleccionado.contenido)
 
+    setGeneratingPDF(true)
     try {
       if (instrumentoSeleccionado.tipo === 'rubrica_analitica') {
-        generateRubricaPDF(instrumentoSeleccionado)
+        await generateRubricaPDF(instrumentoSeleccionado)
         toast.success('PDF de rúbrica descargado exitosamente')
       } else if (instrumentoSeleccionado.tipo === 'lista_cotejo') {
-        generateListaCotejoPDF(instrumentoSeleccionado)
+        await generateListaCotejoPDF(instrumentoSeleccionado)
         toast.success('PDF de lista de cotejo descargado exitosamente')
       } else {
         toast.error('Tipo de instrumento no soportado para descarga PDF')
@@ -448,6 +450,8 @@ export function ViewProyecto({ proyectoId, onBack }: ViewProyectoProps) {
     } catch (error) {
       console.error('Error al generar PDF:', error)
       toast.error('Error al generar el PDF')
+    } finally {
+      setGeneratingPDF(false)
     }
   }
 
@@ -483,11 +487,7 @@ export function ViewProyecto({ proyectoId, onBack }: ViewProyectoProps) {
     cargarPdasProyecto()
   }
 
-  const editarInstrumento = (instrumento: InstrumentoEvaluacion) => {
-    // TODO: Implementar edición del instrumento
-    toast.info(`Editando: ${instrumento.titulo}`)
-    console.log('Editar instrumento:', instrumento)
-  }
+
 
   const confirmarEliminarInstrumento = async (instrumento: InstrumentoEvaluacion) => {
     try {
@@ -816,9 +816,6 @@ export function ViewProyecto({ proyectoId, onBack }: ViewProyectoProps) {
                               </p>
                             </div>
                             <div className="flex items-center gap-2">
-                              <Badge variant={instrumento.estado === 'activo' ? 'default' : 'secondary'}>
-                                {instrumento.estado}
-                              </Badge>
                               <div className="flex gap-1">
                                  <Button 
                                    variant="outline" 
@@ -826,13 +823,6 @@ export function ViewProyecto({ proyectoId, onBack }: ViewProyectoProps) {
                                    onClick={() => verInstrumento(instrumento)}
                                  >
                                    Ver
-                                 </Button>
-                                 <Button 
-                                   variant="outline" 
-                                   size="sm"
-                                   onClick={() => editarInstrumento(instrumento)}
-                                 >
-                                   Editar
                                  </Button>
                                  <AlertDialog>
                                    <AlertDialogTrigger asChild>
@@ -1297,8 +1287,16 @@ export function ViewProyecto({ proyectoId, onBack }: ViewProyectoProps) {
                 <Button 
                   className="bg-purple-600 hover:bg-purple-700"
                   onClick={descargarPDF}
+                  disabled={generatingPDF}
                 >
-                  Descargar PDF
+                  {generatingPDF ? (
+                    <>
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      Generando PDF...
+                    </>
+                  ) : (
+                    "Descargar PDF"
+                  )}
                 </Button>
               </div>
             </>

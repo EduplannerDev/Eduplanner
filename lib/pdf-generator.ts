@@ -272,7 +272,6 @@ function createPDFHtml(content: string, title: string, isAnswerSheet: boolean = 
         font-size: 13px;
         orphans: 3;
         widows: 3;
-        page-break-inside: avoid;
       }
       ul, ol {
         margin-bottom: 10px;
@@ -574,7 +573,7 @@ async function generateRubricaPDFPuppeteer(rubrica: any): Promise<void> {
       <style>
         @page {
           size: A4 landscape;
-          margin: 15mm;
+          margin: 10mm;
         }
         body {
           font-family: 'Arial', sans-serif;
@@ -585,17 +584,15 @@ async function generateRubricaPDFPuppeteer(rubrica: any): Promise<void> {
         }
         .header {
           text-align: center;
-          margin-bottom: 20px;
-          page-break-inside: avoid;
+          margin-bottom: 15px;
         }
-        .header h1 {
-          color: #333;
+        h1 {
+          color: #6f42c1;
           margin-bottom: 5px;
           font-size: 18px;
+          margin-top: 0;
         }
-        .header p {
-          color: #666;
-          font-style: italic;
+        p {
           margin: 5px 0;
           font-size: 12px;
         }
@@ -604,7 +601,6 @@ async function generateRubricaPDFPuppeteer(rubrica: any): Promise<void> {
           border-collapse: collapse;
           margin-bottom: 15px;
           font-size: 9px;
-          page-break-inside: avoid;
         }
         th {
           background-color: #6f42c1 !important;
@@ -616,11 +612,10 @@ async function generateRubricaPDFPuppeteer(rubrica: any): Promise<void> {
           font-weight: bold;
         }
         .footer {
-          margin-top: 20px;
+          margin-top: 15px;
           padding: 10px;
           background-color: #f8f9fa;
           border-left: 4px solid #6f42c1;
-          page-break-inside: avoid;
           font-size: 10px;
         }
         .footer h3 {
@@ -801,7 +796,6 @@ async function generateListaCotejoPDFPuppeteer(instrumento: any): Promise<void> 
           .header {
             text-align: center;
             margin-bottom: 15px;
-            page-break-inside: avoid;
           }
           .header h1 {
             color: #333;
@@ -839,7 +833,6 @@ async function generateListaCotejoPDFPuppeteer(instrumento: any): Promise<void> 
             padding: 8px;
             background-color: #f8f9fa;
             border-left: 4px solid #8B5CF6;
-            page-break-inside: avoid;
             font-size: 9px;
           }
           .footer h3 {
@@ -889,10 +882,10 @@ async function generateListaCotejoPDFPuppeteer(instrumento: any): Promise<void> 
       format: 'A4',
       orientation: 'landscape',
       margin: {
-        top: '15mm',
-        right: '15mm',
-        bottom: '15mm',
-        left: '15mm'
+        top: '10mm',
+        right: '10mm',
+        bottom: '10mm',
+        left: '10mm'
       }
     };
 
@@ -1316,9 +1309,8 @@ function generateRubricaPDFLandscape(content: string, title: string, filename: s
           background: white;
           padding: 10mm;
         }
-        .no-break { page-break-inside: avoid; }
         table { page-break-inside: auto; }
-        tr { page-break-inside: avoid; page-break-after: auto; }
+        tr { page-break-after: auto; }
         td { word-wrap: break-word; overflow-wrap: break-word; }
       </style>
     </head>
