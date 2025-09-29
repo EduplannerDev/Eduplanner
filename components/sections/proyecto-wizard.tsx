@@ -15,9 +15,10 @@ import { BetaFeatureWrapper, BetaAccessDenied } from '@/components/ui/beta-featu
 
 interface ProyectoWizardProps {
   onComplete?: () => void
+  onSectionChange?: (section: string) => void
 }
 
-export function ProyectoWizard({ onComplete }: ProyectoWizardProps = {}) {
+export function ProyectoWizard({ onComplete, onSectionChange }: ProyectoWizardProps = {}) {
   const {
     currentStep,
     wizardData,
@@ -119,6 +120,7 @@ export function ProyectoWizard({ onComplete }: ProyectoWizardProps = {}) {
             onDataChange={updateStep1Data}
             onNext={goToNextStep}
             loading={loading}
+            onSectionChange={onSectionChange}
           />
         )
       case 2:

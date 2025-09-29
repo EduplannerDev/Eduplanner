@@ -319,15 +319,6 @@ export function NuevaPlaneacion({ onCreateClass, onNavigateToChatWithMessage, on
 
   const planTypes = [
     {
-      id: "semanal",
-      title: "Planeación Semanal",
-      description: "Planifica una semana completa de actividades educativas",
-      icon: BookOpen,
-      color: "text-blue-600",
-      enabled: false,
-      comingSoon: true,
-    },
-    {
       id: "individual",
       title: "Planeación Individual",
       description: "Diseña una planeación específica con objetivos y actividades",
@@ -335,6 +326,7 @@ export function NuevaPlaneacion({ onCreateClass, onNavigateToChatWithMessage, on
       color: "text-green-600",
       enabled: !hasReachedLimit,
       comingSoon: false,
+      requiresPro: false,
     },
     {
       id: "dosificacion",
@@ -342,8 +334,9 @@ export function NuevaPlaneacion({ onCreateClass, onNavigateToChatWithMessage, on
       description: "Crea planeaciones basadas en tu dosificación curricular mensual",
       icon: Calendar,
       color: "text-orange-600",
-      enabled: true,
+      enabled: isPro,
       comingSoon: false,
+      requiresPro: true,
     },
   ]
 
@@ -649,6 +642,7 @@ export function NuevaPlaneacion({ onCreateClass, onNavigateToChatWithMessage, on
             } else {
               // Tarjeta deshabilitada con tooltip
               const isLimitReached = planType.id === "individual" && hasReachedLimit
+              const requiresPro = planType.requiresPro && !isPro
               
               return (
                 <Tooltip key={planType.id}>
@@ -662,6 +656,12 @@ export function NuevaPlaneacion({ onCreateClass, onNavigateToChatWithMessage, on
                             <Badge variant="destructive" className="ml-auto">
                               <AlertTriangle className="w-3 h-3 mr-1" />
                               Límite alcanzado
+                            </Badge>
+                          )}
+                          {requiresPro && (
+                            <Badge variant="secondary" className="ml-auto bg-gradient-to-r from-purple-100 to-blue-100 text-purple-700">
+                              <Crown className="w-3 h-3 mr-1" />
+                              PRO
                             </Badge>
                           )}
                         </div>
@@ -688,6 +688,17 @@ export function NuevaPlaneacion({ onCreateClass, onNavigateToChatWithMessage, on
                           Actualiza a PRO para crear ilimitadas
                         </p>
                       </div>
+                    ) : requiresPro ? (
+                      <div className="space-y-2">
+                        <p className="font-medium flex items-center gap-1">
+                          <Crown className="w-4 h-4 text-purple-600" />
+                          Función exclusiva PRO
+                        </p>
+                        <p className="text-sm">Esta función está disponible solo para usuarios PRO</p>
+                        <p className="text-sm text-purple-600 font-medium">
+                          Actualiza tu plan para acceder a todas las funciones
+                        </p>
+                      </div>
                     ) : (
                       <div>
                         <p className="font-medium">🚀 Próximamente</p>
@@ -702,51 +713,7 @@ export function NuevaPlaneacion({ onCreateClass, onNavigateToChatWithMessage, on
         </div>
 
 
-        {/* Sección adicional para mostrar el progreso del MVP */}
-        <Card className="bg-muted/50 border-border">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2 text-foreground">
-              🚧 Estamos construyendo EduPlanner paso a paso para brindarte la mejor experiencia
-            </CardTitle>
-            <CardDescription className="text-muted-foreground">
-              Estás utilizando una versión alfa, por lo que algunas funciones pueden cambiar o no estar disponibles temporalmente.
-            </CardDescription>
-          </CardHeader>
 
-          <CardContent>
-            <div className="space-y-3">
-              <div className="flex items-center justify-between">
-                <span className="text-sm font-medium text-foreground">✅ Autenticación y Perfil</span>
-                <span className="text-xs bg-green-100 text-green-800 px-2 py-1 rounded-full">Completado</span>
-              </div>
-              <div className="flex items-center justify-between">
-                <span className="text-sm font-medium text-foreground">✅ Crear Planeaciones con IA</span>
-                <span className="text-xs bg-green-100 text-green-800 px-2 py-1 rounded-full">Completado</span>
-              </div>
-              <div className="flex items-center justify-between">
-                <span className="text-sm font-medium text-foreground">✅ Crear Mensajes con IA</span>
-                <span className="text-xs bg-green-100 text-green-800 px-2 py-1 rounded-full">Completado</span>
-              </div>
-              <div className="flex items-center justify-between">
-                <span className="text-sm font-medium text-foreground">✅ Crear Examenes con IA</span>
-                <span className="text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded-full">Completado</span>
-              </div>
-                <div className="flex items-center justify-between">
-                <span className="text-sm font-medium text-foreground">✅ Bitactora personal y segura</span>
-                <span className="text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded-full">Completado</span>
-              </div>
-              
-              <div className="flex items-center justify-between">
-                <span className="text-sm font-medium text-foreground">⏳ Planeación Semanal</span>
-                <span className="text-xs bg-gray-100 text-gray-600 px-2 py-1 rounded-full">Próximamente</span>
-              </div>
-              <div className="flex items-center justify-between">
-                <span className="text-sm font-medium text-foreground">✅ Planeación desde Dosificación</span>
-                <span className="text-xs bg-orange-100 text-orange-800 px-2 py-1 rounded-full">Disponible</span>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
       </div>
     </TooltipProvider>
   )

@@ -353,9 +353,9 @@ const ViewGrupo = ({ grupoId, onBack, onEdit }: ViewGrupoProps) => {
         </Button>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+      <div className="space-y-6">
         {/* Información Principal */}
-        <div className="md:col-span-2 space-y-6">
+        <div className="space-y-6">
           <Card>
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
@@ -448,77 +448,6 @@ const ViewGrupo = ({ grupoId, onBack, onEdit }: ViewGrupoProps) => {
                   </div>
                 </div>
               </div>
-            </CardContent>
-          </Card>
-        </div>
-
-        {/* Panel Lateral */}
-        <div className="space-y-6">
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Calendar className="h-5 w-5" />
-                Información Adicional
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div>
-                <label className="text-sm font-medium text-gray-500 dark:text-gray-400">Fecha de Creación</label>
-                <p className="text-sm text-gray-900 dark:text-gray-100">
-                  {new Date(grupo.created_at).toLocaleDateString('es-MX', {
-                    year: 'numeric',
-                    month: 'long',
-                    day: 'numeric'
-                  })}
-                </p>
-              </div>
-              <div>
-                <label className="text-sm font-medium text-gray-500 dark:text-gray-400">Última Actualización</label>
-                <p className="text-sm text-gray-900 dark:text-gray-100">
-                  {new Date(grupo.updated_at).toLocaleDateString('es-MX', {
-                    year: 'numeric',
-                    month: 'long',
-                    day: 'numeric'
-                  })}
-                </p>
-              </div>
-              <Separator />
-              <div className="space-y-2">
-                <Badge variant="outline" className="w-full justify-center">
-                  {grupo.nivel}
-                </Badge>
-                <Badge variant="secondary" className="w-full justify-center">
-                  {grupo.ciclo_escolar}
-                </Badge>
-              </div>
-            </CardContent>
-          </Card>
-
-          {/* Acciones Rápidas */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <GraduationCap className="h-5 w-5" />
-                Acciones Rápidas
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-3">
-              <Button variant="outline" className="w-full" disabled>
-                <FileText className="h-4 w-4 mr-2" />
-                Ver Planeaciones
-              </Button>
-              <Button variant="outline" className="w-full" disabled>
-                <GraduationCap className="h-4 w-4 mr-2" />
-                Ver Exámenes
-              </Button>
-              <Button variant="outline" className="w-full" onClick={handleGestionarAlumnos}>
-                <Users className="h-4 w-4 mr-2" />
-                Alumnos
-              </Button>
-
-              <p className="text-xs text-gray-500 dark:text-gray-400 text-center mt-2">
-                Próximamente disponible
-              </p>
             </CardContent>
           </Card>
         </div>

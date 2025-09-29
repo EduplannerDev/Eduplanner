@@ -135,7 +135,6 @@ export function MisPlaneaciones({ onCreateNew }: MisPlaneacionesProps) {
       <ViewPlaneacion
         planeacionId={selectedPlaneacion}
         onBack={handleBack}
-        onEdit={() => handleEdit(selectedPlaneacion)}
       />
     )
   }

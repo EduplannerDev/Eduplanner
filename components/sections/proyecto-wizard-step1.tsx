@@ -19,6 +19,7 @@ interface ProyectoWizardStep1Props {
   onDataChange: (data: ProyectoFormData) => void
   onNext: () => void
   loading?: boolean
+  onSectionChange?: (section: string) => void
 }
 
 // Opciones predefinidas de metodologías NEM
@@ -55,7 +56,7 @@ const metodologiasNEM: MetodologiaOption[] = [
   }
 ]
 
-export function ProyectoWizardStep1({ data, onDataChange, onNext, loading = false }: ProyectoWizardStep1Props) {
+export function ProyectoWizardStep1({ data, onDataChange, onNext, loading = false, onSectionChange }: ProyectoWizardStep1Props) {
   const { user } = useAuth()
   const [grupos, setGrupos] = useState<GrupoOption[]>([])
   const [loadingGrupos, setLoadingGrupos] = useState(true)
@@ -326,14 +327,34 @@ export function ProyectoWizardStep1({ data, onDataChange, onNext, loading = fals
                 </AlertDescription>
               </Alert>
             )}
+            
+            {/* Alerta prominente cuando no hay grupos disponibles */}
             {grupos.length === 0 && !loadingGrupos && !gruposError && (
-              <Alert>
-                <AlertCircle className="h-4 w-4" />
-                <AlertDescription>
-                  No tienes grupos asignados. Contacta a tu administrador para asignarte grupos.
+              <Alert variant="destructive" className="border-2 border-red-500 bg-red-50 dark:bg-red-950/50 shadow-lg">
+                <AlertCircle className="h-6 w-6 text-red-600 dark:text-red-400" />
+                <AlertDescription className="text-red-800 dark:text-red-200">
+                  <div className="space-y-4">
+                    <div>
+                      <h3 className="font-bold text-lg mb-2">⚠️ ¡ATENCIÓN! No puedes crear proyectos</h3>
+                      <p className="text-base">
+                        <strong>Para crear un proyecto necesitas tener al menos un grupo asignado.</strong>
+                        <br />
+                        Primero debes crear un grupo en el módulo correspondiente.
+                      </p>
+                    </div>
+                    <Button 
+                      onClick={() => onSectionChange?.('grupos')}
+                      className="bg-red-600 hover:bg-red-700 text-white font-bold text-base px-6 py-3 shadow-lg transform hover:scale-105 transition-all duration-200"
+                      size="lg"
+                    >
+                      <Users className="h-5 w-5 mr-2" />
+                      🚀 GENERAR GRUPO AHORA
+                    </Button>
+                  </div>
                 </AlertDescription>
               </Alert>
             )}
+
           </div>
 
           {/* Metodología NEM */}

@@ -282,7 +282,7 @@ export default function Dashboard({ children, customContent = false }: Dashboard
       case "proyectos":
         return <ListaProyectos />
       case "crear-proyecto":
-        return <ProyectoWizard onComplete={() => setActiveSection("proyectos")} />
+        return <ProyectoWizard onComplete={() => setActiveSection("proyectos")} onSectionChange={setActiveSection} />
       default:
         return <DashboardHome onSectionChange={setActiveSection} />
     }

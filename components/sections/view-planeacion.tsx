@@ -3,16 +3,14 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
-import { ArrowLeft, Download, Edit, Calendar, Clock, Target, BookOpen, Loader2 } from "lucide-react"
+import { ArrowLeft, Calendar, Clock, Target, BookOpen, Loader2 } from "lucide-react"
 import { usePlaneaciones } from "@/hooks/use-planeaciones"
 import { useState, useEffect } from "react"
 import type { Planeacion } from "@/lib/planeaciones"
-import { generatePDF } from "@/lib/planeaciones"
 
 interface ViewPlaneacionProps {
   planeacionId: string
   onBack: () => void
-  onEdit?: () => void
 }
 
 // Función para limpiar el texto de asteriscos y otros caracteres Markdown
@@ -21,11 +19,10 @@ function cleanMarkdown(text: string): string {
   return text.replace(/\*\*/g, "").replace(/\*/g, "").replace(/__/g, "").replace(/_/g, "")
 }
 
-export function ViewPlaneacion({ planeacionId, onBack, onEdit }: ViewPlaneacionProps) {
+export function ViewPlaneacion({ planeacionId, onBack }: ViewPlaneacionProps) {
   const { getPlaneacion } = usePlaneaciones()
   const [planeacion, setPlaneacion] = useState<Planeacion | null>(null)
   const [loading, setLoading] = useState(true)
-  const [generatingPDF, setGeneratingPDF] = useState(false)
 
   useEffect(() => {
     loadPlaneacion()
@@ -67,19 +64,6 @@ export function ViewPlaneacion({ planeacionId, onBack, onEdit }: ViewPlaneacionP
     const data = await getPlaneacion(planeacionId)
     setPlaneacion(data)
     setLoading(false)
-  }
-
-  const handleDownload = async () => {
-    if (planeacion) {
-      setGeneratingPDF(true)
-      try {
-        await generatePDF(planeacion)
-      } catch (error) {
-        console.error('Error generando PDF:', error)
-      } finally {
-        setGeneratingPDF(false)
-      }
-    }
   }
 
   const getEstadoColor = (estado: string) => {
@@ -130,32 +114,14 @@ export function ViewPlaneacion({ planeacionId, onBack, onEdit }: ViewPlaneacionP
       onDragStart={(e) => e.preventDefault()}
     >
       {/* Header */}
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-4">
-          <Button variant="outline" size="sm" onClick={onBack}>
-            <ArrowLeft className="h-4 w-4 mr-2" />
-            Volver
-          </Button>
-          <div>
-            <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100">{cleanMarkdown(planeacion.titulo)}</h1>
-            <p className="text-gray-600 mt-1">Vista de planeación</p>
-          </div>
-        </div>
-        <div className="flex gap-2">
-          <Button variant="outline" onClick={handleDownload} disabled={generatingPDF}>
-            {generatingPDF ? (
-              <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-            ) : (
-              <Download className="h-4 w-4 mr-2" />
-            )}
-            {generatingPDF ? "Generando PDF..." : "Descargar PDF"}
-          </Button>
-          {onEdit && (
-            <Button onClick={onEdit}>
-              <Edit className="h-4 w-4 mr-2" />
-              Editar
-            </Button>
-          )}
+      <div className="flex items-center gap-4">
+        <Button variant="outline" size="sm" onClick={onBack}>
+          <ArrowLeft className="h-4 w-4 mr-2" />
+          Volver
+        </Button>
+        <div>
+          <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100">{cleanMarkdown(planeacion.titulo)}</h1>
+          <p className="text-gray-600 mt-1">Vista de planeación</p>
         </div>
       </div>
 
