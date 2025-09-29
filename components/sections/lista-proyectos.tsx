@@ -146,11 +146,11 @@ export function ListaProyectos() {
   const getEstadoColor = (estado: string) => {
     switch (estado) {
       case 'activo':
-        return 'bg-green-100 text-green-800'
+        return 'bg-green-100 dark:bg-green-900/20 text-green-800 dark:text-green-200'
       case 'archivado':
-        return 'bg-gray-100 text-gray-800'
+        return 'bg-gray-100 dark:bg-gray-800 text-gray-800 dark:text-gray-200'
       default:
-        return 'bg-green-100 text-green-800'
+        return 'bg-green-100 dark:bg-green-900/20 text-green-800 dark:text-green-200'
     }
   }
 
@@ -175,8 +175,8 @@ export function ListaProyectos() {
         {/* Header */}
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-3xl font-bold text-gray-900">Mis Proyectos</h1>
-            <p className="text-lg text-gray-600 mt-2">
+            <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100">Mis Proyectos</h1>
+            <p className="text-lg text-gray-600 dark:text-gray-400 mt-2">
               Gestiona y visualiza todos tus proyectos educativos
             </p>
           </div>
@@ -208,11 +208,11 @@ export function ListaProyectos() {
           <Card>
             <CardContent className="p-6">
               <div className="text-center py-12">
-                <BookOpen className="h-16 w-16 mx-auto mb-4 text-gray-300" />
-                <h3 className="text-xl font-semibold text-gray-900 mb-2">
+                <BookOpen className="h-16 w-16 mx-auto mb-4 text-gray-300 dark:text-gray-600" />
+                <h3 className="text-xl font-semibold text-gray-900 dark:text-gray-100 mb-2">
                   No tienes proyectos aún
                 </h3>
-                <p className="text-gray-600 mb-6">
+                <p className="text-gray-600 dark:text-gray-400 mb-6">
                   Crea tu primer proyecto educativo y comienza a generar contenido con IA
                 </p>
                 <Button 
@@ -241,19 +241,19 @@ export function ListaProyectos() {
                 </CardHeader>
                 <CardContent className="space-y-4">
                   {/* Información del grupo */}
-                  <div className="flex items-center text-sm text-gray-600">
+                  <div className="flex items-center text-sm text-gray-600 dark:text-gray-400">
                     <Users className="h-4 w-4 mr-2" />
                     <span>{proyecto.grupos.nombre} - {proyecto.grupos.grado}° {proyecto.grupos.nivel}</span>
                   </div>
 
                   {/* Metodología */}
-                  <div className="flex items-center text-sm text-gray-600">
+                  <div className="flex items-center text-sm text-gray-600 dark:text-gray-400">
                     <BookOpen className="h-4 w-4 mr-2" />
                     <span className="line-clamp-1">{proyecto.metodologia_nem}</span>
                   </div>
 
                   {/* Fecha de creación */}
-                  <div className="flex items-center text-sm text-gray-600">
+                  <div className="flex items-center text-sm text-gray-600 dark:text-gray-400">
                     <Calendar className="h-4 w-4 mr-2" />
                     <span>
                       {new Date(proyecto.created_at).toLocaleDateString('es-ES', {
@@ -265,8 +265,8 @@ export function ListaProyectos() {
                   </div>
 
                   {/* Problemática (preview) */}
-                  <div className="pt-2 border-t">
-                    <p className="text-sm text-gray-700 line-clamp-3">
+                  <div className="pt-2 border-t dark:border-gray-700">
+                    <p className="text-sm text-gray-700 dark:text-gray-300 line-clamp-3">
                       {proyecto.problematica}
                     </p>
                   </div>
@@ -288,7 +288,7 @@ export function ListaProyectos() {
                         <Button
                           variant="outline"
                           size="sm"
-                          className="flex items-center justify-center text-blue-600 hover:text-blue-700 hover:bg-blue-50"
+                          className="flex items-center justify-center text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 hover:bg-blue-50 dark:hover:bg-blue-900/20"
                         >
                           <Download className="h-3 w-3" />
                         </Button>

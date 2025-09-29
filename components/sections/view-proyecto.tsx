@@ -88,10 +88,10 @@ function RubricaViewer({ contenido }: { contenido: any }) {
 
   const niveles = ['Sobresaliente', 'Logrado', 'En Proceso', 'Requiere Apoyo']
   const colores = {
-    'Sobresaliente': 'bg-green-50 border-green-200',
-    'Logrado': 'bg-blue-50 border-blue-200', 
-    'En Proceso': 'bg-yellow-50 border-yellow-200',
-    'Requiere Apoyo': 'bg-red-50 border-red-200'
+    'Sobresaliente': 'bg-green-50 dark:bg-green-900/20 border-green-200 dark:border-green-800',
+    'Logrado': 'bg-blue-50 dark:bg-blue-900/20 border-blue-200 dark:border-blue-800', 
+    'En Proceso': 'bg-yellow-50 dark:bg-yellow-900/20 border-yellow-200 dark:border-yellow-800',
+    'Requiere Apoyo': 'bg-red-50 dark:bg-red-900/20 border-red-200 dark:border-red-800'
   }
 
   return (
@@ -99,7 +99,7 @@ function RubricaViewer({ contenido }: { contenido: any }) {
       {/* Título de la rúbrica */}
       {contenido.titulo_rubrica && (
         <div className="text-center">
-          <h3 className="text-xl font-semibold text-gray-900 mb-2">
+          <h3 className="text-xl font-semibold text-gray-900 dark:text-gray-100 mb-2">
             {contenido.titulo_rubrica}
           </h3>
         </div>
@@ -109,12 +109,12 @@ function RubricaViewer({ contenido }: { contenido: any }) {
       <div className="w-full overflow-x-auto border rounded-lg">
         <table className="w-full border-collapse">
           <thead>
-            <tr className="bg-gray-50">
-              <th className="border border-gray-300 p-4 text-left font-semibold min-w-[250px] sticky left-0 bg-gray-50 z-10">
+            <tr className="bg-gray-50 dark:bg-gray-800">
+              <th className="border border-gray-300 dark:border-gray-600 p-4 text-left font-semibold min-w-[250px] sticky left-0 bg-gray-50 dark:bg-gray-800 z-10 dark:text-gray-100">
                 Criterio de Evaluación
               </th>
               {niveles.map((nivel) => (
-                <th key={nivel} className="border border-gray-300 p-4 text-center font-semibold min-w-[220px]">
+                <th key={nivel} className="border border-gray-300 dark:border-gray-600 p-4 text-center font-semibold min-w-[220px] dark:text-gray-100">
                   {nivel}
                 </th>
               ))}
@@ -122,21 +122,21 @@ function RubricaViewer({ contenido }: { contenido: any }) {
           </thead>
           <tbody>
             {contenido.criterios.map((criterio: any, index: number) => (
-              <tr key={index} className="hover:bg-gray-50">
-                <td className="border border-gray-300 p-4 font-medium bg-gray-50 sticky left-0 z-10">
+              <tr key={index} className="hover:bg-gray-50 dark:hover:bg-gray-800">
+                <td className="border border-gray-300 dark:border-gray-600 p-4 font-medium bg-gray-50 dark:bg-gray-800 sticky left-0 z-10">
                   <div className="space-y-3">
-                    <div className="font-semibold text-gray-900 text-sm leading-relaxed">
+                    <div className="font-semibold text-gray-900 dark:text-gray-100 text-sm leading-relaxed">
                       {criterio.criterio}
                     </div>
                     {criterio.pda_origen && (
-                      <div className="text-xs text-gray-600 bg-purple-50 p-2 rounded border-l-2 border-purple-200">
+                      <div className="text-xs text-gray-600 dark:text-gray-400 bg-purple-50 dark:bg-purple-900/20 p-2 rounded border-l-2 border-purple-200 dark:border-purple-800">
                         <strong>PDA:</strong> {criterio.pda_origen}
                       </div>
                     )}
                   </div>
                 </td>
                 {niveles.map((nivel) => (
-                  <td key={nivel} className={`border border-gray-300 p-4 text-sm leading-relaxed ${colores[nivel as keyof typeof colores]} align-top`}>
+                  <td key={nivel} className={`border border-gray-300 dark:border-gray-600 p-4 text-sm leading-relaxed ${colores[nivel as keyof typeof colores]} align-top dark:text-gray-100`}>
                     <div className="whitespace-pre-wrap">
                       {criterio.descriptores[nivel] || 'No definido'}
                     </div>
@@ -149,7 +149,7 @@ function RubricaViewer({ contenido }: { contenido: any }) {
       </div>
       
       {/* Información adicional */}
-      <div className="text-sm text-gray-600 bg-blue-50 p-4 rounded-lg border-l-4 border-blue-200">
+      <div className="text-sm text-gray-600 dark:text-gray-400 bg-blue-50 dark:bg-blue-900/20 p-4 rounded-lg border-l-4 border-blue-200 dark:border-blue-800">
         <p><strong>Nota:</strong> Esta rúbrica contiene {contenido.criterios.length} criterio{contenido.criterios.length !== 1 ? 's' : ''} de evaluación con 4 niveles de desempeño cada uno.</p>
       </div>
     </div>
@@ -244,18 +244,18 @@ function ListaCotejoViewer({ contenido }: { contenido: any }) {
     <div className="space-y-6">
       {/* Título */}
       <div className="text-center">
-        <h3 className="text-xl font-semibold text-gray-900 mb-2">
+        <h3 className="text-xl font-semibold text-gray-900 dark:text-gray-100 mb-2">
           {titulo}
         </h3>
-        <p className="text-sm text-gray-600">
+        <p className="text-sm text-gray-600 dark:text-gray-400">
           Marque "Sí" o "No" para cada indicador y agregue observaciones si es necesario
         </p>
       </div>
 
       {/* Tabla interactiva */}
-      <div className="border rounded-lg overflow-hidden">
-        <div className="bg-gray-50 px-6 py-3 border-b">
-          <div className="grid grid-cols-12 gap-4 font-semibold text-sm text-gray-700">
+      <div className="border dark:border-gray-600 rounded-lg overflow-hidden">
+        <div className="bg-gray-50 dark:bg-gray-800 px-6 py-3 border-b dark:border-gray-600">
+          <div className="grid grid-cols-12 gap-4 font-semibold text-sm text-gray-700 dark:text-gray-300">
             <div className="col-span-6">Indicador de Logro</div>
             <div className="col-span-1 text-center">Sí</div>
             <div className="col-span-1 text-center">No</div>
@@ -263,17 +263,17 @@ function ListaCotejoViewer({ contenido }: { contenido: any }) {
           </div>
         </div>
         
-        <div className="divide-y">
+        <div className="divide-y dark:divide-gray-600">
           {indicadores.map((indicador: any, index: number) => (
-            <div key={index} className="px-6 py-4 hover:bg-gray-50 transition-colors">
+            <div key={index} className="px-6 py-4 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors">
               <div className="grid grid-cols-12 gap-4 items-start">
                 {/* Indicador */}
                 <div className="col-span-6">
-                  <p className="text-sm font-medium text-gray-900 leading-relaxed">
+                  <p className="text-sm font-medium text-gray-900 dark:text-gray-100 leading-relaxed">
                     {indicador.indicador || indicador.criterio}
                   </p>
                   {(indicador.criterio_origen || indicador.pda_origen) && (
-                    <p className="text-xs text-gray-500 mt-1">
+                    <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
                       <strong>Origen:</strong> {indicador.criterio_origen || indicador.pda_origen}
                     </p>
                   )}
@@ -313,8 +313,8 @@ function ListaCotejoViewer({ contenido }: { contenido: any }) {
       </div>
 
       {/* Resumen */}
-      <div className="flex items-center justify-center bg-blue-50 p-4 rounded-lg border-l-4 border-blue-200">
-        <div className="text-sm text-gray-600 text-center">
+      <div className="flex items-center justify-center bg-blue-50 dark:bg-blue-900/20 p-4 rounded-lg border-l-4 border-blue-200 dark:border-blue-800">
+        <div className="text-sm text-gray-600 dark:text-gray-400 text-center">
           <p><strong>Total de indicadores:</strong> {indicadores.length}</p>
           <p><strong>Evaluados:</strong> {Object.values(evaluaciones).filter(e => e.si || e.no).length}</p>
         </div>
@@ -585,7 +585,7 @@ export function ViewProyecto({ proyectoId, onBack }: ViewProyectoProps) {
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-center">
           <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-4"></div>
-          <p className="text-gray-600">Cargando proyecto...</p>
+          <p className="text-gray-600 dark:text-gray-400">Cargando proyecto...</p>
         </div>
       </div>
     )
@@ -596,8 +596,8 @@ export function ViewProyecto({ proyectoId, onBack }: ViewProyectoProps) {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-center">
-          <h1 className="text-2xl font-bold text-gray-900 mb-4">Proyecto no encontrado</h1>
-          <p className="text-gray-600 mb-6">El proyecto solicitado no existe o no tienes permisos para verlo.</p>
+          <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100 mb-4">Proyecto no encontrado</h1>
+          <p className="text-gray-600 dark:text-gray-400 mb-6">El proyecto solicitado no existe o no tienes permisos para verlo.</p>
           <Button onClick={onBack}>
             <ArrowLeft className="h-4 w-4 mr-2" />
             Volver a Proyectos
@@ -615,15 +615,15 @@ export function ViewProyecto({ proyectoId, onBack }: ViewProyectoProps) {
       <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center">
         <div className="text-center max-w-2xl mx-auto p-8">
           <div className="mb-8">
-            <h1 className="text-4xl font-bold text-gray-900 mb-4">
+            <h1 className="text-4xl font-bold text-gray-900 dark:text-gray-100 mb-4">
               ✨ Magia de la IA ✨
             </h1>
-            <p className="text-lg text-gray-600">
+            <p className="text-lg text-gray-600 dark:text-gray-400">
               La IA está generando tu {tipoInstrumento} personalizada
             </p>
           </div>
           
-          <Card>
+          <Card className="dark:bg-gray-800">
             <CardHeader>
               <CardTitle>Generación con IA</CardTitle>
             </CardHeader>
@@ -633,10 +633,10 @@ export function ViewProyecto({ proyectoId, onBack }: ViewProyectoProps) {
                   <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
                 </div>
                 <div className="space-y-2">
-                  <p className="text-lg font-medium text-gray-900">
+                  <p className="text-lg font-medium text-gray-900 dark:text-gray-100">
                     🤖 Analizando tu proyecto...
                   </p>
-                  <p className="text-sm text-gray-600">
+                  <p className="text-sm text-gray-600 dark:text-gray-400">
                     Creando criterios de evaluación para: <strong>{proyecto?.nombre}</strong>
                   </p>
                 </div>
@@ -662,8 +662,7 @@ export function ViewProyecto({ proyectoId, onBack }: ViewProyectoProps) {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <div className="max-w-6xl mx-auto p-6">
+    <div className="space-y-6 max-w-6xl mx-auto p-6">
         {/* Header */}
         <div className="mb-6">
           <Button 
@@ -676,8 +675,8 @@ export function ViewProyecto({ proyectoId, onBack }: ViewProyectoProps) {
           </Button>
           
           <div>
-            <h1 className="text-3xl font-bold text-gray-900">{proyecto.nombre}</h1>
-            <p className="text-lg text-gray-600 mt-2">{proyecto.grupos.nombre} - {proyecto.grupos.grado}° {proyecto.grupos.nivel}</p>
+            <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100">{proyecto.nombre}</h1>
+            <p className="text-lg text-gray-600 dark:text-gray-400 mt-2">{proyecto.grupos.nombre} - {proyecto.grupos.grado}° {proyecto.grupos.nivel}</p>
           </div>
         </div>
 
@@ -702,67 +701,67 @@ export function ViewProyecto({ proyectoId, onBack }: ViewProyectoProps) {
           <TabsContent value="plano-didactico" className="mt-6">
             {/* Información del Proyecto */}
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
-              <Card>
+              <Card className="dark:bg-gray-800">
                 <CardHeader className="pb-3">
                   <CardTitle className="flex items-center text-lg">
-                    <Target className="h-5 w-5 mr-2 text-blue-600" />
+                    <Target className="h-5 w-5 mr-2 text-blue-600 dark:text-blue-400" />
                     Problemática
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <p className="text-gray-700 leading-relaxed">{proyecto.problematica}</p>
+                  <p className="text-gray-700 dark:text-gray-300 leading-relaxed">{proyecto.problematica}</p>
                 </CardContent>
               </Card>
 
-              <Card>
+              <Card className="dark:bg-gray-800">
                 <CardHeader className="pb-3">
                   <CardTitle className="flex items-center text-lg">
-                    <BookOpen className="h-5 w-5 mr-2 text-green-600" />
+                    <BookOpen className="h-5 w-5 mr-2 text-green-600 dark:text-green-400" />
                     Producto Final
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <p className="text-gray-700 leading-relaxed">{proyecto.producto_final}</p>
+                  <p className="text-gray-700 dark:text-gray-300 leading-relaxed">{proyecto.producto_final}</p>
                 </CardContent>
               </Card>
 
-              <Card>
+              <Card className="dark:bg-gray-800">
                 <CardHeader className="pb-3">
                   <CardTitle className="flex items-center text-lg">
-                    <Lightbulb className="h-5 w-5 mr-2 text-purple-600" />
+                    <Lightbulb className="h-5 w-5 mr-2 text-purple-600 dark:text-purple-400" />
                     Metodología
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <p className="text-gray-700 leading-relaxed">{proyecto.metodologia_nem}</p>
+                  <p className="text-gray-700 dark:text-gray-300 leading-relaxed">{proyecto.metodologia_nem}</p>
                 </CardContent>
               </Card>
             </div>
 
             {/* Fases del Proyecto */}
-            <Card>
+            <Card className="dark:bg-gray-800">
               <CardHeader>
                 <CardTitle className="flex items-center">
-                  <Calendar className="h-5 w-5 mr-2 text-orange-600" />
+                  <Calendar className="h-5 w-5 mr-2 text-orange-600 dark:text-orange-400" />
                   Fases y Momentos del Proyecto
                 </CardTitle>
               </CardHeader>
               <CardContent>
                 {loadingFases ? (
                   <div className="text-center py-8">
-                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-4"></div>
-                    <p className="text-gray-600">Cargando fases del proyecto...</p>
+                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 dark:border-blue-400 mx-auto mb-4"></div>
+                    <p className="text-gray-600 dark:text-gray-400">Cargando fases del proyecto...</p>
                   </div>
                 ) : fases.length > 0 ? (
                   <div className="space-y-6">
                     {fases.map((fase, index) => (
-                      <div key={fase.id} className="border-l-4 border-blue-500 pl-6">
+                      <div key={fase.id} className="border-l-4 border-blue-500 dark:border-blue-400 pl-6">
                         <div className="mb-2">
-                          <h3 className="font-semibold text-lg text-blue-700">{fase.fase_nombre}</h3>
-                          <h4 className="font-medium text-md text-gray-700">{fase.momento_nombre}</h4>
+                          <h3 className="font-semibold text-lg text-blue-700 dark:text-blue-400">{fase.fase_nombre}</h3>
+                          <h4 className="font-medium text-md text-gray-700 dark:text-gray-300">{fase.momento_nombre}</h4>
                         </div>
-                        <div className="bg-gray-50 p-4 rounded-lg">
-                          <p className="text-gray-700 leading-relaxed whitespace-pre-line">
+                        <div className="bg-gray-50 dark:bg-gray-700 p-4 rounded-lg">
+                          <p className="text-gray-700 dark:text-gray-300 leading-relaxed whitespace-pre-line">
                             {fase.contenido}
                           </p>
                         </div>
@@ -770,8 +769,8 @@ export function ViewProyecto({ proyectoId, onBack }: ViewProyectoProps) {
                     ))}
                   </div>
                 ) : (
-                  <div className="text-center py-8 text-gray-500">
-                    <Calendar className="h-12 w-12 mx-auto mb-4 text-gray-300" />
+                  <div className="text-center py-8 text-gray-500 dark:text-gray-400">
+                    <Calendar className="h-12 w-12 mx-auto mb-4 text-gray-300 dark:text-gray-600" />
                     <p>No se encontraron fases para este proyecto.</p>
                     <p className="text-sm mt-2">Las fases se generan automáticamente cuando se crea el proyecto.</p>
                   </div>
@@ -782,11 +781,11 @@ export function ViewProyecto({ proyectoId, onBack }: ViewProyectoProps) {
 
           {/* Pestaña: Evaluación */}
           <TabsContent value="evaluacion" className="mt-6">
-            <Card>
+            <Card className="dark:bg-gray-800">
               <CardHeader>
                 <CardTitle className="flex items-center justify-between">
                   <span className="flex items-center">
-                    <ClipboardList className="h-5 w-5 mr-2 text-purple-600" />
+                    <ClipboardList className="h-5 w-5 mr-2 text-purple-600 dark:text-purple-400" />
                     Instrumentos de Evaluación
                   </span>
                   <Button 
@@ -804,23 +803,24 @@ export function ViewProyecto({ proyectoId, onBack }: ViewProyectoProps) {
                 {instrumentos.length > 0 ? (
                   <div className="space-y-4">
                     {instrumentos.map((instrumento) => (
-                      <Card key={instrumento.id} className="border-l-4 border-purple-500">
-                        <CardHeader className="pb-3">
+                      <Card key={instrumento.id} className="border-l-4 border-purple-500 dark:bg-gray-800 shadow-sm hover:shadow-md transition-shadow duration-200 dark:border-gray-700 dark:hover:border-gray-600">
+                        <CardHeader className="pb-4">
                           <div className="flex items-center justify-between">
                             <div>
                               <CardTitle className="text-lg">{instrumento.titulo}</CardTitle>
-                              <p className="text-sm text-gray-600 mt-1">
+                              <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
                                 {instrumento.tipo === 'rubrica_analitica' ? 'Rúbrica Analítica' : 
                                  instrumento.tipo === 'lista_cotejo' ? 'Lista de Cotejo' : 
                                  'Escala de Estimación'}
                               </p>
                             </div>
                             <div className="flex items-center gap-2">
-                              <div className="flex gap-1">
+                              <div className="flex gap-2">
                                  <Button 
                                    variant="outline" 
                                    size="sm"
                                    onClick={() => verInstrumento(instrumento)}
+                                   className="hover:bg-purple-50 hover:text-purple-700 hover:border-purple-300 dark:hover:bg-purple-900/20 dark:hover:text-purple-300 dark:hover:border-purple-600"
                                  >
                                    Ver
                                  </Button>
@@ -829,7 +829,7 @@ export function ViewProyecto({ proyectoId, onBack }: ViewProyectoProps) {
                                      <Button 
                                        variant="outline" 
                                        size="sm"
-                                       className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                                       className="text-red-600 hover:text-red-700 hover:bg-red-50 dark:text-red-400 dark:hover:text-red-300 dark:hover:bg-red-900/20 dark:border-red-800"
                                      >
                                        <Trash2 className="h-4 w-4 mr-1" />
                                        Eliminar
@@ -858,8 +858,8 @@ export function ViewProyecto({ proyectoId, onBack }: ViewProyectoProps) {
                             </div>
                           </div>
                         </CardHeader>
-                        <CardContent>
-                          <p className="text-sm text-gray-600">
+                        <CardContent className="pt-0">
+                          <p className="text-sm text-gray-600 dark:text-gray-400">
                             Creado el {new Date(instrumento.created_at).toLocaleDateString('es-ES')}
                           </p>
                         </CardContent>
@@ -887,7 +887,7 @@ export function ViewProyecto({ proyectoId, onBack }: ViewProyectoProps) {
 
           {/* Pestaña: Recursos */}
           <TabsContent value="recursos" className="mt-6">
-            <Card>
+            <Card className="dark:bg-gray-800">
               <CardHeader>
                 <CardTitle className="flex items-center">
                   <FolderOpen className="h-5 w-5 mr-2 text-green-600" />
@@ -905,7 +905,6 @@ export function ViewProyecto({ proyectoId, onBack }: ViewProyectoProps) {
             </Card>
           </TabsContent>
         </Tabs>
-      </div>
     
       {/* Modal de crear instrumento - Nueva estructura de 2 vistas */}
       <Dialog open={showInstrumentDialog} onOpenChange={handleCloseModal}>
@@ -955,7 +954,7 @@ export function ViewProyecto({ proyectoId, onBack }: ViewProyectoProps) {
                       className={`h-auto p-4 justify-start ${
                         instrumentForm.tipo === 'rubrica_analitica' 
                           ? 'bg-purple-600 hover:bg-purple-700 text-white' 
-                          : 'hover:bg-purple-50'
+                          : 'hover:bg-purple-50 dark:hover:bg-purple-900/20 dark:hover:border-purple-400'
                       }`}
                       onClick={() => {
                         setInstrumentForm(prev => ({ ...prev, tipo: 'rubrica_analitica' }))
@@ -981,7 +980,7 @@ export function ViewProyecto({ proyectoId, onBack }: ViewProyectoProps) {
                       className={`h-auto p-4 justify-start ${
                         instrumentForm.tipo === 'lista_cotejo' 
                           ? 'bg-purple-600 hover:bg-purple-700 text-white' 
-                          : 'hover:bg-purple-50'
+                          : 'hover:bg-purple-50 dark:hover:bg-purple-900/20 dark:hover:border-purple-400'
                       }`}
                       onClick={() => {
                         setInstrumentForm(prev => ({ ...prev, tipo: 'lista_cotejo' }))
@@ -1053,7 +1052,7 @@ export function ViewProyecto({ proyectoId, onBack }: ViewProyectoProps) {
                   {loadingPdas ? (
                     <div className="flex items-center justify-center py-8">
                       <Loader2 className="h-6 w-6 animate-spin text-blue-600" />
-                      <span className="ml-2 text-gray-600">Cargando PDAs...</span>
+                      <span className="ml-2 text-gray-600 dark:text-gray-400">Cargando PDAs...</span>
                     </div>
                   ) : pdasProyecto.length > 0 ? (
                     <ScrollArea className="h-80 border rounded-lg p-4">
@@ -1061,7 +1060,7 @@ export function ViewProyecto({ proyectoId, onBack }: ViewProyectoProps) {
                         {pdasProyecto.map((pda) => (
                           <div 
                             key={pda.id} 
-                            className="flex items-start space-x-4 p-4 border rounded-lg hover:bg-gray-50 transition-colors cursor-pointer"
+                            className="flex items-start space-x-4 p-4 border rounded-lg hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors cursor-pointer"
                             onClick={() => togglePdaSelection(pda.id)}
                           >
                             <Checkbox
@@ -1071,10 +1070,10 @@ export function ViewProyecto({ proyectoId, onBack }: ViewProyectoProps) {
                               className="mt-2 h-5 w-5 pointer-events-none"
                             />
                             <div className="flex-1 min-w-0">
-                              <div className="text-base font-medium text-gray-900 block leading-relaxed">
+                              <div className="text-base font-medium text-gray-900 dark:text-gray-100 block leading-relaxed">
                                 {pda.pda}
                               </div>
-                              <p className="text-sm text-gray-600 mt-2 leading-relaxed">{pda.contenido}</p>
+                              <p className="text-sm text-gray-600 dark:text-gray-400 mt-2 leading-relaxed">{pda.contenido}</p>
                               <div className="flex gap-3 mt-3">
                                 <Badge variant="secondary" className="text-sm px-3 py-1">
                                   {pda.campo_formativo}
@@ -1139,13 +1138,13 @@ export function ViewProyecto({ proyectoId, onBack }: ViewProyectoProps) {
                     {criteriosPersonalizados.length > 0 && (
                       <div className="space-y-3">
                         {criteriosPersonalizados.map((criterio, index) => (
-                          <div key={index} className="flex items-center justify-between p-4 bg-purple-50 border border-purple-200 rounded-lg">
-                            <span className="text-base text-gray-900 leading-relaxed">{criterio}</span>
+                          <div key={index} className="flex items-center justify-between p-4 bg-purple-50 dark:bg-purple-900/20 border border-purple-200 dark:border-purple-800 rounded-lg">
+                            <span className="text-base text-gray-900 dark:text-gray-100 leading-relaxed">{criterio}</span>
                             <Button
                               onClick={() => eliminarCriterioPersonalizado(index)}
                               variant="ghost"
                               size="sm"
-                              className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                              className="text-red-600 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-900/20 dark:text-red-400 dark:hover:text-red-300"
                             >
                               <X className="h-4 w-4" />
                             </Button>

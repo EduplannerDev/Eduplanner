@@ -150,8 +150,8 @@ export function ProyectoWizard({ onComplete }: ProyectoWizardProps = {}) {
             </div>
 
             <div className="text-center space-y-2">
-              <h1 className="text-3xl font-bold text-gray-900">Generar Plan Didáctico</h1>
-              <p className="text-lg text-gray-600">
+              <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100">Generar Plan Didáctico</h1>
+              <p className="text-lg text-gray-600 dark:text-gray-400">
                 La IA está generando las fases y momentos de tu proyecto
               </p>
             </div>
@@ -166,19 +166,19 @@ export function ProyectoWizard({ onComplete }: ProyectoWizardProps = {}) {
                     <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
                   </div>
                   <div className="space-y-2">
-                    <p className="text-lg font-medium text-gray-900">
+                    <p className="text-lg font-medium text-gray-900 dark:text-gray-100">
                       🤖 Analizando tu proyecto...
                     </p>
-                    <p className="text-sm text-gray-600">
+                    <p className="text-sm text-gray-600 dark:text-gray-400">
                       Generando fases y momentos personalizados para: <strong>{wizardData.nombre}</strong>
                     </p>
                   </div>
                   
-                  <div className="bg-blue-50 p-4 rounded-lg">
-                    <p className="text-sm text-blue-800">
+                  <div className="bg-blue-50 dark:bg-blue-900/20 p-4 rounded-lg">
+                    <p className="text-sm text-blue-800 dark:text-blue-200">
                       <strong>Procesando:</strong> {wizardData.pdas_seleccionados.length} PDAs seleccionados
                     </p>
-                    <p className="text-sm text-blue-800">
+                    <p className="text-sm text-blue-800 dark:text-blue-200">
                       <strong>Metodología:</strong> {wizardData.metodologia_nem}
                     </p>
                   </div>
@@ -204,15 +204,15 @@ export function ProyectoWizard({ onComplete }: ProyectoWizardProps = {}) {
         {/* Header con progreso */}
         <div className="space-y-4">
           <div className="text-center space-y-2">
-            <h1 className="text-3xl font-bold text-gray-900">Asistente de Proyectos</h1>
-            <p className="text-lg text-gray-600">
+            <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100">Asistente de Proyectos</h1>
+            <p className="text-lg text-gray-600 dark:text-gray-400">
               Crea tu proyecto educativo paso a paso
             </p>
           </div>
           
           {/* Barra de progreso */}
           <div className="space-y-2">
-            <div className="flex justify-between text-sm text-gray-600">
+            <div className="flex justify-between text-sm text-gray-600 dark:text-gray-400">
               <span>Progreso</span>
               <span>{Math.round(progress)}%</span>
             </div>
@@ -231,10 +231,10 @@ export function ProyectoWizard({ onComplete }: ProyectoWizardProps = {}) {
                     disabled={!isStepCompleted(step.id - 1) && step.id > 1}
                     className={`flex items-center space-x-2 p-2 rounded-lg transition-colors ${
                       step.current 
-                        ? 'bg-blue-100 text-blue-700' 
+                        ? 'bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300' 
                         : isStepCompleted(step.id)
-                        ? 'bg-green-100 text-green-700 hover:bg-green-200'
-                        : 'text-gray-400 hover:text-gray-600'
+                        ? 'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300 hover:bg-green-200 dark:hover:bg-green-900/50'
+                        : 'text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-400'
                     } ${!isStepCompleted(step.id - 1) && step.id > 1 ? 'cursor-not-allowed' : 'cursor-pointer'}`}
                   >
                     {isStepCompleted(step.id) ? (
@@ -249,7 +249,7 @@ export function ProyectoWizard({ onComplete }: ProyectoWizardProps = {}) {
                   </button>
                   
                   {index < steps.length - 1 && (
-                    <div className="w-8 h-px bg-gray-300 mx-4"></div>
+                    <div className="w-8 h-px bg-gray-300 dark:bg-gray-600 mx-4"></div>
                   )}
                 </div>
               ))}

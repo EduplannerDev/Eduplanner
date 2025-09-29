@@ -200,10 +200,10 @@ export function ProyectoWizardStep1({ data, onDataChange, onNext, loading = fals
       {/* Header */}
       <div className="text-center space-y-2">
         <div className="flex items-center justify-center space-x-2">
-          <BookOpen className="h-8 w-8 text-blue-600" />
-          <h1 className="text-3xl font-bold text-gray-900">Define tu Proyecto</h1>
+          <BookOpen className="h-8 w-8 text-blue-600 dark:text-blue-400" />
+          <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100">Define tu Proyecto</h1>
         </div>
-        <p className="text-lg text-gray-600">
+        <p className="text-lg text-gray-600 dark:text-gray-400">
           Comienza definiendo la información básica de tu proyecto educativo
         </p>
       </div>
@@ -212,7 +212,7 @@ export function ProyectoWizardStep1({ data, onDataChange, onNext, loading = fals
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center space-x-2">
-            <Target className="h-5 w-5 text-blue-600" />
+            <Target className="h-5 w-5 text-blue-600 dark:text-blue-400" />
             <span>Información del Proyecto</span>
           </CardTitle>
           <CardDescription>
@@ -233,7 +233,7 @@ export function ProyectoWizardStep1({ data, onDataChange, onNext, loading = fals
               className={errors.nombre ? 'border-red-500' : ''}
             />
             {errors.nombre && (
-              <p className="text-sm text-red-600 flex items-center space-x-1">
+              <p className="text-sm text-red-600 dark:text-red-400 flex items-center space-x-1">
                 <AlertCircle className="h-4 w-4" />
                 <span>{errors.nombre}</span>
               </p>
@@ -282,7 +282,7 @@ export function ProyectoWizardStep1({ data, onDataChange, onNext, loading = fals
               className={errors.producto_final ? 'border-red-500' : ''}
             />
             {errors.producto_final && (
-              <p className="text-sm text-red-600 flex items-center space-x-1">
+              <p className="text-sm text-red-600 dark:text-red-400 flex items-center space-x-1">
                 <AlertCircle className="h-4 w-4" />
                 <span>{errors.producto_final}</span>
               </p>
@@ -313,7 +313,7 @@ export function ProyectoWizardStep1({ data, onDataChange, onNext, loading = fals
               </SelectContent>
             </Select>
             {errors.grupo_id && (
-              <p className="text-sm text-red-600 flex items-center space-x-1">
+              <p className="text-sm text-red-600 dark:text-red-400 flex items-center space-x-1">
                 <AlertCircle className="h-4 w-4" />
                 <span>{errors.grupo_id}</span>
               </p>
@@ -359,22 +359,22 @@ export function ProyectoWizardStep1({ data, onDataChange, onNext, loading = fals
                 ))}
               </SelectContent>
             </Select>
-            {errors.metodologia_nem && (
-              <p className="text-sm text-red-600 flex items-center space-x-1">
+            {errors.metodologia && (
+              <p className="text-sm text-red-600 dark:text-red-400 flex items-center space-x-1">
                 <AlertCircle className="h-4 w-4" />
-                <span>{errors.metodologia_nem}</span>
+                <span>{errors.metodologia}</span>
               </p>
             )}
           </div>
 
           {/* Resumen del Proyecto */}
           {isFormComplete && (
-            <div className="mt-6 p-4 bg-green-50 border border-green-200 rounded-lg">
+            <div className="mt-6 p-4 bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg">
               <div className="flex items-center space-x-2 mb-2">
-                <CheckCircle2 className="h-5 w-5 text-green-600" />
-                <h3 className="font-medium text-green-800">Resumen del Proyecto</h3>
+                <CheckCircle2 className="h-5 w-5 text-green-600 dark:text-green-400" />
+                <h3 className="font-medium text-green-800 dark:text-green-200">Resumen del Proyecto</h3>
               </div>
-              <div className="space-y-2 text-sm text-green-700">
+              <div className="space-y-2 text-sm text-green-700 dark:text-green-300">
                 <p><strong>Nombre:</strong> {data.nombre}</p>
                 <p><strong>Grupo:</strong> {grupos.find(g => g.id === data.grupo_id)?.nombre}</p>
                 <p><strong>Metodología:</strong> {data.metodologia_nem}</p>

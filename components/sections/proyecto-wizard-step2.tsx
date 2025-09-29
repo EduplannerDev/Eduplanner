@@ -252,16 +252,16 @@ export function ProyectoWizardStep2({
       {/* Header */}
       <div className="text-center space-y-2">
         <div className="flex items-center justify-center space-x-2">
-          <Bot className="h-8 w-8 text-purple-600" />
-          <h1 className="text-3xl font-bold text-gray-900">Conecta el Currículo</h1>
+          <Bot className="h-8 w-8 text-purple-600 dark:text-purple-400" />
+          <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100">Conecta el Currículo</h1>
         </div>
-        <p className="text-lg text-gray-600">
+        <p className="text-lg text-gray-600 dark:text-gray-400">
           La IA ha analizado tu problemática y sugiere los PDAs más relevantes
         </p>
         {grupoInfo && (
-          <div className="inline-flex items-center space-x-2 px-3 py-1 bg-blue-50 border border-blue-200 rounded-full">
-            <GraduationCap className="h-4 w-4 text-blue-600" />
-            <span className="text-sm text-blue-700 font-medium">
+          <div className="inline-flex items-center space-x-2 px-3 py-1 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-full">
+            <GraduationCap className="h-4 w-4 text-blue-600 dark:text-blue-400" />
+            <span className="text-sm text-blue-700 dark:text-blue-300 font-medium">
               {grupoInfo.nombre} - {grupoInfo.grado}° {grupoInfo.nivel}
             </span>
           </div>
@@ -304,13 +304,13 @@ export function ProyectoWizardStep2({
                   <div className="flex items-center justify-center h-32">
                     <div className="flex items-center space-x-2">
                       <Loader2 className="h-6 w-6 animate-spin text-purple-600" />
-                      <span className="text-sm text-gray-600">Analizando tu problemática...</span>
+                      <span className="text-sm text-gray-600 dark:text-gray-400">Analizando tu problemática...</span>
                     </div>
                   </div>
                 ) : suggestionsError ? (
-                  <Alert className="border-red-200 bg-red-50">
-                    <AlertCircle className="h-4 w-4 text-red-600" />
-                    <AlertDescription className="text-red-700">
+                  <Alert className="border-red-200 dark:border-red-800 bg-red-50 dark:bg-red-900/20">
+                    <AlertCircle className="h-4 w-4 text-red-600 dark:text-red-400" />
+                    <AlertDescription className="text-red-700 dark:text-red-300">
                       Error obteniendo sugerencias: {suggestionsError}
                     </AlertDescription>
                   </Alert>
@@ -324,23 +324,23 @@ export function ProyectoWizardStep2({
                             key={suggestion.id}
                             className={`p-4 rounded-lg border cursor-pointer transition-all hover:shadow-md w-full max-w-full ${
                               isSelected 
-                                ? 'border-purple-500 bg-purple-50' 
-                                : 'border-gray-200 hover:border-purple-300'
+                                ? 'border-purple-500 dark:border-purple-400 bg-purple-50 dark:bg-purple-900/20' 
+                                : 'border-gray-200 dark:border-gray-700 hover:border-purple-300 dark:hover:border-purple-600'
                             }`}
                             onClick={() => togglePdaSelection(suggestion.id)}
                           >
                             <div className="flex items-start space-x-3 w-full">
                               <div className="flex-shrink-0 mt-1">
                                 {isSelected ? (
-                                  <CheckCircle2 className="h-5 w-5 text-purple-600" />
+                                  <CheckCircle2 className="h-5 w-5 text-purple-600 dark:text-purple-400" />
                                 ) : (
-                                  <Circle className="h-5 w-5 text-gray-400" />
+                                  <Circle className="h-5 w-5 text-gray-400 dark:text-gray-500" />
                                 )}
                               </div>
                               <div className="flex-1 min-w-0 max-w-full overflow-hidden">
                                 <div className="flex items-start justify-between mb-2 gap-2">
                                   <div className="flex items-center space-x-2 flex-wrap">
-                                    <Badge variant="outline" className="text-xs bg-white">
+                                    <Badge variant="outline" className="text-xs bg-white dark:bg-gray-800">
                                       {suggestion.campo_formativo}
                                     </Badge>
                                     {suggestion.ejes_articuladores && (
@@ -351,15 +351,15 @@ export function ProyectoWizardStep2({
                                   </div>
                                   <div className="flex items-center space-x-1 flex-shrink-0">
                                     <Sparkles className="h-3 w-3 text-yellow-500" />
-                                    <span className="text-xs text-gray-500 whitespace-nowrap">
+                                    <span className="text-xs text-gray-500 dark:text-gray-400 whitespace-nowrap">
                                       {suggestion.relevanceScore}% relevante
                                     </span>
                                   </div>
                                 </div>
-                                <p className="text-sm text-gray-600 mb-2">
+                                <p className="text-sm text-gray-600 dark:text-gray-400 mb-2">
                                   {suggestion.contenido}
                                 </p>
-                                <p className="text-lg font-bold text-gray-900 leading-relaxed">
+                                <p className="text-lg font-bold text-gray-900 dark:text-gray-100 leading-relaxed">
                                   PDA: {suggestion.pda}
                                 </p>
                               </div>
@@ -370,8 +370,8 @@ export function ProyectoWizardStep2({
                     </div>
                   </ScrollArea>
                 ) : (
-                  <div className="text-center py-8 text-gray-500">
-                    <Bot className="h-12 w-12 mx-auto mb-4 text-gray-300" />
+                  <div className="text-center py-8 text-gray-500 dark:text-gray-400">
+                    <Bot className="h-12 w-12 mx-auto mb-4 text-gray-300 dark:text-gray-600" />
                     <p>No se encontraron sugerencias</p>
                     <p className="text-sm">Intenta con una problemática más específica</p>
                   </div>
@@ -435,17 +435,17 @@ export function ProyectoWizardStep2({
                             key={item.id}
                             className={`p-3 rounded-lg border cursor-pointer transition-all hover:shadow-md w-full max-w-full ${
                               isSelected 
-                                ? 'border-blue-500 bg-blue-50' 
-                                : 'border-gray-200 hover:border-gray-300'
+                                ? 'border-blue-500 dark:border-blue-400 bg-blue-50 dark:bg-blue-900/20' 
+                                : 'border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600'
                             }`}
                             onClick={() => togglePdaSelection(item.id)}
                           >
                             <div className="flex items-start space-x-3 w-full">
                               <div className="flex-shrink-0 mt-1">
                                 {isSelected ? (
-                                  <CheckCircle2 className="h-5 w-5 text-blue-600" />
+                                  <CheckCircle2 className="h-5 w-5 text-blue-600 dark:text-blue-400" />
                                 ) : (
-                                  <Circle className="h-5 w-5 text-gray-400" />
+                                  <Circle className="h-5 w-5 text-gray-400 dark:text-gray-500" />
                                 )}
                               </div>
                               <div className="flex-1 min-w-0 max-w-full overflow-hidden">
@@ -459,10 +459,10 @@ export function ProyectoWizardStep2({
                                     </Badge>
                                   )}
                                 </div>
-                                <p className="text-sm text-gray-600 mb-2">
+                                <p className="text-sm text-gray-600 dark:text-gray-400 mb-2">
                                   {item.contenido}
                                 </p>
-                                <p className="text-lg font-bold text-gray-900 leading-relaxed">
+                                <p className="text-lg font-bold text-gray-900 dark:text-gray-100 leading-relaxed">
                                   PDA: {item.pda}
                                 </p>
                               </div>
@@ -472,8 +472,8 @@ export function ProyectoWizardStep2({
                       })}
                       
                       {filteredItems.length === 0 && !loadingCurriculo && (
-                        <div className="text-center py-8 text-gray-500">
-                          <BookOpen className="h-12 w-12 mx-auto mb-4 text-gray-300" />
+                        <div className="text-center py-8 text-gray-500 dark:text-gray-400">
+                          <BookOpen className="h-12 w-12 mx-auto mb-4 text-gray-300 dark:text-gray-600" />
                           <p>No se encontraron contenidos</p>
                           <p className="text-sm">Intenta ajustar los filtros de búsqueda</p>
                         </div>
@@ -502,7 +502,7 @@ export function ProyectoWizardStep2({
         <Card className="flex flex-col">
           <CardHeader className="pb-4">
             <CardTitle className="flex items-center space-x-2">
-              <Target className="h-5 w-5 text-green-600" />
+              <Target className="h-5 w-5 text-green-600 dark:text-green-400" />
               <span>PDAs Seleccionados</span>
               <Badge variant="secondary" className="ml-auto">
                 {selectedPdas.length}
@@ -516,8 +516,8 @@ export function ProyectoWizardStep2({
           <CardContent className="flex-1 flex flex-col">
             <ScrollArea className="flex-1">
               {selectedItems.length === 0 ? (
-                <div className="text-center py-12 text-gray-500">
-                  <Target className="h-12 w-12 mx-auto mb-4 text-gray-300" />
+                <div className="text-center py-12 text-gray-500 dark:text-gray-400">
+                  <Target className="h-12 w-12 mx-auto mb-4 text-gray-300 dark:text-gray-600" />
                   <p className="font-medium">No hay PDAs seleccionados</p>
                   <p className="text-sm">Selecciona contenidos del panel izquierdo</p>
                 </div>
@@ -525,19 +525,19 @@ export function ProyectoWizardStep2({
                 <div className="space-y-3">
                   {selectedItems.map((item, index) => (
                     <div key={item.id} className="group">
-                      <div className="p-3 rounded-lg border border-green-200 bg-green-50">
+                      <div className="p-3 rounded-lg border border-green-200 dark:border-green-800 bg-green-50 dark:bg-green-900/20">
                         <div className="flex items-start justify-between">
                           <div className="flex-1 min-w-0">
                             <div className="flex items-center space-x-2 mb-2">
-                              <Badge variant="outline" className="text-xs bg-white">
+                              <Badge variant="outline" className="text-xs bg-white dark:bg-gray-800 dark:border-gray-600 dark:text-gray-200">
                                 {item.campo_formativo}
                               </Badge>
-                              <span className="text-xs text-gray-500">#{index + 1}</span>
+                              <span className="text-xs text-gray-500 dark:text-gray-400">#{index + 1}</span>
                             </div>
-                            <p className="text-sm text-gray-600 mb-2">
+                            <p className="text-sm text-gray-600 dark:text-gray-400 mb-2">
                               {item.contenido}
                             </p>
-                            <p className="text-lg font-bold text-gray-900 leading-relaxed">
+                            <p className="text-lg font-bold text-gray-900 dark:text-gray-100 leading-relaxed">
                               PDA: {item.pda}
                             </p>
                           </div>
@@ -545,7 +545,7 @@ export function ProyectoWizardStep2({
                             variant="ghost"
                             size="sm"
                             onClick={() => togglePdaSelection(item.id)}
-                            className="opacity-0 group-hover:opacity-100 transition-opacity ml-2 h-8 w-8 p-0 text-red-600 hover:text-red-700 hover:bg-red-50"
+                            className="opacity-0 group-hover:opacity-100 transition-opacity ml-2 h-8 w-8 p-0 text-red-600 hover:text-red-700 hover:bg-red-50 dark:text-red-400 dark:hover:text-red-300 dark:hover:bg-red-900/20"
                           >
                             <X className="h-4 w-4" />
                           </Button>
@@ -559,7 +559,7 @@ export function ProyectoWizardStep2({
             
             {selectedItems.length > 0 && (
               <div className="mt-4 pt-4 border-t">
-                <div className="flex items-center justify-between text-sm text-gray-600">
+                <div className="flex items-center justify-between text-sm text-gray-600 dark:text-gray-400">
                   <span>Total de PDAs seleccionados:</span>
                   <span className="font-medium">{selectedItems.length}</span>
                 </div>
@@ -571,16 +571,16 @@ export function ProyectoWizardStep2({
 
       {/* Resumen y navegación */}
       {selectedItems.length > 0 && (
-        <Card className="bg-green-50 border-green-200">
+        <Card className="bg-green-50 dark:bg-green-900/20 border-green-200 dark:border-green-800">
           <CardContent className="p-4">
             <div className="flex items-center justify-between">
               <div className="flex items-center space-x-2">
-                <CheckCircle2 className="h-5 w-5 text-green-600" />
-                <span className="font-medium text-green-800">
+                <CheckCircle2 className="h-5 w-5 text-green-600 dark:text-green-400" />
+                <span className="font-medium text-green-800 dark:text-green-200">
                   {selectedItems.length} PDA{selectedItems.length !== 1 ? 's' : ''} seleccionado{selectedItems.length !== 1 ? 's' : ''}
                 </span>
               </div>
-              <div className="text-sm text-green-700">
+              <div className="text-sm text-green-700 dark:text-green-300">
                 Campos: {[...new Set(selectedItems.map(item => item.campo_formativo))].join(', ')}
               </div>
             </div>
