@@ -236,17 +236,6 @@ export const GenerarExamen: React.FC<GenerarExamenProps> = ({ onBack, onSaveSucc
     
     <div className="p-4">
 
-         <div className="bg-yellow-100 border-l-4 border-yellow-500 text-yellow-800 p-4 rounded-md mb-6 shadow">
-      <div className="flex items-center space-x-2">
-        <span className="text-2xl">✨</span>
-        <div>
-          <p className="font-semibold">Nueva función: Generador de Exámenes con IA (¡Tu feedback es vital!)</p>
-          <p className="text-sm">
-            Estamos entusiasmados con esta nueva herramienta para ahorrarte tiempo. Al revisar y ajustar el examen generado, nos ayudas a entrenar a la IA para que sea aún más precisa y relevante..
-          </p>
-        </div>
-      </div>
-    </div>
     
       <h1 className="text-2xl font-bold mb-2">Selecciona Planeaciones para Generar Examen</h1>
       <p className="text-sm text-gray-600 mb-4 bg-blue-50 border border-blue-200 rounded-lg p-3 dark:bg-blue-950 dark:border-blue-900 dark:text-blue-300">
