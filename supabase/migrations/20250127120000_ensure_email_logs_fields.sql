@@ -2,12 +2,21 @@
 -- =====================================================
 -- Esta migración verifica y agrega campos faltantes de forma segura
 
-DO $$
-BEGIN
-    -- Verificar y agregar recipients_list si no existe
+DO $$                                                                                                        
+BEGIN                                                                                                        
+    -- Verificar si la tabla email_logs existe primero
     IF NOT EXISTS (
-        SELECT 1 FROM information_schema.columns 
-        WHERE table_name = 'email_logs' AND column_name = 'recipients_list'
+        SELECT 1 FROM information_schema.tables 
+        WHERE table_name = 'email_logs'
+    ) THEN
+        RAISE NOTICE 'Tabla email_logs no existe, saltando migración';
+        RETURN;
+    END IF;
+    
+    -- Verificar y agregar recipients_list si no existe                                                      
+    IF NOT EXISTS (                                                                                          
+        SELECT 1 FROM information_schema.columns                                                             
+        WHERE table_name = 'email_logs' AND column_name = 'recipients_list'                                  
     ) THEN
         ALTER TABLE email_logs ADD COLUMN recipients_list JSONB;
         COMMENT ON COLUMN email_logs.recipients_list IS 'Lista de destinatarios específicos en formato JSON';

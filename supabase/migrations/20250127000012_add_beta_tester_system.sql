@@ -101,7 +101,7 @@ ON CONFLICT (feature_key) DO NOTHING;
 
 -- Función para verificar si un usuario es beta tester
 CREATE OR REPLACE FUNCTION is_beta_tester(p_user_id UUID DEFAULT auth.uid())
-RETURNS BOOLEAN AS $
+RETURNS BOOLEAN AS $$
 BEGIN
     RETURN EXISTS (
         SELECT 1 FROM profiles 
@@ -110,14 +110,14 @@ BEGIN
         AND activo = true
     );
 END;
-$ LANGUAGE plpgsql SECURITY DEFINER;
+$$ LANGUAGE plpgsql SECURITY DEFINER;
 
 -- Función para verificar si un usuario tiene acceso a una funcionalidad beta específica
 CREATE OR REPLACE FUNCTION has_beta_feature_access(
     p_feature_key VARCHAR(100),
     p_user_id UUID DEFAULT auth.uid()
 )
-RETURNS BOOLEAN AS $
+RETURNS BOOLEAN AS $$
 DECLARE
     user_is_beta BOOLEAN;
     feature_exists BOOLEAN;
@@ -153,7 +153,7 @@ BEGIN
     
     RETURN has_access;
 END;
-$ LANGUAGE plpgsql SECURITY DEFINER;
+$$ LANGUAGE plpgsql SECURITY DEFINER;
 
 -- Función para obtener todas las funcionalidades beta de un usuario
 CREATE OR REPLACE FUNCTION get_user_beta_features(p_user_id UUID)
@@ -163,7 +163,7 @@ RETURNS TABLE (
     description TEXT,
     granted_at TIMESTAMP WITH TIME ZONE,
     expires_at TIMESTAMP WITH TIME ZONE
-) AS $
+) AS $$
 BEGIN
     -- Primero, verificar si el usuario es beta tester
     IF NOT is_beta_tester(p_user_id) THEN
@@ -185,7 +185,7 @@ BEGIN
     AND (ubf.expires_at IS NULL OR ubf.expires_at > NOW())
     ORDER BY bf.feature_name;
 END;
-$ LANGUAGE plpgsql SECURITY DEFINER;
+$$ LANGUAGE plpgsql SECURITY DEFINER;
 
 -- 7. CONFIGURAR RLS (ROW LEVEL SECURITY)
 -- =====================================================
@@ -236,9 +236,9 @@ COMMENT ON FUNCTION is_beta_tester(UUID) IS 'Verifica si un usuario es beta test
 COMMENT ON FUNCTION has_beta_feature_access(VARCHAR, UUID) IS 'Verifica si un usuario tiene acceso a una funcionalidad beta específica';
 COMMENT ON FUNCTION get_user_beta_features(UUID) IS 'Obtiene todas las funcionalidades beta disponibles para un usuario';
 
--- Mensaje de finalización
-DO $$
-BEGIN
+-- Mensaje de finalización                                                                                                              
+DO $$                                                                                                                                   
+BEGIN                                                                                                                                   
     RAISE NOTICE 'Migración de sistema de beta testers completada exitosamente';
     RAISE NOTICE 'Se agregaron % funcionalidades beta iniciales', (SELECT COUNT(*) FROM beta_features);
 END $$;

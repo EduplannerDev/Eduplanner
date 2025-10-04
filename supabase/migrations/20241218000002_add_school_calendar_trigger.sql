@@ -84,7 +84,7 @@ CREATE TRIGGER on_auth_user_created_with_calendar
 
 -- 3. COMENTARIOS Y DOCUMENTACIÓN
 -- ==============================
-COMMENT ON FUNCTION add_school_calendar_to_new_user() IS 'Agrega automáticamente eventos del calendario escolar 2025-2026 a nuevos usuarios';
+COMMENT ON FUNCTION add_school_calendar_to_new_user(UUID) IS 'Agrega automáticamente eventos del calendario escolar 2025-2026 a nuevos usuarios';
 COMMENT ON FUNCTION public.handle_new_user_with_calendar() IS 'Maneja la creación de nuevos usuarios incluyendo perfil y calendario escolar';
 
 -- 4. VERIFICACIÓN DE LA MIGRACIÓN

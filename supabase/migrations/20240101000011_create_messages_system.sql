@@ -108,7 +108,7 @@ COMMENT ON COLUMN parent_messages.user_id IS 'ID del profesor que envía el mens
 -- Campo grupo_id eliminado - se obtiene a través de alumnos.grupo_id
 COMMENT ON COLUMN parent_messages.alumno_id IS 'ID del alumno (para mensajes individuales)';
 COMMENT ON COLUMN parent_messages.message_type IS 'Tipo de mensaje: general, academico, comportamiento, etc.';
-COMMENT ON COLUMN parent_messages.recipient_type IS 'Tipo de destinatario: grupo o individual';
+-- Campo recipient_type eliminado - no existe en la tabla
 COMMENT ON COLUMN parent_messages.delivery_method IS 'Método de entrega: email, whatsapp, sms, manual';
 
 COMMENT ON TABLE message_templates IS 'Plantillas reutilizables para mensajes';

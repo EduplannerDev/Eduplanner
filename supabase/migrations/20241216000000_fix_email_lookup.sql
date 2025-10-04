@@ -8,11 +8,22 @@
 -- Esta política permite consultar solo el campo email de la tabla profiles
 -- sin autenticación, necesario para validar usuarios existentes durante el registro
 
-CREATE POLICY "Allow email lookup for registration" ON profiles
-  FOR SELECT USING (
-    -- Permitir consulta de emails para validación durante registro
-    true
-  );
+-- Crear política solo si no existe
+DO $$
+BEGIN
+    IF NOT EXISTS (
+        SELECT 1 FROM pg_policies 
+        WHERE schemaname = 'public' 
+        AND tablename = 'profiles' 
+        AND policyname = 'Allow email lookup for registration'
+    ) THEN
+        CREATE POLICY "Allow email lookup for registration" ON profiles
+          FOR SELECT USING (
+            -- Permitir consulta de emails para validación durante registro
+            true
+          );
+    END IF;
+END $$;
 
 -- 2. COMENTARIO EXPLICATIVO
 -- =====================================================

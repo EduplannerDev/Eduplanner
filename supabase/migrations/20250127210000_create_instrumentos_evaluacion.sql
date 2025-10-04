@@ -9,18 +9,32 @@ CREATE TYPE instrumento_tipo AS ENUM (
   'escala_estimacion'
 );
 
--- Crear tabla de instrumentos de evaluación
-CREATE TABLE instrumentos_evaluacion (
-  id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
-  proyecto_id UUID NOT NULL REFERENCES proyectos(id) ON DELETE CASCADE,
-  profesor_id UUID NOT NULL REFERENCES profiles(id) ON DELETE CASCADE,
-  tipo instrumento_tipo NOT NULL DEFAULT 'rubrica_analitica',
-  titulo TEXT NOT NULL,
-  contenido JSONB NOT NULL,
-  estado TEXT NOT NULL DEFAULT 'borrador' CHECK (estado IN ('borrador', 'activo', 'archivado')),
-  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
-  updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
-);
+-- Verificar si la tabla proyectos existe primero
+DO $$
+BEGIN
+    IF NOT EXISTS (
+        SELECT 1 FROM information_schema.tables 
+        WHERE table_name = 'proyectos'
+    ) THEN
+        RAISE NOTICE 'Tabla proyectos no existe, saltando migración de instrumentos de evaluación';
+        RETURN;
+    END IF;
+    
+    -- Crear tabla de instrumentos de evaluación                                                    
+    CREATE TABLE IF NOT EXISTS instrumentos_evaluacion (                                                          
+      id UUID DEFAULT gen_random_uuid() PRIMARY KEY,                                                
+      proyecto_id UUID NOT NULL REFERENCES proyectos(id) ON DELETE CASCADE,                         
+      profesor_id UUID NOT NULL REFERENCES profiles(id) ON DELETE CASCADE,                          
+      tipo instrumento_tipo NOT NULL DEFAULT 'rubrica_analitica',                                   
+      titulo TEXT NOT NULL,                                                                         
+      contenido JSONB NOT NULL,                                                                     
+      estado TEXT NOT NULL DEFAULT 'borrador' CHECK (estado IN ('borrador', 'activo', 'archivado')),
+      created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),                                            
+      updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()                                             
+    );
+    
+    RAISE NOTICE 'Tabla instrumentos_evaluacion creada exitosamente';
+END $$;
 
 -- Crear índices para optimizar consultas
 CREATE INDEX idx_instrumentos_evaluacion_proyecto_id ON instrumentos_evaluacion(proyecto_id);
