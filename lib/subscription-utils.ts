@@ -119,9 +119,6 @@ export async function canUserCreate(
   userId: string, 
   type: 'planeaciones' | 'examenes' | 'mensajes' | 'proyectos'
 ): Promise<{ canCreate: boolean; currentCount: number; limit: number; message?: string }> {
-  console.log(`🔍 [LIMITS] Verificando límites para usuario ${userId}, tipo: ${type}`)
-  console.log(`🔍 [LIMITS] ID del usuario completo: ${userId}`)
-  
   try {
     // Obtener el perfil del usuario
     const { data: profile, error: profileError } = await supabase
@@ -131,17 +128,10 @@ export async function canUserCreate(
       .single();
     
     if (profileError || !profile) {
-      console.error('❌ [LIMITS] Error obteniendo perfil:', profileError)
       throw new Error('No se pudo obtener el perfil del usuario');
     }
     
-    console.log('✅ [LIMITS] Perfil obtenido:', { 
-      subscription_plan: profile.subscription_plan, 
-      subscription_status: profile.subscription_status 
-    })
-    
     const limits = getUserLimits(profile as Profile);
-    console.log('📊 [LIMITS] Límites calculados:', limits)
     
     let currentCount = 0;
     let limit = 0;
@@ -193,49 +183,22 @@ export async function canUserCreate(
         
       case 'proyectos':
         limit = limits.proyectos_limit;
-        console.log(`📊 [LIMITS] Límite de proyectos: ${limit}`)
         
-        // Primero obtener los registros completos para debuggear
         const { data: proyectosData, error: proyectosError } = await supabase
           .from('project_creations')
           .select('*')
           .eq('user_id', userId);
         
         if (proyectosError) {
-          console.error('❌ [LIMITS] Error obteniendo proyectos:', proyectosError)
+          // Log error but continue
         }
-        
-        console.log(`🔍 [LIMITS] Registros encontrados en project_creations:`, proyectosData)
-        console.log(`🔍 [LIMITS] Número de registros:`, proyectosData?.length || 0)
-        
-        // También verificar si hay proyectos en la tabla proyectos
-        const { data: proyectosTabla, error: proyectosTablaError } = await supabase
-          .from('proyectos')
-          .select('id, nombre, created_at')
-          .eq('profesor_id', userId);
-        
-        if (proyectosTablaError) {
-          console.error('❌ [LIMITS] Error obteniendo proyectos de tabla proyectos:', proyectosTablaError)
-        }
-        
-        console.log(`🔍 [LIMITS] Proyectos en tabla proyectos:`, proyectosTabla)
-        console.log(`🔍 [LIMITS] Número de proyectos en tabla proyectos:`, proyectosTabla?.length || 0)
         
         currentCount = proyectosData?.length || 0;
-        console.log(`📊 [LIMITS] Proyectos actuales (project_creations): ${currentCount}`)
         break;
     }
     
     // Si el límite es -1, es ilimitado
     const canCreate = limit === -1 || currentCount < limit;
-    
-    console.log(`🎯 [LIMITS] Resultado final:`, {
-      type,
-      currentCount,
-      limit,
-      canCreate,
-      isUnlimited: limit === -1
-    })
     
     return {
       canCreate,
@@ -245,7 +208,6 @@ export async function canUserCreate(
     };
     
   } catch (error) {
-    console.error('❌ [LIMITS] Error verificando límites del usuario:', error);
     return {
       canCreate: false,
       currentCount: 0,

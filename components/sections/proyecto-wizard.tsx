@@ -81,14 +81,8 @@ export function ProyectoWizard({ onComplete, onSectionChange }: ProyectoWizardPr
 
   // Manejar guardar proyecto
   const handleSaveProject = async () => {
-    const startTime = Date.now()
-    console.log('🚀 [UI] Iniciando proceso de guardado de proyecto desde UI')
-    
     // Verificar límites antes de crear el proyecto
     if (projectLimits && !projectLimits.canCreate) {
-      console.log('⚠️ [UI] Usuario ha alcanzado límite de proyectos')
-      console.log('📊 [UI] Límites actuales:', projectLimits)
-      
       toast({
         title: "🎉 ¡Felicitaciones! Has creado tu proyecto.",
         description: `Has alcanzado el límite de ${projectLimits.limit} proyectos en el plan gratuito. 💫 Desbloquea tu potencial educativo con PRO: crea proyectos ilimitados y desarrolla experiencias de aprendizaje innovadoras.`,
@@ -97,8 +91,6 @@ export function ProyectoWizard({ onComplete, onSectionChange }: ProyectoWizardPr
         action: (
           <button 
             onClick={() => {
-              // Aquí podrías agregar lógica para redirigir a upgrade
-              console.log('🚀 [UI] Usuario quiere hacer upgrade a PRO')
               window.open('/pricing', '_blank')
             }}
             className="bg-blue-600 text-white px-3 py-1 rounded text-sm hover:bg-blue-700"
@@ -110,13 +102,10 @@ export function ProyectoWizard({ onComplete, onSectionChange }: ProyectoWizardPr
       return
     }
 
-    console.log('✅ [UI] Límites de proyecto verificados, procediendo con creación')
     setIsSaving(true)
     
     try {
-      
       // Validar que tenemos todos los datos necesarios
-      console.log('🔍 [UI] Validando datos del wizard')
       if (!wizardData.nombre || !wizardData.problematica || !wizardData.producto_final || 
           !wizardData.grupo_id || !wizardData.metodologia_nem) {
         throw new Error('Faltan datos obligatorios del proyecto')
@@ -126,14 +115,7 @@ export function ProyectoWizard({ onComplete, onSectionChange }: ProyectoWizardPr
         throw new Error('Debes seleccionar al menos un PDA')
       }
 
-      console.log('✅ [UI] Datos validados:', {
-        nombre: wizardData.nombre,
-        metodologia: wizardData.metodologia_nem,
-        pdas_count: wizardData.pdas_seleccionados.length
-      })
-
       // Crear el proyecto en la base de datos (esto incluye generación de contenido con IA)
-      console.log('📡 [UI] Llamando a crearProyecto')
       const resultado = await crearProyecto({
         nombre: wizardData.nombre,
         problematica: wizardData.problematica,
@@ -146,9 +128,6 @@ export function ProyectoWizard({ onComplete, onSectionChange }: ProyectoWizardPr
       if (!resultado) {
         throw new Error(projectError || 'Error al crear el proyecto')
       }
-      
-      const totalTime = Date.now() - startTime
-      console.log(`🎉 [UI] Proyecto creado exitosamente desde UI en ${totalTime}ms`)
       
       // Mostrar mensaje de éxito
       toast({
@@ -166,9 +145,6 @@ export function ProyectoWizard({ onComplete, onSectionChange }: ProyectoWizardPr
       }
       
     } catch (error) {
-      const totalTime = Date.now() - startTime
-      console.error('❌ [UI] Error guardando proyecto:', error)
-      console.error(`⏱️ [UI] Tiempo total antes del error: ${totalTime}ms`)
       toast({
         title: "Error al crear el proyecto",
         description: error instanceof Error ? error.message : 'Error desconocido',
@@ -225,7 +201,6 @@ export function ProyectoWizard({ onComplete, onSectionChange }: ProyectoWizardPr
                 <div className="flex flex-col sm:flex-row gap-3 justify-center">
                   <button
                     onClick={() => {
-                      console.log('🚀 [UI] Usuario quiere hacer upgrade desde límite alcanzado')
                       window.open('/pricing', '_blank')
                     }}
                     className="bg-blue-600 text-white px-6 py-3 rounded-lg font-medium hover:bg-blue-700 transition-colors"

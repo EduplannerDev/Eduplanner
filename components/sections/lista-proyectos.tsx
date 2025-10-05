@@ -53,7 +53,6 @@ export function ListaProyectos() {
 
   useEffect(() => {
     if (initialLoad) {
-      console.log('🚀 [LISTA] Inicializando componente, usuario:', user?.id)
       cargarProyectos()
       cargarLimitesProyectos()
       setInitialLoad(false)
@@ -72,23 +71,17 @@ export function ListaProyectos() {
   }
 
   const cargarProyectos = async () => {
-    console.log('🔄 [LISTA] Iniciando carga de proyectos...')
     try {
       const proyectosData = await obtenerProyectos()
-      console.log('📊 [LISTA] Proyectos cargados:', proyectosData.length, 'elementos')
-      console.log('📋 [LISTA] Detalles de proyectos:', proyectosData.map(p => ({ id: p.id, nombre: p.nombre })))
       setProyectos(proyectosData)
     } catch (error) {
-      console.error('❌ [LISTA] Error cargando proyectos:', error)
+      // Error handling is done in the hook
     }
   }
 
   const handleCrearNuevo = () => {
     // Verificar límites antes de permitir crear proyecto
     if (projectLimits && !projectLimits.canCreate) {
-      console.log('⚠️ [LISTA] Usuario ha alcanzado límite de proyectos')
-      console.log('📊 [LISTA] Límites actuales:', projectLimits)
-      
       toast({
         title: "🎉 ¡Felicitaciones! Has creado tu proyecto.",
         description: `Has alcanzado el límite de ${projectLimits.limit} proyectos en el plan gratuito. 💫 Desbloquea tu potencial educativo con PRO: crea proyectos ilimitados y desarrolla experiencias de aprendizaje innovadoras.`,
@@ -97,7 +90,6 @@ export function ListaProyectos() {
         action: (
           <button 
             onClick={() => {
-              console.log('🚀 [LISTA] Usuario quiere hacer upgrade a PRO')
               window.open('/pricing', '_blank')
             }}
             className="bg-blue-600 text-white px-3 py-1 rounded text-sm hover:bg-blue-700"
@@ -109,7 +101,6 @@ export function ListaProyectos() {
       return
     }
     
-    console.log('✅ [LISTA] Límites verificados, navegando a crear proyecto')
     // Navegar al módulo de crear proyecto
     router.push('/?section=crear-proyecto')
   }
@@ -272,7 +263,6 @@ export function ListaProyectos() {
                       </div>
                       <button
                         onClick={() => {
-                          console.log('🚀 [LISTA] Usuario quiere hacer upgrade desde límite alcanzado')
                           window.open('/pricing', '_blank')
                         }}
                         className="bg-blue-600 text-white px-3 py-1 rounded text-sm hover:bg-blue-700 transition-colors"

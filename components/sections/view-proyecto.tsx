@@ -33,6 +33,7 @@ import { Textarea } from "@/components/ui/textarea"
 import { Checkbox } from "@/components/ui/checkbox"
 import { ScrollArea } from "@/components/ui/scroll-area"
 import { generateRubricaPDF, generateListaCotejoPDF } from "@/lib/pdf-generator"
+import { ProyectoRecursos } from "./proyecto-recursos"
 
 interface ViewProyectoProps {
   proyectoId: string
@@ -887,22 +888,7 @@ export function ViewProyecto({ proyectoId, onBack }: ViewProyectoProps) {
 
           {/* Pestaña: Recursos */}
           <TabsContent value="recursos" className="mt-6">
-            <Card className="dark:bg-gray-800">
-              <CardHeader>
-                <CardTitle className="flex items-center">
-                  <FolderOpen className="h-5 w-5 mr-2 text-green-600" />
-                  Recursos del Proyecto
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="text-center py-12 text-gray-500">
-                  <FolderOpen className="h-16 w-16 mx-auto mb-4 text-gray-300" />
-                  <h3 className="text-lg font-medium mb-2">Recursos del Proyecto</h3>
-                  <p className="mb-4">Esta funcionalidad estará disponible en el Módulo 4.</p>
-                  <p className="text-sm">Aquí podrás gestionar materiales, archivos y recursos relacionados con el proyecto.</p>
-                </div>
-              </CardContent>
-            </Card>
+            <ProyectoRecursos proyectoId={proyectoId} />
           </TabsContent>
         </Tabs>
     
