@@ -48,7 +48,7 @@ CREATE POLICY "documentation_insert_policy" ON documentation_embeddings
         EXISTS (
             SELECT 1 FROM profiles 
             WHERE profiles.id = auth.uid() 
-            AND profiles.role = 'admin'
+            AND profiles.role = 'administrador'
         )
     );
 
@@ -58,7 +58,7 @@ CREATE POLICY "documentation_update_policy" ON documentation_embeddings
         EXISTS (
             SELECT 1 FROM profiles 
             WHERE profiles.id = auth.uid() 
-            AND profiles.role = 'admin'
+            AND profiles.role = 'administrador'
         )
     );
 

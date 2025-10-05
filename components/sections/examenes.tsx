@@ -13,7 +13,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { useProfile } from "@/hooks/use-profile";
-import { isUserPro } from "@/lib/subscription-utils";
+import { isUserPro, canUserCreate } from "@/lib/subscription-utils";
 import GenerarExamen from './generar-examen';
 import ViewExamen from './view-examen';
 import EditExamen from './edit-examen';
@@ -27,6 +27,7 @@ const Examenes = () => {
   const [showGenerarExamen, setShowGenerarExamen] = useState(false);
   const [generatingPDF, setGeneratingPDF] = useState<string | null>(null);
   const [generatingAnswerSheet, setGeneratingAnswerSheet] = useState<string | null>(null);
+  const [examLimits, setExamLimits] = useState<{ canCreate: boolean; currentCount: number; limit: number } | null>(null);
 
   const [selectedExamenId, setSelectedExamenId] = useState<string | null>(null);
   const [viewMode, setViewMode] = useState<"list" | "view" | "edit">("list");
@@ -59,6 +60,22 @@ const Examenes = () => {
     }
   }, [viewMode, showGenerarExamen, fetchExamenes]);
 
+  // Cargar límites de exámenes
+  useEffect(() => {
+    const fetchExamLimits = async () => {
+      if (!user?.id) return;
+
+      try {
+        const limits = await canUserCreate(user.id, 'examenes');
+        setExamLimits(limits);
+      } catch (err) {
+        console.error("Error fetching exam limits:", err);
+      }
+    };
+
+    fetchExamLimits();
+  }, [user]);
+
   const handleViewExamen = (examenId: string) => {
     setSelectedExamenId(examenId);
     setViewMode("view");
@@ -81,6 +98,17 @@ const Examenes = () => {
 
   const handleEditExamenSuccess = () => {
     setViewMode("list");
+  };
+
+  const handleNewExamClick = () => {
+    // Verificar límites antes de permitir crear examen
+    if (examLimits && !examLimits.canCreate) {
+      const limitText = examLimits.limit === -1 ? 'ilimitados' : examLimits.limit.toString();
+      alert(`Has alcanzado el límite de exámenes (${examLimits.currentCount}/${limitText}). Actualiza a PRO para crear exámenes ilimitados.`);
+      return;
+    }
+    
+    setShowGenerarExamen(true);
   };
 
   const handleDownloadPDF = async (examen: Examen, event: React.MouseEvent) => {
@@ -195,8 +223,19 @@ const Examenes = () => {
         <div>
           <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100">Mis Exámenes</h1>
           <p className="text-gray-600 mt-2">Gestiona y edita tus exámenes</p>
+          {/* Información de límites */}
+          {examLimits && (
+            <div className="mt-2 p-2 bg-gray-50 border border-gray-200 rounded-lg dark:bg-gray-800 dark:border-gray-700">
+              <p className="text-sm text-gray-600 dark:text-gray-400">
+                <strong>Límite de exámenes:</strong> {examLimits.currentCount}/{examLimits.limit === -1 ? 'ilimitados' : examLimits.limit}
+                {examLimits.limit !== -1 && examLimits.currentCount >= examLimits.limit && (
+                  <span className="text-red-600 dark:text-red-400 ml-2">⚠️ Límite alcanzado</span>
+                )}
+              </p>
+            </div>
+          )}
         </div>
-        <Button onClick={() => setShowGenerarExamen(true)}>
+        <Button onClick={handleNewExamClick} disabled={examLimits && !examLimits.canCreate}>
           <Plus className="mr-2 h-4 w-4" />
           Nuevo Examen
         </Button>
@@ -208,7 +247,7 @@ const Examenes = () => {
             <FileTextIcon className="h-12 w-12 text-gray-400 mx-auto mb-4" />
             <h3 className="text-lg font-medium text-gray-900 dark:text-gray-100 mb-2">No tienes exámenes aún</h3>
             <p className="text-gray-600 mb-4">Comienza creando tu primer examen</p>
-            <Button onClick={() => setShowGenerarExamen(true)}>
+            <Button onClick={handleNewExamClick} disabled={examLimits && !examLimits.canCreate}>
               <Plus className="mr-2 h-4 w-4" />
               Crear Primer Examen
             </Button>

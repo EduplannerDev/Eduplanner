@@ -165,7 +165,7 @@ BEGIN
         RETURN QUERY SELECT -1, -1, -1;
     ELSE
         -- Límites para usuarios free
-        RETURN QUERY SELECT 5, 3, 10;
+        RETURN QUERY SELECT 5, 2, 10;
     END IF;
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;

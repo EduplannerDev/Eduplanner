@@ -25,10 +25,57 @@ EduPlanner es una plataforma web moderna diseñada para ayudar a educadores a cr
 - **Asistente Educativo**: Chat interactivo para consultas pedagógicas
 - **Sugerencias Personalizadas**: Recomendaciones basadas en tu perfil
 
+### 🏢 Administración y Gestión de Planteles
+- **Gestión de Planteles**: Administra múltiples planteles educativos
+- **Asignación de Usuarios**: Asigna profesores y directores a planteles específicos
+- **Límites de Usuarios**: Control de límites por plantel (profesores y directores)
+- **Estadísticas de Plantel**: Dashboard con métricas y estadísticas por plantel
+- **Roles y Permisos**: Sistema de roles (Administrador, Director, Profesor)
+
+### 📊 Dosificación Curricular y Seguimiento
+- **Distribución Temporal**: Organiza contenidos por trimestres de forma inteligente
+- **Seguimiento Académico**: Monitoreo del progreso curricular por campo formativo
+- **Campos Formativos**: Gestión de los 4 campos formativos del NMCM
+- **Estadísticas de Progreso**: Dashboard con porcentajes de avance por trimestre
+- **Acciones Sugeridas**: Recomendaciones automáticas basadas en el progreso
+
+### 👥 Gestión de Grupos y Alumnos
+- **Crear Grupos**: Organiza estudiantes por grado y ciclo escolar
+- **Gestión de Alumnos**: Registro completo de información estudiantil
+- **Información de Padres**: Datos de contacto y comunicación con familias
+- **Expedientes Individuales**: Seguimiento personalizado por alumno
+- **Notas y Observaciones**: Registro de seguimiento académico y conductual
+
+### 📋 Sistema de Asistencia
+- **Tomar Asistencia**: Registro diario de asistencia por grupo
+- **Estados de Asistencia**: Presente, ausente, retardo, justificado
+- **Estadísticas de Asistencia**: Reportes y análisis de asistencia
+- **Historial de Asistencia**: Seguimiento temporal por alumno
+
+### 🎯 Proyectos Educativos
+- **Asistente de Proyectos**: Creación de proyectos con IA en 3 fases
+- **Gestión de Proyectos**: Administración completa de proyectos educativos
+- **Fases y Momentos**: Estructura automática generada por IA
+- **Seguimiento de Proyectos**: Monitoreo del progreso y estado
+
+### 📝 Instrumentos de Evaluación
+- **Rúbricas Analíticas**: Generación automática de rúbricas con IA
+- **Listas de Cotejo**: Instrumentos de evaluación personalizados
+- **Escalas de Estimación**: Herramientas de evaluación variadas
+- **Gestión de Instrumentos**: Administración y organización de evaluaciones
+
+### 📅 Calendario y Eventos Escolares
+- **Calendario Interactivo**: Gestión de eventos con FullCalendar
+- **Eventos Escolares**: Importación automática del calendario SEP
+- **Vinculación de Contenidos**: Conexión con planeaciones y exámenes
+- **Categorización**: Organización por tipos de eventos
+- **Generación Automática**: Eventos del calendario escolar oficial
+
 ### 👤 Gestión de Perfil
 - **Perfil Personalizado**: Configura tu información personal y profesional
 - **Suscripciones**: Gestión de planes y pagos con Stripe
 - **Feedback**: Sistema de retroalimentación integrado
+- **Sistema de Invitaciones**: Invitación de usuarios por email con roles específicos
 
 ## 🛠️ Tecnologías Utilizadas
 
@@ -39,31 +86,45 @@ EduPlanner es una plataforma web moderna diseñada para ayudar a educadores a cr
 - **Tailwind CSS** - Framework de estilos utilitarios
 - **Radix UI** - Componentes de interfaz accesibles
 - **Lucide React** - Iconografía moderna
+- **FullCalendar** - Calendario interactivo
+- **Recharts** - Gráficos y visualizaciones
+- **TipTap** - Editor de texto enriquecido
 
 ### Backend & Base de Datos
 - **Supabase** - Backend como servicio (BaaS)
 - **PostgreSQL** - Base de datos relacional
 - **Supabase Auth** - Autenticación y autorización
+- **Row Level Security (RLS)** - Seguridad a nivel de fila
 
 ### Inteligencia Artificial
 - **OpenAI API** - Generación de contenido educativo
-- **Google AI SDK** - Servicios adicionales de IA
+- **Google AI SDK (Gemini)** - Servicios adicionales de IA
 - **Vercel AI SDK** - Integración de IA optimizada
+- **Sistema de Embeddings** - Búsqueda semántica de documentación
 
 ### Generación de Documentos
 - **docx** - Generación de documentos Word
 - **jsPDF** - Creación de archivos PDF
 - **PptxGenJS** - Generación de presentaciones PowerPoint
+- **html2pdf.js** - Conversión HTML a PDF
+- **Puppeteer** - Generación de PDFs avanzada
 
 ### Pagos y Comunicación
 - **Stripe** - Procesamiento de pagos
 - **Resend** - Servicio de email transaccional
+
+### Calendario y Eventos
+- **FullCalendar** - Calendario interactivo completo
+- **iCal** - Importación de calendarios escolares
+- **Date-fns** - Manipulación de fechas
 
 ### Herramientas de Desarrollo
 - **React Hook Form** - Manejo de formularios
 - **Zod** - Validación de esquemas
 - **SweetAlert2** - Alertas y modales elegantes
 - **Sonner** - Notificaciones toast
+- **Microsoft Clarity** - Analytics y monitoreo
+- **Vercel Analytics** - Métricas de rendimiento
 
 ## 🚀 Instalación y Configuración
 
@@ -144,9 +205,12 @@ La aplicación estará disponible en `http://localhost:3000`
 - `npm run lint` - Ejecuta el linter
 - `npm run docs` - Inicia el servidor de documentación API
 - `npm run docs:install` - Instala dependencias para documentación
+- `npm run docs:build` - Genera documentación en formato YAML
+- `npm run import-calendar` - Importa calendario escolar oficial
 
-## 📖 Documentación API
+## 📖 Documentación
 
+### Documentación API
 La documentación de la API está disponible en formato Swagger:
 
 1. **Instalar dependencias de documentación**:
@@ -163,28 +227,82 @@ npm run docs
    - Swagger UI: `http://localhost:3001`
    - Archivo YAML: `swagger.yaml`
 
+### Flujos de Usuario Documentados
+El proyecto incluye documentación detallada de flujos de usuario en `docs/flujos/`:
+
+- **COMO_CREAR_PLANEACION.txt** - Guía completa para crear planeaciones didácticas
+- **COMO_GENERAR_EXAMEN.txt** - Proceso para generar exámenes con IA
+- **COMO_CREAR_PROYECTO.txt** - Creación de proyectos educativos en 3 fases
+- **COMO_GESTIONAR_MIS_PROYECTOS.txt** - Administración de proyectos e instrumentos
+- **COMO_USAR_DOSIFICACION.txt** - Uso del módulo de dosificación curricular
+
+### Sistema de Documentación Vectorizada
+- **Búsqueda Semántica**: Sistema inteligente de búsqueda en documentación
+- **Embeddings**: Procesamiento automático de contenido educativo
+- **Filtrado por Módulo**: Búsqueda específica por funcionalidad
+- **Extracción de Palabras Clave**: Identificación automática de términos relevantes
+
+### Documentación Técnica
+- **CONFIGURACION_CORREOS.md** - Configuración del sistema de emails
+- **MODULO_CORREOS.md** - Documentación del módulo de comunicación
+- **NOTIFICATIONS.md** - Sistema de notificaciones
+
 ## 🏗️ Estructura del Proyecto
 
 ```
 eduplanner/
 ├── app/                    # App Router de Next.js
 │   ├── api/               # Rutas de API
+│   │   ├── chat/          # Chat con IA
+│   │   ├── generate-*/    # Generadores de contenido
+│   │   ├── proyectos/     # API de proyectos educativos
+│   │   ├── instrumentos-evaluacion/ # Instrumentos de evaluación
+│   │   ├── stripe/        # Integración de pagos
+│   │   └── invite-user/   # Sistema de invitaciones
 │   ├── globals.css        # Estilos globales
 │   ├── layout.tsx         # Layout principal
 │   └── page.tsx           # Página de inicio
 ├── components/            # Componentes React
 │   ├── sections/          # Secciones de la aplicación
+│   │   ├── admin-*.tsx    # Componentes de administración
+│   │   ├── dosificacion.tsx # Módulo de dosificación
+│   │   ├── gestionar-*.tsx # Gestión de grupos y alumnos
+│   │   ├── proyecto-*.tsx # Componentes de proyectos
+│   │   ├── agenda.tsx     # Calendario y eventos
+│   │   └── expediente-alumno.tsx # Expedientes estudiantiles
 │   ├── ui/               # Componentes de UI reutilizables
 │   ├── app-sidebar.tsx   # Sidebar principal
 │   └── dashboard.tsx     # Dashboard principal
 ├── hooks/                # Custom hooks
+│   ├── use-auth.ts       # Autenticación
+│   ├── use-roles.ts      # Gestión de roles
+│   ├── use-proyectos.ts  # Hook de proyectos
+│   └── use-documentation-search.ts # Búsqueda semántica
 ├── lib/                  # Utilidades y configuraciones
-│   ├── supabase/         # Configuración de Supabase
+│   ├── supabase.ts       # Configuración de Supabase
 │   ├── docx-generator.ts # Generador de documentos Word
 │   ├── pdf-generator.ts  # Generador de PDFs
-│   └── pptx-generator.ts # Generador de PowerPoint
+│   ├── pptx-generator.ts # Generador de PowerPoint
+│   ├── planteles.ts      # Gestión de planteles
+│   ├── grupos.ts         # Gestión de grupos
+│   ├── alumnos.ts        # Gestión de alumnos
+│   ├── asistencia.ts     # Sistema de asistencia
+│   ├── proyectos.ts      # Gestión de proyectos
+│   ├── events.ts         # Calendario y eventos
+│   └── invitations.ts    # Sistema de invitaciones
+├── docs/                 # Documentación del proyecto
+│   ├── flujos/           # Flujos de usuario documentados
+│   ├── CONFIGURACION_CORREOS.md
+│   ├── MODULO_CORREOS.md
+│   └── NOTIFICATIONS.md
 ├── public/               # Archivos estáticos
 ├── supabase/            # Migraciones de base de datos
+│   ├── migrations/      # Archivos SQL de migración
+│   └── config.toml      # Configuración de Supabase
+├── scripts/             # Scripts de utilidad
+│   ├── import-school-calendar.ts # Importación de calendario
+│   ├── generate-curriculo-embeddings.ts # Embeddings curriculares
+│   └── serve-docs.js    # Servidor de documentación
 └── styles/              # Estilos adicionales
 ```
 

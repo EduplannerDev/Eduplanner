@@ -1,10 +1,13 @@
--- Migración: Agregar metadatos para embeddings vectoriales en curriculo_sep
+-- Migración: Agregar embeddings vectoriales en curriculo_sep
 -- =====================================================
--- Esta migración agrega campos de metadatos para los embeddings
--- (La columna embedding vector(1536) ya fue agregada manualmente)
+-- Esta migración agrega la columna embedding y campos de metadatos
 
--- 1. AGREGAR CAMPOS DE METADATOS DEL EMBEDDING
+-- 1. AGREGAR COLUMNA EMBEDDING Y METADATOS
 -- =====================================================
+-- Columna principal para almacenar embeddings vectoriales
+ALTER TABLE curriculo_sep 
+ADD COLUMN IF NOT EXISTS embedding vector(1536);
+
 -- Información sobre el modelo usado para generar el embedding
 ALTER TABLE curriculo_sep 
 ADD COLUMN IF NOT EXISTS embedding_model VARCHAR(100);
@@ -97,8 +100,8 @@ $$ LANGUAGE plpgsql SECURITY DEFINER;
 COMMENT ON COLUMN curriculo_sep.embedding IS 'Embedding vectorial para búsquedas semánticas (1536 dimensiones)';
 COMMENT ON COLUMN curriculo_sep.embedding_model IS 'Modelo usado para generar el embedding';
 COMMENT ON COLUMN curriculo_sep.embedding_created_at IS 'Fecha y hora de creación del embedding';
-COMMENT ON FUNCTION get_curriculo_without_embeddings IS 'Obtiene registros que necesitan generar embeddings';
-COMMENT ON FUNCTION update_curriculo_embedding_metadata IS 'Actualiza los metadatos del embedding';
+COMMENT ON FUNCTION get_curriculo_without_embeddings() IS 'Obtiene registros que necesitan generar embeddings';
+COMMENT ON FUNCTION update_curriculo_embedding_metadata(UUID, VARCHAR) IS 'Actualiza los metadatos del embedding';
 
 -- 5. MENSAJE DE FINALIZACIÓN
 -- =====================================================

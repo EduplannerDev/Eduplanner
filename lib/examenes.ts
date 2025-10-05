@@ -89,6 +89,21 @@ export async function createExamen(examenData: Omit<Examen, 'id' | 'created_at' 
       return null;
     }
 
+    // Insertar registro en exam_creations para rastrear límites lifetime
+    const { error: creationError } = await supabase
+      .from("exam_creations")
+      .insert({
+        user_id: examenData.owner_id,
+        exam_id: data.id,
+        created_at: data.created_at
+      });
+
+    if (creationError) {
+      console.error("Error creating exam creation record:", creationError);
+      // No retornamos null aquí porque el examen ya se creó exitosamente
+      // Solo logueamos el error para debugging
+    }
+
     return data as Examen;
   } catch (error) {
     console.error("Error in createExamen:", error);

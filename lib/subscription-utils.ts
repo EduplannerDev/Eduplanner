@@ -64,7 +64,7 @@ export function getUserLimits(profile: Profile): UserLimits {
   
   return {
     planeaciones_limit: 5,
-    examenes_limit: 3,
+    examenes_limit: 2,
     mensajes_limit: 10
   };
 }
@@ -152,9 +152,9 @@ export async function canUserCreate(
         
       case 'examenes':
         limit = limits.examenes_limit;
-        // Contar exámenes actuales
+        // Contar exámenes creados lifetime desde exam_creations
         const { count: examenesCount } = await supabase
-          .from('examenes')
+          .from('exam_creations')
           .select('*', { count: 'exact', head: true })
           .eq('user_id', userId);
         currentCount = examenesCount || 0;

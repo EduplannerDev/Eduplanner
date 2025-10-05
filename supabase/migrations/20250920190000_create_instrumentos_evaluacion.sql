@@ -1,5 +1,5 @@
 -- Migración: Crear tabla de instrumentos de evaluación
--- Fecha: 2025-01-27 21:00:00
+-- Fecha: 2025-09-20 19:00:00
 -- Descripción: Tabla para almacenar rúbricas analíticas y otros instrumentos de evaluación generados por IA
 
 -- Crear ENUM para tipos de instrumentos
@@ -9,49 +9,27 @@ CREATE TYPE instrumento_tipo AS ENUM (
   'escala_estimacion'
 );
 
--- Verificar si la tabla proyectos existe primero
-DO $$
-BEGIN
-    IF NOT EXISTS (
-        SELECT 1 FROM information_schema.tables 
-        WHERE table_name = 'proyectos'
-    ) THEN
-        RAISE NOTICE 'Tabla proyectos no existe, saltando migración de instrumentos de evaluación';
-        RETURN;
-    END IF;
-    
-    -- Crear tabla de instrumentos de evaluación                                                    
-    CREATE TABLE IF NOT EXISTS instrumentos_evaluacion (                                                          
-      id UUID DEFAULT gen_random_uuid() PRIMARY KEY,                                                
-      proyecto_id UUID NOT NULL REFERENCES proyectos(id) ON DELETE CASCADE,                         
-      profesor_id UUID NOT NULL REFERENCES profiles(id) ON DELETE CASCADE,                          
-      tipo instrumento_tipo NOT NULL DEFAULT 'rubrica_analitica',                                   
-      titulo TEXT NOT NULL,                                                                         
-      contenido JSONB NOT NULL,                                                                     
-      estado TEXT NOT NULL DEFAULT 'borrador' CHECK (estado IN ('borrador', 'activo', 'archivado')),
-      created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),                                            
-      updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()                                             
-    );
-    
-    RAISE NOTICE 'Tabla instrumentos_evaluacion creada exitosamente';
-END $$;
+-- Crear tabla de instrumentos de evaluación
+CREATE TABLE IF NOT EXISTS instrumentos_evaluacion (
+  id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+  proyecto_id UUID NOT NULL REFERENCES proyectos(id) ON DELETE CASCADE,
+  profesor_id UUID NOT NULL REFERENCES profiles(id) ON DELETE CASCADE,
+  tipo instrumento_tipo NOT NULL DEFAULT 'rubrica_analitica',
+  titulo TEXT NOT NULL,
+  contenido JSONB NOT NULL,
+  estado TEXT NOT NULL DEFAULT 'borrador' CHECK (estado IN ('borrador', 'activo', 'archivado')),
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+  updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
 
 -- Crear índices para optimizar consultas
-CREATE INDEX idx_instrumentos_evaluacion_proyecto_id ON instrumentos_evaluacion(proyecto_id);
-CREATE INDEX idx_instrumentos_evaluacion_profesor_id ON instrumentos_evaluacion(profesor_id);
-CREATE INDEX idx_instrumentos_evaluacion_tipo ON instrumentos_evaluacion(tipo);
-CREATE INDEX idx_instrumentos_evaluacion_estado ON instrumentos_evaluacion(estado);
-CREATE INDEX idx_instrumentos_evaluacion_created_at ON instrumentos_evaluacion(created_at);
+CREATE INDEX IF NOT EXISTS idx_instrumentos_evaluacion_proyecto_id ON instrumentos_evaluacion(proyecto_id);
+CREATE INDEX IF NOT EXISTS idx_instrumentos_evaluacion_profesor_id ON instrumentos_evaluacion(profesor_id);
+CREATE INDEX IF NOT EXISTS idx_instrumentos_evaluacion_tipo ON instrumentos_evaluacion(tipo);
+CREATE INDEX IF NOT EXISTS idx_instrumentos_evaluacion_estado ON instrumentos_evaluacion(estado);
+CREATE INDEX IF NOT EXISTS idx_instrumentos_evaluacion_created_at ON instrumentos_evaluacion(created_at);
 
 -- Trigger para actualizar updated_at automáticamente
-CREATE OR REPLACE FUNCTION update_updated_at_column()
-RETURNS TRIGGER AS $$
-BEGIN
-  NEW.updated_at = NOW();
-  RETURN NEW;
-END;
-$$ language 'plpgsql';
-
 CREATE TRIGGER update_instrumentos_evaluacion_updated_at
   BEFORE UPDATE ON instrumentos_evaluacion
   FOR EACH ROW
@@ -94,7 +72,7 @@ CREATE POLICY "Administradores pueden gestionar todos los instrumentos" ON instr
     EXISTS (
       SELECT 1 FROM profiles
       WHERE id = auth.uid() 
-      AND role = 'admin'
+      AND role = 'administrador'
     )
   );
 
@@ -169,3 +147,11 @@ BEGIN
   ORDER BY ie.created_at DESC;
 END;
 $$;
+
+-- Mensaje de finalización
+DO $$
+BEGIN
+    RAISE NOTICE 'Tabla instrumentos_evaluacion creada exitosamente';
+    RAISE NOTICE 'Funciones creadas: get_project_instruments, get_professor_instruments';
+    RAISE NOTICE 'Políticas RLS configuradas para profesores y administradores';
+END $$;

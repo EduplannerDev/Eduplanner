@@ -5,6 +5,7 @@ import { useAuth } from '@/hooks/use-auth';
 import { getPlaneaciones } from '@/lib/planeaciones';
 import { Loader2 } from 'lucide-react';
 import { useNotification } from '@/hooks/use-notification';
+import { canUserCreate } from '@/lib/subscription-utils';
 import {
   AlertDialog,
   AlertDialogContent,
@@ -41,7 +42,7 @@ export const GenerarExamen: React.FC<GenerarExamenProps> = ({ onBack, onSaveSucc
   const [additionalInstructions, setAdditionalInstructions] = useState('');
   const [examenGenerado, setExamenGenerado] = useState<string | null>(null);
   const [isGeneratingExam, setIsGeneratingExam] = useState(false);
-
+  const [examLimits, setExamLimits] = useState<{ canCreate: boolean; currentCount: number; limit: number } | null>(null);
 
   // Paginación
   const [currentPage, setCurrentPage] = useState(1);
@@ -69,6 +70,22 @@ export const GenerarExamen: React.FC<GenerarExamenProps> = ({ onBack, onSaveSucc
     fetchPlaneaciones();
   }, [user, currentPage]);
 
+  // Cargar límites de exámenes
+  useEffect(() => {
+    const fetchExamLimits = async () => {
+      if (!user?.id) return;
+
+      try {
+        const limits = await canUserCreate(user.id, 'examenes');
+        setExamLimits(limits);
+      } catch (err) {
+        console.error("Error fetching exam limits:", err);
+      }
+    };
+
+    fetchExamLimits();
+  }, [user]);
+
   const handleSelectPlaneacion = (id: string) => {
     setSelectedPlaneaciones((prevSelected) =>
       prevSelected.includes(id) ? prevSelected.filter((pId) => pId !== id) : [...prevSelected, id]
@@ -76,6 +93,15 @@ export const GenerarExamen: React.FC<GenerarExamenProps> = ({ onBack, onSaveSucc
   };
 
   const handleGenerarExamenClick = () => {
+    // Verificar límites antes de permitir generar examen
+    if (examLimits && !examLimits.canCreate) {
+      const limitText = examLimits.limit === -1 ? 'ilimitados' : examLimits.limit.toString();
+      error(`Has alcanzado el límite de exámenes (${examLimits.currentCount}/${limitText}). Actualiza a PRO para crear exámenes ilimitados.`, {
+        title: "Límite alcanzado"
+      });
+      return;
+    }
+    
     setShowInstructionsModal(true);
   };
 
@@ -241,6 +267,18 @@ export const GenerarExamen: React.FC<GenerarExamenProps> = ({ onBack, onSaveSucc
       <p className="text-sm text-gray-600 mb-4 bg-blue-50 border border-blue-200 rounded-lg p-3 dark:bg-blue-950 dark:border-blue-900 dark:text-blue-300">
         💡 Al seleccionar varias planeaciones, se generará un examen que integre los temas de todas ellas, ideal para evaluaciones bimestrales o finales.
       </p>
+      
+      {/* Información de límites */}
+      {examLimits && (
+        <div className="mb-4 p-3 bg-gray-50 border border-gray-200 rounded-lg dark:bg-gray-800 dark:border-gray-700">
+          <p className="text-sm text-gray-600 dark:text-gray-400">
+            <strong>Límite de exámenes:</strong> {examLimits.currentCount}/{examLimits.limit === -1 ? 'ilimitados' : examLimits.limit}
+            {examLimits.limit !== -1 && examLimits.currentCount >= examLimits.limit && (
+              <span className="text-red-600 dark:text-red-400 ml-2">⚠️ Límite alcanzado</span>
+            )}
+          </p>
+        </div>
+      )}
       <Button onClick={onBack} className="mb-4">Volver a Mis Exámenes</Button>
 
       {planeaciones.length === 0 ? (
@@ -284,7 +322,7 @@ export const GenerarExamen: React.FC<GenerarExamenProps> = ({ onBack, onSaveSucc
 
       <Button
         className="mt-4"
-        disabled={selectedPlaneaciones.length === 0}
+        disabled={selectedPlaneaciones.length === 0 || (examLimits && !examLimits.canCreate)}
         onClick={handleGenerarExamenClick}
       >
         Generar Examen con {selectedPlaneaciones.length} Planeación(es)
