@@ -44,7 +44,9 @@ export async function POST(req: NextRequest) {
         '--no-sandbox',
         '--disable-setuid-sandbox',
         '--disable-dev-shm-usage'
-      ]
+      ],
+      // Usar la versión de Chrome instalada automáticamente
+      executablePath: process.env.PUPPETEER_EXECUTABLE_PATH || undefined
     }
 
     // Lanzar Puppeteer con configuración optimizada
