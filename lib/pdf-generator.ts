@@ -350,84 +350,40 @@ async function generatePDFFromHTML(content: string, title: string, filename: str
       }
     };
 
-    await generatePDFWithPuppeteer(htmlContent, filename, options);
+    // Llamar a la API de Puppeteer
+    const response = await fetch('/api/generate-pdf', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        html: htmlContent,
+        filename: filename,
+        options: options
+      })
+    });
+
+    if (!response.ok) {
+      throw new Error(`Puppeteer API failed: ${response.statusText}`);
+    }
+
+    // Descargar el PDF
+    const blob = await response.blob();
+    const url = window.URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = filename;
+    document.body.appendChild(a);
+    a.click();
+    window.URL.revokeObjectURL(url);
+    document.body.removeChild(a);
+
     console.log('PDF generado exitosamente con Puppeteer');
   } catch (error) {
-    console.warn('Puppeteer falló, usando fallback html2canvas:', error);
-    
-    // Fallback a html2canvas
-    const htmlContent = createPDFHtml(content, title, isAnswerSheet);
-    
-    // Configuración mejorada para html2pdf
-    const options = {
-      margin: [15, 15, 15, 15],
-      filename: filename,
-      image: { type: 'jpeg', quality: 0.95 },
-      html2canvas: { 
-        scale: 3, // Aumentar la escala para mejor calidad
-        useCORS: true,
-        allowTaint: true,
-        backgroundColor: '#ffffff',
-        height: null,
-        width: null,
-        letterRendering: true,
-        logging: false,
-        scrollX: 0,
-        scrollY: 0,
-        windowWidth: 1200,
-        windowHeight: 800
-      },
-      jsPDF: { 
-        unit: 'mm', 
-        format: 'a4', 
-        orientation: 'portrait',
-        compress: false, // Desactivar compresión para mejor calidad
-        precision: 2
-      },
-      pagebreak: { 
-        mode: ['avoid-all', 'css', 'legacy'],
-        before: '.page-break-before',
-        after: '.page-break-after',
-        avoid: '.no-break'
-      },
-      enableLinks: false
-    };
-
-    // Crear elemento temporal para el HTML
-    const element = document.createElement('div');
-    element.innerHTML = htmlContent;
-    element.style.width = '210mm';
-    element.style.minHeight = 'auto';
-    element.style.overflow = 'visible';
-    element.style.pageBreakInside = 'avoid';
-    element.style.maxWidth = '100%';
-    element.style.wordWrap = 'break-word';
-    element.style.overflowWrap = 'break-word';
-    
-    // Importación dinámica de html2pdf para evitar errores SSR
-    import('html2pdf.js').then((html2pdfModule) => {
-      const html2pdf = html2pdfModule.default;
-      
-      // Generar PDF
-       html2pdf()
-         .set(options)
-         .from(element)
-         .save()
-         .then(() => {
-       
-           // Limpiar elemento temporal
-           element.remove();
-         })
-         .catch((error: any) => {
-           console.error('Error generando PDF:', error);
-           element.remove();
-         });
-     }).catch((error) => {
-       console.error('Error importando html2pdf:', error);
-       element.remove();
-     });
-   }
- }
+    console.error('Error generando PDF con Puppeteer:', error);
+    throw error;
+  }
+}
 
 export async function generateExamPDF(examen: any): Promise<void> {
   let examContent: string;
@@ -948,43 +904,12 @@ async function generateListaCotejoPDFPuppeteer(instrumento: any): Promise<void> 
 
 export async function generatePlaneacionPDF(planeacion: any): Promise<void> {
   try {
-    // Intentar primero con Puppeteer (alta calidad)
+    // Usar solo Puppeteer (alta calidad)
     await generatePlaneacionPDFPuppeteer(planeacion);
     console.log('PDF de planeación generado exitosamente con Puppeteer');
   } catch (error) {
-    console.warn('Puppeteer falló para planeación, usando fallback html2canvas:', error);
-    
-    // Fallback a html2canvas
-    let markdownContent = `# PLANEACIÓN DIDÁCTICA\n\n`;
-    
-    // Información básica
-    markdownContent += `## INFORMACIÓN GENERAL\n\n`;
-    markdownContent += `**Materia:** ${cleanMarkdown(planeacion.materia) || "No especificada"}\n\n`;
-    markdownContent += `**Grado:** ${cleanMarkdown(planeacion.grado) || "No especificado"}\n\n`;
-    markdownContent += `**Duración:** ${cleanMarkdown(planeacion.duracion) || "No especificada"}\n\n`;
-    markdownContent += `**Estado:** ${planeacion.estado.charAt(0).toUpperCase() + planeacion.estado.slice(1)}\n\n`;
-    
-    // Objetivo si existe
-    if (planeacion.objetivo) {
-      markdownContent += `## OBJETIVO DE APRENDIZAJE\n\n`;
-      markdownContent += `${cleanMarkdown(planeacion.objetivo)}\n\n`;
-    }
-    
-    // Desarrollo de la clase
-    markdownContent += `## DESARROLLO DE LA CLASE\n\n`;
-    markdownContent += `${planeacion.contenido || ''}\n\n`;
-    
-    // Información adicional
-    markdownContent += `*Fecha de creación: ${new Date(planeacion.created_at).toLocaleDateString("es-MX")}*\n`;
-    
-    // Procesar todo el contenido de manera consistente
-    const content = markdownToHtml(markdownContent);
-    
-    // Generar PDF
-    const title = cleanMarkdown(planeacion.titulo);
-    const filename = `${title.replace(/[^a-zA-Z0-9\s]/g, '').replace(/\s+/g, '_')}_Planeacion.pdf`;
-    
-    generatePDFFromHTML(content, title, filename, false);
+    console.error('Error generando PDF de planeación:', error);
+    throw error;
   }
 }
 
@@ -1050,68 +975,12 @@ async function generatePlaneacionPDFPuppeteer(planeacion: any): Promise<void> {
 
 export async function generateProyectoPDF(proyecto: any): Promise<void> {
   try {
-    // Intentar primero con Puppeteer (alta calidad)
+    // Usar solo Puppeteer (alta calidad)
     await generateProyectoPDFPuppeteer(proyecto);
     console.log('PDF de proyecto generado exitosamente con Puppeteer');
   } catch (error) {
-    console.warn('Puppeteer falló para proyecto, usando fallback html2canvas:', error);
-    
-    // Fallback a html2canvas
-    let markdownContent = `# PROYECTO EDUCATIVO\n\n`;
-    
-    // Información básica
-    markdownContent += `## INFORMACIÓN GENERAL\n\n`;
-    markdownContent += `**Nombre del Proyecto:** ${cleanMarkdown(proyecto.nombre)}\n\n`;
-    markdownContent += `**Grupo:** ${cleanMarkdown(proyecto.grupos?.nombre || "No especificado")} - ${cleanMarkdown(proyecto.grupos?.grado || "")}° ${cleanMarkdown(proyecto.grupos?.nivel || "")}\n\n`;
-    markdownContent += `**Metodología:** ${cleanMarkdown(proyecto.metodologia_nem)}\n\n`;
-    markdownContent += `**Estado:** ${proyecto.estado.charAt(0).toUpperCase() + proyecto.estado.slice(1)}\n\n`;
-    
-    // Problemática
-    markdownContent += `## PROBLEMÁTICA\n\n`;
-    markdownContent += `${cleanMarkdown(proyecto.problematica)}\n\n`;
-    
-    // Producto Final
-    markdownContent += `## PRODUCTO FINAL\n\n`;
-    markdownContent += `${cleanMarkdown(proyecto.producto_final)}\n\n`;
-    
-    // PDAs Seleccionados
-    if (proyecto.proyecto_curriculo && proyecto.proyecto_curriculo.length > 0) {
-      markdownContent += `## PDAs SELECCIONADOS\n\n`;
-      proyecto.proyecto_curriculo.forEach((pc: any) => {
-        markdownContent += `### ${cleanMarkdown(pc.curriculo_sep?.campo_formativo || "Campo Formativo")}\n\n`;
-        markdownContent += `**PDA:** ${cleanMarkdown(pc.curriculo_sep?.pda || "")}\n\n`;
-        if (pc.curriculo_sep?.contenido) {
-          markdownContent += `${cleanMarkdown(pc.curriculo_sep.contenido)}\n\n`;
-        }
-      });
-    }
-    
-    // Fases del Proyecto
-    if (proyecto.proyecto_fases && proyecto.proyecto_fases.length > 0) {
-      markdownContent += `## FASES Y MOMENTOS DEL PROYECTO\n\n`;
-      proyecto.proyecto_fases
-        .sort((a: any, b: any) => a.orden - b.orden)
-        .forEach((fase: any) => {
-          markdownContent += `### ${cleanMarkdown(fase.fase_nombre)}\n\n`;
-          markdownContent += `**${cleanMarkdown(fase.momento_nombre)}**\n\n`;
-          markdownContent += `${cleanMarkdown(fase.contenido)}\n\n`;
-        });
-    } else {
-      markdownContent += `## FASES Y MOMENTOS DEL PROYECTO\n\n`;
-      markdownContent += `No se generaron fases para este proyecto.\n\n`;
-    }
-    
-    // Información adicional
-    markdownContent += `*Fecha de creación: ${new Date(proyecto.created_at).toLocaleDateString("es-MX")}*\n`;
-    
-    // Procesar todo el contenido de manera consistente
-    const content = markdownToHtml(markdownContent);
-    
-    // Generar PDF
-    const title = cleanMarkdown(proyecto.nombre);
-    const filename = `${title.replace(/[^a-zA-Z0-9\s]/g, '').replace(/\s+/g, '_')}_Proyecto.pdf`;
-    
-    generatePDFFromHTML(content, title, filename, false);
+    console.error('Error generando PDF de proyecto:', error);
+    throw error;
   }
 }
 

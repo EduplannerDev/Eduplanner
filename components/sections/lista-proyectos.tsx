@@ -44,6 +44,7 @@ export function ListaProyectos() {
   const [selectedProyecto, setSelectedProyecto] = useState<string | null>(null)
   const [viewMode, setViewMode] = useState<"list" | "view">("list")
   const [generatingPDF, setGeneratingPDF] = useState<string | null>(null)
+  const [generatingDocx, setGeneratingDocx] = useState<string | null>(null)
   const [projectLimits, setProjectLimits] = useState<{
     canCreate: boolean;
     currentCount: number;
@@ -160,6 +161,7 @@ export function ListaProyectos() {
           variant: "default"
         })
       } else if (format === "docx") {
+        setGeneratingDocx(proyecto.id)
         // Usar la nueva función de generación de Word para proyectos
         const { generateProyectoDocx } = await import('@/lib/docx-generator')
         await generateProyectoDocx(proyecto)
@@ -179,6 +181,7 @@ export function ListaProyectos() {
       })
     } finally {
       setGeneratingPDF(null)
+      setGeneratingDocx(null)
     }
   }
 
@@ -379,41 +382,19 @@ export function ListaProyectos() {
                       <span>Ver</span>
                     </Button>
                     
-                    <DropdownMenu>
-                      <DropdownMenuTrigger asChild>
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          className="flex items-center justify-center text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 hover:bg-blue-50 dark:hover:bg-blue-900/20"
-                        >
-                          <Download className="h-3 w-3" />
-                        </Button>
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent>
-                        <DropdownMenuItem 
-                          onClick={() => handleDownload(proyecto, "pdf")}
-                          disabled={generatingPDF === proyecto.id}
-                        >
-                          {generatingPDF === proyecto.id ? (
-                            <>
-                              <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                              Generando PDF...
-                            </>
-                          ) : (
-                            "Descargar como PDF"
-                          )}
-                        </DropdownMenuItem>
-                        {profile && isUserPro(profile) ? (
-                          <DropdownMenuItem onClick={() => handleDownload(proyecto, "docx")}>
-                            Descargar para Word
-                          </DropdownMenuItem>
-                        ) : (
-                          <DropdownMenuItem disabled className="text-gray-500 dark:text-gray-400">
-                            Descargar para Word (Solo Pro)
-                          </DropdownMenuItem>
-                        )}
-                      </DropdownMenuContent>
-                    </DropdownMenu>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => handleDownload(proyecto, "pdf")}
+                      disabled={generatingPDF === proyecto.id}
+                      className="flex items-center justify-center text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 hover:bg-blue-50 dark:hover:bg-blue-900/20"
+                    >
+                      {generatingPDF === proyecto.id ? (
+                        <Loader2 className="h-3 w-3 animate-spin" />
+                      ) : (
+                        <Download className="h-3 w-3" />
+                      )}
+                    </Button>
                     
                     <AlertDialog>
                       <AlertDialogTrigger asChild>

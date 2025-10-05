@@ -29,8 +29,8 @@ export async function POST(req: NextRequest) {
       ...options
     }
 
-    // Lanzar Puppeteer con configuración optimizada
-    browser = await puppeteer.launch({
+    // Configuración para Puppeteer v24
+    const puppeteerOptions = {
       headless: 'new',
       args: [
         '--no-sandbox',
@@ -47,18 +47,23 @@ export async function POST(req: NextRequest) {
         '--disable-renderer-backgrounding'
       ],
       timeout: 30000
-    })
+    }
+
+    // Lanzar Puppeteer con configuración optimizada
+    console.log('Lanzando Puppeteer con opciones:', puppeteerOptions)
+    browser = await puppeteer.launch(puppeteerOptions)
+    console.log('Puppeteer lanzado exitosamente')
 
     page = await browser.newPage()
 
-    // Configurar viewport para mejor renderizado
+    // Configurar viewport
     await page.setViewport({
       width: defaultOptions.orientation === 'landscape' ? 1400 : 1200,
       height: defaultOptions.orientation === 'landscape' ? 900 : 1600,
-      deviceScaleFactor: 2 // Para mejor calidad
+      deviceScaleFactor: 2
     })
 
-    // Cargar el HTML con timeout optimizado
+    // Cargar el HTML
     await page.setContent(html, {
       waitUntil: ['networkidle0', 'domcontentloaded'],
       timeout: 30000
@@ -78,7 +83,7 @@ export async function POST(req: NextRequest) {
     // Esperar un poco para asegurar renderizado completo
     await new Promise(resolve => setTimeout(resolve, 1000))
 
-    // Generar PDF con configuración mejorada
+    // Generar PDF
     const pdfBuffer = await page.pdf({
       format: defaultOptions.format as any,
       landscape: defaultOptions.orientation === 'landscape',
