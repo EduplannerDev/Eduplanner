@@ -29,24 +29,14 @@ export async function POST(req: NextRequest) {
       ...options
     }
 
-    // Configuración para Puppeteer v24
+    // Configuración mínima para Puppeteer (compatible con Vercel)
     const puppeteerOptions = {
-      headless: 'new',
+      headless: true,
       args: [
         '--no-sandbox',
         '--disable-setuid-sandbox',
-        '--disable-dev-shm-usage',
-        '--disable-accelerated-2d-canvas',
-        '--no-first-run',
-        '--no-zygote',
-        '--disable-gpu',
-        '--disable-web-security',
-        '--disable-features=VizDisplayCompositor',
-        '--disable-background-timer-throttling',
-        '--disable-backgrounding-occluded-windows',
-        '--disable-renderer-backgrounding'
-      ],
-      timeout: 30000
+        '--disable-dev-shm-usage'
+      ]
     }
 
     // Lanzar Puppeteer con configuración optimizada
@@ -65,8 +55,8 @@ export async function POST(req: NextRequest) {
 
     // Cargar el HTML
     await page.setContent(html, {
-      waitUntil: ['networkidle0', 'domcontentloaded'],
-      timeout: 30000
+      waitUntil: 'domcontentloaded',
+      timeout: 15000
     })
 
     // Esperar que todo esté renderizado
@@ -81,7 +71,7 @@ export async function POST(req: NextRequest) {
     })
 
     // Esperar un poco para asegurar renderizado completo
-    await new Promise(resolve => setTimeout(resolve, 1000))
+    await new Promise(resolve => setTimeout(resolve, 500))
 
     // Generar PDF
     const pdfBuffer = await page.pdf({
@@ -90,7 +80,7 @@ export async function POST(req: NextRequest) {
       margin: defaultOptions.margin,
       printBackground: defaultOptions.printBackground,
       preferCSSPageSize: defaultOptions.preferCSSPageSize,
-      timeout: 30000,
+      timeout: 15000,
       scale: 1.0,
       displayHeaderFooter: false,
       omitBackground: false
