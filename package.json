@@ -10,7 +10,8 @@
     "docs": "node scripts/serve-docs.js",
     "docs:install": "npm install swagger-ui-express yamljs express",
     "docs:build": "echo 'Documentación generada en swagger.yaml'",
-    "import-calendar": "tsx scripts/import-school-calendar.ts"
+    "import-calendar": "tsx scripts/import-school-calendar.ts",
+    "postinstall": "npx puppeteer browsers install chrome@latest"
   },
   "dependencies": {
     "@ai-sdk/google": "latest",
