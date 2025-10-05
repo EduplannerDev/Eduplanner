@@ -7,6 +7,7 @@ export const maxDuration = 60
 export async function POST(req: NextRequest) {
   let browser = null
   let page = null
+  let pdfBuffer = null
   
   try {
     console.log('🚀 [PDF] Iniciando generación de PDF')
@@ -113,7 +114,7 @@ export async function POST(req: NextRequest) {
       printBackground: defaultOptions.printBackground
     })
     try {
-      const pdfBuffer = await page.pdf({
+      pdfBuffer = await page.pdf({
         format: defaultOptions.format as any,
         landscape: defaultOptions.orientation === 'landscape',
         margin: defaultOptions.margin,
