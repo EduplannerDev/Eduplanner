@@ -8,9 +8,17 @@ export async function POST(req: NextRequest) {
   let page = null
   
   try {
+    console.log('🚀 [PDF] Iniciando generación de PDF')
     const { html, filename, options = {} } = await req.json()
+    console.log('📄 [PDF] Datos recibidos:', { 
+      hasHtml: !!html, 
+      htmlLength: html?.length, 
+      filename, 
+      options 
+    })
 
     if (!html) {
+      console.log('❌ [PDF] Error: HTML content is required')
       return NextResponse.json({ error: 'HTML content is required' }, { status: 400 })
     }
 
@@ -40,13 +48,20 @@ export async function POST(req: NextRequest) {
     }
 
     // Lanzar Puppeteer con configuración optimizada
-    console.log('Lanzando Puppeteer con opciones:', puppeteerOptions)
-    browser = await puppeteer.launch(puppeteerOptions)
-    console.log('Puppeteer lanzado exitosamente')
+    console.log('🔧 [PDF] Lanzando Puppeteer con opciones:', puppeteerOptions)
+    try {
+      browser = await puppeteer.launch(puppeteerOptions)
+      console.log('✅ [PDF] Puppeteer lanzado exitosamente')
+    } catch (launchError) {
+      console.error('❌ [PDF] Error lanzando Puppeteer:', launchError)
+      throw launchError
+    }
 
+    console.log('📄 [PDF] Creando nueva página')
     page = await browser.newPage()
 
     // Configurar viewport
+    console.log('🖥️ [PDF] Configurando viewport')
     await page.setViewport({
       width: defaultOptions.orientation === 'landscape' ? 1400 : 1200,
       height: defaultOptions.orientation === 'landscape' ? 900 : 1600,
@@ -54,12 +69,20 @@ export async function POST(req: NextRequest) {
     })
 
     // Cargar el HTML
-    await page.setContent(html, {
-      waitUntil: 'domcontentloaded',
-      timeout: 15000
-    })
+    console.log('📝 [PDF] Cargando HTML en la página')
+    try {
+      await page.setContent(html, {
+        waitUntil: 'domcontentloaded',
+        timeout: 15000
+      })
+      console.log('✅ [PDF] HTML cargado exitosamente')
+    } catch (contentError) {
+      console.error('❌ [PDF] Error cargando HTML:', contentError)
+      throw contentError
+    }
 
     // Esperar que todo esté renderizado
+    console.log('⏳ [PDF] Esperando renderizado completo')
     await page.evaluate(() => {
       return new Promise((resolve) => {
         if (document.readyState === 'complete') {
@@ -71,26 +94,41 @@ export async function POST(req: NextRequest) {
     })
 
     // Esperar un poco para asegurar renderizado completo
+    console.log('⏳ [PDF] Esperando 500ms adicionales')
     await new Promise(resolve => setTimeout(resolve, 500))
 
     // Generar PDF
-    const pdfBuffer = await page.pdf({
-      format: defaultOptions.format as any,
+    console.log('📄 [PDF] Generando PDF con opciones:', {
+      format: defaultOptions.format,
       landscape: defaultOptions.orientation === 'landscape',
       margin: defaultOptions.margin,
-      printBackground: defaultOptions.printBackground,
-      preferCSSPageSize: defaultOptions.preferCSSPageSize,
-      timeout: 15000,
-      scale: 1.0,
-      displayHeaderFooter: false,
-      omitBackground: false
+      printBackground: defaultOptions.printBackground
     })
+    try {
+      const pdfBuffer = await page.pdf({
+        format: defaultOptions.format as any,
+        landscape: defaultOptions.orientation === 'landscape',
+        margin: defaultOptions.margin,
+        printBackground: defaultOptions.printBackground,
+        preferCSSPageSize: defaultOptions.preferCSSPageSize,
+        timeout: 15000,
+        scale: 1.0,
+        displayHeaderFooter: false,
+        omitBackground: false
+      })
+      console.log('✅ [PDF] PDF generado exitosamente, tamaño:', pdfBuffer.length, 'bytes')
+    } catch (pdfError) {
+      console.error('❌ [PDF] Error generando PDF:', pdfError)
+      throw pdfError
+    }
 
     // Cerrar página antes de retornar
+    console.log('🔒 [PDF] Cerrando página')
     await page.close()
     page = null
 
     // Retornar el PDF como respuesta
+    console.log('📤 [PDF] Retornando PDF como respuesta')
     return new NextResponse(pdfBuffer, {
       status: 200,
       headers: {
@@ -101,7 +139,8 @@ export async function POST(req: NextRequest) {
     })
 
   } catch (error) {
-    console.error('Error generating PDF with Puppeteer:', error)
+    console.error('❌ [PDF] Error general generando PDF:', error)
+    console.error('❌ [PDF] Stack trace:', error instanceof Error ? error.stack : 'No stack trace')
     return NextResponse.json(
       { error: 'Failed to generate PDF', details: error instanceof Error ? error.message : 'Unknown error' },
       { status: 500 }
