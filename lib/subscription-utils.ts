@@ -20,6 +20,7 @@ export interface UserLimits {
   planeaciones_limit: number; // -1 = ilimitado
   examenes_limit: number; // -1 = ilimitado
   mensajes_limit: number; // -1 = ilimitado
+  proyectos_limit: number; // -1 = ilimitado
 }
 
 // Interface para información de suscripción
@@ -58,14 +59,16 @@ export function getUserLimits(profile: Profile): UserLimits {
     return {
       planeaciones_limit: -1, // Ilimitado
       examenes_limit: -1, // Ilimitado
-      mensajes_limit: -1 // Ilimitado
+      mensajes_limit: -1, // Ilimitado
+      proyectos_limit: -1 // Ilimitado
     };
   }
   
   return {
     planeaciones_limit: 5,
     examenes_limit: 2,
-    mensajes_limit: 10
+    mensajes_limit: 10,
+    proyectos_limit: 1
   };
 }
 
@@ -114,8 +117,11 @@ export function getSubscriptionInfo(profile: Profile): SubscriptionInfo {
  */
 export async function canUserCreate(
   userId: string, 
-  type: 'planeaciones' | 'examenes' | 'mensajes'
-): Promise<{ canCreate: boolean; currentCount: number; limit: number }> {
+  type: 'planeaciones' | 'examenes' | 'mensajes' | 'proyectos'
+): Promise<{ canCreate: boolean; currentCount: number; limit: number; message?: string }> {
+  console.log(`🔍 [LIMITS] Verificando límites para usuario ${userId}, tipo: ${type}`)
+  console.log(`🔍 [LIMITS] ID del usuario completo: ${userId}`)
+  
   try {
     // Obtener el perfil del usuario
     const { data: profile, error: profileError } = await supabase
@@ -125,10 +131,18 @@ export async function canUserCreate(
       .single();
     
     if (profileError || !profile) {
+      console.error('❌ [LIMITS] Error obteniendo perfil:', profileError)
       throw new Error('No se pudo obtener el perfil del usuario');
     }
     
+    console.log('✅ [LIMITS] Perfil obtenido:', { 
+      subscription_plan: profile.subscription_plan, 
+      subscription_status: profile.subscription_status 
+    })
+    
     const limits = getUserLimits(profile as Profile);
+    console.log('📊 [LIMITS] Límites calculados:', limits)
+    
     let currentCount = 0;
     let limit = 0;
     
@@ -176,23 +190,67 @@ export async function canUserCreate(
           .lt('created_at', tomorrow.toISOString());
         currentCount = mensajesCount || 0;
         break;
+        
+      case 'proyectos':
+        limit = limits.proyectos_limit;
+        console.log(`📊 [LIMITS] Límite de proyectos: ${limit}`)
+        
+        // Primero obtener los registros completos para debuggear
+        const { data: proyectosData, error: proyectosError } = await supabase
+          .from('project_creations')
+          .select('*')
+          .eq('user_id', userId);
+        
+        if (proyectosError) {
+          console.error('❌ [LIMITS] Error obteniendo proyectos:', proyectosError)
+        }
+        
+        console.log(`🔍 [LIMITS] Registros encontrados en project_creations:`, proyectosData)
+        console.log(`🔍 [LIMITS] Número de registros:`, proyectosData?.length || 0)
+        
+        // También verificar si hay proyectos en la tabla proyectos
+        const { data: proyectosTabla, error: proyectosTablaError } = await supabase
+          .from('proyectos')
+          .select('id, nombre, created_at')
+          .eq('profesor_id', userId);
+        
+        if (proyectosTablaError) {
+          console.error('❌ [LIMITS] Error obteniendo proyectos de tabla proyectos:', proyectosTablaError)
+        }
+        
+        console.log(`🔍 [LIMITS] Proyectos en tabla proyectos:`, proyectosTabla)
+        console.log(`🔍 [LIMITS] Número de proyectos en tabla proyectos:`, proyectosTabla?.length || 0)
+        
+        currentCount = proyectosData?.length || 0;
+        console.log(`📊 [LIMITS] Proyectos actuales (project_creations): ${currentCount}`)
+        break;
     }
     
     // Si el límite es -1, es ilimitado
     const canCreate = limit === -1 || currentCount < limit;
     
+    console.log(`🎯 [LIMITS] Resultado final:`, {
+      type,
+      currentCount,
+      limit,
+      canCreate,
+      isUnlimited: limit === -1
+    })
+    
     return {
       canCreate,
       currentCount,
-      limit
+      limit,
+      message: canCreate ? undefined : `Has alcanzado el límite de ${limit} ${type} para el plan gratuito`
     };
     
   } catch (error) {
-    console.error('Error verificando límites del usuario:', error);
+    console.error('❌ [LIMITS] Error verificando límites del usuario:', error);
     return {
       canCreate: false,
       currentCount: 0,
-      limit: 0
+      limit: 0,
+      message: 'Error al verificar límites'
     };
   }
 }

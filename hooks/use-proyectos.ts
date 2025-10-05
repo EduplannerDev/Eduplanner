@@ -45,23 +45,34 @@ export function useProyectos() {
   }
 
   const crearProyecto = async (data: ProyectoData): Promise<{ proyecto: ProyectoGuardado; proyecto_id: string } | null> => {
+    const startTime = Date.now()
+    console.log('🚀 [FRONTEND] Iniciando creación de proyecto desde frontend')
+    
     const user = await getCurrentUser()
     if (!user) {
+      console.error('❌ [FRONTEND] Usuario no autenticado')
       setError('Usuario no autenticado')
       return null
     }
 
+    console.log('✅ [FRONTEND] Usuario autenticado:', user.id)
     setLoading(true)
     setError(null)
 
     try {
       // Obtener el token de sesión
+      console.log('🔑 [FRONTEND] Obteniendo token de sesión')
       const { data: { session }, error: sessionError } = await supabase.auth.getSession()
       if (sessionError || !session?.access_token) {
         throw new Error('No se pudo obtener el token de sesión')
       }
 
+      console.log('✅ [FRONTEND] Token de sesión obtenido')
+
       // Llamar a la nueva API que maneja todo el proceso (con Bearer token)
+      console.log('📡 [FRONTEND] Enviando request a API de creación')
+      const apiStartTime = Date.now()
+      
       const response = await fetch('/api/proyectos/create', {
         method: 'POST',
         headers: {
@@ -71,24 +82,32 @@ export function useProyectos() {
         body: JSON.stringify(data)
       })
 
+      const apiTime = Date.now() - apiStartTime
+      console.log(`⏱️ [FRONTEND] Tiempo de respuesta de API: ${apiTime}ms`)
+
       if (!response.ok) {
         const errorData = await response.json()
+        console.error('❌ [FRONTEND] Error en respuesta de API:', errorData)
         throw new Error(errorData.error || `Error del servidor: ${response.statusText}`)
       }
 
       const result = await response.json()
+      console.log('✅ [FRONTEND] Respuesta de API recibida:', { success: result.success, proyecto_id: result.proyecto_id })
 
       if (!result.success) {
         throw new Error(result.error || 'Error desconocido al crear el proyecto')
       }
 
-
       // Obtener el proyecto completo para devolverlo
+      console.log('📋 [FRONTEND] Obteniendo proyecto completo')
       const proyectoCompleto = await obtenerProyecto(result.proyecto_id)
       
       if (!proyectoCompleto) {
         throw new Error('Error obteniendo datos del proyecto creado')
       }
+
+      const totalTime = Date.now() - startTime
+      console.log(`🎉 [FRONTEND] Proyecto creado exitosamente en ${totalTime}ms`)
 
       return {
         proyecto: proyectoCompleto,
@@ -96,9 +115,11 @@ export function useProyectos() {
       }
 
     } catch (err) {
+      const totalTime = Date.now() - startTime
       const errorMessage = err instanceof Error ? err.message : 'Error desconocido'
+      console.error('❌ [FRONTEND] Error creando proyecto:', err)
+      console.error(`⏱️ [FRONTEND] Tiempo total antes del error: ${totalTime}ms`)
       setError(errorMessage)
-      console.error('Error creando proyecto:', err)
       return null
     } finally {
       setLoading(false)
@@ -109,17 +130,60 @@ export function useProyectos() {
     const user = await getCurrentUser()
     
     if (!user) {
+      console.error('❌ [PROYECTOS] Usuario no autenticado')
       setError('Usuario no autenticado')
       return []
     }
-    
 
+    console.log('🔍 [PROYECTOS] Obteniendo proyectos para usuario:', user.id)
+    
+    // Verificar el perfil del usuario para debuggear RLS
+    console.log('🔍 [PROYECTOS] Verificando perfil del usuario...')
+    const { data: userProfile, error: profileError } = await supabase
+      .from('profiles')
+      .select('id, role, activo, plantel_id, subscription_plan')
+      .eq('id', user.id)
+      .single()
+    
+    console.log('📊 [PROYECTOS] Perfil del usuario:', { 
+      profile: userProfile, 
+      error: profileError?.message || null 
+    })
+    
     setLoading(true)
     setError(null)
 
     try {
       
+      // Primero, hacer una consulta simple sin JOINs para ver si hay proyectos
+      console.log('🔍 [PROYECTOS] Consulta simple sin JOINs...')
+      const { data: simpleData, error: simpleError } = await supabase
+        .from('proyectos')
+        .select('id, nombre, profesor_id, created_at')
+        .eq('profesor_id', user.id)
+        .order('created_at', { ascending: false })
+      
+      console.log('📊 [PROYECTOS] Consulta simple resultado:', { 
+        dataCount: simpleData?.length || 0, 
+        error: simpleError?.message || null,
+        data: simpleData
+      })
+      
+      // También verificar todos los proyectos en la base de datos para comparar
+      console.log('🔍 [PROYECTOS] Verificando todos los proyectos en la base de datos...')
+      const { data: allProjects, error: allError } = await supabase
+        .from('proyectos')
+        .select('id, nombre, profesor_id, created_at')
+        .order('created_at', { ascending: false })
+      
+      console.log('📊 [PROYECTOS] Todos los proyectos en BD:', { 
+        dataCount: allProjects?.length || 0, 
+        error: allError?.message || null,
+        data: allProjects?.map(p => ({ id: p.id, nombre: p.nombre, profesor_id: p.profesor_id }))
+      })
+      
       // Usar el cliente de Supabase normal (con cookies automáticas)
+      console.log('📡 [PROYECTOS] Ejecutando consulta completa con JOINs...')
       const { data, error } = await supabase
         .from('proyectos')
         .select(`
@@ -150,10 +214,20 @@ export function useProyectos() {
         .eq('profesor_id', user.id)
         .order('created_at', { ascending: false })
 
+      console.log('📊 [PROYECTOS] Resultado de consulta:', { 
+        dataCount: data?.length || 0, 
+        error: error?.message || null 
+      })
 
       if (error) {
-        console.error('❌ Error en consulta:', error)
+        console.error('❌ [PROYECTOS] Error en consulta:', error)
         throw new Error(`Error obteniendo proyectos: ${error.message}`)
+      }
+
+      if (data && data.length > 0) {
+        console.log('✅ [PROYECTOS] Proyectos encontrados:', data.map(p => ({ id: p.id, nombre: p.nombre })))
+      } else {
+        console.log('⚠️ [PROYECTOS] No se encontraron proyectos para este usuario')
       }
 
       return data || []

@@ -612,7 +612,7 @@ export function ViewProyecto({ proyectoId, onBack }: ViewProyectoProps) {
     const tipoInstrumento = instrumentForm.tipo === 'rubrica_analitica' ? 'rúbrica analítica' : 'lista de cotejo';
     
     return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center">
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 dark:from-gray-900 dark:to-gray-800 flex items-center justify-center">
         <div className="text-center max-w-2xl mx-auto p-8">
           <div className="mb-8">
             <h1 className="text-4xl font-bold text-gray-900 dark:text-gray-100 mb-4">
@@ -623,32 +623,32 @@ export function ViewProyecto({ proyectoId, onBack }: ViewProyectoProps) {
             </p>
           </div>
           
-          <Card className="dark:bg-gray-800">
+          <Card className="bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700">
             <CardHeader>
-              <CardTitle>Generación con IA</CardTitle>
+              <CardTitle className="text-gray-900 dark:text-gray-100">Generación con IA</CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="text-center space-y-4">
                 <div className="flex justify-center">
-                  <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+                  <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 dark:border-blue-400"></div>
                 </div>
                 <div className="space-y-2">
                   <p className="text-lg font-medium text-gray-900 dark:text-gray-100">
                     🤖 Analizando tu proyecto...
                   </p>
                   <p className="text-sm text-gray-600 dark:text-gray-400">
-                    Creando criterios de evaluación para: <strong>{proyecto?.nombre}</strong>
+                    Creando criterios de evaluación para: <strong className="text-gray-900 dark:text-gray-100">{proyecto?.nombre}</strong>
                   </p>
                 </div>
                 
-                <div className="bg-blue-50 p-4 rounded-lg">
-                  <p className="text-sm text-blue-800">
+                <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 p-4 rounded-lg">
+                  <p className="text-sm text-blue-800 dark:text-blue-200">
                     <strong>Procesando:</strong> Fases y momentos del proyecto
                   </p>
-                  <p className="text-sm text-blue-800">
+                  <p className="text-sm text-blue-800 dark:text-blue-200">
                     <strong>Metodología:</strong> {proyecto?.metodologia_nem}
                   </p>
-                  <p className="text-sm text-blue-800">
+                  <p className="text-sm text-blue-800 dark:text-blue-200">
                     <strong>Grupo:</strong> {proyecto?.grupos?.nombre} - {proyecto?.grupos?.grado}° {proyecto?.grupos?.nivel}
                   </p>
                 </div>

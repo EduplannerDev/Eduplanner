@@ -17,7 +17,7 @@ import { useRouter } from 'next/navigation'
 import { supabase } from '@/lib/supabase'
 import { useProfile } from '@/hooks/use-profile'
 import { useAuth } from '@/hooks/use-auth'
-import { isUserPro } from '@/lib/subscription-utils'
+import { isUserPro, canUserCreate } from '@/lib/subscription-utils'
 import { BetaFeatureWrapper, BetaAccessDenied } from '@/components/ui/beta-feature-wrapper'
 import { ViewProyecto } from './view-proyecto'
 import { useToast } from '@/hooks/use-toast'
@@ -44,24 +44,72 @@ export function ListaProyectos() {
   const [selectedProyecto, setSelectedProyecto] = useState<string | null>(null)
   const [viewMode, setViewMode] = useState<"list" | "view">("list")
   const [generatingPDF, setGeneratingPDF] = useState<string | null>(null)
+  const [projectLimits, setProjectLimits] = useState<{
+    canCreate: boolean;
+    currentCount: number;
+    limit: number;
+    message?: string;
+  } | null>(null)
 
   useEffect(() => {
     if (initialLoad) {
+      console.log('🚀 [LISTA] Inicializando componente, usuario:', user?.id)
       cargarProyectos()
+      cargarLimitesProyectos()
       setInitialLoad(false)
     }
-  }, [initialLoad])
+  }, [initialLoad, user])
+
+  const cargarLimitesProyectos = async () => {
+    if (!user || !profile) return
+    
+    try {
+      const limits = await canUserCreate(user.id, 'proyectos')
+      setProjectLimits(limits)
+    } catch (error) {
+      console.error('Error cargando límites de proyectos:', error)
+    }
+  }
 
   const cargarProyectos = async () => {
+    console.log('🔄 [LISTA] Iniciando carga de proyectos...')
     try {
       const proyectosData = await obtenerProyectos()
+      console.log('📊 [LISTA] Proyectos cargados:', proyectosData.length, 'elementos')
+      console.log('📋 [LISTA] Detalles de proyectos:', proyectosData.map(p => ({ id: p.id, nombre: p.nombre })))
       setProyectos(proyectosData)
     } catch (error) {
-      console.error('Error cargando proyectos:', error)
+      console.error('❌ [LISTA] Error cargando proyectos:', error)
     }
   }
 
   const handleCrearNuevo = () => {
+    // Verificar límites antes de permitir crear proyecto
+    if (projectLimits && !projectLimits.canCreate) {
+      console.log('⚠️ [LISTA] Usuario ha alcanzado límite de proyectos')
+      console.log('📊 [LISTA] Límites actuales:', projectLimits)
+      
+      toast({
+        title: "🎉 ¡Felicitaciones! Has creado tu proyecto.",
+        description: `Has alcanzado el límite de ${projectLimits.limit} proyectos en el plan gratuito. 💫 Desbloquea tu potencial educativo con PRO: crea proyectos ilimitados y desarrolla experiencias de aprendizaje innovadoras.`,
+        variant: "default",
+        duration: 8000,
+        action: (
+          <button 
+            onClick={() => {
+              console.log('🚀 [LISTA] Usuario quiere hacer upgrade a PRO')
+              window.open('/pricing', '_blank')
+            }}
+            className="bg-blue-600 text-white px-3 py-1 rounded text-sm hover:bg-blue-700"
+          >
+            Upgrade a PRO
+          </button>
+        )
+      })
+      return
+    }
+    
+    console.log('✅ [LISTA] Límites verificados, navegando a crear proyecto')
     // Navegar al módulo de crear proyecto
     router.push('/?section=crear-proyecto')
   }
@@ -179,10 +227,68 @@ export function ListaProyectos() {
             <p className="text-lg text-gray-600 dark:text-gray-400 mt-2">
               Gestiona y visualiza todos tus proyectos educativos
             </p>
+            {projectLimits && (
+              <div className="mt-3 space-y-2">
+                <div className="flex items-center space-x-4">
+                  <div className="flex items-center space-x-2">
+                    <div className="text-sm text-gray-600 dark:text-gray-400">
+                      Proyectos: {projectLimits.currentCount}/{projectLimits.limit === -1 ? '∞' : projectLimits.limit}
+                    </div>
+                    {projectLimits.limit === -1 && (
+                      <Badge variant="secondary" className="bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200">
+                        PRO
+                      </Badge>
+                    )}
+                  </div>
+                  {projectLimits.limit !== -1 && (
+                    <div className="text-sm text-blue-600 dark:text-blue-400">
+                      💡 Plan gratuito - Actualiza a PRO para proyectos ilimitados
+                    </div>
+                  )}
+                </div>
+                
+                {/* Barra de progreso para límites */}
+                {projectLimits.limit !== -1 && (
+                  <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2">
+                    <div 
+                      className={`h-2 rounded-full transition-all duration-300 ${
+                        projectLimits.currentCount >= projectLimits.limit 
+                          ? 'bg-red-500' 
+                          : projectLimits.currentCount >= projectLimits.limit * 0.8 
+                            ? 'bg-yellow-500' 
+                            : 'bg-green-500'
+                      }`}
+                      style={{ width: `${Math.min((projectLimits.currentCount / projectLimits.limit) * 100, 100)}%` }}
+                    ></div>
+                  </div>
+                )}
+                
+                {/* Mensaje de límite alcanzado */}
+                {!projectLimits.canCreate && (
+                  <div className="bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-lg p-3">
+                    <div className="flex items-center justify-between">
+                      <div className="text-sm text-yellow-800 dark:text-yellow-200">
+                        🎉 ¡Has alcanzado el límite de proyectos! 
+                      </div>
+                      <button
+                        onClick={() => {
+                          console.log('🚀 [LISTA] Usuario quiere hacer upgrade desde límite alcanzado')
+                          window.open('/pricing', '_blank')
+                        }}
+                        className="bg-blue-600 text-white px-3 py-1 rounded text-sm hover:bg-blue-700 transition-colors"
+                      >
+                        Upgrade a PRO
+                      </button>
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
           </div>
           <Button 
             onClick={handleCrearNuevo}
-            className="flex items-center space-x-2 bg-blue-600 hover:bg-blue-700"
+            disabled={projectLimits ? !projectLimits.canCreate : false}
+            className="flex items-center space-x-2 bg-blue-600 hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
           >
             <Plus className="h-4 w-4" />
             <span>Nuevo Proyecto</span>
