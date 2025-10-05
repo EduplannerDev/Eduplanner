@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
-import puppeteer from 'puppeteer'
+import puppeteer from 'puppeteer-core'
+import chromium from '@sparticuz/chromium'
 
 export const maxDuration = 60
 
@@ -37,16 +38,21 @@ export async function POST(req: NextRequest) {
       ...options
     }
 
-    // Configuración mínima para Puppeteer (compatible con Vercel)
-    const puppeteerOptions = {
+    // Configuración para Vercel con @sparticuz/chromium
+    const isVercel = process.env.VERCEL === '1'
+    
+    const puppeteerOptions = isVercel ? {
+      args: chromium.args,
+      defaultViewport: chromium.defaultViewport,
+      executablePath: await chromium.executablePath(),
+      headless: chromium.headless,
+    } : {
       headless: true,
       args: [
         '--no-sandbox',
         '--disable-setuid-sandbox',
         '--disable-dev-shm-usage'
-      ],
-      // Usar la versión de Chrome instalada automáticamente
-      executablePath: process.env.PUPPETEER_EXECUTABLE_PATH || undefined
+      ]
     }
 
     // Lanzar Puppeteer con configuración optimizada
