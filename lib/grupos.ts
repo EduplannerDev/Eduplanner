@@ -85,6 +85,21 @@ export async function createGrupo(userId: string, plantelId: string | null, grup
     throw new Error('Error al crear el grupo')
   }
 
+  // Insertar registro en group_creations para rastrear límites lifetime
+  const { error: creationError } = await supabase
+    .from('group_creations')
+    .insert({
+      user_id: userId,
+      group_id: data.id,
+      created_at: data.created_at
+    })
+
+  if (creationError) {
+    console.error('Error creating group creation record:', creationError)
+    // No retornamos error aquí porque el grupo ya se creó exitosamente
+    // Solo logueamos el error para debugging
+  }
+
   return data
 }
 

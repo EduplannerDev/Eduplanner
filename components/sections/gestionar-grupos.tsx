@@ -15,6 +15,7 @@ import { Grupo, CreateGrupoData, UpdateGrupoData, createGrupo, getGruposByUserAn
 import { getAllPlanteles, Plantel } from '@/lib/planteles'
 import { useRoles } from '@/hooks/use-roles'
 import { useAuth } from '@/hooks/use-auth'
+import { canUserCreateGroup } from '@/lib/subscription-utils'
 import { Users, Plus, Edit, Trash2, BookOpen, BarChart3 } from 'lucide-react'
 
 interface GrupoWithProfesor extends Grupo {
@@ -49,6 +50,12 @@ export function GestionarGrupos() {
   const [editingGrupo, setEditingGrupo] = useState<Grupo | null>(null)
   const [searchTerm, setSearchTerm] = useState('')
   const [stats, setStats] = useState<any>(null)
+  const [groupLimits, setGroupLimits] = useState<{
+    canCreate: boolean;
+    currentCount: number;
+    limit: number;
+    message?: string;
+  } | null>(null)
 
   // Formulario para crear/editar grupo
   const [formData, setFormData] = useState<CreateGrupoData>({
@@ -138,6 +145,22 @@ export function GestionarGrupos() {
     }
   }, [selectedPlantel, user])
 
+  // Cargar límites de grupos
+  useEffect(() => {
+    const loadGroupLimits = async () => {
+      if (!user?.id) return
+
+      try {
+        const limits = await canUserCreateGroup(user.id)
+        setGroupLimits(limits)
+      } catch (error) {
+        console.error('Error loading group limits:', error)
+      }
+    }
+
+    loadGroupLimits()
+  }, [user])
+
   // Manejar envío del formulario
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -221,6 +244,16 @@ export function GestionarGrupos() {
 
   // Abrir diálogo para crear
   const openCreateDialog = () => {
+    // Verificar límites antes de permitir crear grupo
+    if (groupLimits && !groupLimits.canCreate) {
+      toast({
+        title: "🎉 ¡Felicitaciones! Has creado tu grupo",
+        description: `Has alcanzado el límite de grupos en el plan gratuito.\n\n💫 Desbloquea tu potencial educativo con PRO: crea grupos ilimitados y organiza mejor tus clases.`,
+        variant: "default"
+      })
+      return
+    }
+    
     setEditingGrupo(null)
     resetForm()
     setIsDialogOpen(true)
@@ -259,10 +292,34 @@ export function GestionarGrupos() {
           <p className="text-muted-foreground">
             {canViewAllGroups ? 'Administra todos los grupos del plantel' : 'Administra tus grupos'}
           </p>
+          {/* Información de límites */}
+          {groupLimits && (
+            <div className="mt-2 p-3 bg-gray-50 border border-gray-200 rounded-lg dark:bg-gray-800 dark:border-gray-700">
+              {groupLimits.limit !== -1 && groupLimits.currentCount >= groupLimits.limit ? (
+                <div>
+                  <p className="text-sm text-orange-600 dark:text-orange-400 font-medium mb-2">
+                    🎉 ¡Felicitaciones! Has creado tu grupo
+                  </p>
+                  <p className="text-sm text-blue-600 dark:text-blue-400 font-medium">
+                    💫 Desbloquea tu potencial educativo con PRO: crea grupos ilimitados y organiza mejor tus clases
+                  </p>
+                </div>
+              ) : (
+                <p className="text-sm text-gray-600 dark:text-gray-400">
+                  <strong>Grupos creados:</strong> {groupLimits.currentCount}/{groupLimits.limit === -1 ? 'ilimitados' : groupLimits.limit}
+                </p>
+              )}
+              {groupLimits.limit === -1 && (
+                <p className="text-sm text-green-600 dark:text-green-400 mt-2 font-medium">
+                  ✨ Plan PRO activo - ¡Tu organización no tiene límites!
+                </p>
+              )}
+            </div>
+          )}
         </div>
         <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
           <DialogTrigger asChild>
-            <Button onClick={openCreateDialog} disabled={!selectedPlantel}>
+            <Button onClick={openCreateDialog} disabled={!selectedPlantel || (groupLimits && !groupLimits.canCreate)}>
               <Plus className="h-4 w-4 mr-2" />
               Crear Grupo
             </Button>

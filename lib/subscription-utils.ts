@@ -287,7 +287,7 @@ export async function canUserCreateGroup(userId: string): Promise<{
     // Si es Pro, puede crear grupos ilimitados
     if (isPro) {
       const { count } = await supabase
-        .from('grupos')
+        .from('group_creations')
         .select('*', { count: 'exact', head: true })
         .eq('user_id', userId);
       
@@ -298,21 +298,21 @@ export async function canUserCreateGroup(userId: string): Promise<{
       };
     }
 
-    // Para usuarios free, límite de 2 grupos
+    // Para usuarios free, límite de 1 grupo
     const { count: gruposCount } = await supabase
-      .from('grupos')
+      .from('group_creations')
       .select('*', { count: 'exact', head: true })
       .eq('user_id', userId);
 
     const currentCount = gruposCount || 0;
-    const limit = 2;
+    const limit = 1;
     const canCreate = currentCount < limit;
 
     return {
       canCreate,
       currentCount,
       limit,
-      message: canCreate ? undefined : `Has alcanzado el límite de ${limit} grupos para el plan gratuito`
+      message: canCreate ? undefined : `Has alcanzado el límite de ${limit} grupo para el plan gratuito`
     };
 
   } catch (error) {

@@ -104,7 +104,7 @@ const Examenes = () => {
     // Verificar límites antes de permitir crear examen
     if (examLimits && !examLimits.canCreate) {
       const limitText = examLimits.limit === -1 ? 'ilimitados' : examLimits.limit.toString();
-      alert(`Has alcanzado el límite de exámenes (${examLimits.currentCount}/${limitText}). Actualiza a PRO para crear exámenes ilimitados.`);
+      alert(`🎉 ¡Felicitaciones! Has creado ${examLimits.currentCount} exámenes increíbles.\n\n💫 Desbloquea tu potencial educativo con PRO: crea exámenes ilimitados y sigue inspirando a tus estudiantes.`);
       return;
     }
     
@@ -225,13 +225,26 @@ const Examenes = () => {
           <p className="text-gray-600 mt-2">Gestiona y edita tus exámenes</p>
           {/* Información de límites */}
           {examLimits && (
-            <div className="mt-2 p-2 bg-gray-50 border border-gray-200 rounded-lg dark:bg-gray-800 dark:border-gray-700">
-              <p className="text-sm text-gray-600 dark:text-gray-400">
-                <strong>Límite de exámenes:</strong> {examLimits.currentCount}/{examLimits.limit === -1 ? 'ilimitados' : examLimits.limit}
-                {examLimits.limit !== -1 && examLimits.currentCount >= examLimits.limit && (
-                  <span className="text-red-600 dark:text-red-400 ml-2">⚠️ Límite alcanzado</span>
-                )}
-              </p>
+            <div className="mt-2 p-3 bg-gray-50 border border-gray-200 rounded-lg dark:bg-gray-800 dark:border-gray-700">
+              {examLimits.limit !== -1 && examLimits.currentCount >= examLimits.limit ? (
+                <div>
+                  <p className="text-sm text-orange-600 dark:text-orange-400 font-medium mb-2">
+                    🎉 ¡Felicitaciones! Has creado {examLimits.limit} exámenes increíbles
+                  </p>
+                  <p className="text-sm text-blue-600 dark:text-blue-400 font-medium">
+                    💫 Desbloquea tu potencial educativo con PRO: crea exámenes ilimitados y sigue inspirando a tus estudiantes
+                  </p>
+                </div>
+              ) : (
+                <p className="text-sm text-gray-600 dark:text-gray-400">
+                  <strong>Exámenes creados:</strong> {examLimits.currentCount}/{examLimits.limit === -1 ? 'ilimitados' : examLimits.limit}
+                </p>
+              )}
+              {examLimits.limit === -1 && (
+                <p className="text-sm text-green-600 dark:text-green-400 mt-2 font-medium">
+                  ✨ Plan PRO activo - ¡Tu creatividad no tiene límites!
+                </p>
+              )}
             </div>
           )}
         </div>

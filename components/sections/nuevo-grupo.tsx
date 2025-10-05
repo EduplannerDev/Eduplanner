@@ -187,9 +187,9 @@ const NuevoGrupo = ({ onBack, onSaveSuccess }: NuevoGrupoProps) => {
         <Card>
           <CardContent className="p-8 text-center">
             <div className="text-orange-600 mb-4">
-              <h3 className="text-lg font-semibold mb-2">Límite de Grupos Alcanzado</h3>
+              <h3 className="text-lg font-semibold mb-2">🎉 ¡Felicitaciones! Has creado tu grupo</h3>
               <p className="text-muted-foreground mb-4">
-                {limitCheck.message}
+                Has alcanzado el límite de grupos en el plan gratuito.
               </p>
               <div className="bg-orange-50 border border-orange-200 rounded-lg p-4 mb-4">
                 <p className="text-sm text-orange-700">
@@ -197,8 +197,8 @@ const NuevoGrupo = ({ onBack, onSaveSuccess }: NuevoGrupoProps) => {
                 </p>
               </div>
               <div className="space-y-2">
-                <p className="text-sm text-muted-foreground">
-                  Actualiza a <strong>Plan PRO</strong> para crear grupos ilimitados
+                <p className="text-sm text-blue-600 font-medium">
+                  💫 Desbloquea tu potencial educativo con PRO: crea grupos ilimitados y organiza mejor tus clases
                 </p>
                 <div className="flex gap-2 justify-center">
                   <Button variant="outline" onClick={onBack}>
@@ -237,7 +237,7 @@ const NuevoGrupo = ({ onBack, onSaveSuccess }: NuevoGrupoProps) => {
                 ></div>
               </div>
               <p className="text-xs text-blue-600 mt-1">
-                Plan gratuito - Actualiza a PRO para grupos ilimitados
+                💡 Plan gratuito - Actualiza a PRO para grupos ilimitados y mejor organización
               </p>
             </div>
           )}
