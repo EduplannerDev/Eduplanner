@@ -15,7 +15,7 @@ export async function POST(request: NextRequest) {
     const baseUrl =
       process.env.NODE_ENV === 'development'
         ? 'http://localhost:3000'
-        : 'https://eduplanner.mx';
+        : 'https://app.eduplanner.mx';
 
     const session = await stripe.checkout.sessions.create({
       payment_method_types: ['card'],

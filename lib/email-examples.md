@@ -38,7 +38,7 @@ import { sendWelcomeEmail } from '@/lib/email';
 const result = await sendWelcomeEmail({
   to: 'nuevo@usuario.com',
   userName: 'Juan Pérez',
-  loginUrl: 'https://eduplanner.mx/login' // Opcional
+  loginUrl: 'https://app.eduplanner.mx/login' // Opcional
 });
 ```
 
@@ -50,7 +50,7 @@ import { sendPasswordResetEmail } from '@/lib/email';
 
 const result = await sendPasswordResetEmail({
   to: 'usuario@ejemplo.com',
-  resetUrl: 'https://eduplanner.mx/reset-password?token=abc123',
+  resetUrl: 'https://app.eduplanner.mx/reset-password?token=abc123',
   userName: 'Juan Pérez' // Opcional
 });
 ```
@@ -66,7 +66,7 @@ const result = await sendInvitationEmail({
   inviterName: 'Director García',
   plantelName: 'Escuela Primaria Benito Juárez',
   role: 'profesor',
-  invitationUrl: 'https://eduplanner.mx/invitation?token=xyz789'
+  invitationUrl: 'https://app.eduplanner.mx/invitation?token=xyz789'
 });
 ```
 
@@ -103,7 +103,7 @@ Asegúrate de tener estas variables de entorno configuradas:
 ```env
 RESEND_API_KEY=tu_api_key_de_resend
 FROM_EMAIL=Eduplanner <noreply@eduplanner.mx>
-NEXT_PUBLIC_SITE_URL=https://eduplanner.mx
+NEXT_PUBLIC_SITE_URL=https://app.eduplanner.mx
 NOTIFICATION_EMAIL=admin@eduplanner.mx
 ```
 

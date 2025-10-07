@@ -18,7 +18,7 @@ RESEND_API_KEY=re_tu_api_key_aqui
 FROM_EMAIL="Eduplanner <contacto@eduplanner.mx>"
 
 # OPCIONAL: URL base del sitio
-NEXT_PUBLIC_SITE_URL=https://eduplanner.mx
+NEXT_PUBLIC_SITE_URL=https://app.eduplanner.mx
 ```
 
 ### ⚠️ Importante sobre FROM_EMAIL
