@@ -45,7 +45,6 @@ export async function POST(req: NextRequest) {
       return new NextResponse(`Webhook error: ${err.message}`, { status: 400 })
     }
 
-  try {
     switch (event.type) {
       case 'checkout.session.completed': {
         const session = event.data.object as Stripe.Checkout.Session
@@ -207,7 +206,7 @@ export async function POST(req: NextRequest) {
       case 'invoice.paid':
       case 'invoice.payment_succeeded': {
         const invoice = event.data.object as Stripe.Invoice
-        const subscriptionId = invoice.subscription as string
+        const subscriptionId = invoice.subscription as string | Stripe.Subscription
         
         if (!subscriptionId) {
           console.warn('⚠️ No se encontró subscription_id en invoice.payment_succeeded');
@@ -215,7 +214,9 @@ export async function POST(req: NextRequest) {
         }
 
         try {
-          const subscription = await stripe.subscriptions.retrieve(subscriptionId)
+          const subscription = typeof subscriptionId === 'string' 
+            ? await stripe.subscriptions.retrieve(subscriptionId)
+            : subscriptionId
           const userId = subscription.metadata?.userId
 
           if (!userId) {
@@ -253,7 +254,7 @@ export async function POST(req: NextRequest) {
 
       case 'invoice.payment_failed': {
         const invoice = event.data.object as Stripe.Invoice
-        const subscriptionId = invoice.subscription as string
+        const subscriptionId = invoice.subscription as string | Stripe.Subscription
         
         if (!subscriptionId) {
           console.warn('⚠️ No se encontró subscription_id en invoice.payment_failed');
@@ -261,7 +262,9 @@ export async function POST(req: NextRequest) {
         }
 
         try {
-          const subscription = await stripe.subscriptions.retrieve(subscriptionId)
+          const subscription = typeof subscriptionId === 'string' 
+            ? await stripe.subscriptions.retrieve(subscriptionId)
+            : subscriptionId
           const userId = subscription.metadata?.userId
 
           if (!userId) {
