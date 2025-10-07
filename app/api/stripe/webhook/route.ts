@@ -1,15 +1,8 @@
 // app/api/stripe/webhook/route.ts
 import { NextRequest, NextResponse } from 'next/server'
-import { buffer } from 'micro'
 import Stripe from 'stripe'
 import { createClient } from '@supabase/supabase-js'
 import { addMonths, fromUnixTime } from 'date-fns'
-
-export const config = {
-  api: {
-    bodyParser: false,
-  },
-}
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
   apiVersion: '2025-05-28.basil',
@@ -21,18 +14,36 @@ const supabase = createClient(
 )
 
 export async function POST(req: NextRequest) {
-  const signature = req.headers.get('stripe-signature') as string
-  const rawBody = await req.arrayBuffer()
-  const buf = Buffer.from(rawBody)
-
-  let event: Stripe.Event
-
+  console.log('🔔 Webhook recibido:', req.method, req.url)
+  
   try {
-    event = stripe.webhooks.constructEvent(buf, signature, process.env.STRIPE_WEBHOOK_SECRET!)
-  } catch (err: any) {
-    console.error('❌ Error verificando webhook:', err.message)
-    return new NextResponse(`Webhook error: ${err.message}`, { status: 400 })
-  }
+    const signature = req.headers.get('stripe-signature') as string
+    const rawBody = await req.arrayBuffer()
+    const buf = Buffer.from(rawBody)
+
+    console.log('🔔 Signature presente:', !!signature)
+    console.log('🔔 Body length:', buf.length)
+    console.log('🔔 Webhook secret configurado:', !!process.env.STRIPE_WEBHOOK_SECRET)
+
+    if (!signature) {
+      console.error('❌ No se encontró signature de Stripe')
+      return new NextResponse('Missing stripe signature', { status: 400 })
+    }
+
+    if (!process.env.STRIPE_WEBHOOK_SECRET) {
+      console.error('❌ No se encontró STRIPE_WEBHOOK_SECRET')
+      return new NextResponse('Missing webhook secret', { status: 500 })
+    }
+
+    let event: Stripe.Event
+
+    try {
+      event = stripe.webhooks.constructEvent(buf, signature, process.env.STRIPE_WEBHOOK_SECRET!)
+      console.log('🔔 Evento verificado correctamente:', event.type)
+    } catch (err: any) {
+      console.error('❌ Error verificando webhook:', err.message)
+      return new NextResponse(`Webhook error: ${err.message}`, { status: 400 })
+    }
 
   try {
     switch (event.type) {
@@ -287,4 +298,15 @@ export async function POST(req: NextRequest) {
     console.error('❌ Error procesando el evento:', err.message)
     return new NextResponse(`Error procesando webhook: ${err.message}`, { status: 500 })
   }
+}
+
+export async function OPTIONS() {
+  return new NextResponse(null, {
+    status: 200,
+    headers: {
+      'Access-Control-Allow-Origin': '*',
+      'Access-Control-Allow-Methods': 'POST, OPTIONS',
+      'Access-Control-Allow-Headers': 'Content-Type, stripe-signature',
+    },
+  })
 }
