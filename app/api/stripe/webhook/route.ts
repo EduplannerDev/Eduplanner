@@ -5,7 +5,7 @@ import { createClient } from '@supabase/supabase-js'
 import { addMonths, fromUnixTime } from 'date-fns'
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
-  apiVersion: '2025-05-28.basil',
+  apiVersion: '2025-04-30.basil',
 })
 
 const supabase = createClient(
@@ -15,6 +15,11 @@ const supabase = createClient(
 
 
 export async function POST(req: NextRequest) {
+  // Log temporal solo para producción
+  if (process.env.NODE_ENV === 'production') {
+    console.log('🔔 Webhook recibido en producción:', req.method, req.url);
+  }
+  
   try {
     const signature = req.headers.get('stripe-signature') as string
     const rawBody = await req.arrayBuffer()
@@ -41,6 +46,11 @@ export async function POST(req: NextRequest) {
         event = JSON.parse(buf.toString()) as Stripe.Event;
       } else {
         event = stripe.webhooks.constructEvent(buf, signature, webhookSecret)
+      }
+      
+      // Log temporal solo para producción
+      if (process.env.NODE_ENV === 'production') {
+        console.log('🔔 Evento verificado en producción:', event.type, event.id);
       }
     } catch (err: any) {
       return new NextResponse(`Webhook error: ${err.message}`, { status: 400 })
@@ -103,7 +113,16 @@ export async function POST(req: NextRequest) {
 
 
         if (error) {
+          // Log temporal solo para producción
+          if (process.env.NODE_ENV === 'production') {
+            console.log('❌ Error actualizando perfil en producción:', error.message);
+          }
           throw new Error(error.message);
+        }
+        
+        // Log temporal solo para producción
+        if (process.env.NODE_ENV === 'production') {
+          console.log('✅ Perfil actualizado a PRO en producción para userId:', finalUserId);
         }
 
         break
