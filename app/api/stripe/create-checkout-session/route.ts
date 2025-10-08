@@ -5,10 +5,18 @@ export async function POST(request: NextRequest) {
   try {
     const { userId, email } = await request.json();
 
+
     if (!userId) {
       return NextResponse.json(
         { error: 'userId is required' },
         { status: 400 }
+      );
+    }
+
+    if (!process.env.NEXT_PUBLIC_STRIPE_PRO_PLAN_PRICE_ID) {
+      return NextResponse.json(
+        { error: 'Price ID not configured' },
+        { status: 500 }
       );
     }
 

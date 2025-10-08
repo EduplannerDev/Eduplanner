@@ -6,10 +6,12 @@ import { Badge } from "@/components/ui/badge"
 import { Crown, Check, X, Zap, Star, AlertTriangle, CreditCard, Loader2 } from "lucide-react"
 import { useAuth } from "@/hooks/use-auth"
 import { useProfile } from "@/hooks/use-profile"
-import { subscribestripe } from "@/hooks/stripe"
+import { subscribestripe, simulateWebhookInDevelopment } from "@/hooks/stripe"
 import { useTransition } from "react"
 import { startTransition } from 'react';
 import { getSubscriptionInfo, isUserPro } from "@/lib/subscription-utils"
+import { useNotification } from "@/hooks/use-notification"
+import { useState, useEffect } from "react"
 
 
 interface SubscriptionCardProps {
@@ -19,25 +21,38 @@ interface SubscriptionCardProps {
 export function SubscriptionCard({ userPlan }: SubscriptionCardProps) {
   const { user } = useAuth()
   const { profile } = useProfile()
+  const { success, error: showError, warning } = useNotification()
   const email: string = user?.email || ""
   const userId: string = user?.id || ""
   const isPro = profile ? isUserPro(profile) : userPlan === "pro"
   const subscriptionInfo = profile ? getSubscriptionInfo(profile) : null
   const [isPending, startTransition] = useTransition()
+  const [showCancelModal, setShowCancelModal] = useState(false)
+
+  // Detectar cuando regresa del pago en desarrollo
+  useEffect(() => {
+    if (typeof window !== 'undefined' && process.env.NODE_ENV === 'development') {
+      const pendingUserId = localStorage.getItem('pendingSubscriptionUserId');
+      if (pendingUserId && pendingUserId === userId) {
+        simulateWebhookInDevelopment(userId);
+        localStorage.removeItem('pendingSubscriptionUserId');
+      }
+    }
+  }, [userId]);
   const handleClickSubsButton = async () => {
     const url = await subscribestripe({ userId, email });
     
     if (url) {
       window.location.href = url;
-    } else {
-      console.error("No se pudo crear la sesión de Stripe.");
     }
   };
 
-  const handleCancelSubscription = async () => {
-    if (!confirm("¿Estás seguro de que deseas cancelar tu suscripción? Perderás acceso a las funciones premium al final del período de facturación.")) {
-      return;
-    }
+  const handleCancelSubscription = () => {
+    setShowCancelModal(true);
+  };
+
+  const confirmCancelSubscription = async () => {
+    setShowCancelModal(false);
     
     startTransition(async () => {
       try {
@@ -49,16 +64,27 @@ export function SubscriptionCard({ userPlan }: SubscriptionCardProps) {
           body: JSON.stringify({ userId }),
         });
         
-        if (!response.ok) {
-          throw new Error('Error al cancelar la suscripción');
-        }
+            if (!response.ok) {
+              const errorData = await response.json();
+              throw new Error(errorData.error || 'Error al cancelar la suscripción');
+            }
         
-        alert('Tu suscripción ha sido cancelada. Seguirás teniendo acceso a las funciones premium hasta el final del período de facturación.');
-        // Aquí podrías recargar la página o actualizar el estado
-      } catch (error) {
-        console.error('Error:', error);
-        alert('No se pudo cancelar la suscripción. Por favor, intenta de nuevo más tarde.');
-      }
+        success('Suscripción cancelada', {
+          title: '¡Listo!',
+          description: 'Tu suscripción ha sido cancelada. Seguirás teniendo acceso a las funciones premium hasta el final del período de facturación.'
+        });
+        
+        // Refrescar el perfil para mostrar el nuevo estado
+        if (profile) {
+          // Aquí podrías llamar a refreshProfile si está disponible
+          window.location.reload(); // Por ahora recargamos la página
+        }
+          } catch (error: any) {
+            showError('Error al cancelar suscripción', {
+              title: 'Error',
+              description: error.message || 'No se pudo cancelar la suscripción. Por favor, intenta de nuevo más tarde.'
+            });
+          }
     });
   };
 
@@ -271,6 +297,52 @@ export function SubscriptionCard({ userPlan }: SubscriptionCardProps) {
           </div>
         </CardContent>
       </Card>
+
+      {/* Modal de Confirmación de Cancelación */}
+      {showCancelModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white dark:bg-gray-800 rounded-lg p-6 max-w-md w-full mx-4">
+            <div className="flex items-center gap-3 mb-4">
+              <div className="flex-shrink-0 w-10 h-10 bg-red-100 dark:bg-red-900 rounded-full flex items-center justify-center">
+                <AlertTriangle className="h-5 w-5 text-red-600 dark:text-red-400" />
+              </div>
+              <div>
+                <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
+                  Cancelar Suscripción
+                </h3>
+              </div>
+            </div>
+            
+            <p className="text-gray-600 dark:text-gray-300 mb-6">
+              ¿Estás seguro de que deseas cancelar tu suscripción? Perderás acceso a las funciones premium al final del período de facturación.
+            </p>
+            
+            <div className="flex gap-3 justify-end">
+              <Button
+                variant="outline"
+                onClick={() => setShowCancelModal(false)}
+                disabled={isPending}
+              >
+                Cancelar
+              </Button>
+              <Button
+                variant="destructive"
+                onClick={confirmCancelSubscription}
+                disabled={isPending}
+              >
+                {isPending ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    Procesando...
+                  </>
+                ) : (
+                  'Sí, cancelar'
+                )}
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
 
     </div>
   )

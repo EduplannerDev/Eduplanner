@@ -11,6 +11,7 @@ const supabase = createClient(
 export async function POST(req: NextRequest) {
   try {
     const { userId } = await req.json()
+    
 
     if (!userId) {
       return NextResponse.json({ error: 'Se requiere userId' }, { status: 400 })
@@ -23,10 +24,17 @@ export async function POST(req: NextRequest) {
       .eq('id', userId)
       .single()
 
-    if (profileError || !profile?.stripe_customer_id) {
-      console.error('Error obteniendo stripe_customer_id:', profileError)
+
+    if (profileError) {
       return NextResponse.json(
-        { error: 'No se encontró información de suscripción' },
+        { error: 'Error al obtener información del perfil: ' + profileError.message },
+        { status: 500 }
+      )
+    }
+
+    if (!profile?.stripe_customer_id) {
+      return NextResponse.json(
+        { error: 'No se encontró información de suscripción. Asegúrate de tener una suscripción activa.' },
         { status: 404 }
       )
     }
