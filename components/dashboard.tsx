@@ -15,7 +15,7 @@ import { GenerarMensajes } from "./sections/generar-mensajes"
 import { GenerarMensajesPadres } from "./sections/generar-mensajes-padres"
 import { MisMensajes } from "./sections/mis-mensajes"
 import { MensajesPadresAlumno } from "./sections/mensajes-padres-alumno"
-import { FAQ } from "./sections/faq"
+import { Ayuda } from "./sections/ayuda"
 import MisGrupos from "./sections/mis-grupos"
 import { AdminDashboard } from "./sections/admin-dashboard"
 import { DirectorDashboard } from "./sections/director-dashboard"
@@ -135,8 +135,8 @@ export default function Dashboard({ children, customContent = false }: Dashboard
       case "mis-mensajes":
         return "Mis Mensajes"
 
-      case "faq":
-        return "Preguntas Frecuentes"
+      case "ayuda":
+        return "Centro de Ayuda"
       case "grupos":
         return "Mis Grupos"
       case "agenda":
@@ -237,8 +237,8 @@ export default function Dashboard({ children, customContent = false }: Dashboard
           studentId={selectedStudentForMessages?.id || ""}
           studentName={selectedStudentForMessages?.nombre || ""}
         />
-      case "faq":
-        return <FAQ />
+      case "ayuda":
+        return <Ayuda />
       case "grupos":
         return <MisGrupos 
           onNavigateToMensajesPadres={handleNavigateToMensajesPadres} 

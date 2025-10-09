@@ -114,6 +114,18 @@ const menuStructure = {
       },
     ],
   },
+  ayuda: {
+    title: "AYUDA",
+    description: "Recursos y soporte para usar la plataforma",
+    sections: [
+      {
+        title: "Ayuda",
+        icon: HelpCircle,
+        url: "#ayuda",
+        description: "Centro de ayuda y documentación",
+      },
+    ],
+  },
 }
 
 interface AppSidebarProps extends React.ComponentProps<typeof Sidebar> {
@@ -423,6 +435,31 @@ export function AppSidebar({ activeSection, onSectionChange, ...props }: AppSide
             </SidebarMenu>
           </SidebarGroupContent>
         </SidebarGroup>
+        
+        {/* AYUDA */}
+        <SidebarGroup>
+          {state === "expanded" && (
+            <SidebarGroupLabel>{menuStructure.ayuda.title}</SidebarGroupLabel>
+          )}
+          <SidebarGroupContent>
+            <SidebarMenu>
+              {menuStructure.ayuda.sections.map((section) => (
+                <SidebarMenuItem key={section.title}>
+                  <SidebarMenuButton
+                    asChild
+                    isActive={activeSection === section.url?.replace("#", "")}
+                    tooltip={section.description}
+                  >
+                    <button onClick={() => handleNavigation(section.url?.replace("#", "") || "")} className="w-full">
+                      <section.icon className="h-4 w-4" />
+                      <span>{section.title}</span>
+                    </button>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+              ))}
+            </SidebarMenu>
+          </SidebarGroupContent>
+        </SidebarGroup>
 
         {/* Módulo de Administración - Solo para admins */}
         {isAdmin && (
@@ -535,14 +572,6 @@ export function AppSidebar({ activeSection, onSectionChange, ...props }: AppSide
                     </div>
                   </div>
                 )}
-              </button>
-            </SidebarMenuButton>
-          </SidebarMenuItem>
-          <SidebarMenuItem>
-            <SidebarMenuButton asChild tooltip={state === "collapsed" ? "Preguntas Frecuentes" : undefined}>
-              <button onClick={() => handleNavigation("faq")} className="w-full">
-                <HelpCircle className="h-4 w-4" />
-                {state === "expanded" && <span>Preguntas Frecuentes</span>}
               </button>
             </SidebarMenuButton>
           </SidebarMenuItem>
