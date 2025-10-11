@@ -395,6 +395,122 @@ export function getCleanContentForSaving(content: string): string {
   return cleanPlaneacionContent(content)
 }
 
+// =====================================================
+// FUNCIONES PARA ENLACES PROYECTO-MOMENTO-PLANEACION
+// =====================================================
+
+// Función para crear un enlace entre momento de proyecto y planeación
+export async function createProyectoMomentoPlaneacionLink(
+  proyectoFaseId: string,
+  planeacionId: string
+): Promise<boolean> {
+  try {
+    const { error } = await supabase
+      .from('proyecto_momento_planeacion')
+      .insert({
+        proyecto_fase_id: proyectoFaseId,
+        planeacion_id: planeacionId
+      })
+
+    if (error) {
+      console.error('Error creando enlace proyecto-momento-planeación:', error)
+      return false
+    }
+
+    return true
+  } catch (error) {
+    console.error('Error inesperado creando enlace:', error)
+    return false
+  }
+}
+
+// Función para eliminar un enlace entre momento de proyecto y planeación
+export async function deleteProyectoMomentoPlaneacionLink(
+  proyectoFaseId: string,
+  planeacionId: string
+): Promise<boolean> {
+  try {
+    const { error } = await supabase
+      .from('proyecto_momento_planeacion')
+      .delete()
+      .eq('proyecto_fase_id', proyectoFaseId)
+      .eq('planeacion_id', planeacionId)
+
+    if (error) {
+      console.error('Error eliminando enlace proyecto-momento-planeación:', error)
+      return false
+    }
+
+    return true
+  } catch (error) {
+    console.error('Error inesperado eliminando enlace:', error)
+    return false
+  }
+}
+
+// Función para obtener las fases de un proyecto con sus planeaciones enlazadas
+export async function getProyectoFasesWithLinks(proyectoId: string): Promise<any[]> {
+  try {
+    const { data, error } = await supabase
+      .rpc('get_proyecto_fases_with_links', { proyecto_uuid: proyectoId })
+
+    if (error) {
+      console.error('Error obteniendo fases con enlaces:', error)
+      return []
+    }
+
+    return data || []
+  } catch (error) {
+    console.error('Error inesperado obteniendo fases con enlaces:', error)
+    return []
+  }
+}
+
+// Función para verificar si un momento ya tiene una planeación enlazada
+export async function getPlaneacionLinkedToMomento(proyectoFaseId: string): Promise<any | null> {
+  try {
+    const { data, error } = await supabase
+      .from('proyecto_momento_planeacion')
+      .select(`
+        id,
+        planeacion_id,
+        planeaciones (
+          id,
+          titulo,
+          materia,
+          grado,
+          duracion,
+          objetivo,
+          metodologia,
+          contenido,
+          created_at
+        )
+      `)
+      .eq('proyecto_fase_id', proyectoFaseId)
+      .single()
+
+    if (error) {
+      if (error.code === 'PGRST116') {
+        // No se encontró enlace
+        return null
+      }
+      console.error('Error verificando enlace de momento:', error)
+      console.error('Detalles del error:', {
+        code: error.code,
+        message: error.message,
+        details: error.details,
+        hint: error.hint
+      })
+      return null
+    }
+
+    return data?.planeaciones || null
+  } catch (error) {
+    console.error('Error inesperado verificando enlace:', error)
+    return null
+  }
+}
+
 // Función para migrar planeaciones existentes de markdown a HTML
 export async function migrateMarkdownPlaneaciones(): Promise<{ migrated: number; errors: number }> {
   let migrated = 0

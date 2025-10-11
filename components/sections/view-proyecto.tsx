@@ -4,7 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
-import { ArrowLeft, BookOpen, Users, Calendar, Target, Lightbulb, Loader2, CheckSquare, FileText, FolderOpen, ClipboardList, ArrowRight, Plus, X, Bot, Trash2 } from 'lucide-react'
+import { ArrowLeft, BookOpen, Users, Calendar, Target, Lightbulb, Loader2, CheckSquare, FileText, FolderOpen, ClipboardList, ArrowRight, Plus, X, Bot, Trash2, Search, Unlink } from 'lucide-react'
 import { toast } from 'sonner'
 import { useRouter } from 'next/navigation'
 import { useProyectos } from '@/hooks/use-proyectos'
@@ -34,6 +34,9 @@ import { Checkbox } from "@/components/ui/checkbox"
 import { ScrollArea } from "@/components/ui/scroll-area"
 import { generateRubricaPDF, generateListaCotejoPDF } from "@/lib/pdf-generator"
 import { ProyectoRecursos } from "./proyecto-recursos"
+import { usePlaneaciones } from "@/hooks/use-planeaciones"
+import { createProyectoMomentoPlaneacionLink, getPlaneacionLinkedToMomento, deleteProyectoMomentoPlaneacionLink } from "@/lib/planeaciones"
+import { convertMarkdownToHtml } from '@/components/ui/rich-text-editor'
 
 interface ViewProyectoProps {
   proyectoId: string
@@ -332,6 +335,8 @@ export function ViewProyecto({ proyectoId, onBack }: ViewProyectoProps) {
   const [loadingFases, setLoadingFases] = useState(false)
   const [initialLoading, setInitialLoading] = useState(true)
   const [hasError, setHasError] = useState(false)
+  const [loadingEnlaces, setLoadingEnlaces] = useState(false)
+  const [enlacesLoaded, setEnlacesLoaded] = useState(false)
   const [showInstrumentDialog, setShowInstrumentDialog] = useState(false)
   const [generatingRubrica, setGeneratingRubrica] = useState(false)
   const [instrumentos, setInstrumentos] = useState<InstrumentoEvaluacion[]>([])
@@ -361,14 +366,42 @@ export function ViewProyecto({ proyectoId, onBack }: ViewProyectoProps) {
   const [showViewDialog, setShowViewDialog] = useState(false)
   const [instrumentoSeleccionado, setInstrumentoSeleccionado] = useState<InstrumentoEvaluacion | null>(null)
 
+  // Estados para el modal de enlazar planeación
+  const [showLinkPlaneacionModal, setShowLinkPlaneacionModal] = useState(false)
+  const [selectedMomentoId, setSelectedMomentoId] = useState<string | null>(null)
+  const [selectedMomentoName, setSelectedMomentoName] = useState<string | null>(null)
+  const [searchTerm, setSearchTerm] = useState('')
+  
+  // Estados para el modal de confirmación
+  const [showConfirmModal, setShowConfirmModal] = useState(false)
+  const [planeacionToLink, setPlaneacionToLink] = useState<any>(null)
+  
+  // Estado para almacenar las planeaciones enlazadas a cada momento
+  const [linkedPlaneaciones, setLinkedPlaneaciones] = useState<{[momentoId: string]: any}>({})
+  const [showViewModal, setShowViewModal] = useState(false)
+  const [planeacionToView, setPlaneacionToView] = useState<any>(null)
+  const [showUnlinkModal, setShowUnlinkModal] = useState(false)
+  const [momentoToUnlink, setMomentoToUnlink] = useState<string | null>(null)
+  
+  // Hook para obtener las planeaciones del profesor
+  const { planeaciones: planeacionesProfesor, loading: loadingPlaneaciones } = usePlaneaciones()
+
   useEffect(() => {
     cargarProyecto()
     cargarInstrumentos()
   }, [proyectoId])
 
+  // Cargar planeaciones enlazadas cuando se cargan las fases
+  useEffect(() => {
+    if (fases.length > 0 && !enlacesLoaded && !loadingEnlaces) {
+      cargarPlaneacionesEnlazadas()
+    }
+  }, [fases, enlacesLoaded])
+
   const cargarProyecto = async () => {
     setInitialLoading(true)
     setHasError(false)
+    setEnlacesLoaded(false) // Reset enlaces cuando se carga un nuevo proyecto
     
     try {
       const proyectoData = await obtenerProyecto(proyectoId)
@@ -580,6 +613,184 @@ export function ViewProyecto({ proyectoId, onBack }: ViewProyectoProps) {
     }
   }
 
+  // Función para cargar las planeaciones enlazadas a cada momento
+  const cargarPlaneacionesEnlazadas = async () => {
+    setLoadingEnlaces(true)
+    const enlaces: {[momentoId: string]: any} = {}
+    
+    try {
+      for (const fase of fases) {
+        try {
+          const planeacionEnlazada = await getPlaneacionLinkedToMomento(fase.id)
+          if (planeacionEnlazada) {
+            enlaces[fase.id] = planeacionEnlazada
+          }
+          // Pequeño delay para evitar sobrecargar el servidor
+          await new Promise(resolve => setTimeout(resolve, 100))
+        } catch (error) {
+          console.error(`Error cargando planeación enlazada para momento ${fase.id}:`, error)
+        }
+      }
+      
+      setLinkedPlaneaciones(enlaces)
+      setEnlacesLoaded(true)
+    } finally {
+      setLoadingEnlaces(false)
+    }
+  }
+
+  // Función para enlazar planeación existente a un momento
+  const handleEnlazarPlaneacion = (momentoId: string) => {
+    const momento = fases.find(f => f.id === momentoId)
+    if (momento) {
+      setSelectedMomentoId(momentoId)
+      setSelectedMomentoName(momento.momento_nombre)
+      setShowLinkPlaneacionModal(true)
+    }
+  }
+
+  // Función para generar nueva planeación para un momento
+  const handleGenerarPlaneacion = (momento: ProyectoFase) => {
+    // TODO: Implementar funcionalidad para generar nueva planeación
+    toast.info(`Generando planeación para: ${momento.momento_nombre}`)
+  }
+
+  // Función para ver la planeación enlazada
+  const handleVerPlaneacion = (momentoId: string) => {
+    const planeacionEnlazada = linkedPlaneaciones[momentoId]
+    if (planeacionEnlazada) {
+      setPlaneacionToView(planeacionEnlazada)
+      setShowViewModal(true)
+    }
+  }
+
+  // Función para manejar la selección de planeación
+  const handleSelectPlaneacion = (planeacionId: string) => {
+    const planeacionSeleccionada = planeacionesProfesor.find(p => p.id === planeacionId)
+    
+    if (!planeacionSeleccionada) return
+
+    // Guardar la planeación seleccionada y mostrar modal de confirmación
+    setPlaneacionToLink(planeacionSeleccionada)
+    setShowConfirmModal(true)
+  }
+
+  // Función para confirmar el enlazado de la planeación
+  const handleConfirmLink = async () => {
+    if (!planeacionToLink || !selectedMomentoId) return
+
+    try {
+      const success = await createProyectoMomentoPlaneacionLink(
+        selectedMomentoId,
+        planeacionToLink.id
+      )
+
+      if (success) {
+        toast.success(`Planeación "${planeacionToLink.titulo}" enlazada al momento: ${selectedMomentoName}`)
+        
+        // Actualizar el estado de enlaces
+        setLinkedPlaneaciones(prev => ({
+          ...prev,
+          [selectedMomentoId]: planeacionToLink
+        }))
+        
+        // Cerrar ambos modales y limpiar estados
+        setShowConfirmModal(false)
+        setShowLinkPlaneacionModal(false)
+        setSelectedMomentoId(null)
+        setSelectedMomentoName(null)
+        setSearchTerm('')
+        setPlaneacionToLink(null)
+      } else {
+        toast.error('Error al enlazar la planeación. Inténtalo de nuevo.')
+      }
+    } catch (error) {
+      console.error('Error enlazando planeación:', error)
+      toast.error('Error al enlazar la planeación. Inténtalo de nuevo.')
+    }
+  }
+
+  // Función para cancelar el enlazado
+  const handleCancelLink = () => {
+    setShowConfirmModal(false)
+    setPlaneacionToLink(null)
+  }
+
+  // Función para cerrar el modal de enlazar planeación
+  const handleCloseLinkModal = () => {
+    setShowLinkPlaneacionModal(false)
+    setSelectedMomentoId(null)
+    setSelectedMomentoName(null)
+    setSearchTerm('') // Limpiar búsqueda al cerrar
+  }
+
+  // Función para cerrar el modal de visualización
+  const handleCloseViewModal = () => {
+    setShowViewModal(false)
+    setPlaneacionToView(null)
+  }
+
+  // Función para iniciar el desenlazado
+  const handleUnlinkPlaneacion = (momentoId: string) => {
+    setMomentoToUnlink(momentoId)
+    setShowUnlinkModal(true)
+    setShowViewModal(false) // Cerrar el modal de visualización
+  }
+
+  // Función para confirmar el desenlazado
+  const handleConfirmUnlink = async () => {
+    if (!momentoToUnlink) return
+
+    try {
+      const success = await deleteProyectoMomentoPlaneacionLink(
+        momentoToUnlink,
+        planeacionToView?.id
+      )
+
+      if (success) {
+        toast.success('Planeación desenlazada correctamente')
+        
+        // Actualizar el estado de enlaces
+        setLinkedPlaneaciones(prev => {
+          const newState = { ...prev }
+          delete newState[momentoToUnlink]
+          return newState
+        })
+        
+        // Cerrar modales y limpiar estados
+        setShowUnlinkModal(false)
+        setMomentoToUnlink(null)
+        setPlaneacionToView(null)
+      } else {
+        toast.error('Error al desenlazar la planeación. Inténtalo de nuevo.')
+      }
+    } catch (error) {
+      console.error('Error desenlazando planeación:', error)
+      toast.error('Error al desenlazar la planeación. Inténtalo de nuevo.')
+    }
+  }
+
+  // Función para cancelar el desenlazado
+  const handleCancelUnlink = () => {
+    setShowUnlinkModal(false)
+    setMomentoToUnlink(null)
+    setShowViewModal(true) // Volver al modal de visualización
+  }
+
+  // Función para filtrar planeaciones basada en el término de búsqueda
+  const filteredPlaneaciones = planeacionesProfesor.filter(planeacion => {
+    if (!searchTerm) return true
+    
+    const searchLower = searchTerm.toLowerCase()
+    return (
+      planeacion.titulo.toLowerCase().includes(searchLower) ||
+      planeacion.materia?.toLowerCase().includes(searchLower) ||
+      planeacion.grado?.toLowerCase().includes(searchLower) ||
+      planeacion.objetivo?.toLowerCase().includes(searchLower) ||
+      planeacion.metodologia?.toLowerCase().includes(searchLower)
+    )
+  })
+
   // Mostrar loader inicial mientras se carga el proyecto
   if (initialLoading) {
     return (
@@ -765,6 +976,51 @@ export function ViewProyecto({ proyectoId, onBack }: ViewProyectoProps) {
                           <p className="text-gray-700 dark:text-gray-300 leading-relaxed whitespace-pre-line">
                             {fase.contenido}
                           </p>
+                          
+                          {/* Botones para enlazar/ver y generar planeaciones */}
+                          <div className="mt-4 flex gap-2">
+                            {loadingEnlaces ? (
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                className="flex items-center gap-2"
+                                disabled
+                              >
+                                <Loader2 className="h-4 w-4 animate-spin" />
+                                Cargando...
+                              </Button>
+                            ) : linkedPlaneaciones[fase.id] ? (
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                className="flex items-center gap-2 bg-green-50 hover:bg-green-100 border-green-200 text-green-700"
+                                onClick={() => handleVerPlaneacion(fase.id)}
+                              >
+                                <BookOpen className="h-4 w-4" />
+                                Ver Planeación
+                              </Button>
+                            ) : (
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                className="flex items-center gap-2"
+                                onClick={() => handleEnlazarPlaneacion(fase.id)}
+                              >
+                                <BookOpen className="h-4 w-4" />
+                                Enlazar Planeación
+                              </Button>
+                            )}
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              className="flex items-center gap-2"
+                              onClick={() => handleGenerarPlaneacion(fase)}
+                              disabled={loadingEnlaces}
+                            >
+                              <Bot className="h-4 w-4" />
+                              Generar Planeación
+                            </Button>
+                          </div>
                         </div>
                       </div>
                     ))}
@@ -1288,6 +1544,282 @@ export function ViewProyecto({ proyectoId, onBack }: ViewProyectoProps) {
           )}
         </DialogContent>
       </Dialog>
+
+      {/* Modal para Enlazar Planeación */}
+      <Dialog open={showLinkPlaneacionModal} onOpenChange={handleCloseLinkModal}>
+        <DialogContent className="max-w-4xl w-full max-h-[80vh]">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <BookOpen className="h-5 w-5" />
+              Enlazar Planeación al Momento
+            </DialogTitle>
+            <DialogDescription>
+              Selecciona una planeación para enlazar al momento: <strong>{selectedMomentoName}</strong>
+            </DialogDescription>
+          </DialogHeader>
+
+          {/* Campo de búsqueda */}
+          <div className="space-y-2">
+            <div className="relative">
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+              <Input
+                placeholder="Buscar planeación por título, materia, grado, objetivo..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="pl-10"
+              />
+            </div>
+            {searchTerm && (
+              <p className="text-sm text-gray-600 dark:text-gray-400">
+                {filteredPlaneaciones.length} de {planeacionesProfesor.length} planeaciones encontradas
+              </p>
+            )}
+          </div>
+          
+          <ScrollArea className="h-[400px] pr-4">
+            {loadingPlaneaciones ? (
+              <div className="flex items-center justify-center py-8">
+                <Loader2 className="h-6 w-6 animate-spin mr-2" />
+                <span>Cargando planeaciones...</span>
+              </div>
+            ) : planeacionesProfesor.length === 0 ? (
+              <div className="text-center py-8 text-gray-500 dark:text-gray-400">
+                <BookOpen className="h-12 w-12 mx-auto mb-4 opacity-50" />
+                <p>No tienes planeaciones creadas</p>
+                <p className="text-sm">Crea una planeación primero para poder enlazarla</p>
+              </div>
+            ) : filteredPlaneaciones.length === 0 ? (
+              <div className="text-center py-8 text-gray-500 dark:text-gray-400">
+                <Search className="h-12 w-12 mx-auto mb-4 opacity-50" />
+                <p>No se encontraron planeaciones</p>
+                <p className="text-sm">Intenta con otros términos de búsqueda</p>
+              </div>
+            ) : (
+              <div className="space-y-3">
+                {filteredPlaneaciones.map((planeacion) => (
+                  <Card 
+                    key={planeacion.id} 
+                    className="cursor-pointer hover:shadow-md transition-shadow"
+                    onClick={() => handleSelectPlaneacion(planeacion.id)}
+                  >
+                    <CardContent className="p-4">
+                      <div className="flex justify-between items-start">
+                        <div className="flex-1">
+                          <h4 className="font-semibold text-gray-900 dark:text-gray-100">
+                            {planeacion.titulo}
+                          </h4>
+                          <div className="flex items-center gap-4 mt-2 text-sm text-gray-600 dark:text-gray-400">
+                            <span className="flex items-center gap-1">
+                              <Calendar className="h-4 w-4" />
+                              {new Date(planeacion.created_at).toLocaleDateString("es-MX")}
+                            </span>
+                            {planeacion.grado && <span>{planeacion.grado}</span>}
+                            {planeacion.duracion && <span>{planeacion.duracion}</span>}
+                          </div>
+                          {planeacion.objetivo && (
+                            <p className="text-sm text-gray-600 dark:text-gray-400 mt-2 line-clamp-2">
+                              {planeacion.objetivo}
+                            </p>
+                          )}
+                        </div>
+                        <Badge className="ml-4">
+                          {planeacion.metodologia === 'CIME' ? 'CIME' : 
+                           planeacion.origen === 'dosificacion' ? 'Dosificación' : 'NEM'}
+                        </Badge>
+                      </div>
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
+            )}
+          </ScrollArea>
+          
+          <div className="flex justify-end gap-2 pt-4">
+            <Button variant="outline" onClick={handleCloseLinkModal}>
+              Cancelar
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Modal de Confirmación para Enlazar Planeación */}
+      <Dialog open={showConfirmModal} onOpenChange={handleCancelLink}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <BookOpen className="h-5 w-5" />
+              Confirmar Enlazado
+            </DialogTitle>
+          </DialogHeader>
+          
+          <div className="space-y-4">
+            <p className="text-gray-700 dark:text-gray-300">
+              ¿Estás seguro de que quieres enlazar la planeación{" "}
+              <strong className="text-blue-600 dark:text-blue-400">
+                "{planeacionToLink?.titulo}"
+              </strong>{" "}
+              al momento{" "}
+              <strong className="text-orange-600 dark:text-orange-400">
+                "{selectedMomentoName}"
+              </strong>?
+            </p>
+            
+            <p className="text-sm text-gray-600 dark:text-gray-400">
+              Esta acción vinculará la planeación seleccionada con el momento del proyecto.
+            </p>
+          </div>
+          
+          <div className="flex justify-end gap-2 pt-4">
+            <Button variant="outline" onClick={handleCancelLink}>
+              Cancelar
+            </Button>
+            <Button onClick={handleConfirmLink} className="bg-blue-600 hover:bg-blue-700">
+              Confirmar Enlazado
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Modal para Visualizar Planeación */}
+      <Dialog open={showViewModal} onOpenChange={handleCloseViewModal}>
+        <DialogContent className="max-w-4xl max-h-[80vh]">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <BookOpen className="h-5 w-5" />
+              {planeacionToView?.titulo}
+            </DialogTitle>
+            <DialogDescription>
+              Planeación enlazada al momento del proyecto
+            </DialogDescription>
+          </DialogHeader>
+          
+          {planeacionToView && (
+            <div className="space-y-4">
+              {/* Información básica de la planeación */}
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-4 p-4 bg-gray-50 dark:bg-gray-800 rounded-lg">
+                <div>
+                  <Label className="text-sm font-medium text-gray-600 dark:text-gray-400">Materia</Label>
+                  <p className="text-sm font-medium">{planeacionToView.materia}</p>
+                </div>
+                <div>
+                  <Label className="text-sm font-medium text-gray-600 dark:text-gray-400">Grado</Label>
+                  <p className="text-sm font-medium">{planeacionToView.grado}</p>
+                </div>
+                <div>
+                  <Label className="text-sm font-medium text-gray-600 dark:text-gray-400">Duración</Label>
+                  <p className="text-sm font-medium">{planeacionToView.duracion}</p>
+                </div>
+                <div>
+                  <Label className="text-sm font-medium text-gray-600 dark:text-gray-400">Metodología</Label>
+                  <Badge 
+                    className={
+                      planeacionToView.metodologia === 'CIME' 
+                        ? 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200'
+                        : 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200'
+                    }
+                  >
+                    {planeacionToView.metodologia || 'NEM'}
+                  </Badge>
+                </div>
+              </div>
+
+              {/* Objetivo */}
+              {planeacionToView.objetivo && (
+                <div>
+                  <Label className="text-sm font-medium text-gray-700 dark:text-gray-300">Objetivo</Label>
+                  <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
+                    {planeacionToView.objetivo}
+                  </p>
+                </div>
+              )}
+
+              {/* Contenido de la planeación */}
+              <div>
+                <Label className="text-sm font-medium text-gray-700 dark:text-gray-300">Contenido de la Planeación</Label>
+                <ScrollArea className="h-96 w-full border rounded-md p-4 mt-2">
+                  {planeacionToView.contenido ? (
+                    <div 
+                      className="prose prose-sm max-w-none dark:prose-invert"
+                      dangerouslySetInnerHTML={{ 
+                        __html: convertMarkdownToHtml(planeacionToView.contenido) 
+                      }}
+                    />
+                  ) : (
+                    <div className="text-center text-gray-500 dark:text-gray-400 py-8">
+                      <FileText className="h-12 w-12 mx-auto mb-4 opacity-50" />
+                      <p>No hay contenido disponible para esta planeación</p>
+                    </div>
+                  )}
+                </ScrollArea>
+              </div>
+
+              {/* Fecha de creación */}
+              <div className="text-xs text-gray-500 dark:text-gray-400 pt-2 border-t">
+                Creada el: {planeacionToView.created_at ? new Date(planeacionToView.created_at).toLocaleDateString('es-ES', {
+                  year: 'numeric',
+                  month: 'long',
+                  day: 'numeric',
+                  hour: '2-digit',
+                  minute: '2-digit'
+                }) : 'Fecha no disponible'}
+              </div>
+            </div>
+          )}
+          
+          <div className="flex justify-between pt-4">
+            <Button 
+              variant="outline" 
+              onClick={() => handleUnlinkPlaneacion(
+                fases.find(f => linkedPlaneaciones[f.id]?.id === planeacionToView?.id)?.id || ''
+              )}
+              className="flex items-center gap-2 text-red-600 hover:text-red-700 border-red-200 hover:border-red-300"
+            >
+              <Unlink className="h-4 w-4" />
+              Desenlazar
+            </Button>
+            <Button variant="outline" onClick={handleCloseViewModal}>
+              Cerrar
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Modal de Confirmación para Desenlazar */}
+      <AlertDialog open={showUnlinkModal} onOpenChange={setShowUnlinkModal}>
+        <AlertDialogContent className="max-w-md">
+          <AlertDialogHeader>
+            <AlertDialogTitle className="flex items-center gap-2">
+              <Unlink className="h-5 w-5 text-red-500" />
+              Confirmar Desenlazado
+            </AlertDialogTitle>
+            <AlertDialogDescription>
+              ¿Estás seguro de que quieres desenlazar la planeación{" "}
+              <strong className="text-blue-600 dark:text-blue-400">
+                "{planeacionToView?.titulo}"
+              </strong>{" "}
+              del momento del proyecto?
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          
+          <div className="bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-lg p-4 mt-4">
+            <p className="text-sm text-yellow-800 dark:text-yellow-200">
+              <strong>⚠️ Advertencia:</strong> Esta acción eliminará permanentemente el enlace entre la planeación y el momento del proyecto. Podrás volver a enlazarla más tarde si es necesario.
+            </p>
+          </div>
+          
+          <AlertDialogFooter>
+            <AlertDialogCancel onClick={handleCancelUnlink}>
+              Cancelar
+            </AlertDialogCancel>
+            <AlertDialogAction 
+              onClick={handleConfirmUnlink}
+              className="bg-red-600 hover:bg-red-700 focus:ring-red-500"
+            >
+              Desenlazar Planeación
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   )
 }
