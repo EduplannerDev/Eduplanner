@@ -30,13 +30,22 @@ import {
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Checkbox } from "@/components/ui/checkbox"
 import { ScrollArea } from "@/components/ui/scroll-area"
 import { generateRubricaPDF, generateListaCotejoPDF } from "@/lib/pdf-generator"
 import { ProyectoRecursos } from "./proyecto-recursos"
 import { usePlaneaciones } from "@/hooks/use-planeaciones"
+import { useProfile } from "@/hooks/use-profile"
+import { isUserPro } from "@/lib/subscription-utils"
 import { createProyectoMomentoPlaneacionLink, getPlaneacionLinkedToMomento, deleteProyectoMomentoPlaneacionLink } from "@/lib/planeaciones"
 import { convertMarkdownToHtml } from '@/components/ui/rich-text-editor'
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip"
 
 interface ViewProyectoProps {
   proyectoId: string
@@ -382,9 +391,23 @@ export function ViewProyecto({ proyectoId, onBack }: ViewProyectoProps) {
   const [planeacionToView, setPlaneacionToView] = useState<any>(null)
   const [showUnlinkModal, setShowUnlinkModal] = useState(false)
   const [momentoToUnlink, setMomentoToUnlink] = useState<string | null>(null)
+  const [showGenerateModal, setShowGenerateModal] = useState(false)
+  const [momentoToGenerate, setMomentoToGenerate] = useState<ProyectoFase | null>(null)
+  const [showCimeForm, setShowCimeForm] = useState(false)
+  const [showGeneratingView, setShowGeneratingView] = useState(false)
+  
+  // Estados para el formulario CIME
+  const [grado, setGrado] = useState('')
+  const [temaEspecifico, setTemaEspecifico] = useState('')
+  const [materialPrincipal, setMaterialPrincipal] = useState('')
+  const [conocimientosPrevios, setConocimientosPrevios] = useState('')
+  const [isGenerating, setIsGenerating] = useState(false)
   
   // Hook para obtener las planeaciones del profesor
-  const { planeaciones: planeacionesProfesor, loading: loadingPlaneaciones } = usePlaneaciones()
+  const { planeaciones: planeacionesProfesor, loading: loadingPlaneaciones, createPlaneacion } = usePlaneaciones()
+  
+  // Hook para obtener el perfil del usuario
+  const { profile } = useProfile()
 
   useEffect(() => {
     cargarProyecto()
@@ -651,8 +674,14 @@ export function ViewProyecto({ proyectoId, onBack }: ViewProyectoProps) {
 
   // Función para generar nueva planeación para un momento
   const handleGenerarPlaneacion = (momento: ProyectoFase) => {
-    // TODO: Implementar funcionalidad para generar nueva planeación
-    toast.info(`Generando planeación para: ${momento.momento_nombre}`)
+    // Verificar si ya hay una planeación enlazada
+    if (linkedPlaneaciones[momento.id]) {
+      toast.warning('Este momento ya tiene una planeación enlazada. Desenlázala primero para generar una nueva.')
+      return
+    }
+    
+    setMomentoToGenerate(momento)
+    setShowGenerateModal(true)
   }
 
   // Función para ver la planeación enlazada
@@ -775,6 +804,177 @@ export function ViewProyecto({ proyectoId, onBack }: ViewProyectoProps) {
     setShowUnlinkModal(false)
     setMomentoToUnlink(null)
     setShowViewModal(true) // Volver al modal de visualización
+  }
+
+  // Función para cerrar el modal de generación
+  const handleCloseGenerateModal = () => {
+    setShowGenerateModal(false)
+    setMomentoToGenerate(null)
+  }
+
+  // Función para generar planeación NEM
+  const handleGenerateNEM = () => {
+    if (momentoToGenerate) {
+      // Navegar al módulo de chat-ia con información del momento
+      const params = new URLSearchParams({
+        momento: momentoToGenerate.momento_nombre,
+        contenido: momentoToGenerate.contenido || '',
+        proyecto: proyecto?.titulo || ''
+      })
+      router.push(`/dashboard?section=chat-ia&${params.toString()}`)
+      handleCloseGenerateModal()
+    }
+  }
+
+  // Función para generar planeación CIME
+  const handleGenerateCIME = () => {
+    if (momentoToGenerate && proyecto) {
+      console.log('Datos del proyecto:', proyecto)
+      console.log('Grado del proyecto:', proyecto.grupos?.grado)
+      
+      // Pre-llenar datos del proyecto y momento
+      setGrado(proyecto.grupos?.grado || '')
+      setTemaEspecifico(momentoToGenerate.momento_nombre)
+      
+      setShowCimeForm(true)
+      setShowGenerateModal(false)
+    }
+  }
+
+  // Función para cerrar el formulario CIME
+  const handleCloseCimeForm = () => {
+    setShowCimeForm(false)
+    setShowGeneratingView(false)
+    setMomentoToGenerate(null)
+    // Limpiar formulario
+    setGrado('')
+    setTemaEspecifico('')
+    setMaterialPrincipal('')
+    setConocimientosPrevios('')
+  }
+
+  // Función para generar la planeación CIME
+  const handleGenerateCimePlaneacion = async () => {
+    if (!grado || !temaEspecifico || !materialPrincipal || !momentoToGenerate) {
+      toast.error('Por favor completa todos los campos requeridos')
+      return
+    }
+
+    setIsGenerating(true)
+    setShowGeneratingView(true)
+
+    try {
+      console.log('Iniciando generación de planeación CIME...')
+      console.log('Datos:', { grado, temaEspecifico, materialPrincipal, momentoToGenerate: momentoToGenerate.id })
+
+      // Construir el prompt para CIME
+      const prompt = `ROL: Actúa como un pedagogo experto y certificado en la metodología CIME para la enseñanza de las matemáticas. Tu conocimiento se basa en el constructivismo y el uso de materiales concretos.
+
+CONTEXTO: Estoy creando una planeación de matemáticas para ${grado} sobre el tema de "${temaEspecifico}". El material principal a utilizar será ${materialPrincipal}.
+
+${conocimientosPrevios ? `CONOCIMIENTOS PREVIOS: ${conocimientosPrevios}` : ''}
+
+TAREA: Genera una planeación didáctica completa siguiendo estrictamente la secuencia de 3 etapas del método CIME: Etapa Concreta, Etapa de Registro y Etapa Formal. Para cada etapa, describe una secuencia de actividades detallada y clara que un profesor pueda seguir en el aula.
+
+ESTRUCTURA DE SALIDA OBLIGATORIA: La planeación debe tener el siguiente formato:
+
+Materia: Matemáticas (Método CIME)
+Grado: ${grado}
+Tema: ${temaEspecifico}
+Propósito de la Clase: [Genera un propósito claro basado en el tema]
+
+1. ETAPA CONCRETA: (Describe aquí, paso a paso, una actividad práctica y manipulativa. Si se eligieron Regletas, explica cómo usarlas para explorar el concepto. Si fue el Geoplano, describe la actividad correspondiente. Sé muy específico en las instrucciones para el profesor y las preguntas que puede hacer a los alumnos.)
+
+2. ETAPA DE REGISTRO: (Describe aquí una actividad donde los alumnos dibujen, coloreen o escriban en su cuaderno para representar lo que descubrieron en la etapa concreta. Por ejemplo, "dibujar las construcciones de regletas que hicieron".)
+
+3. ETAPA FORMAL: (Describe aquí cómo el profesor debe introducir el lenguaje matemático abstracto (números, símbolos, algoritmos). Explica cómo conectar estos símbolos con la experiencia concreta y de registro que los alumnos ya vivieron.)
+
+Materiales Necesarios: [Lista los materiales mencionados, incluyendo Regletas/Geoplano]
+Evaluación Sugerida: [Sugiere una forma simple de evaluar la comprensión al final de la clase]`
+
+      console.log('Enviando prompt a la API...')
+
+      // Llamar a la API para generar la planeación
+      const response = await fetch('/api/generate-cime', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ prompt }),
+      })
+
+      console.log('Respuesta de la API:', response.status)
+
+      if (!response.ok) {
+        const errorText = await response.text()
+        console.error('Error de la API:', errorText)
+        throw new Error(`Error al generar la planeación: ${response.status}`)
+      }
+
+      const data = await response.json()
+      console.log('Datos recibidos:', data)
+      
+      if (!data.content) {
+        throw new Error('No se pudo generar el contenido')
+      }
+
+      // Convertir markdown a HTML
+      const htmlContent = convertMarkdownToHtml(data.content)
+      console.log('Contenido convertido a HTML')
+
+      // Crear la planeación
+      console.log('Creando planeación en la base de datos...')
+      const nuevaPlaneacion = await createPlaneacion({
+        titulo: `Planeación CIME - ${temaEspecifico}`,
+        materia: 'Matemáticas',
+        grado: grado,
+        duracion: '50 minutos',
+        objetivo: `Desarrollar comprensión del concepto ${temaEspecifico} mediante metodología CIME`,
+        contenido: htmlContent,
+        metodologia: 'CIME'
+      })
+
+      console.log('Planeación creada:', nuevaPlaneacion)
+
+      if (nuevaPlaneacion) {
+        toast.success('Planeación CIME generada correctamente')
+        
+        // Enlazar automáticamente la planeación al momento
+        console.log('Enlazando planeación al momento...')
+        const success = await createProyectoMomentoPlaneacionLink(
+          momentoToGenerate.id,
+          nuevaPlaneacion.id
+        )
+
+        console.log('Resultado del enlace:', success)
+
+        if (success) {
+          toast.success('Planeación enlazada automáticamente al momento')
+          
+          // Actualizar el estado de enlaces
+          setLinkedPlaneaciones(prev => ({
+            ...prev,
+            [momentoToGenerate.id]: nuevaPlaneacion
+          }))
+          
+          console.log('Estado de enlaces actualizado')
+        } else {
+          toast.warning('Planeación creada pero no se pudo enlazar automáticamente')
+        }
+
+        // Cerrar formulario
+        handleCloseCimeForm()
+      } else {
+        throw new Error('No se pudo crear la planeación')
+      }
+    } catch (error) {
+      console.error('Error generando planeación CIME:', error)
+      toast.error(`Error al generar la planeación: ${error.message}`)
+      // En caso de error, volver al formulario
+      setShowGeneratingView(false)
+    } finally {
+      setIsGenerating(false)
+    }
   }
 
   // Función para filtrar planeaciones basada en el término de búsqueda
@@ -1010,16 +1210,28 @@ export function ViewProyecto({ proyectoId, onBack }: ViewProyectoProps) {
                                 Enlazar Planeación
                               </Button>
                             )}
-                            <Button
-                              variant="outline"
-                              size="sm"
-                              className="flex items-center gap-2"
-                              onClick={() => handleGenerarPlaneacion(fase)}
-                              disabled={loadingEnlaces}
-                            >
-                              <Bot className="h-4 w-4" />
-                              Generar Planeación
-                            </Button>
+                            <TooltipProvider>
+                              <Tooltip>
+                                <TooltipTrigger asChild>
+                                  <Button
+                                    variant="outline"
+                                    size="sm"
+                                    className="flex items-center gap-2"
+                                    onClick={() => handleGenerarPlaneacion(fase)}
+                                    disabled={loadingEnlaces || !!linkedPlaneaciones[fase.id]}
+                                  >
+                                    <Bot className="h-4 w-4" />
+                                    Generar Planeación
+                                  </Button>
+                                </TooltipTrigger>
+                                {linkedPlaneaciones[fase.id] && (
+                                  <TooltipContent>
+                                    <p>Este momento ya tiene una planeación enlazada.</p>
+                                    <p>Desenlázala primero para generar una nueva.</p>
+                                  </TooltipContent>
+                                )}
+                              </Tooltip>
+                            </TooltipProvider>
                           </div>
                         </div>
                       </div>
@@ -1820,6 +2032,310 @@ export function ViewProyecto({ proyectoId, onBack }: ViewProyectoProps) {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      {/* Modal para Seleccionar Tipo de Planeación */}
+      <Dialog open={showGenerateModal} onOpenChange={handleCloseGenerateModal}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Bot className="h-5 w-5" />
+              Generar Nueva Planeación
+            </DialogTitle>
+            <DialogDescription>
+              Selecciona el tipo de planeación que deseas generar para el momento{" "}
+              <strong className="text-orange-600 dark:text-orange-400">
+                "{momentoToGenerate?.momento_nombre}"
+              </strong>
+            </DialogDescription>
+          </DialogHeader>
+          
+          <div className="space-y-4">
+            {/* Información del momento */}
+            <div className="bg-gray-50 dark:bg-gray-800 p-4 rounded-lg">
+              <h4 className="font-medium text-gray-900 dark:text-gray-100 mb-2">Información del Momento:</h4>
+              <p className="text-sm text-gray-600 dark:text-gray-400">
+                <strong>Momento:</strong> {momentoToGenerate?.momento_nombre}
+              </p>
+              {momentoToGenerate?.contenido && (
+                <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
+                  <strong>Contenido:</strong> {momentoToGenerate.contenido.substring(0, 100)}
+                  {momentoToGenerate.contenido.length > 100 && '...'}
+                </p>
+              )}
+            </div>
+
+            {/* Opciones de tipo de planeación */}
+            <div className="grid gap-3">
+              <Button 
+                onClick={handleGenerateNEM}
+                className="flex items-center justify-between p-4 h-auto bg-green-50 hover:bg-green-100 border border-green-200 text-green-800 hover:text-green-900"
+                variant="outline"
+              >
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 bg-green-100 rounded-lg flex items-center justify-center">
+                    <BookOpen className="h-5 w-5 text-green-600" />
+                  </div>
+                  <div className="text-left">
+                    <div className="font-medium">Planeación NEM</div>
+                    <div className="text-xs text-green-600">Metodología tradicional</div>
+                  </div>
+                </div>
+                <ArrowRight className="h-4 w-4" />
+              </Button>
+
+              <Button 
+                onClick={handleGenerateCIME}
+                className="flex items-center justify-between p-4 h-auto bg-blue-50 hover:bg-blue-100 border border-blue-200 text-blue-800 hover:text-blue-900"
+                variant="outline"
+              >
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center">
+                    <Target className="h-5 w-5 text-blue-600" />
+                  </div>
+                  <div className="text-left">
+                    <div className="font-medium">Planeación CIME</div>
+                    <div className="text-xs text-blue-600">Metodología constructivista</div>
+                  </div>
+                </div>
+                <ArrowRight className="h-4 w-4" />
+              </Button>
+            </div>
+          </div>
+          
+          <div className="flex justify-end gap-2 pt-4">
+            <Button variant="outline" onClick={handleCloseGenerateModal}>
+              Cancelar
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Modal del Formulario CIME */}
+      <Dialog open={showCimeForm} onOpenChange={showGeneratingView ? undefined : handleCloseCimeForm}>
+        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Target className="h-5 w-5 text-blue-600" />
+              {showGeneratingView ? 'Generando Planeación CIME' : 'Asistente de Planeación CIME para Matemáticas'}
+            </DialogTitle>
+            <DialogDescription>
+              {showGeneratingView 
+                ? 'Por favor espera mientras generamos tu planeación...'
+                : `Generando planeación para el momento: "${momentoToGenerate?.momento_nombre}"`
+              }
+            </DialogDescription>
+          </DialogHeader>
+          
+          {showGeneratingView ? (
+            /* Vista de Generación en Progreso */
+            <div className="space-y-6">
+              {/* Información de la planeación que se está generando */}
+              <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-6">
+                <div className="text-center">
+                  <div className="w-16 h-16 mx-auto mb-4 bg-blue-100 dark:bg-blue-900 rounded-full flex items-center justify-center">
+                    <Loader2 className="h-8 w-8 text-blue-600 animate-spin" />
+                  </div>
+                  <h3 className="text-lg font-semibold text-blue-900 dark:text-blue-100 mb-2">
+                    Generando tu Planeación CIME
+                  </h3>
+                  <p className="text-blue-700 dark:text-blue-300 mb-4">
+                    Nuestra IA está creando una planeación personalizada siguiendo la metodología CIME
+                  </p>
+                </div>
+                
+                {/* Detalles de la planeación */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+                  <div className="bg-white dark:bg-gray-800 rounded-lg p-3">
+                    <span className="font-medium text-gray-700 dark:text-gray-300">Tema:</span>
+                    <p className="text-gray-600 dark:text-gray-400">{temaEspecifico}</p>
+                  </div>
+                  <div className="bg-white dark:bg-gray-800 rounded-lg p-3">
+                    <span className="font-medium text-gray-700 dark:text-gray-300">Grado:</span>
+                    <p className="text-gray-600 dark:text-gray-400">{grado}</p>
+                  </div>
+                  <div className="bg-white dark:bg-gray-800 rounded-lg p-3">
+                    <span className="font-medium text-gray-700 dark:text-gray-300">Material:</span>
+                    <p className="text-gray-600 dark:text-gray-400">{materialPrincipal}</p>
+                  </div>
+                  <div className="bg-white dark:bg-gray-800 rounded-lg p-3">
+                    <span className="font-medium text-gray-700 dark:text-gray-300">Momento:</span>
+                    <p className="text-gray-600 dark:text-gray-400">{momentoToGenerate?.momento_nombre}</p>
+                  </div>
+                </div>
+              </div>
+
+              {/* Pasos del proceso */}
+              <div className="space-y-3">
+                <h4 className="font-medium text-gray-900 dark:text-gray-100">Proceso de Generación:</h4>
+                <div className="space-y-2">
+                  <div className="flex items-center gap-3 text-sm">
+                    <div className="w-6 h-6 bg-green-100 dark:bg-green-900 rounded-full flex items-center justify-center">
+                      <CheckSquare className="h-4 w-4 text-green-600" />
+                    </div>
+                    <span className="text-gray-700 dark:text-gray-300">Analizando los datos del formulario</span>
+                  </div>
+                  <div className="flex items-center gap-3 text-sm">
+                    <div className="w-6 h-6 bg-blue-100 dark:bg-blue-900 rounded-full flex items-center justify-center">
+                      <Loader2 className="h-4 w-4 text-blue-600 animate-spin" />
+                    </div>
+                    <span className="text-gray-700 dark:text-gray-300">Generando contenido con IA</span>
+                  </div>
+                  <div className="flex items-center gap-3 text-sm">
+                    <div className="w-6 h-6 bg-gray-100 dark:bg-gray-700 rounded-full flex items-center justify-center">
+                      <FileText className="h-4 w-4 text-gray-400" />
+                    </div>
+                    <span className="text-gray-500 dark:text-gray-400">Formateando y guardando</span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Advertencia */}
+              <div className="bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-lg p-4">
+                <div className="flex items-start gap-3">
+                  <div className="w-5 h-5 bg-yellow-100 dark:bg-yellow-900 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
+                    <span className="text-yellow-600 text-xs font-bold">!</span>
+                  </div>
+                  <div>
+                    <p className="text-sm text-yellow-800 dark:text-yellow-200">
+                      <strong>No cierres esta ventana</strong> mientras se genera la planeación. 
+                      El proceso continuará en segundo plano, pero podrías perder la confirmación del resultado.
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          ) : (
+            /* Formulario Normal */
+            <div className="space-y-6">
+              {/* Información del proyecto y momento */}
+              {momentoToGenerate && proyecto && (
+                <div className="bg-gray-50 dark:bg-gray-800 p-4 rounded-lg">
+                  <h4 className="font-medium text-gray-900 dark:text-gray-100 mb-3">Contexto del Proyecto y Momento:</h4>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-sm">
+                    <div>
+                      <span className="font-medium text-gray-700 dark:text-gray-300">Proyecto:</span>
+                      <p className="text-gray-600 dark:text-gray-400">{proyecto.nombre}</p>
+                    </div>
+                    <div>
+                      <span className="font-medium text-gray-700 dark:text-gray-300">Grado:</span>
+                      <p className="text-gray-600 dark:text-gray-400">{proyecto.grupos?.grado || 'No especificado'}</p>
+                    </div>
+                    <div>
+                      <span className="font-medium text-gray-700 dark:text-gray-300">Momento:</span>
+                      <p className="text-gray-600 dark:text-gray-400">{momentoToGenerate.momento_nombre}</p>
+                    </div>
+                    {proyecto.grupos?.nivel && (
+                      <div>
+                        <span className="font-medium text-gray-700 dark:text-gray-300">Nivel:</span>
+                        <p className="text-gray-600 dark:text-gray-400">{proyecto.grupos.nivel}</p>
+                      </div>
+                    )}
+                  </div>
+                  {momentoToGenerate.contenido && (
+                    <div className="mt-3">
+                      <span className="font-medium text-gray-700 dark:text-gray-300">Descripción del Momento:</span>
+                      <p className="text-gray-600 dark:text-gray-400 mt-1">{momentoToGenerate.contenido}</p>
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {/* Formulario CIME */}
+              <div className="grid gap-4">
+                {/* Grado */}
+                <div className="space-y-2">
+                  <Label htmlFor="grado">Grado *</Label>
+                  <div className="relative">
+                    <Input
+                      id="grado"
+                      value={grado}
+                      readOnly
+                      className="bg-gray-50 dark:bg-gray-800 text-gray-700 dark:text-gray-300"
+                    />
+                    <div className="absolute inset-y-0 right-0 flex items-center pr-3">
+                      <span className="text-xs text-gray-500 dark:text-gray-400">Del proyecto</span>
+                    </div>
+                  </div>
+                  <p className="text-xs text-gray-500 dark:text-gray-400">
+                    El grado se obtiene automáticamente del proyecto
+                  </p>
+                </div>
+
+                {/* Tema Específico */}
+                <div className="space-y-2">
+                  <Label htmlFor="tema">Tema Específico *</Label>
+                  <Input
+                    id="tema"
+                    placeholder="Ej: Sumas de dos cifras llevando, Fracciones equivalentes"
+                    value={temaEspecifico}
+                    onChange={(e) => setTemaEspecifico(e.target.value)}
+                  />
+                </div>
+
+                {/* Material Principal */}
+                <div className="space-y-2">
+                  <Label htmlFor="material">Material Principal *</Label>
+                  <Select value={materialPrincipal} onValueChange={setMaterialPrincipal}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Selecciona el material" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="Regletas">Regletas</SelectItem>
+                      <SelectItem value="Geoplano">Geoplano</SelectItem>
+                      <SelectItem value="Ambos">Ambos</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                {/* Conocimientos Previos */}
+                <div className="space-y-2">
+                  <Label htmlFor="conocimientos">Conocimientos Previos (Opcional)</Label>
+                  <Textarea
+                    id="conocimientos"
+                    placeholder="Describe los conocimientos previos que los alumnos deben tener..."
+                    value={conocimientosPrevios}
+                    onChange={(e) => setConocimientosPrevios(e.target.value)}
+                    rows={3}
+                  />
+                </div>
+              </div>
+
+              {/* Restricción PRO */}
+              {profile && !isUserPro(profile) && (
+                <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-4">
+                  <div className="flex items-center gap-2 text-blue-800 dark:text-blue-200">
+                    <Target className="h-5 w-5" />
+                    <span className="font-medium">Funcionalidad PRO</span>
+                  </div>
+                  <p className="text-sm text-blue-700 dark:text-blue-300 mt-1">
+                    La generación de planeaciones CIME está disponible solo para usuarios PRO.
+                    <br />
+                    <a href="/dashboard?section=subscription" className="underline hover:no-underline">
+                      Actualiza tu plan aquí
+                    </a>
+                  </p>
+                </div>
+              )}
+            </div>
+          )}
+          
+          {!showGeneratingView && (
+            <div className="flex justify-end gap-2 pt-4">
+              <Button variant="outline" onClick={handleCloseCimeForm}>
+                Cancelar
+              </Button>
+              <Button 
+                onClick={handleGenerateCimePlaneacion}
+                disabled={!grado || !temaEspecifico || !materialPrincipal || (profile && !isUserPro(profile))}
+                className="bg-blue-600 hover:bg-blue-700"
+              >
+                <Bot className="h-4 w-4 mr-2" />
+                Generar Planeación CIME con IA
+              </Button>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   )
 }
