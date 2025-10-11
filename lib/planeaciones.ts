@@ -14,6 +14,7 @@ export interface Planeacion {
   origen: "manual" | "dosificacion" | null
   contenidos_relacionados: string[] | null
   mes_dosificacion: string | null
+  metodologia: string | null
   created_at: string
   updated_at: string
   deleted_at: string | null
@@ -30,6 +31,7 @@ export interface PlaneacionCreate {
   origen?: "manual" | "dosificacion"
   contenidos_relacionados?: string[]
   mes_dosificacion?: string
+  metodologia?: string
 }
 
 // Obtener planeaciones del usuario (excluye eliminadas) con paginación

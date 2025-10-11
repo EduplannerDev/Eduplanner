@@ -65,18 +65,23 @@ export function MisPlaneaciones({ onCreateNew }: MisPlaneacionesProps) {
     }
   }
 
-  // Función para obtener el texto y color del badge basado en origen y estado
+  // Función para obtener el texto y color del badge basado en origen, metodología y estado
   const getOrigenInfo = (planeacion: any) => {
     if (planeacion.origen === 'dosificacion') {
       return {
         text: 'Desde Dosificación',
         className: 'bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-200'
       }
-    } else {
-      // Para planeaciones manuales, mostrar el estado tradicional
+    } else if (planeacion.metodologia === 'CIME') {
       return {
-        text: planeacion.estado.charAt(0).toUpperCase() + planeacion.estado.slice(1),
-        className: getEstadoColor(planeacion.estado)
+        text: 'CIME',
+        className: 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200'
+      }
+    } else {
+      // Para planeaciones NEM (metodologia NEM o null), mostrar "NEM"
+      return {
+        text: 'NEM',
+        className: 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200'
       }
     }
   }

@@ -29,6 +29,7 @@ import { BetaTestersAdmin } from "./sections/beta-testers-admin"
 import { BetaFeaturesDemo } from "./sections/beta-features-demo"
 import { ListaProyectos } from "./sections/lista-proyectos"
 import { ProyectoWizard } from "./sections/proyecto-wizard"
+import { PlaneacionCime } from "./sections/planeacion-cime"
 import { WelcomeMessage } from "./ui/welcome-message"
 import { SidebarInset, SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar"
 import { Separator } from "@/components/ui/separator"
@@ -159,6 +160,8 @@ export default function Dashboard({ children, customContent = false }: Dashboard
         return "Dosificación"
       case "proyectos":
         return "Proyectos"
+      case "planeacion-cime":
+        return "Planeación CIME"
       default:
         return "Dashboard"
     }
@@ -176,6 +179,7 @@ export default function Dashboard({ children, customContent = false }: Dashboard
           }} 
           onNavigateToChatWithMessage={handleNavigateToChatWithMessage}
           onNavigateToChatDosificacion={handleNavigateToChatDosificacion}
+          onNavigateToCime={() => setActiveSection("planeacion-cime")}
         />
       case "mis-planeaciones":
         return <MisPlaneaciones onCreateNew={() => {
@@ -283,6 +287,11 @@ export default function Dashboard({ children, customContent = false }: Dashboard
         return <ListaProyectos />
       case "crear-proyecto":
         return <ProyectoWizard onComplete={() => setActiveSection("proyectos")} onSectionChange={setActiveSection} />
+      case "planeacion-cime":
+        return <PlaneacionCime 
+          onBack={() => setActiveSection("nueva-planeacion")} 
+          onSuccess={() => setActiveSection("mis-planeaciones")}
+        />
       default:
         return <DashboardHome onSectionChange={setActiveSection} />
     }
