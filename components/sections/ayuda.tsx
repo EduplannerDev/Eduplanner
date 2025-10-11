@@ -23,6 +23,7 @@ import {
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { ContactForm } from "@/components/contact-form"
+import { useWelcomeModal } from "@/hooks/use-welcome-modal"
 
 interface FAQItem {
   id: string
@@ -171,6 +172,8 @@ const categories = [
 ]
 
 export function Ayuda() {
+  const { resetWelcomeModal } = useWelcomeModal()
+
   const getCategoryIcon = (categoryName: string) => {
     const category = categories.find(cat => cat.name === categoryName)
     return category ? category.icon : HelpCircle
@@ -344,6 +347,26 @@ export function Ayuda() {
                                 >
                                   Copiar Enlace
                                 </Button>
+                                
+                                {/* Botón especial para el video de introducción */}
+                                {video.id === "1" && (
+                                  <Button
+                                    variant="secondary"
+                                    size="sm"
+                                    className="w-full bg-blue-50 hover:bg-blue-100 text-blue-700 border-blue-200"
+                                    onClick={async () => {
+                                      const success = await resetWelcomeModal()
+                                      if (success) {
+                                        alert('El modal de bienvenida se mostrará la próxima vez que inicies sesión')
+                                      } else {
+                                        alert('No se pudo resetear el modal. Verifica que tengas permisos de administrador.')
+                                      }
+                                    }}
+                                  >
+                                    <Play className="h-4 w-4 mr-2" />
+                                    Ver Modal de Bienvenida
+                                  </Button>
+                                )}
                               </div>
                             </div>
                           </div>

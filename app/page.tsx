@@ -3,9 +3,11 @@
 import { Suspense, useState } from "react"
 import { useAuth } from "@/hooks/use-auth"
 import { useIsMobile } from "@/hooks/use-mobile"
+import { useWelcomeModal } from "@/hooks/use-welcome-modal"
 import LoginForm from "@/components/login-form"
 import Dashboard from "@/components/dashboard"
 import { MobileLanding } from "@/components/mobile-landing"
+import WelcomeModal from "@/components/welcome-modal"
 import { Loader2 } from "lucide-react"
 
 function LoadingFallback() {
@@ -20,6 +22,7 @@ export default function Home() {
   const { user, loading } = useAuth()
   const isMobile = useIsMobile()
   const [showMobileLanding, setShowMobileLanding] = useState(true)
+  const { showModal, closeModal } = useWelcomeModal()
 
   if (loading) {
     return <LoadingFallback />
@@ -35,8 +38,11 @@ export default function Home() {
   }
 
   return (
-    <Suspense fallback={<LoadingFallback />}>
-      {user ? <Dashboard /> : <LoginForm />}
-    </Suspense>
+    <>
+      <Suspense fallback={<LoadingFallback />}>
+        {user ? <Dashboard /> : <LoginForm />}
+      </Suspense>
+      <WelcomeModal open={showModal} onClose={closeModal} />
+    </>
   )
 }
