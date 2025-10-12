@@ -369,7 +369,6 @@ export function ViewProyecto({ proyectoId, onBack }: ViewProyectoProps) {
   const [pdasSeleccionados, setPdasSeleccionados] = useState<string[]>([])
   const [criteriosPersonalizados, setCriteriosPersonalizados] = useState<string[]>([])
   const [nuevoCriterio, setNuevoCriterio] = useState('')
-  const [loadingPdas, setLoadingPdas] = useState(false)
   
   // Estado para el modal de visualización de rúbricas
   const [showViewDialog, setShowViewDialog] = useState(false)
@@ -395,6 +394,8 @@ export function ViewProyecto({ proyectoId, onBack }: ViewProyectoProps) {
   const [momentoToGenerate, setMomentoToGenerate] = useState<ProyectoFase | null>(null)
   const [showCimeForm, setShowCimeForm] = useState(false)
   const [showGeneratingView, setShowGeneratingView] = useState(false)
+  const [showNemForm, setShowNemForm] = useState(false)
+  const [showNemGeneratingView, setShowNemGeneratingView] = useState(false)
   
   // Estados para el formulario CIME
   const [grado, setGrado] = useState('')
@@ -402,6 +403,15 @@ export function ViewProyecto({ proyectoId, onBack }: ViewProyectoProps) {
   const [materialPrincipal, setMaterialPrincipal] = useState('')
   const [conocimientosPrevios, setConocimientosPrevios] = useState('')
   const [isGenerating, setIsGenerating] = useState(false)
+  
+  // Estados para el formulario NEM
+  const [nemGrado, setNemGrado] = useState('')
+  const [nemTema, setNemTema] = useState('')
+  const [nemObjetivo, setNemObjetivo] = useState('')
+  const [nemActividades, setNemActividades] = useState('')
+  const [nemEvaluacion, setNemEvaluacion] = useState('')
+  const [isNemGenerating, setIsNemGenerating] = useState(false)
+  
   
   // Hook para obtener las planeaciones del profesor
   const { planeaciones: planeacionesProfesor, loading: loadingPlaneaciones, createPlaneacion } = usePlaneaciones()
@@ -490,8 +500,6 @@ export function ViewProyecto({ proyectoId, onBack }: ViewProyectoProps) {
       return
     }
 
-    console.log('Instrumento seleccionado para PDF:', instrumentoSeleccionado)
-    console.log('Contenido del instrumento:', instrumentoSeleccionado.contenido)
 
     setGeneratingPDF(true)
     try {
@@ -814,23 +822,19 @@ export function ViewProyecto({ proyectoId, onBack }: ViewProyectoProps) {
 
   // Función para generar planeación NEM
   const handleGenerateNEM = () => {
-    if (momentoToGenerate) {
-      // Navegar al módulo de chat-ia con información del momento
-      const params = new URLSearchParams({
-        momento: momentoToGenerate.momento_nombre,
-        contenido: momentoToGenerate.contenido || '',
-        proyecto: proyecto?.titulo || ''
-      })
-      router.push(`/dashboard?section=chat-ia&${params.toString()}`)
-      handleCloseGenerateModal()
+    if (momentoToGenerate && proyecto) {
+      // Pre-llenar datos del proyecto y momento
+      setNemGrado(proyecto.grupos?.grado || '')
+      setNemTema(momentoToGenerate.momento_nombre)
+      
+      setShowNemForm(true)
+      setShowGenerateModal(false)
     }
   }
 
   // Función para generar planeación CIME
   const handleGenerateCIME = () => {
     if (momentoToGenerate && proyecto) {
-      console.log('Datos del proyecto:', proyecto)
-      console.log('Grado del proyecto:', proyecto.grupos?.grado)
       
       // Pre-llenar datos del proyecto y momento
       setGrado(proyecto.grupos?.grado || '')
@@ -853,6 +857,19 @@ export function ViewProyecto({ proyectoId, onBack }: ViewProyectoProps) {
     setConocimientosPrevios('')
   }
 
+  // Función para cerrar el formulario NEM
+  const handleCloseNemForm = () => {
+    setShowNemForm(false)
+    setShowNemGeneratingView(false)
+    setMomentoToGenerate(null)
+    // Limpiar formulario NEM
+    setNemGrado('')
+    setNemTema('')
+    setNemObjetivo('')
+    setNemActividades('')
+    setNemEvaluacion('')
+  }
+
   // Función para generar la planeación CIME
   const handleGenerateCimePlaneacion = async () => {
     if (!grado || !temaEspecifico || !materialPrincipal || !momentoToGenerate) {
@@ -864,8 +881,6 @@ export function ViewProyecto({ proyectoId, onBack }: ViewProyectoProps) {
     setShowGeneratingView(true)
 
     try {
-      console.log('Iniciando generación de planeación CIME...')
-      console.log('Datos:', { grado, temaEspecifico, materialPrincipal, momentoToGenerate: momentoToGenerate.id })
 
       // Construir el prompt para CIME
       const prompt = `ROL: Actúa como un pedagogo experto y certificado en la metodología CIME para la enseñanza de las matemáticas. Tu conocimiento se basa en el constructivismo y el uso de materiales concretos.
@@ -892,8 +907,6 @@ Propósito de la Clase: [Genera un propósito claro basado en el tema]
 Materiales Necesarios: [Lista los materiales mencionados, incluyendo Regletas/Geoplano]
 Evaluación Sugerida: [Sugiere una forma simple de evaluar la comprensión al final de la clase]`
 
-      console.log('Enviando prompt a la API...')
-
       // Llamar a la API para generar la planeación
       const response = await fetch('/api/generate-cime', {
         method: 'POST',
@@ -903,16 +916,11 @@ Evaluación Sugerida: [Sugiere una forma simple de evaluar la comprensión al fi
         body: JSON.stringify({ prompt }),
       })
 
-      console.log('Respuesta de la API:', response.status)
-
       if (!response.ok) {
-        const errorText = await response.text()
-        console.error('Error de la API:', errorText)
         throw new Error(`Error al generar la planeación: ${response.status}`)
       }
 
       const data = await response.json()
-      console.log('Datos recibidos:', data)
       
       if (!data.content) {
         throw new Error('No se pudo generar el contenido')
@@ -920,10 +928,8 @@ Evaluación Sugerida: [Sugiere una forma simple de evaluar la comprensión al fi
 
       // Convertir markdown a HTML
       const htmlContent = convertMarkdownToHtml(data.content)
-      console.log('Contenido convertido a HTML')
 
       // Crear la planeación
-      console.log('Creando planeación en la base de datos...')
       const nuevaPlaneacion = await createPlaneacion({
         titulo: `Planeación CIME - ${temaEspecifico}`,
         materia: 'Matemáticas',
@@ -934,19 +940,14 @@ Evaluación Sugerida: [Sugiere una forma simple de evaluar la comprensión al fi
         metodologia: 'CIME'
       })
 
-      console.log('Planeación creada:', nuevaPlaneacion)
-
       if (nuevaPlaneacion) {
         toast.success('Planeación CIME generada correctamente')
         
         // Enlazar automáticamente la planeación al momento
-        console.log('Enlazando planeación al momento...')
         const success = await createProyectoMomentoPlaneacionLink(
           momentoToGenerate.id,
           nuevaPlaneacion.id
         )
-
-        console.log('Resultado del enlace:', success)
 
         if (success) {
           toast.success('Planeación enlazada automáticamente al momento')
@@ -956,8 +957,6 @@ Evaluación Sugerida: [Sugiere una forma simple de evaluar la comprensión al fi
             ...prev,
             [momentoToGenerate.id]: nuevaPlaneacion
           }))
-          
-          console.log('Estado de enlaces actualizado')
         } else {
           toast.warning('Planeación creada pero no se pudo enlazar automáticamente')
         }
@@ -968,7 +967,6 @@ Evaluación Sugerida: [Sugiere una forma simple de evaluar la comprensión al fi
         throw new Error('No se pudo crear la planeación')
       }
     } catch (error) {
-      console.error('Error generando planeación CIME:', error)
       toast.error(`Error al generar la planeación: ${error.message}`)
       // En caso de error, volver al formulario
       setShowGeneratingView(false)
@@ -976,6 +974,107 @@ Evaluación Sugerida: [Sugiere una forma simple de evaluar la comprensión al fi
       setIsGenerating(false)
     }
   }
+
+  // Función para generar la planeación NEM
+  const handleGenerateNemPlaneacion = async () => {
+    if (!nemGrado || !nemTema || !nemObjetivo || !momentoToGenerate) {
+      toast.error('Por favor completa todos los campos requeridos')
+      return
+    }
+
+    setIsNemGenerating(true)
+    setShowNemGeneratingView(true)
+
+    try {
+
+      // Construir información de PDAs para el prompt
+      const pdasInfo = pdasProyecto.length > 0 
+        ? `\nPDAs DEL PROYECTO (Programas de Desarrollo de Aprendizaje):
+${pdasProyecto.map((pda, index) => 
+  `${index + 1}. [${pda.campo_formativo}] ${pda.contenido}
+     PDA: ${pda.pda}`
+).join('\n')}`
+        : ''
+
+    // Crear el mensaje simple como lo haría el usuario en chat-ia
+    const mensajeUsuario = `Planeación de matemáticas para ${nemGrado}° grado sobre ${nemTema}${nemObjetivo ? ` con el objetivo: ${nemObjetivo}` : ''}${nemActividades ? `. Actividades sugeridas: ${nemActividades}` : ''}${nemEvaluacion ? `. Evaluación sugerida: ${nemEvaluacion}` : ''}.`
+
+      // Usar endpoint específico para NEM (como las planeaciones normales pero sin stream)
+      const response = await fetch('/api/generate-nem', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ 
+          messages: [
+            { role: 'user', content: mensajeUsuario }
+          ]
+        }),
+      })
+
+      if (!response.ok) {
+        throw new Error(`Error al generar la planeación: ${response.status}`)
+      }
+
+      const data = await response.json()
+      
+      if (!data.content) {
+        throw new Error('No se pudo generar el contenido')
+      }
+
+      // Convertir markdown a HTML
+      const htmlContent = convertMarkdownToHtml(data.content)
+
+      // Crear la planeación
+      const nuevaPlaneacion = await createPlaneacion({
+        titulo: `Planeación NEM - ${nemTema}`,
+        materia: 'Matemáticas',
+        grado: nemGrado,
+        duracion: '50 minutos',
+        objetivo: nemObjetivo,
+        contenido: htmlContent,
+        metodologia: 'NEM'
+      })
+
+      if (nuevaPlaneacion) {
+        toast.success('Planeación NEM generada correctamente')
+        
+        // Enlazar automáticamente la planeación al momento
+        try {
+          const success = await createProyectoMomentoPlaneacionLink(
+            momentoToGenerate.id,
+            nuevaPlaneacion.id
+          )
+
+          if (success) {
+            toast.success('Planeación enlazada automáticamente al momento')
+            
+            // Actualizar el estado de enlaces
+            setLinkedPlaneaciones(prev => ({
+              ...prev,
+              [momentoToGenerate.id]: nuevaPlaneacion
+            }))
+          } else {
+            toast.warning('Planeación creada pero no se pudo enlazar automáticamente')
+          }
+        } catch (linkError) {
+          toast.warning('Planeación creada pero no se pudo enlazar automáticamente')
+        }
+
+        // Cerrar formulario
+        handleCloseNemForm()
+      } else {
+        throw new Error('No se pudo crear la planeación')
+      }
+    } catch (error) {
+      toast.error(`Error al generar la planeación: ${error.message}`)
+      // En caso de error, volver al formulario
+      setShowNemGeneratingView(false)
+    } finally {
+      setIsNemGenerating(false)
+    }
+  }
+
 
   // Función para filtrar planeaciones basada en el término de búsqueda
   const filteredPlaneaciones = planeacionesProfesor.filter(planeacion => {
@@ -2331,6 +2430,226 @@ Evaluación Sugerida: [Sugiere una forma simple de evaluar la comprensión al fi
               >
                 <Bot className="h-4 w-4 mr-2" />
                 Generar Planeación CIME con IA
+              </Button>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
+
+      {/* Modal del Formulario NEM */}
+      <Dialog open={showNemForm} onOpenChange={showNemGeneratingView ? undefined : handleCloseNemForm}>
+        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <BookOpen className="h-5 w-5 text-green-600" />
+              {showNemGeneratingView ? 'Generando Planeación NEM' : 'Asistente de Planeación NEM para Matemáticas'}
+            </DialogTitle>
+            <DialogDescription>
+              {showNemGeneratingView 
+                ? 'Por favor espera mientras generamos tu planeación...'
+                : `Generando planeación para el momento: "${momentoToGenerate?.momento_nombre}"`
+              }
+            </DialogDescription>
+          </DialogHeader>
+          
+          {showNemGeneratingView ? (
+            /* Vista de Generación en Progreso */
+            <div className="space-y-6">
+              {/* Información de la planeación que se está generando */}
+              <div className="bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg p-6">
+                <div className="text-center">
+                  <div className="w-16 h-16 mx-auto mb-4 bg-green-100 dark:bg-green-900 rounded-full flex items-center justify-center">
+                    <Loader2 className="h-8 w-8 text-green-600 animate-spin" />
+                  </div>
+                  <h3 className="text-lg font-semibold text-green-900 dark:text-green-100 mb-2">
+                    Generando tu Planeación NEM
+                  </h3>
+                  <p className="text-green-700 dark:text-green-300 mb-4">
+                    Nuestra IA está creando una planeación personalizada siguiendo la metodología NEM tradicional
+                  </p>
+                </div>
+                
+                {/* Detalles de la planeación */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+                  <div className="bg-white dark:bg-gray-800 rounded-lg p-3">
+                    <span className="font-medium text-gray-700 dark:text-gray-300">Tema:</span>
+                    <p className="text-gray-600 dark:text-gray-400">{nemTema}</p>
+                  </div>
+                  <div className="bg-white dark:bg-gray-800 rounded-lg p-3">
+                    <span className="font-medium text-gray-700 dark:text-gray-300">Grado:</span>
+                    <p className="text-gray-600 dark:text-gray-400">{nemGrado}</p>
+                  </div>
+                  <div className="bg-white dark:bg-gray-800 rounded-lg p-3">
+                    <span className="font-medium text-gray-700 dark:text-gray-300">Objetivo:</span>
+                    <p className="text-gray-600 dark:text-gray-400">{nemObjetivo}</p>
+                  </div>
+                  <div className="bg-white dark:bg-gray-800 rounded-lg p-3">
+                    <span className="font-medium text-gray-700 dark:text-gray-300">Momento:</span>
+                    <p className="text-gray-600 dark:text-gray-400">{momentoToGenerate?.momento_nombre}</p>
+                  </div>
+                </div>
+              </div>
+
+              {/* Pasos del proceso */}
+              <div className="space-y-3">
+                <h4 className="font-medium text-gray-900 dark:text-gray-100">Proceso de Generación:</h4>
+                <div className="space-y-2">
+                  <div className="flex items-center gap-3 text-sm">
+                    <div className="w-6 h-6 bg-green-100 dark:bg-green-900 rounded-full flex items-center justify-center">
+                      <CheckSquare className="h-4 w-4 text-green-600" />
+                    </div>
+                    <span className="text-gray-700 dark:text-gray-300">Analizando los datos del formulario</span>
+                  </div>
+                  <div className="flex items-center gap-3 text-sm">
+                    <div className="w-6 h-6 bg-green-100 dark:bg-green-900 rounded-full flex items-center justify-center">
+                      <Loader2 className="h-4 w-4 text-green-600 animate-spin" />
+                    </div>
+                    <span className="text-gray-700 dark:text-gray-300">Generando contenido con IA</span>
+                  </div>
+                  <div className="flex items-center gap-3 text-sm">
+                    <div className="w-6 h-6 bg-gray-100 dark:bg-gray-700 rounded-full flex items-center justify-center">
+                      <FileText className="h-4 w-4 text-gray-400" />
+                    </div>
+                    <span className="text-gray-500 dark:text-gray-400">Formateando y guardando</span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Advertencia */}
+              <div className="bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-lg p-4">
+                <div className="flex items-start gap-3">
+                  <div className="w-5 h-5 bg-yellow-100 dark:bg-yellow-900 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
+                    <span className="text-yellow-600 text-xs font-bold">!</span>
+                  </div>
+                  <div>
+                    <p className="text-sm text-yellow-800 dark:text-yellow-200">
+                      <strong>No cierres esta ventana</strong> mientras se genera la planeación. 
+                      El proceso continuará en segundo plano, pero podrías perder la confirmación del resultado.
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          ) : (
+            /* Formulario Normal */
+            <div className="space-y-6">
+              {/* Información del proyecto y momento */}
+              {momentoToGenerate && proyecto && (
+                <div className="bg-gray-50 dark:bg-gray-800 p-4 rounded-lg">
+                  <h4 className="font-medium text-gray-900 dark:text-gray-100 mb-3">Contexto del Proyecto y Momento:</h4>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-sm">
+                    <div>
+                      <span className="font-medium text-gray-700 dark:text-gray-300">Proyecto:</span>
+                      <p className="text-gray-600 dark:text-gray-400">{proyecto.nombre}</p>
+                    </div>
+                    <div>
+                      <span className="font-medium text-gray-700 dark:text-gray-300">Grado:</span>
+                      <p className="text-gray-600 dark:text-gray-400">{proyecto.grupos?.grado || 'No especificado'}</p>
+                    </div>
+                    <div>
+                      <span className="font-medium text-gray-700 dark:text-gray-300">Momento:</span>
+                      <p className="text-gray-600 dark:text-gray-400">{momentoToGenerate.momento_nombre}</p>
+                    </div>
+                    {proyecto.grupos?.nivel && (
+                      <div>
+                        <span className="font-medium text-gray-700 dark:text-gray-300">Nivel:</span>
+                        <p className="text-gray-600 dark:text-gray-400">{proyecto.grupos.nivel}</p>
+                      </div>
+                    )}
+                  </div>
+                  {momentoToGenerate.contenido && (
+                    <div className="mt-3">
+                      <span className="font-medium text-gray-700 dark:text-gray-300">Descripción del Momento:</span>
+                      <p className="text-gray-600 dark:text-gray-400 mt-1">{momentoToGenerate.contenido}</p>
+                    </div>
+                  )}
+                </div>
+              )}
+
+
+              {/* Formulario NEM */}
+              <div className="grid gap-4">
+                {/* Grado */}
+                <div className="space-y-2">
+                  <Label htmlFor="nem-grado">Grado *</Label>
+                  <div className="relative">
+                    <Input
+                      id="nem-grado"
+                      value={nemGrado}
+                      readOnly
+                      className="bg-gray-50 dark:bg-gray-800 text-gray-700 dark:text-gray-300"
+                    />
+                    <div className="absolute inset-y-0 right-0 flex items-center pr-3">
+                      <span className="text-xs text-gray-500 dark:text-gray-400">Del proyecto</span>
+                    </div>
+                  </div>
+                  <p className="text-xs text-gray-500 dark:text-gray-400">
+                    El grado se obtiene automáticamente del proyecto
+                  </p>
+                </div>
+
+                {/* Tema */}
+                <div className="space-y-2">
+                  <Label htmlFor="nem-tema">Tema *</Label>
+                  <Input
+                    id="nem-tema"
+                    placeholder="Ej: Sumas de dos cifras, Fracciones equivalentes"
+                    value={nemTema}
+                    onChange={(e) => setNemTema(e.target.value)}
+                  />
+                </div>
+
+                {/* Objetivo */}
+                <div className="space-y-2">
+                  <Label htmlFor="nem-objetivo">Objetivo de la Clase *</Label>
+                  <Textarea
+                    id="nem-objetivo"
+                    placeholder="Describe el objetivo que quieres lograr con esta clase..."
+                    value={nemObjetivo}
+                    onChange={(e) => setNemObjetivo(e.target.value)}
+                    rows={3}
+                  />
+                </div>
+
+                {/* Actividades Sugeridas */}
+                <div className="space-y-2">
+                  <Label htmlFor="nem-actividades">Actividades Sugeridas (Opcional)</Label>
+                  <Textarea
+                    id="nem-actividades"
+                    placeholder="Describe alguna actividad específica que quieres incluir..."
+                    value={nemActividades}
+                    onChange={(e) => setNemActividades(e.target.value)}
+                    rows={3}
+                  />
+                </div>
+
+                {/* Evaluación Sugerida */}
+                <div className="space-y-2">
+                  <Label htmlFor="nem-evaluacion">Evaluación Sugerida (Opcional)</Label>
+                  <Textarea
+                    id="nem-evaluacion"
+                    placeholder="Describe cómo quieres evaluar el aprendizaje..."
+                    value={nemEvaluacion}
+                    onChange={(e) => setNemEvaluacion(e.target.value)}
+                    rows={3}
+                  />
+                </div>
+              </div>
+            </div>
+          )}
+          
+          {!showNemGeneratingView && (
+            <div className="flex justify-end gap-2 pt-4">
+              <Button variant="outline" onClick={handleCloseNemForm}>
+                Cancelar
+              </Button>
+              <Button 
+                onClick={handleGenerateNemPlaneacion}
+                disabled={!nemGrado || !nemTema || !nemObjetivo}
+                className="bg-green-600 hover:bg-green-700"
+              >
+                <Bot className="h-4 w-4 mr-2" />
+                Generar Planeación NEM con IA
               </Button>
             </div>
           )}
