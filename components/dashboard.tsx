@@ -188,6 +188,8 @@ export default function Dashboard({ children, customContent = false }: Dashboard
         }} />
       case "perfil":
         return <Perfil />
+      case "mi-perfil":
+        return <Perfil />
       case "chat-ia":
         return <ChatIA 
           onBack={() => {

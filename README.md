@@ -8,8 +8,11 @@ EduPlanner es una plataforma web moderna diseñada para ayudar a educadores a cr
 
 ### 📋 Gestión de Planeaciones
 - **Crear Planeaciones**: Genera planeaciones didácticas personalizadas con IA
+- **Planeaciones NEM**: Metodología tradicional de la Nueva Escuela Mexicana
+- **Planeaciones CIME**: Metodología constructivista con materiales concretos (Solo PRO)
 - **Mis Planeaciones**: Visualiza, edita y gestiona todas tus planeaciones
 - **Exportación**: Descarga planeaciones en formato DOCX y PDF
+- **Enlace con Proyectos**: Vincula planeaciones directamente con momentos de proyectos
 
 ### 📝 Sistema de Exámenes
 - **Generar Exámenes**: Crea exámenes automáticamente con IA
@@ -57,6 +60,9 @@ EduPlanner es una plataforma web moderna diseñada para ayudar a educadores a cr
 - **Gestión de Proyectos**: Administración completa de proyectos educativos
 - **Fases y Momentos**: Estructura automática generada por IA
 - **Seguimiento de Proyectos**: Monitoreo del progreso y estado
+- **Generación de Planeaciones**: Crea planeaciones NEM y CIME directamente desde momentos del proyecto
+- **Enlace Automático**: Vincula automáticamente planeaciones generadas con momentos específicos
+- **Vista Integrada**: Visualiza planeaciones enlazadas sin salir del módulo de proyectos
 
 ### 📝 Instrumentos de Evaluación
 - **Rúbricas Analíticas**: Generación automática de rúbricas con IA
@@ -76,6 +82,15 @@ EduPlanner es una plataforma web moderna diseñada para ayudar a educadores a cr
 - **Suscripciones**: Gestión de planes y pagos con Stripe
 - **Feedback**: Sistema de retroalimentación integrado
 - **Sistema de Invitaciones**: Invitación de usuarios por email con roles específicos
+- **Modal de Bienvenida**: Video introductorio para nuevos usuarios
+- **Persistencia Cross-Device**: Estado de bienvenida sincronizado entre dispositivos
+
+### 👑 Suscripciones PRO
+- **Planeaciones CIME**: Acceso exclusivo a metodología constructivista
+- **Planeaciones por Dosificación**: Generación automática desde dosificación curricular
+- **Límites Ampliados**: Sin restricciones en creación de contenido
+- **Estadísticas Avanzadas**: Dashboard con métricas detalladas de suscriptores PRO
+- **Gestión de Ventas**: Herramientas de administración para seguimiento de ingresos
 
 ## 🛠️ Tecnologías Utilizadas
 
@@ -97,10 +112,11 @@ EduPlanner es una plataforma web moderna diseñada para ayudar a educadores a cr
 - **Row Level Security (RLS)** - Seguridad a nivel de fila
 
 ### Inteligencia Artificial
-- **OpenAI API** - Generación de contenido educativo
-- **Google AI SDK (Gemini)** - Servicios adicionales de IA
+- **Google AI SDK (Gemini)** - Servicios principales de IA
 - **Vercel AI SDK** - Integración de IA optimizada
 - **Sistema de Embeddings** - Búsqueda semántica de documentación
+- **Metodologías Especializadas** - Prompts específicos para NEM y CIME
+- **Generación Contextual** - IA adaptada al contexto de proyectos educativos
 
 ### Generación de Documentos
 - **docx** - Generación de documentos Word
@@ -165,8 +181,8 @@ SUPABASE_SERVICE_ROLE_KEY=tu_service_role_key
 # OpenAI
 OPENAI_API_KEY=tu_openai_api_key
 
-# Google AI (opcional)
-GOOGLE_AI_API_KEY=tu_google_ai_key
+# Google AI (requerido para generación de contenido)
+GOOGLE_GENERATIVE_AI_API_KEY=tu_google_ai_key
 
 # Stripe
 STRIPE_SECRET_KEY=tu_stripe_secret_key
@@ -207,6 +223,7 @@ La aplicación estará disponible en `http://localhost:3000`
 - `npm run docs:install` - Instala dependencias para documentación
 - `npm run docs:build` - Genera documentación en formato YAML
 - `npm run import-calendar` - Importa calendario escolar oficial
+- `npx tsx scripts/get-pro-stats.ts` - Obtiene estadísticas de suscriptores PRO
 
 ## 📖 Documentación
 
@@ -246,6 +263,12 @@ El proyecto incluye documentación detallada de flujos de usuario en `docs/flujo
 - **CONFIGURACION_CORREOS.md** - Configuración del sistema de emails
 - **MODULO_CORREOS.md** - Documentación del módulo de comunicación
 - **NOTIFICATIONS.md** - Sistema de notificaciones
+- **TOUR_IMPLEMENTATION.md** - Documentación del sistema de tours guiados
+
+### Estadísticas y Analytics
+- **Dashboard de Suscriptores PRO** - Métricas detalladas de usuarios premium
+- **Scripts de Análisis** - Herramientas para obtener estadísticas de ventas
+- **Reportes de Conversión** - Análisis de tasas de conversión y churn
 
 ## 🏗️ Estructura del Proyecto
 
@@ -254,11 +277,14 @@ eduplanner/
 ├── app/                    # App Router de Next.js
 │   ├── api/               # Rutas de API
 │   │   ├── chat/          # Chat con IA
-│   │   ├── generate-*/    # Generadores de contenido
+│   │   ├── generate-*/    # Generadores de contenido (CIME, NEM, exámenes)
 │   │   ├── proyectos/     # API de proyectos educativos
 │   │   ├── instrumentos-evaluacion/ # Instrumentos de evaluación
 │   │   ├── stripe/        # Integración de pagos
-│   │   └── invite-user/   # Sistema de invitaciones
+│   │   ├── invite-user/   # Sistema de invitaciones
+│   │   └── admin/         # Rutas de administración
+│   ├── admin/             # Páginas de administración
+│   │   └── pro-stats/     # Dashboard de estadísticas PRO
 │   ├── globals.css        # Estilos globales
 │   ├── layout.tsx         # Layout principal
 │   └── page.tsx           # Página de inicio
@@ -289,7 +315,11 @@ eduplanner/
 │   ├── asistencia.ts     # Sistema de asistencia
 │   ├── proyectos.ts      # Gestión de proyectos
 │   ├── events.ts         # Calendario y eventos
-│   └── invitations.ts    # Sistema de invitaciones
+│   ├── invitations.ts    # Sistema de invitaciones
+│   ├── planeaciones.ts   # Gestión de planeaciones
+│   ├── subscription-utils.ts # Utilidades de suscripciones
+│   ├── pro-subscription-stats.ts # Estadísticas de suscriptores PRO
+│   └── welcome-modal.ts  # Sistema de modal de bienvenida
 ├── docs/                 # Documentación del proyecto
 │   ├── flujos/           # Flujos de usuario documentados
 │   ├── CONFIGURACION_CORREOS.md
@@ -302,9 +332,40 @@ eduplanner/
 ├── scripts/             # Scripts de utilidad
 │   ├── import-school-calendar.ts # Importación de calendario
 │   ├── generate-curriculo-embeddings.ts # Embeddings curriculares
+│   ├── get-pro-stats.ts # Estadísticas de suscriptores PRO
 │   └── serve-docs.js    # Servidor de documentación
-└── styles/              # Estilos adicionales
+├── styles/              # Estilos adicionales
+│   └── tour.css         # Estilos para tours guiados
+└── contexts/            # Contextos de React
+    ├── TourContext.tsx  # Contexto para tours
+    └── PlanningTourContext.tsx # Contexto para tours de planeación
 ```
+
+## 🆕 Nuevas Funcionalidades
+
+### Modal de Bienvenida
+- **Video Introductorio**: Presentación automática para nuevos usuarios
+- **Persistencia Cross-Device**: Estado sincronizado entre navegadores
+- **Base de Datos**: Almacenamiento seguro del estado de visualización
+
+### Planeaciones CIME y NEM
+- **Metodología CIME**: Planeaciones constructivistas con materiales concretos (Solo PRO)
+- **Metodología NEM**: Planeaciones tradicionales de la Nueva Escuela Mexicana
+- **Generación desde Proyectos**: Creación directa desde momentos de proyectos
+- **Enlace Automático**: Vinculación automática con momentos específicos
+- **Vista Integrada**: Visualización sin salir del módulo de proyectos
+
+### Sistema de Tours Guiados
+- **Tours Interactivos**: Guías paso a paso para nuevos usuarios
+- **Contextos Especializados**: Tours específicos por módulo
+- **Persistencia de Estado**: Recordar progreso del usuario
+- **Reset de Tours**: Opción para reiniciar experiencias
+
+### Dashboard de Suscriptores PRO
+- **Estadísticas Detalladas**: Métricas completas de usuarios premium
+- **Análisis de Ventas**: Seguimiento de ingresos y conversiones
+- **Reportes de Churn**: Análisis de cancelaciones y retención
+- **Scripts de Análisis**: Herramientas de línea de comandos
 
 ## 🔐 Autenticación y Seguridad
 

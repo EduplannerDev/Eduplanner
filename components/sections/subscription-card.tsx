@@ -92,20 +92,26 @@ export function SubscriptionCard({ userPlan }: SubscriptionCardProps) {
   // Características de los planes
 
   const freeFeatures = [
-    { name: "Hasta 5 generaciones al mes", included: true },
-    { name: "Acceso a todos los generadores con IA", included: true },
-    { name: "Gestión de hasta 2 grupos y 50 alumnos", included: true },
+    { name: "5 planeaciones por mes", included: true },
+    { name: "2 exámenes", included: true },
+    { name: "Mensajes ilimitados", included: true },
+    { name: "1 grupo", included: true },
+    { name: "1 proyecto", included: true },
     { name: "Descarga en formato PDF", included: true },
-    { name: "Generaciones ilimitadas", included: false },
-    { name: "Grupos y alumnos ilimitados", included: false },
+    { name: "Planeaciones ilimitadas", included: false },
+    { name: "Exámenes ilimitados", included: false },
+    { name: "Grupos ilimitados", included: false },
+    { name: "Proyectos ilimitados", included: false },
     { name: "Descarga en formato Word (.docx) editable", included: false },
     { name: "Soporte prioritario", included: false },
   ]
 
   const proFeatures = [
     { name: "Todo lo del plan Gratis, más:", included: true },
-    { name: "Generaciones ilimitadas", included: true },
-    { name: "Grupos y alumnos ilimitados", included: true },
+    { name: "Planeaciones ilimitadas", included: true },
+    { name: "Exámenes ilimitados", included: true },
+    { name: "Grupos ilimitados", included: true },
+    { name: "Proyectos ilimitados", included: true },
     { name: "Descarga en formato Word (.docx) editable", included: true },
     { name: "Soporte prioritario", included: true },
   ]

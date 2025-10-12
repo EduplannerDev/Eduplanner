@@ -101,6 +101,12 @@ const menuStructure = {
     description: "Herramientas personales y organización",
     sections: [
       {
+        title: "Perfil",
+        icon: User,
+        url: "#mi-perfil",
+        description: "Gestionar tu perfil personal",
+      },
+      {
         title: "Agenda",
         icon: Calendar,
         url: "#agenda",
