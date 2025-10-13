@@ -43,6 +43,19 @@ class AuthErrorBoundary extends Component<Props, State> {
   componentDidCatch(error: Error, errorInfo: React.ErrorInfo) {
     console.error('Auth Error Boundary caught an error:', error, errorInfo)
     
+    // Log optimizado usando el logger ligero
+    if (typeof window !== 'undefined') {
+      import('@/lib/lightweight-logger').then(({ logger }) => {
+        logger.error('auth_error_boundary', `Auth error: ${error.message}`, {
+          componentStack: errorInfo.componentStack?.substring(0, 500),
+          errorName: error.name,
+          isAuthError: this.state.isAuthError
+        })
+      }).catch(() => {
+        // Fallback silencioso si el logger falla
+      })
+    }
+    
     // Si es un error de autenticación, limpiar el storage
     if (this.state.isAuthError) {
       clearSupabaseStorage()

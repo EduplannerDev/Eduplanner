@@ -19,7 +19,8 @@ import {
   DollarSign,
   Activity,
   UserCheck,
-  Settings
+  Settings,
+  Monitor
 } from 'lucide-react'
 import { 
   getPlatformStats, 
@@ -29,6 +30,7 @@ import {
   type RecentActivity,
   type UsuariosSinPlantel
 } from '@/lib/admin-stats'
+import { LoggingMetricsWidget } from '@/components/admin/logging-widgets'
 
 export function AdminDashboard() {
   const { isAdmin, isDirector, plantel, role, loading } = useRoles()
@@ -116,7 +118,7 @@ export function AdminDashboard() {
 
       {/* Tabs de navegación */}
       <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-        <TabsList className="grid w-full grid-cols-3">
+        <TabsList className="grid w-full grid-cols-4">
           <TabsTrigger value="overview" className="flex items-center gap-2">
             <BarChart3 className="h-4 w-4" />
             Resumen
@@ -124,6 +126,10 @@ export function AdminDashboard() {
           <TabsTrigger value="planteles" className="flex items-center gap-2">
             <Building2 className="h-4 w-4" />
             Planteles
+          </TabsTrigger>
+          <TabsTrigger value="monitoring" className="flex items-center gap-2">
+            <Monitor className="h-4 w-4" />
+            Monitoreo
           </TabsTrigger>
           <TabsTrigger value="system" className="flex items-center gap-2">
             <Settings className="h-4 w-4" />
@@ -372,6 +378,22 @@ export function AdminDashboard() {
                 <h3 className="text-lg font-semibold mb-2">Acceso Restringido</h3>
                 <p className="text-muted-foreground">
                   Solo los administradores pueden gestionar planteles.
+                </p>
+              </CardContent>
+            </Card>
+          )}
+        </TabsContent>
+
+        <TabsContent value="monitoring" className="space-y-6">
+          {isAdmin ? (
+            <LoggingMetricsWidget />
+          ) : (
+            <Card>
+              <CardContent className="p-8 text-center">
+                <Monitor className="mx-auto h-12 w-12 text-muted-foreground mb-4" />
+                <h3 className="text-lg font-semibold mb-2">Acceso Restringido</h3>
+                <p className="text-muted-foreground">
+                  Solo los administradores pueden acceder al monitoreo del sistema.
                 </p>
               </CardContent>
             </Card>
