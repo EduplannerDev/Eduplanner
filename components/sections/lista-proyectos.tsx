@@ -18,7 +18,6 @@ import { supabase } from '@/lib/supabase'
 import { useProfile } from '@/hooks/use-profile'
 import { useAuth } from '@/hooks/use-auth'
 import { isUserPro, canUserCreate } from '@/lib/subscription-utils'
-import { BetaFeatureWrapper, BetaAccessDenied } from '@/components/ui/beta-feature-wrapper'
 import { ViewProyecto } from './view-proyecto'
 import { useToast } from '@/hooks/use-toast'
 import {
@@ -208,12 +207,7 @@ export function ListaProyectos() {
   }
 
   return (
-    <BetaFeatureWrapper 
-      featureKey="proyectos" 
-      fallback={<BetaAccessDenied featureName="Módulo de Proyectos" className="max-w-6xl mx-auto" />}
-      showBadge={false}
-    >
-      <div className="max-w-6xl mx-auto space-y-6">
+    <div className="max-w-6xl mx-auto space-y-6">
         {/* Header */}
         <div className="flex items-center justify-between">
           <div>
@@ -432,6 +426,5 @@ export function ListaProyectos() {
           </div>
         )}
       </div>
-    </BetaFeatureWrapper>
   )
 }

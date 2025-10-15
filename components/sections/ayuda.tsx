@@ -67,9 +67,9 @@ const faqData: FAQItem[] = [
   {
     id: "4",
     question: "¿Cómo funcionan los proyectos educativos?",
-    answer: "Los proyectos son una funcionalidad beta para usuarios especiales. Permite crear proyectos educativos completos con IA en 3 fases: Definir el proyecto, seleccionar PDAs curriculares, y generar contenido. Incluye instrumentos de evaluación como rúbricas analíticas, listas de cotejo y escalas de estimación.",
+    answer: "Los proyectos permiten crear proyectos educativos completos con IA en 3 fases: Definir el proyecto, seleccionar PDAs curriculares, y generar contenido. Incluye instrumentos de evaluación como rúbricas analíticas, listas de cotejo y escalas de estimación. Los usuarios PRO tienen acceso ilimitado, mientras que los usuarios gratuitos tienen límites específicos.",
     category: "Proyectos",
-    tags: ["proyectos", "beta", "ia", "evaluación"]
+    tags: ["proyectos", "ia", "evaluación", "pro"]
   },
   {
     id: "5",

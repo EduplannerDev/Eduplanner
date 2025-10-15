@@ -13,7 +13,6 @@ import { useAuth } from '@/hooks/use-auth'
 import { canUserCreate } from '@/lib/subscription-utils'
 import { ProyectoWizardStep1 } from './proyecto-wizard-step1'
 import { ProyectoWizardStep2 } from './proyecto-wizard-step2'
-import { BetaFeatureWrapper, BetaAccessDenied } from '@/components/ui/beta-feature-wrapper'
 
 interface ProyectoWizardProps {
   onComplete?: () => void
@@ -321,12 +320,7 @@ export function ProyectoWizard({ onComplete, onSectionChange }: ProyectoWizardPr
 
 
   return (
-    <BetaFeatureWrapper 
-      featureKey="proyectos" 
-      fallback={<BetaAccessDenied featureName="Módulo de Proyectos" className="max-w-6xl mx-auto" />}
-      showBadge={false}
-    >
-      <div className="max-w-6xl mx-auto space-y-6">
+    <div className="max-w-6xl mx-auto space-y-6">
         {/* Header con progreso - Solo mostrar si no ha alcanzado el límite */}
         {(!projectLimits || projectLimits.canCreate) && (
           <div className="space-y-4">
@@ -393,6 +387,5 @@ export function ProyectoWizard({ onComplete, onSectionChange }: ProyectoWizardPr
         </div>
 
       </div>
-    </BetaFeatureWrapper>
   )
 }

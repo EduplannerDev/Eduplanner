@@ -315,9 +315,8 @@ export function AppSidebar({ activeSection, onSectionChange, ...props }: AppSide
                 </SidebarMenuItem>
               ))}
               
-              {/* Proyectos - Solo para beta testers */}
-              {isBetaTester && (
-                <SidebarMenuItem>
+              {/* Proyectos - Disponible para todos */}
+              <SidebarMenuItem>
                   {state === "expanded" ? (
                     <Collapsible
                       open={expandedSections.proyectos}
@@ -387,7 +386,6 @@ export function AppSidebar({ activeSection, onSectionChange, ...props }: AppSide
                     </Popover>
                   )}
                 </SidebarMenuItem>
-              )}
             </SidebarMenu>
           </SidebarGroupContent>
         </SidebarGroup>
