@@ -8,7 +8,7 @@ import { ArrowLeft, BookOpen, Users, Calendar, Target, Lightbulb, Loader2, Check
 import { toast } from 'sonner'
 import { useRouter } from 'next/navigation'
 import { useProyectos } from '@/hooks/use-proyectos'
-import { useState, useEffect } from 'react'
+import { useErrorLogger } from '@/hooks/use-error-logger'
 import {
   Dialog,
   DialogContent,
@@ -163,7 +163,7 @@ function RubricaViewer({ contenido }: { contenido: any }) {
       
       {/* Información adicional */}
       <div className="text-sm text-gray-600 dark:text-gray-400 bg-blue-50 dark:bg-blue-900/20 p-4 rounded-lg border-l-4 border-blue-200 dark:border-blue-800">
-        <p><strong>Nota:</strong> Esta rúbrica contiene {contenido.criterios.length} criterio{contenido.criterios.length !== 1 ? 's' : ''} de evaluación con 4 niveles de desempeño cada uno.</p>
+        <p><strong>Nota:</strong> Esta rúbrica contiene {contenido.criterios?.length || 0} criterio{(contenido.criterios?.length || 0) !== 1 ? 's' : ''} de evaluación con 4 niveles de desempeño cada uno.</p>
       </div>
     </div>
   )
@@ -177,7 +177,7 @@ function ListaCotejoViewer({ contenido }: { contenido: any }) {
   const indicadores = contenido?.indicadores || contenido?.criterios || []
   const titulo = contenido?.titulo_instrumento || contenido?.titulo || "Lista de Cotejo"
 
-  if (!contenido || indicadores.length === 0) {
+  if (!contenido || !indicadores || indicadores.length === 0) {
     return (
       <div className="text-center py-8 text-muted-foreground">
         <ClipboardList className="h-12 w-12 mx-auto mb-4 opacity-50" />
@@ -328,7 +328,7 @@ function ListaCotejoViewer({ contenido }: { contenido: any }) {
       {/* Resumen */}
       <div className="flex items-center justify-center bg-blue-50 dark:bg-blue-900/20 p-4 rounded-lg border-l-4 border-blue-200 dark:border-blue-800">
         <div className="text-sm text-gray-600 dark:text-gray-400 text-center">
-          <p><strong>Total de indicadores:</strong> {indicadores.length}</p>
+          <p><strong>Total de indicadores:</strong> {indicadores?.length || 0}</p>
           <p><strong>Evaluados:</strong> {Object.values(evaluaciones).filter(e => e.si || e.no).length}</p>
         </div>
       </div>
@@ -339,6 +339,10 @@ function ListaCotejoViewer({ contenido }: { contenido: any }) {
 export function ViewProyecto({ proyectoId, onBack }: ViewProyectoProps) {
   const router = useRouter()
   const { obtenerProyecto, obtenerFasesProyecto, loading, error } = useProyectos()
+  const { logComponentError } = useErrorLogger({ 
+    componentName: 'ViewProyecto',
+    module: 'proyectos'
+  })
   const [proyecto, setProyecto] = useState<ProyectoCompleto | null>(null)
   const [fases, setFases] = useState<ProyectoFase[]>([])
   const [loadingFases, setLoadingFases] = useState(false)
@@ -426,7 +430,7 @@ export function ViewProyecto({ proyectoId, onBack }: ViewProyectoProps) {
 
   // Cargar planeaciones enlazadas cuando se cargan las fases
   useEffect(() => {
-    if (fases.length > 0 && !enlacesLoaded && !loadingEnlaces) {
+    if (fases && fases.length > 0 && !enlacesLoaded && !loadingEnlaces) {
       cargarPlaneacionesEnlazadas()
     }
   }, [fases, enlacesLoaded])
@@ -451,6 +455,10 @@ export function ViewProyecto({ proyectoId, onBack }: ViewProyectoProps) {
       }
     } catch (error) {
       console.error('Error al cargar proyecto:', error)
+      logComponentError(error as Error, 'cargarProyecto', {
+        proyectoId,
+        errorType: 'data_loading'
+      })
       setHasError(true)
       toast.error('Error al cargar el proyecto')
     } finally {
@@ -614,7 +622,7 @@ export function ViewProyecto({ proyectoId, onBack }: ViewProyectoProps) {
   const handleNextStep = () => {
     if (validateForm()) {
       setModalStep('criteria')
-      if (pdasProyecto.length === 0) {
+      if (pdasProyecto && pdasProyecto.length === 0) {
         cargarPdasProyecto()
       }
     }
@@ -988,7 +996,7 @@ Evaluación Sugerida: [Sugiere una forma simple de evaluar la comprensión al fi
     try {
 
       // Construir información de PDAs para el prompt
-      const pdasInfo = pdasProyecto.length > 0 
+      const pdasInfo = pdasProyecto && pdasProyecto.length > 0 
         ? `\nPDAs DEL PROYECTO (Programas de Desarrollo de Aprendizaje):
 ${pdasProyecto.map((pda, index) => 
   `${index + 1}. [${pda.campo_formativo}] ${pda.contenido}
@@ -1263,7 +1271,7 @@ ${pdasProyecto.map((pda, index) =>
                     <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 dark:border-blue-400 mx-auto mb-4"></div>
                     <p className="text-gray-600 dark:text-gray-400">Cargando fases del proyecto...</p>
                   </div>
-                ) : fases.length > 0 ? (
+                ) : fases && fases.length > 0 ? (
                   <div className="space-y-6">
                     {fases.map((fase, index) => (
                       <div key={fase.id} className="border-l-4 border-blue-500 dark:border-blue-400 pl-6">
@@ -1368,7 +1376,7 @@ ${pdasProyecto.map((pda, index) =>
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                {instrumentos.length > 0 ? (
+                {instrumentos && instrumentos.length > 0 ? (
                   <div className="space-y-4">
                     {instrumentos.map((instrumento) => (
                       <Card key={instrumento.id} className="border-l-4 border-purple-500 dark:bg-gray-800 shadow-sm hover:shadow-md transition-shadow duration-200 dark:border-gray-700 dark:hover:border-gray-600">
@@ -1607,7 +1615,7 @@ ${pdasProyecto.map((pda, index) =>
                       <Loader2 className="h-6 w-6 animate-spin text-blue-600" />
                       <span className="ml-2 text-gray-600 dark:text-gray-400">Cargando PDAs...</span>
                     </div>
-                  ) : pdasProyecto.length > 0 ? (
+                  ) : pdasProyecto && pdasProyecto.length > 0 ? (
                     <ScrollArea className="h-80 border rounded-lg p-4">
                       <div className="space-y-4">
                         {pdasProyecto.map((pda) => (
@@ -1647,7 +1655,7 @@ ${pdasProyecto.map((pda, index) =>
                     </div>
                   )}
                   
-                  {pdasSeleccionados.length > 0 && (
+                  {pdasSeleccionados && pdasSeleccionados.length > 0 && (
                     <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
                       <p className="text-sm font-medium text-blue-700">
                         ✓ {pdasSeleccionados.length} PDA{pdasSeleccionados.length !== 1 ? 's' : ''} seleccionado{pdasSeleccionados.length !== 1 ? 's' : ''}
@@ -1688,7 +1696,7 @@ ${pdasProyecto.map((pda, index) =>
                       </Button>
                     </div>
                     
-                    {criteriosPersonalizados.length > 0 && (
+                    {criteriosPersonalizados && criteriosPersonalizados.length > 0 && (
                       <div className="space-y-3">
                         {criteriosPersonalizados.map((criterio, index) => (
                           <div key={index} className="flex items-center justify-between p-4 bg-purple-50 dark:bg-purple-900/20 border border-purple-200 dark:border-purple-800 rounded-lg">
@@ -1709,16 +1717,16 @@ ${pdasProyecto.map((pda, index) =>
                 </div>
 
                 {/* Resumen de selección */}
-                {(pdasSeleccionados.length > 0 || criteriosPersonalizados.length > 0) && (
+                {(pdasSeleccionados && pdasSeleccionados.length > 0 || criteriosPersonalizados && criteriosPersonalizados.length > 0) && (
                   <div className="bg-green-50 border border-green-200 rounded-lg p-4">
                     <div className="flex items-center gap-2 mb-2">
                       <CheckSquare className="h-5 w-5 text-green-600" />
                       <span className="font-medium text-green-800">Criterios seleccionados</span>
                     </div>
                     <p className="text-sm text-green-700">
-                      {pdasSeleccionados.length} PDA{pdasSeleccionados.length !== 1 ? 's' : ''} del proyecto
-                      {pdasSeleccionados.length > 0 && criteriosPersonalizados.length > 0 ? ' y ' : ''}
-                      {criteriosPersonalizados.length > 0 && `${criteriosPersonalizados.length} criterio${criteriosPersonalizados.length !== 1 ? 's' : ''} personalizado${criteriosPersonalizados.length !== 1 ? 's' : ''}`}
+                      {pdasSeleccionados && pdasSeleccionados.length} PDA{pdasSeleccionados && pdasSeleccionados.length !== 1 ? 's' : ''} del proyecto
+                      {pdasSeleccionados && pdasSeleccionados.length > 0 && criteriosPersonalizados && criteriosPersonalizados.length > 0 ? ' y ' : ''}
+                      {criteriosPersonalizados && criteriosPersonalizados.length > 0 && `${criteriosPersonalizados.length} criterio${criteriosPersonalizados.length !== 1 ? 's' : ''} personalizado${criteriosPersonalizados.length !== 1 ? 's' : ''}`}
                     </p>
                   </div>
                 )}
@@ -1732,7 +1740,7 @@ ${pdasProyecto.map((pda, index) =>
                 <Button 
                   onClick={async () => {
                     // Validar que se haya seleccionado al menos un criterio
-                    if (pdasSeleccionados.length === 0 && criteriosPersonalizados.length === 0) {
+                    if ((!pdasSeleccionados || pdasSeleccionados.length === 0) && (!criteriosPersonalizados || criteriosPersonalizados.length === 0)) {
                       toast.error("Debe seleccionar al menos un PDA o agregar un criterio personalizado");
                       return;
                     }
@@ -1882,7 +1890,7 @@ ${pdasProyecto.map((pda, index) =>
             </div>
             {searchTerm && (
               <p className="text-sm text-gray-600 dark:text-gray-400">
-                {filteredPlaneaciones.length} de {planeacionesProfesor.length} planeaciones encontradas
+                {filteredPlaneaciones && filteredPlaneaciones.length} de {planeacionesProfesor && planeacionesProfesor.length} planeaciones encontradas
               </p>
             )}
           </div>
@@ -1893,13 +1901,13 @@ ${pdasProyecto.map((pda, index) =>
                 <Loader2 className="h-6 w-6 animate-spin mr-2" />
                 <span>Cargando planeaciones...</span>
               </div>
-            ) : planeacionesProfesor.length === 0 ? (
+            ) : !planeacionesProfesor || planeacionesProfesor.length === 0 ? (
               <div className="text-center py-8 text-gray-500 dark:text-gray-400">
                 <BookOpen className="h-12 w-12 mx-auto mb-4 opacity-50" />
                 <p>No tienes planeaciones creadas</p>
                 <p className="text-sm">Crea una planeación primero para poder enlazarla</p>
               </div>
-            ) : filteredPlaneaciones.length === 0 ? (
+            ) : !filteredPlaneaciones || filteredPlaneaciones.length === 0 ? (
               <div className="text-center py-8 text-gray-500 dark:text-gray-400">
                 <Search className="h-12 w-12 mx-auto mb-4 opacity-50" />
                 <p>No se encontraron planeaciones</p>
@@ -2158,7 +2166,7 @@ ${pdasProyecto.map((pda, index) =>
               {momentoToGenerate?.contenido && (
                 <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
                   <strong>Contenido:</strong> {momentoToGenerate.contenido.substring(0, 100)}
-                  {momentoToGenerate.contenido.length > 100 && '...'}
+                  {momentoToGenerate.contenido && momentoToGenerate.contenido.length > 100 && '...'}
                 </p>
               )}
             </div>
