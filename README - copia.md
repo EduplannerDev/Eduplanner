@@ -17,7 +17,7 @@ EduPlanner es una plataforma web moderna diseñada para ayudar a educadores a cr
 ### 📝 Sistema de Exámenes
 - **Generar Exámenes**: Crea exámenes automáticamente con IA
 - **Mis Exámenes**: Administra tu biblioteca de exámenes
-- **Múltiples Formatos**: Exporta en DOCX y PDF
+- **Múltiples Formatos**: Exporta en DOCX, PDF y PowerPoint
 
 ### 💬 Comunicación con Padres
 - **Generar Mensajes**: Crea mensajes personalizados para padres de familia
@@ -121,6 +121,7 @@ EduPlanner es una plataforma web moderna diseñada para ayudar a educadores a cr
 ### Generación de Documentos
 - **docx** - Generación de documentos Word
 - **jsPDF** - Creación de archivos PDF
+- **PptxGenJS** - Generación de presentaciones PowerPoint
 - **html2pdf.js** - Conversión HTML a PDF
 - **Puppeteer** - Generación de PDFs avanzada
 
@@ -307,6 +308,7 @@ eduplanner/
 │   ├── supabase.ts       # Configuración de Supabase
 │   ├── docx-generator.ts # Generador de documentos Word
 │   ├── pdf-generator.ts  # Generador de PDFs
+│   ├── pptx-generator.ts # Generador de PowerPoint
 │   ├── planteles.ts      # Gestión de planteles
 │   ├── grupos.ts         # Gestión de grupos
 │   ├── alumnos.ts        # Gestión de alumnos

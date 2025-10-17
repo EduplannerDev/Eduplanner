@@ -12,6 +12,7 @@ import { Separator } from "@/components/ui/separator"
 import { supabase } from "@/lib/supabase"
 import { Mail, Eye, EyeOff, Loader2, AlertTriangle, Home } from "lucide-react"
 import ForgotPasswordForm from "@/components/forgot-password-form"
+import { useAuthErrorLogger } from "@/hooks/use-error-logger"
 
 export default function LoginForm() {
   const [email, setEmail] = useState("")
@@ -22,6 +23,9 @@ export default function LoginForm() {
   const [showForgotPassword, setShowForgotPassword] = useState(false)
   const [message, setMessage] = useState<string | null>(null)
   const searchParams = useSearchParams()
+  
+  // Hook para logging de errores de autenticación
+  const { logAuthError, logAuthFailure } = useAuthErrorLogger('LoginForm')
 
   useEffect(() => {
     // Leer errores de los parámetros de query (?error=...)
@@ -275,6 +279,10 @@ export default function LoginForm() {
       }
     } catch (error: any) {
       console.error("Error completo:", error)
+      
+      // Log del error usando el nuevo sistema
+      logAuthFailure(error, isSignUp ? 'signup' : 'signin')
+      
       let errorMessage = "Ha ocurrido un error. "
 
       if (error.message) {
@@ -309,6 +317,9 @@ export default function LoginForm() {
 
       if (error) throw error
     } catch (error: any) {
+      // Log del error usando el nuevo sistema
+      logAuthFailure(error, 'google_signin')
+      
       setMessage(error.message || "Error al iniciar sesión con Google")
       setIsLoading(false)
     }

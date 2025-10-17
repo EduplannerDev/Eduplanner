@@ -2,6 +2,8 @@
  * Utilidades para manejo de autenticación y errores de Supabase
  */
 
+import { logAuthError } from './error-logger'
+
 /**
  * Limpia completamente el estado de autenticación (para casos extremos)
  */
@@ -102,6 +104,13 @@ export function isRefreshTokenError(error: any): boolean {
  */
 export async function handleAuthError(error: any, supabaseClient: any) {
   console.warn('Auth error detected:', error)
+  
+  // Log del error usando el nuevo sistema
+  logAuthError(error, {
+    module: 'auth-utils',
+    action: 'handleAuthError',
+    errorType: 'auth'
+  })
   
   if (isRefreshTokenError(error)) {
     

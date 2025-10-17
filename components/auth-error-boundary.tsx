@@ -4,6 +4,7 @@ import React, { Component, ReactNode } from 'react'
 import { Button } from '@/components/ui/button'
 import { AlertCircle, RefreshCw, RotateCcw } from 'lucide-react'
 import { clearSupabaseStorage, forceAuthReset } from '@/lib/auth-utils'
+import { logReactError, logAuthError } from '@/lib/error-logger'
 
 interface Props {
   children: ReactNode
@@ -31,7 +32,10 @@ class AuthErrorBoundary extends Component<Props, State> {
       error.message.includes('refresh_token_not_found') ||
       error.message.includes('Invalid Refresh Token') ||
       error.message.includes('AuthApiError') ||
-      error.message.includes('Refresh Token Not Found')
+      error.message.includes('Refresh Token Not Found') ||
+      error.message.includes('insertBefore') || // Capturar errores de DOM comunes
+      error.message.includes('appendChild') ||
+      error.message.includes('removeChild')
 
     return {
       hasError: true,
@@ -43,13 +47,45 @@ class AuthErrorBoundary extends Component<Props, State> {
   componentDidCatch(error: Error, errorInfo: React.ErrorInfo) {
     console.error('Auth Error Boundary caught an error:', error, errorInfo)
     
-    // Log optimizado usando el logger ligero
+    // Determinar el tipo de error y usar el logger apropiado
+    const isAuthError = 
+      error.message.includes('refresh_token_not_found') ||
+      error.message.includes('Invalid Refresh Token') ||
+      error.message.includes('AuthApiError') ||
+      error.message.includes('Refresh Token Not Found')
+
+    const isDOMError = 
+      error.message.includes('insertBefore') ||
+      error.message.includes('appendChild') ||
+      error.message.includes('removeChild')
+
+    // Usar el nuevo sistema de logging mejorado
+    if (isAuthError) {
+      logAuthError(error, {
+        component: 'AuthErrorBoundary',
+        action: 'componentDidCatch',
+        componentStack: errorInfo.componentStack?.substring(0, 500)
+      })
+    } else if (isDOMError) {
+      logReactError(error, {
+        componentStack: errorInfo.componentStack?.substring(0, 500),
+        errorBoundary: 'AuthErrorBoundary'
+      }, 'AuthErrorBoundary')
+    } else {
+      logReactError(error, {
+        componentStack: errorInfo.componentStack?.substring(0, 500),
+        errorBoundary: 'AuthErrorBoundary'
+      }, 'AuthErrorBoundary')
+    }
+    
+    // Log optimizado usando el logger ligero (fallback)
     if (typeof window !== 'undefined') {
       import('@/lib/lightweight-logger').then(({ logger }) => {
-        logger.error('auth_error_boundary', `Auth error: ${error.message}`, {
+        logger.error('auth_error_boundary', `Error capturado: ${error.message}`, {
           componentStack: errorInfo.componentStack?.substring(0, 500),
           errorName: error.name,
-          isAuthError: this.state.isAuthError
+          isAuthError: this.state.isAuthError,
+          errorType: isDOMError ? 'DOM' : isAuthError ? 'Auth' : 'React'
         })
       }).catch(() => {
         // Fallback silencioso si el logger falla
@@ -94,11 +130,26 @@ class AuthErrorBoundary extends Component<Props, State> {
                 
                 <div className="space-y-2">
                   <h2 className="text-xl font-semibold text-foreground">
-                    Sesión Expirada
+                    Error de Aplicación
                   </h2>
                   <p className="text-sm text-muted-foreground">
-                    Tu sesión ha expirado. Por favor, recarga la página para continuar.
+                    Ha ocurrido un error inesperado en la aplicación. Esto puede ser debido a problemas de conexión, datos corruptos o un error en el código.
                   </p>
+                  {this.state.error && (
+                    <details className="text-xs text-muted-foreground bg-muted p-2 rounded">
+                      <summary className="cursor-pointer font-medium">Detalles técnicos</summary>
+                      <div className="mt-2 space-y-1">
+                        <div><strong>Tipo:</strong> {this.state.error.name}</div>
+                        <div><strong>Mensaje:</strong> {this.state.error.message}</div>
+                        {this.state.error.message.includes('insertBefore') && (
+                          <div className="text-yellow-600">
+                            <strong>Nota:</strong> Este es un error común de React cuando hay problemas con el DOM. 
+                            Intenta recargar la página.
+                          </div>
+                        )}
+                      </div>
+                    </details>
+                  )}
                 </div>
                 
                 <div className="space-y-2">
@@ -148,11 +199,26 @@ class AuthErrorBoundary extends Component<Props, State> {
               
               <div className="space-y-2">
                 <h2 className="text-xl font-semibold text-foreground">
-                  Algo salió mal
+                  Error General
                 </h2>
                 <p className="text-sm text-muted-foreground">
                   Ha ocurrido un error inesperado. Por favor, intenta de nuevo.
                 </p>
+                {this.state.error && (
+                  <details className="text-xs text-muted-foreground bg-muted p-2 rounded">
+                    <summary className="cursor-pointer font-medium">Detalles técnicos</summary>
+                    <div className="mt-2 space-y-1">
+                      <div><strong>Tipo:</strong> {this.state.error.name}</div>
+                      <div><strong>Mensaje:</strong> {this.state.error.message}</div>
+                      {this.state.error.message.includes('insertBefore') && (
+                        <div className="text-yellow-600">
+                          <strong>Nota:</strong> Este es un error común de React cuando hay problemas con el DOM. 
+                          Intenta recargar la página.
+                        </div>
+                      )}
+                    </div>
+                  </details>
+                )}
               </div>
               
               <div className="space-y-2">

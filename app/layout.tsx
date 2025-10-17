@@ -5,6 +5,7 @@ import { Toaster } from '@/components/ui/toaster'
 import { Toaster as SonnerToaster } from '@/components/ui/sonner'
 import FeedbackClient from '@/components/feedback-client'
 import AuthErrorBoundary from '@/components/auth-error-boundary'
+import { ErrorLoggerProvider } from '@/components/error-logger-provider'
 import { Analytics } from '@vercel/analytics/react'
 import { SpeedInsights } from '@vercel/speed-insights/next'
 import ClarityAnalytics from '@/components/clarity-analytics'
@@ -53,9 +54,11 @@ export default function RootLayout({
           enableSystem
           disableTransitionOnChange
         >
-          <AuthErrorBoundary>
-            {children}
-          </AuthErrorBoundary>
+          <ErrorLoggerProvider>
+            <AuthErrorBoundary>
+              {children}
+            </AuthErrorBoundary>
+          </ErrorLoggerProvider>
           <Toaster />
           <SonnerToaster />
           <FeedbackClient />
