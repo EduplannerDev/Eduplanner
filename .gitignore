@@ -29,3 +29,14 @@ Copia de .env.local
 supabase/.temp/
 
 /contenidos
+
+# Archivos Excel y scripts de procesamiento de PDAs
+docs/secundaria/*.xlsx
+scripts/analyze-*-excel.ts
+scripts/import-*-pdas.ts
+scripts/verify-*-pdas.ts
+scripts/verify-*-import.ts
+scripts/check-grades.ts
+scripts/analyze-excel-structure.ts
+scripts/verify-import.ts
+scripts/verify-pdas-data.ts
