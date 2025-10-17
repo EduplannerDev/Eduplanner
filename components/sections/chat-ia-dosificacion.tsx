@@ -7,6 +7,7 @@ import { Input } from "@/components/ui/input"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Textarea } from "@/components/ui/textarea"
 import { convertMarkdownToHtml } from "@/components/ui/rich-text-editor"
+import { getGradoTexto } from "@/lib/grado-utils"
 
 // Función específica para convertir contenido del chat
 function convertChatMarkdownToHtml(content: string): string {
@@ -623,7 +624,7 @@ ${contenidosSeleccionados.map((c, i) => `${i + 1}. ${c.contenido}`).join('\n')}
               <div className="space-y-3">
                 <div>
                   <span className="text-sm font-medium text-gray-600 dark:text-gray-400">Grado:</span>
-                  <p className="text-sm">{contexto?.grado}° Grado</p>
+                  <p className="text-sm">{contexto ? getGradoTexto(contexto.grado) : ''}</p>
                 </div>
                 <div>
                   <span className="text-sm font-medium text-gray-600 dark:text-gray-400">Mes:</span>

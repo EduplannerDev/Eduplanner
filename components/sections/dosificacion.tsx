@@ -10,6 +10,7 @@ import { BarChart3, Calendar, BookOpen, Target, Loader2, Settings, CheckCircle, 
 import { useState, useEffect } from "react"
 import { useAuth } from "@/hooks/use-auth"
 import { supabase } from "@/lib/supabase"
+import { getGradoTexto } from "@/lib/grado-utils"
 
 interface DosificacionProps {
   onCreateNew?: () => void
@@ -28,6 +29,7 @@ interface ContextoTrabajo {
   fecha_inicio: string
   notas?: string
 }
+
 
 export function Dosificacion({ onCreateNew, onNavigateToChatDosificacion }: DosificacionProps) {
   const [loading, setLoading] = useState(false)
@@ -1395,7 +1397,7 @@ Por favor, genera una planeación completa y detallada para este contenido, incl
           {contexto && (
             <div className="mt-2 flex items-center gap-2">
               <Badge variant="outline" className="text-blue-600 border-blue-600">
-                {contexto.grado}° Grado - {contexto.ciclo_escolar}
+                {getGradoTexto(contexto.grado)} - {contexto.ciclo_escolar}
               </Badge>
             </div>
           )}

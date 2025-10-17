@@ -12,6 +12,7 @@ import { useState, useEffect } from "react"
 import { useAuth } from "@/hooks/use-auth"
 import { supabase } from "@/lib/supabase"
 import { Pagination, PaginationContent, PaginationItem, PaginationLink, PaginationNext, PaginationPrevious } from "@/components/ui/pagination"
+import { getGradoTexto } from "@/lib/grado-utils"
 
 interface NuevaPlaneacionProps {
   onCreateClass: () => void
@@ -294,7 +295,7 @@ export function NuevaPlaneacion({ onCreateClass, onNavigateToChatWithMessage, on
     const primerContenido = contenidos[0]
     const camposFormativos = [...new Set(contenidos.map(c => c.campo_formativo))]
     
-    let mensaje = `Necesito una planeación didáctica para ${contexto?.grado}° grado. `
+    let mensaje = `Necesito una planeación didáctica para ${contexto ? getGradoTexto(contexto.grado) : 'el grado especificado'}. `
     
     if (camposFormativos.length === 1) {
       mensaje += `La materia es ${camposFormativos[0]}. `
@@ -371,7 +372,7 @@ export function NuevaPlaneacion({ onCreateClass, onNavigateToChatWithMessage, on
             {contexto && (
               <div className="mt-2 flex items-center gap-2">
                 <Badge variant="outline" className="text-orange-600 border-orange-600">
-                  {contexto.grado}° Grado - {contexto.ciclo_escolar}
+                  {getGradoTexto(contexto.grado)} - {contexto.ciclo_escolar}
                 </Badge>
                 {mesActual && (
                   <Badge variant="outline" className="text-blue-600 border-blue-600">
