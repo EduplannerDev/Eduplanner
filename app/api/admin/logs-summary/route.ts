@@ -32,27 +32,27 @@ export async function GET(req: NextRequest) {
     const [logsCount, errorsCount, criticalErrorsCount, avgResponseTime] = await Promise.all([
       // Total de logs en 24h
       supabase
-        .from('system_logs_lightweight')
+        .from('error_logs')
         .select('id', { count: 'exact', head: true })
         .gte('created_at', yesterday),
       
       // Errores en 24h
       supabase
-        .from('system_logs_lightweight')
+        .from('error_logs')
         .select('id', { count: 'exact', head: true })
         .eq('level', 'ERROR')
         .gte('created_at', yesterday),
       
       // Errores críticos no resueltos
       supabase
-        .from('critical_errors')
+        .from('error_logs')
         .select('id', { count: 'exact', head: true })
-        .eq('resolved', false)
+        .eq('level', 'FATAL')
         .gte('created_at', yesterday),
       
       // Tiempo promedio de respuesta (solo de logs de API)
       supabase
-        .from('system_logs_lightweight')
+        .from('error_logs')
         .select('context')
         .eq('category', 'api_success')
         .gte('created_at', yesterday)

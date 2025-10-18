@@ -47,32 +47,55 @@ class LightweightLogger {
    * Log principal - completamente asíncrono y no-bloqueante
    */
   public log(level: LogEntry['level'], category: string, message: string, context?: Record<string, any>): void {
-    // Sampling: solo procesar un porcentaje de logs
-    if (!this.shouldLog(level, category)) {
-      return;
-    }
+    try {
+      // Sampling: solo procesar un porcentaje de logs
+      if (!this.shouldLog(level, category)) {
+        return;
+      }
 
-    const entry: LogEntry = {
-      level,
-      category,
-      message,
-      context: this.sanitizeContext(context),
-      timestamp: Date.now(),
-      sessionId: this.getSessionId(),
-      userId: this.getCurrentUserId()
-    };
+      const entry: LogEntry = {
+        level,
+        category,
+        message,
+        context: this.sanitizeContext(context),
+        timestamp: Date.now(),
+        sessionId: this.getSessionId(),
+        userId: this.getCurrentUserId()
+      };
 
-    // Console log inmediato (no bloquea)
-    if (this.config.enableConsole) {
-      this.logToConsole(entry);
-    }
+      // Console log inmediato (no bloquea)
+      if (this.config.enableConsole) {
+        this.logToConsole(entry);
+      }
 
-    // Agregar al buffer (operación síncrona rápida)
-    this.buffer.push(entry);
+      // Agregar al buffer (operación síncrona rápida)
+      this.buffer.push(entry);
 
-    // Auto-flush si el buffer está lleno
-    if (this.buffer.length >= this.config.batchSize) {
-      this.flushAsync();
+      // Auto-flush si el buffer está lleno
+      if (this.buffer.length >= this.config.batchSize) {
+        this.flushAsync();
+      }
+    } catch (error) {
+      // Fallback crítico: si el logging falla, intentar enviar directamente a la API
+      try {
+        fetch('/api/logs/batch', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            logs: [{
+              level,
+              category,
+              message,
+              context,
+              timestamp: Date.now()
+            }]
+          })
+        }).catch(() => {
+          // Silencioso - no molestar al usuario
+        });
+      } catch {
+        // Silencioso - no molestar al usuario
+      }
     }
   }
 
@@ -190,7 +213,11 @@ class LightweightLogger {
       if (this.buffer.length < this.config.batchSize * 2) {
         this.buffer.unshift(...batch);
       }
-      console.error('Error flushing logs:', error);
+      
+      // Si hay muchos errores consecutivos, limpiar buffer para evitar bloqueos
+      if (this.buffer.length > this.config.batchSize * 3) {
+        this.buffer = [];
+      }
     } finally {
       this.isProcessing = false;
     }
@@ -274,9 +301,10 @@ class LightweightLogger {
 
 // Instancia singleton optimizada
 export const logger = new LightweightLogger({
-  sampleRate: process.env.NODE_ENV === 'production' ? 0.05 : 0.2, // 5% en prod, 20% en dev
-  batchSize: 100, // Lotes más grandes en producción
-  flushInterval: 10000 // Flush cada 10 segundos en producción
+  sampleRate: 1.0, // SIEMPRE logear errores críticos (100%)
+  batchSize: 50, // Lotes más pequeños para evitar bloqueos
+  flushInterval: 5000, // Flush más frecuente
+  enableConsole: false // NO mostrar en consola del usuario
 });
 
 // Exportar tipos

@@ -220,12 +220,39 @@ export function ProyectoRecursos({ proyectoId }: ProyectoRecursosProps) {
   }
 
   const descargarRecurso = (recurso: ProyectoRecurso) => {
-    const link = document.createElement('a')
-    link.href = recurso.url
-    link.download = recurso.nombre
-    document.body.appendChild(link)
-    link.click()
-    document.body.removeChild(link)
+    try {
+      const link = document.createElement('a')
+      link.href = recurso.url
+      link.download = recurso.nombre
+      link.style.display = 'none'
+      
+      // Usar requestAnimationFrame para evitar conflictos con React
+      requestAnimationFrame(() => {
+        try {
+          document.body.appendChild(link)
+          link.click()
+          
+          // Usar setTimeout para remover el elemento de manera segura
+          setTimeout(() => {
+            try {
+              if (link.parentNode) {
+                document.body.removeChild(link)
+              }
+            } catch (removeError) {
+              console.warn('Error removing download link:', removeError)
+            }
+          }, 100)
+        } catch (appendError) {
+          console.error('Error appending download link:', appendError)
+          // Fallback: abrir en nueva ventana
+          window.open(recurso.url, '_blank')
+        }
+      })
+    } catch (error) {
+      console.error('Error creating download link:', error)
+      // Fallback: abrir en nueva ventana
+      window.open(recurso.url, '_blank')
+    }
   }
 
   const verRecurso = (recurso: ProyectoRecurso) => {

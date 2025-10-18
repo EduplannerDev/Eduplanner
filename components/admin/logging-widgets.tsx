@@ -33,11 +33,12 @@ interface LoggingMetrics {
 
 interface CriticalError {
   id: string
-  error_type: string
-  error_message: string
-  user_id: string
+  level: string
+  category: string
+  message: string
+  context?: any
+  user_id?: string
   created_at: string
-  resolved: boolean
 }
 
 interface SystemStatus {
@@ -56,6 +57,8 @@ export function LoggingMetricsWidget() {
   })
   const [isLoading, setIsLoading] = useState(true)
   const [lastUpdate, setLastUpdate] = useState<Date>(new Date())
+  const [currentPage, setCurrentPage] = useState(1)
+  const [errorsPerPage] = useState(10)
 
   // Cache para evitar requests innecesarios
   const cacheRef = useRef<{ data: any; timestamp: number } | null>(null)
@@ -120,6 +123,7 @@ export function LoggingMetricsWidget() {
       setCriticalErrors(errorsData.errors || [])
       setSystemStatus(newSystemStatus)
       setLastUpdate(new Date())
+      setCurrentPage(1) // Resetear a la primera página
 
     } catch (error) {
       console.error('Error loading logging metrics:', error)
@@ -147,31 +151,6 @@ export function LoggingMetricsWidget() {
     return () => clearInterval(interval)
   }, [])
 
-  /**
-   * Resolver error crítico
-   */
-  const resolveError = async (errorId: string) => {
-    try {
-      await fetch(`/api/admin/resolve-error/${errorId}`, {
-        method: 'POST'
-      })
-      
-      // Actualizar estado local
-      setCriticalErrors(prev => 
-        prev.map(error => 
-          error.id === errorId 
-            ? { ...error, resolved: true }
-            : error
-        )
-      )
-      
-      // Limpiar cache para forzar refresh
-      cacheRef.current = null
-      
-    } catch (error) {
-      console.error('Error resolving critical error:', error)
-    }
-  }
 
   /**
    * Obtener color del estado
@@ -266,10 +245,10 @@ export function LoggingMetricsWidget() {
           trend={metrics?.avgResponseTime > 3000 ? 'up' : 'down'}
         />
         <MetricCard
-          title="Errores Críticos"
-          value={criticalErrors.filter(e => !e.resolved).length}
+          title="Errores Recientes"
+          value={criticalErrors.length}
           icon={<AlertTriangle className="w-4 h-4" />}
-          color={criticalErrors.filter(e => !e.resolved).length > 0 ? 'red' : 'green'}
+          color={criticalErrors.length > 0 ? 'red' : 'green'}
         />
       </div>
 
@@ -326,56 +305,113 @@ export function LoggingMetricsWidget() {
         </CardContent>
       </Card>
 
-      {/* Errores críticos */}
-      {criticalErrors.filter(e => !e.resolved).length > 0 && (
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <AlertTriangle className="w-5 h-5 text-orange-500" />
-              Errores Críticos ({criticalErrors.filter(e => !e.resolved).length} sin resolver)
-            </CardTitle>
-            <CardDescription>
-              Errores que requieren atención inmediata
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-3">
-              {criticalErrors.filter(e => !e.resolved).slice(0, 5).map((error) => (
-                <div
-                  key={error.id}
-                  className="p-4 rounded-lg border bg-red-50 border-red-200"
-                >
-                  <div className="flex justify-between items-start">
-                    <div className="flex-1">
-                      <div className="flex items-center gap-2 mb-2">
-                        <Badge variant="destructive">
-                          Pendiente
-                        </Badge>
-                        <span className="text-sm text-muted-foreground">
-                          {new Date(error.created_at).toLocaleString()}
-                        </span>
-                      </div>
-                      <h4 className="font-medium text-sm">{error.error_type}</h4>
-                      <p className="text-sm text-muted-foreground mt-1">
-                        {error.error_message.substring(0, 200)}
-                        {error.error_message.length > 200 && '...'}
-                      </p>
-                    </div>
-                    <Button
-                      size="sm"
-                      variant="outline"
-                      onClick={() => resolveError(error.id)}
-                      className="ml-4"
+      {/* Errores recientes - SIEMPRE mostrar */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <AlertTriangle className="w-5 h-5 text-orange-500" />
+            Errores Recientes ({criticalErrors.length})
+          </CardTitle>
+          <CardDescription>
+            Últimos errores del sistema que requieren atención
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          {criticalErrors.length === 0 ? (
+            <div className="text-center py-8 text-muted-foreground">
+              <AlertTriangle className="w-12 h-12 mx-auto mb-4 text-gray-400" />
+              <p>No hay errores recientes</p>
+              <p className="text-sm">Los errores aparecerán aquí cuando ocurran</p>
+            </div>
+          ) : (
+            <>
+              <div className="space-y-3">
+                {criticalErrors
+                  .slice((currentPage - 1) * errorsPerPage, currentPage * errorsPerPage)
+                  .map((error) => (
+                    <div
+                      key={error.id}
+                      className="p-4 rounded-lg border bg-red-50 border-red-200"
                     >
-                      Marcar Resuelto
+                      <div className="flex justify-between items-start">
+                        <div className="flex-1">
+                          <div className="flex items-center gap-2 mb-2">
+                            <Badge variant={error.level === 'FATAL' ? 'destructive' : 'secondary'}>
+                              {error.level}
+                            </Badge>
+                            <span className="text-sm text-muted-foreground">
+                              {new Date(error.created_at).toLocaleString()}
+                            </span>
+                          </div>
+                          <h4 className="font-medium text-sm">{error.category}</h4>
+                          <p className="text-sm text-muted-foreground mt-1">
+                            {error.message.substring(0, 200)}
+                            {error.message.length > 200 && '...'}
+                          </p>
+                          {/* Mostrar información del contexto si está disponible */}
+                          {error.context && (
+                            <div className="mt-2 text-xs text-gray-600">
+                              {(() => {
+                                try {
+                                  const context = typeof error.context === 'string' 
+                                    ? JSON.parse(error.context) 
+                                    : error.context;
+                                  
+                                  return (
+                                    <div className="space-y-1">
+                                      {context.module && context.module !== 'unknown' && (
+                                        <div><strong>Módulo:</strong> {context.module}</div>
+                                      )}
+                                      {context.component && context.component !== 'unknown' && (
+                                        <div><strong>Componente:</strong> {context.component}</div>
+                                      )}
+                                      {context.action && context.action !== 'unknown' && (
+                                        <div><strong>Acción:</strong> {context.action}</div>
+                                      )}
+                                    </div>
+                                  );
+                                } catch (e) {
+                                  return null;
+                                }
+                              })()}
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+              </div>
+              
+              {/* Paginación */}
+              {criticalErrors.length > errorsPerPage && (
+                <div className="flex items-center justify-between mt-6 pt-4 border-t">
+                  <p className="text-sm text-muted-foreground">
+                    Mostrando {((currentPage - 1) * errorsPerPage) + 1} - {Math.min(currentPage * errorsPerPage, criticalErrors.length)} de {criticalErrors.length} errores
+                  </p>
+                  <div className="flex gap-2">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => setCurrentPage(currentPage - 1)}
+                      disabled={currentPage === 1}
+                    >
+                      Anterior
+                    </Button>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => setCurrentPage(currentPage + 1)}
+                      disabled={currentPage >= Math.ceil(criticalErrors.length / errorsPerPage)}
+                    >
+                      Siguiente
                     </Button>
                   </div>
                 </div>
-              ))}
-            </div>
-          </CardContent>
-        </Card>
-      )}
+              )}
+            </>
+          )}
+        </CardContent>
+      </Card>
     </div>
   )
 }

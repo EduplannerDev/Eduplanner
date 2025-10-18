@@ -7,7 +7,7 @@ import { Input } from "@/components/ui/input"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Textarea } from "@/components/ui/textarea"
 import { convertMarkdownToHtml } from "@/components/ui/rich-text-editor"
-import { getGradoTexto } from "@/lib/grado-utils"
+import { useSafeScroll } from '@/hooks/use-safe-scroll'
 
 // Función específica para convertir contenido del chat
 function convertChatMarkdownToHtml(content: string): string {
@@ -159,10 +159,12 @@ ${contenidosSeleccionados.map((c, i) => `${i + 1}. ${c.contenido}`).join('\n')}
     ],
   })
 
+  const { scrollToElement } = useSafeScroll()
+
   // Auto-scroll al final cuando hay nuevos mensajes
   useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" })
-  }, [messages])
+    scrollToElement(messagesEndRef.current)
+  }, [messages, scrollToElement])
 
   // Enviar automáticamente el mensaje inicial
   useEffect(() => {

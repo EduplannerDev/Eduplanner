@@ -101,7 +101,12 @@ Puedes pedirme ayuda para crear mensajes sobre:
 
   // Auto-scroll al final cuando hay nuevos mensajes
   useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" })
+    if (messagesEndRef.current) {
+      // Usar setTimeout para evitar conflictos con React
+      setTimeout(() => {
+        messagesEndRef.current?.scrollIntoView({ behavior: "smooth" })
+      }, 100)
+    }
   }, [messages])
 
   // Nota: Regeneración automática removida para evitar peticiones excesivas

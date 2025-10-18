@@ -163,29 +163,61 @@ class ErrorLogger {
     }
 
     // Log usando el sistema ligero con contexto mejorado
-    logger.error('error_capture', `${type.toUpperCase()}: ${error.message}`, {
-      ...context,
-      // Información adicional para debugging
-      errorName: error.name,
-      errorMessage: error.message,
-      stackTrace: error.stack,
-      filename: stackInfo.filename,
-      lineNumber: stackInfo.lineNumber,
-      columnNumber: stackInfo.columnNumber
-    })
-
-    // Log adicional específico para errores de auth
-    if (type === 'auth') {
-      logger.error('auth_error', `Auth Error: ${error.message}`, {
+    try {
+      logger.error('error_capture', `${type.toUpperCase()}: ${error.message}`, {
         ...context,
-        authErrorType: error.name,
-        authErrorMessage: error.message,
-        authAction: additionalContext?.action || 'unknown'
+        // Información adicional para debugging
+        errorName: error.name,
+        errorMessage: error.message,
+        stackTrace: error.stack,
+        filename: stackInfo.filename,
+        lineNumber: stackInfo.lineNumber,
+        columnNumber: stackInfo.columnNumber,
+        // Asegurar que el módulo se capture
+        module: context.module,
+        component: context.component,
+        action: context.action
       })
+
+      // Log adicional específico para errores de auth
+      if (type === 'auth') {
+        logger.error('auth_error', `Auth Error: ${error.message}`, {
+          ...context,
+          authErrorType: error.name,
+          authErrorMessage: error.message,
+          authAction: additionalContext?.action || 'unknown',
+          // Asegurar que el módulo se capture
+          module: context.module,
+          component: context.component,
+          action: context.action
+        })
+      }
+    } catch (loggingError) {
+      // Fallback crítico: si el logging falla, intentar enviar directamente a la API
+      try {
+        // Enviar directamente a la API sin pasar por el logger
+        fetch('/api/logs/batch', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            logs: [{
+              level: 'ERROR',
+              category: 'error_logger_fallback',
+              message: `CRITICAL: Error logging system failed - ${error.message}`,
+              context: { type, errorMessage: error.message, stack: error.stack },
+              timestamp: Date.now()
+            }]
+          })
+        }).catch(() => {
+          // Si incluso esto falla, no hacer nada para no molestar al usuario
+        });
+      } catch {
+        // Silencioso - no molestar al usuario
+      }
     }
 
-    // Log adicional a consola en desarrollo
-    if (process.env.NODE_ENV === 'development') {
+    // Log adicional a consola SOLO en desarrollo del servidor (no en el navegador)
+    if (process.env.NODE_ENV === 'development' && typeof window === 'undefined') {
       console.group(`🚨 Error Captured: ${type.toUpperCase()}`)
       console.error('Error:', error)
       console.log('Context:', context)
@@ -262,6 +294,18 @@ class ErrorLogger {
         return {
           module: 'app',
           component: appMatch[1],
+          filename: this.extractFilename(line),
+          lineNumber: this.extractLineNumber(line),
+          columnNumber: this.extractColumnNumber(line)
+        }
+      }
+
+      // Buscar cualquier función/método
+      const functionMatch = line.match(/at\s+(\w+)\s+\(/)
+      if (functionMatch) {
+        return {
+          module: 'unknown',
+          component: functionMatch[1],
           filename: this.extractFilename(line),
           lineNumber: this.extractLineNumber(line),
           columnNumber: this.extractColumnNumber(line)
@@ -395,3 +439,4 @@ export const logNetworkError = (error: Error, url?: string, method?: string) => 
 }
 
 export type { ErrorContext, ReactErrorInfo }
+export { ErrorLogger }

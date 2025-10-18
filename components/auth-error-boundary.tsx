@@ -67,9 +67,24 @@ class AuthErrorBoundary extends Component<Props, State> {
         componentStack: errorInfo.componentStack?.substring(0, 500)
       })
     } else if (isDOMError) {
+      // Para errores de DOM, intentar recuperación automática
+      console.warn('DOM Error detected, attempting recovery...', error.message)
+      
+      // Intentar recuperación después de un breve delay
+      setTimeout(() => {
+        try {
+          // Forzar re-render del componente
+          this.setState({ hasError: false, error: null })
+        } catch (recoveryError) {
+          console.error('Recovery failed:', recoveryError)
+        }
+      }, 1000)
+      
       logReactError(error, {
         componentStack: errorInfo.componentStack?.substring(0, 500),
-        errorBoundary: 'AuthErrorBoundary'
+        errorBoundary: 'AuthErrorBoundary',
+        domError: true,
+        recoveryAttempted: true
       }, 'AuthErrorBoundary')
     } else {
       logReactError(error, {
