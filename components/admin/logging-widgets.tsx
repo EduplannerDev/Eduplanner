@@ -19,8 +19,10 @@ import {
   Clock,
   RefreshCw,
   TrendingUp,
-  TrendingDown
+  TrendingDown,
+  Trash2
 } from 'lucide-react'
+import { toast } from 'sonner'
 
 interface LoggingMetrics {
   totalLogs: number
@@ -59,10 +61,112 @@ export function LoggingMetricsWidget() {
   const [lastUpdate, setLastUpdate] = useState<Date>(new Date())
   const [currentPage, setCurrentPage] = useState(1)
   const [errorsPerPage] = useState(10)
+  const [clearingErrors, setClearingErrors] = useState(false)
 
   // Cache para evitar requests innecesarios
   const cacheRef = useRef<{ data: any; timestamp: number } | null>(null)
   const CACHE_DURATION = 30000 // 30 segundos
+
+  /**
+   * Marcar error como resuelto
+   */
+  const markErrorAsResolved = async (errorId: string) => {
+    try {
+      const response = await fetch(`/api/admin/resolve-error/${errorId}`, {
+        method: 'POST'
+      })
+
+      if (!response.ok) {
+        const errorData = await response.json()
+        throw new Error(errorData.error || 'Error marking error as resolved')
+      }
+
+      const result = await response.json()
+      
+      // Recargar métricas después de marcar como resuelto
+      await loadMetrics(true)
+      
+      toast.success(result.message || 'Error marcado como resuelto')
+      
+    } catch (error) {
+      console.error('Error marking error as resolved:', error)
+      toast.error(error instanceof Error ? error.message : 'Error al marcar como resuelto')
+    }
+  }
+
+  /**
+   * Limpiar errores antiguos
+   */
+  const clearOldErrors = async () => {
+    try {
+      setClearingErrors(true)
+      
+      const response = await fetch('/api/admin/clear-old-errors', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          olderThanDays: 1 // Limpiar errores más antiguos que 1 día
+        })
+      })
+
+      if (!response.ok) {
+        const errorData = await response.json()
+        throw new Error(errorData.error || 'Error clearing old errors')
+      }
+
+      const result = await response.json()
+      
+      // Recargar métricas después de limpiar
+      await loadMetrics(true)
+      
+      toast.success(result.message)
+      
+    } catch (error) {
+      console.error('Error clearing old errors:', error)
+      toast.error(error instanceof Error ? error.message : 'Error al limpiar errores antiguos')
+    } finally {
+      setClearingErrors(false)
+    }
+  }
+
+  /**
+   * Limpiar todos los errores
+   */
+  const clearAllErrors = async () => {
+    try {
+      setClearingErrors(true)
+      
+      const response = await fetch('/api/admin/clear-old-errors', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          clearAll: true // Limpiar todos los errores
+        })
+      })
+
+      if (!response.ok) {
+        const errorData = await response.json()
+        throw new Error(errorData.error || 'Error clearing all errors')
+      }
+
+      const result = await response.json()
+      
+      // Recargar métricas después de limpiar
+      await loadMetrics(true)
+      
+      toast.success(result.message)
+      
+    } catch (error) {
+      console.error('Error clearing all errors:', error)
+      toast.error(error instanceof Error ? error.message : 'Error al limpiar todos los errores')
+    } finally {
+      setClearingErrors(false)
+    }
+  }
 
   /**
    * Cargar métricas con cache inteligente
@@ -217,6 +321,24 @@ export function LoggingMetricsWidget() {
           >
             <RefreshCw className={`w-4 h-4 mr-2 ${isLoading ? 'animate-spin' : ''}`} />
             Actualizar
+          </Button>
+          <Button
+            variant="destructive"
+            size="sm"
+            onClick={clearOldErrors}
+            disabled={clearingErrors || isLoading}
+          >
+            <Trash2 className={`w-4 h-4 mr-2 ${clearingErrors ? 'animate-spin' : ''}`} />
+            {clearingErrors ? 'Limpiando...' : 'Limpiar Antiguos'}
+          </Button>
+          <Button
+            variant="destructive"
+            size="sm"
+            onClick={clearAllErrors}
+            disabled={clearingErrors || isLoading}
+          >
+            <Trash2 className={`w-4 h-4 mr-2 ${clearingErrors ? 'animate-spin' : ''}`} />
+            {clearingErrors ? 'Limpiando...' : 'Limpiar Todos'}
           </Button>
         </div>
       </div>
@@ -376,6 +498,17 @@ export function LoggingMetricsWidget() {
                               })()}
                             </div>
                           )}
+                        </div>
+                        <div className="ml-4">
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => markErrorAsResolved(error.id)}
+                            className="text-xs"
+                          >
+                            <CheckCircle className="w-3 h-3 mr-1" />
+                            Resolver
+                          </Button>
                         </div>
                       </div>
                     </div>

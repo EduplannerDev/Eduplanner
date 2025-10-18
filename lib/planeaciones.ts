@@ -487,13 +487,9 @@ export async function getPlaneacionLinkedToMomento(proyectoFaseId: string): Prom
         )
       `)
       .eq('proyecto_fase_id', proyectoFaseId)
-      .single()
+      .maybeSingle() // Cambiar de .single() a .maybeSingle()
 
     if (error) {
-      if (error.code === 'PGRST116') {
-        // No se encontró enlace
-        return null
-      }
       console.error('Error verificando enlace de momento:', error)
       console.error('Detalles del error:', {
         code: error.code,
@@ -504,7 +500,12 @@ export async function getPlaneacionLinkedToMomento(proyectoFaseId: string): Prom
       return null
     }
 
-    return data?.planeaciones || null
+    // Si no hay datos o no hay planeación enlazada, retornar null
+    if (!data || !data.planeaciones) {
+      return null
+    }
+
+    return data.planeaciones
   } catch (error) {
     console.error('Error inesperado verificando enlace:', error)
     return null

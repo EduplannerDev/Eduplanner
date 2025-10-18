@@ -39,7 +39,8 @@ import { ProyectoRecursos } from "./proyecto-recursos"
 import { usePlaneaciones } from "@/hooks/use-planeaciones"
 import { useProfile } from "@/hooks/use-profile"
 import { isUserPro } from "@/lib/subscription-utils"
-import { createProyectoMomentoPlaneacionLink, getPlaneacionLinkedToMomento, deleteProyectoMomentoPlaneacionLink } from "@/lib/planeaciones"
+import { supabase } from '@/lib/supabase'
+import { createProyectoMomentoPlaneacionLink, deleteProyectoMomentoPlaneacionLink } from "@/lib/planeaciones"
 import { convertMarkdownToHtml } from '@/components/ui/rich-text-editor'
 import {
   Tooltip,
@@ -659,19 +660,55 @@ export function ViewProyecto({ proyectoId, onBack }: ViewProyectoProps) {
     const enlaces: {[momentoId: string]: any} = {}
     
     try {
-      for (const fase of fases) {
-        try {
-          const planeacionEnlazada = await getPlaneacionLinkedToMomento(fase.id)
-          if (planeacionEnlazada) {
-            enlaces[fase.id] = planeacionEnlazada
+      // Obtener todos los IDs de las fases
+      const faseIds = fases.map(fase => fase.id)
+      
+      if (faseIds.length === 0) {
+        setLinkedPlaneaciones(enlaces)
+        setEnlacesLoaded(true)
+        return
+      }
+
+      // Hacer una sola consulta para obtener todos los enlaces
+      const { data: enlacesData, error } = await supabase
+        .from('proyecto_momento_planeacion')
+        .select(`
+          proyecto_fase_id,
+          planeacion_id,
+          planeaciones (
+            id,
+            titulo,
+            materia,
+            grado,
+            duracion,
+            objetivo,
+            metodologia,
+            contenido,
+            created_at
+          )
+        `)
+        .in('proyecto_fase_id', faseIds)
+
+      if (error) {
+        console.error('Error cargando enlaces de planeaciones:', error)
+        setLinkedPlaneaciones(enlaces)
+        setEnlacesLoaded(true)
+        return
+      }
+
+      // Procesar los resultados
+      if (enlacesData) {
+        enlacesData.forEach(enlace => {
+          if (enlace.planeaciones) {
+            enlaces[enlace.proyecto_fase_id] = enlace.planeaciones
           }
-          // Pequeño delay para evitar sobrecargar el servidor
-          await new Promise(resolve => setTimeout(resolve, 100))
-        } catch (error) {
-          console.error(`Error cargando planeación enlazada para momento ${fase.id}:`, error)
-        }
+        })
       }
       
+      setLinkedPlaneaciones(enlaces)
+      setEnlacesLoaded(true)
+    } catch (error) {
+      console.error('Error inesperado cargando enlaces:', error)
       setLinkedPlaneaciones(enlaces)
       setEnlacesLoaded(true)
     } finally {
