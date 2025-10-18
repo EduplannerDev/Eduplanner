@@ -25,7 +25,8 @@ interface ReactErrorInfo {
 
 class ErrorLogger {
   private errorCounts: Map<string, number> = new Map()
-  private readonly maxErrorsPerType = 10 // Evitar spam de errores
+  private readonly maxErrorsPerType = 50 // Aumentar límite para evitar perder errores importantes
+  private readonly maxAuthErrors = 100 // Límite especial para errores de auth
 
   constructor() {
     this.setupGlobalErrorHandlers()
@@ -135,41 +136,165 @@ class ErrorLogger {
     const errorKey = `${type}:${error.message}`
     const count = this.errorCounts.get(errorKey) || 0
 
+    // Usar límites diferentes según el tipo de error
+    const maxErrors = type === 'auth' ? this.maxAuthErrors : this.maxErrorsPerType
+
     // Evitar spam de errores repetidos
-    if (count >= this.maxErrorsPerType) {
+    if (count >= maxErrors) {
       return
     }
 
     this.errorCounts.set(errorKey, count + 1)
 
+    // Extraer información detallada del stack trace
+    const stackInfo = this.extractDetailedStackInfo(error.stack)
+    
     const context: ErrorContext = {
       errorType: type,
       timestamp: Date.now(),
       url: typeof window !== 'undefined' ? window.location.href : undefined,
       userAgent: typeof window !== 'undefined' ? navigator.userAgent : undefined,
       stack: error.stack,
+      // Información extraída del stack
+      module: stackInfo.module || additionalContext?.module || 'unknown',
+      component: stackInfo.component || additionalContext?.component || 'unknown',
+      action: additionalContext?.action || 'unknown',
       ...additionalContext
     }
 
-    // Determinar el módulo basado en el stack trace
-    const module = this.extractModuleFromStack(error.stack) || additionalContext?.module || 'unknown'
-    context.module = module
+    // Log usando el sistema ligero con contexto mejorado
+    logger.error('error_capture', `${type.toUpperCase()}: ${error.message}`, {
+      ...context,
+      // Información adicional para debugging
+      errorName: error.name,
+      errorMessage: error.message,
+      stackTrace: error.stack,
+      filename: stackInfo.filename,
+      lineNumber: stackInfo.lineNumber,
+      columnNumber: stackInfo.columnNumber
+    })
 
-    // Log usando el sistema ligero
-    logger.error('error_capture', `${type.toUpperCase()}: ${error.message}`, context)
+    // Log adicional específico para errores de auth
+    if (type === 'auth') {
+      logger.error('auth_error', `Auth Error: ${error.message}`, {
+        ...context,
+        authErrorType: error.name,
+        authErrorMessage: error.message,
+        authAction: additionalContext?.action || 'unknown'
+      })
+    }
 
     // Log adicional a consola en desarrollo
     if (process.env.NODE_ENV === 'development') {
       console.group(`🚨 Error Captured: ${type.toUpperCase()}`)
       console.error('Error:', error)
       console.log('Context:', context)
-      console.log('Module:', module)
+      console.log('Module:', context.module)
+      console.log('Component:', context.component)
+      console.log('Action:', context.action)
+      console.log('Stack Info:', stackInfo)
       console.groupEnd()
     }
   }
 
   /**
-   * Extraer el módulo/componente del stack trace
+   * Extraer información detallada del stack trace
+   */
+  private extractDetailedStackInfo(stack?: string): {
+    module: string | null
+    component: string | null
+    filename: string | null
+    lineNumber: number | null
+    columnNumber: number | null
+  } {
+    if (!stack) {
+      return {
+        module: null,
+        component: null,
+        filename: null,
+        lineNumber: null,
+        columnNumber: null
+      }
+    }
+
+    const lines = stack.split('\n')
+    
+    for (const line of lines) {
+      // Buscar patrones como: at ComponentName (file.tsx:line:column)
+      const componentMatch = line.match(/at\s+(\w+)\s+\([^)]*\/components\/[^)]*\)/)
+      if (componentMatch) {
+        return {
+          module: 'components',
+          component: componentMatch[1],
+          filename: this.extractFilename(line),
+          lineNumber: this.extractLineNumber(line),
+          columnNumber: this.extractColumnNumber(line)
+        }
+      }
+
+      // Buscar en hooks
+      const hookMatch = line.match(/at\s+(\w+)\s+\([^)]*\/hooks\/[^)]*\)/)
+      if (hookMatch) {
+        return {
+          module: 'hooks',
+          component: hookMatch[1],
+          filename: this.extractFilename(line),
+          lineNumber: this.extractLineNumber(line),
+          columnNumber: this.extractColumnNumber(line)
+        }
+      }
+
+      // Buscar en lib
+      const libMatch = line.match(/at\s+(\w+)\s+\([^)]*\/lib\/[^)]*\)/)
+      if (libMatch) {
+        return {
+          module: 'lib',
+          component: libMatch[1],
+          filename: this.extractFilename(line),
+          lineNumber: this.extractLineNumber(line),
+          columnNumber: this.extractColumnNumber(line)
+        }
+      }
+
+      // Buscar en app
+      const appMatch = line.match(/at\s+(\w+)\s+\([^)]*\/app\/[^)]*\)/)
+      if (appMatch) {
+        return {
+          module: 'app',
+          component: appMatch[1],
+          filename: this.extractFilename(line),
+          lineNumber: this.extractLineNumber(line),
+          columnNumber: this.extractColumnNumber(line)
+        }
+      }
+    }
+
+    return {
+      module: null,
+      component: null,
+      filename: null,
+      lineNumber: null,
+      columnNumber: null
+    }
+  }
+
+  private extractFilename(line: string): string | null {
+    const match = line.match(/\/([^/]+\.(tsx?|jsx?))/)
+    return match ? match[1] : null
+  }
+
+  private extractLineNumber(line: string): number | null {
+    const match = line.match(/:(\d+):/)
+    return match ? parseInt(match[1]) : null
+  }
+
+  private extractColumnNumber(line: string): number | null {
+    const match = line.match(/:\d+:(\d+)/)
+    return match ? parseInt(match[1]) : null
+  }
+
+  /**
+   * Extraer el módulo/componente del stack trace (método legacy)
    */
   private extractModuleFromStack(stack?: string): string | null {
     if (!stack) return null

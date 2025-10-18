@@ -12,13 +12,14 @@ export async function POST(
   try {
     const supabase = createServiceClient()
     
+    const resolvedParams = await params
     const { error } = await supabase
       .from('critical_errors')
       .update({
         resolved: true,
         resolved_at: new Date().toISOString()
       })
-      .eq('id', params.id)
+      .eq('id', resolvedParams.id)
 
     if (error) {
       throw error

@@ -126,11 +126,24 @@ class LightweightLogger {
   }
 
   private isOversized(value: any): boolean {
-    const str = JSON.stringify(value);
-    return str.length > 500; // Limitar tamaño individual
+    if (value === null || value === undefined) {
+      return false;
+    }
+    
+    try {
+      const str = JSON.stringify(value);
+      return str && str.length > 500; // Limitar tamaño individual
+    } catch (error) {
+      // Si no se puede serializar, considerarlo como oversized
+      return true;
+    }
   }
 
   private truncateValue(value: any): any {
+    if (value === null || value === undefined) {
+      return value;
+    }
+    
     if (typeof value === 'string' && value.length > 200) {
       return value.substring(0, 200) + '...';
     }

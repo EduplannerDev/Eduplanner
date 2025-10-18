@@ -1,88 +1,67 @@
-/**
- * API Route ultra-optimizada para recibir logs en lote
- * - Inserción masiva en base de datos
- * - Validación mínima
- * - Sin autenticación (para no afectar rendimiento)
- * - Timeout corto
- */
-
 import { NextRequest, NextResponse } from 'next/server'
-import { createServiceClient } from '@/lib/supabase'
+import { createClient } from '@supabase/supabase-js'
+
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!
+const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY!
+const supabase = createClient(supabaseUrl, supabaseKey)
+
+interface LogEntry {
+  level: 'DEBUG' | 'INFO' | 'WARN' | 'ERROR' | 'FATAL'
+  category: string
+  message: string
+  context?: Record<string, any>
+  timestamp: number
+  sessionId?: string
+  userId?: string
+}
 
 export async function POST(req: NextRequest) {
-  // Timeout muy corto para no bloquear
-  const controller = new AbortController();
-  const timeoutId = setTimeout(() => controller.abort(), 2000); // 2 segundos máximo
-
   try {
-    const { logs } = await req.json();
+    const body = await req.json()
+    const { logs }: { logs: LogEntry[] } = body
 
-    // Validación mínima
-    if (!Array.isArray(logs) || logs.length === 0) {
-      return NextResponse.json({ success: true, processed: 0 });
+    if (!logs || !Array.isArray(logs) || logs.length === 0) {
+      return NextResponse.json(
+        { error: 'No logs provided' },
+        { status: 400 }
+      )
     }
 
-    // Limitar número de logs por request
-    const limitedLogs = logs.slice(0, 200);
-
-    // Preparar datos para inserción masiva
-    const logData = limitedLogs.map(log => ({
+    // Preparar datos para insertar en la base de datos
+    const logEntries = logs.map(log => ({
       level: log.level,
       category: log.category,
-      message: log.message.substring(0, 500), // Limitar longitud
+      message: log.message,
       context: log.context ? JSON.stringify(log.context) : null,
-      session_id: log.sessionId || null,
-      user_id: log.userId || null,
-      created_at: new Date(log.timestamp).toISOString()
-    }));
+      timestamp: new Date(log.timestamp).toISOString(),
+      session_id: log.sessionId,
+      user_id: log.userId,
+      created_at: new Date().toISOString()
+    }))
 
-    // Inserción masiva optimizada
-    const supabase = createServiceClient();
+    // Insertar logs en lote
     const { error } = await supabase
-      .from('system_logs_lightweight')
-      .insert(logData);
+      .from('error_logs')
+      .insert(logEntries)
 
     if (error) {
-      console.error('Error inserting logs:', error);
+      console.error('Error inserting logs:', error)
       return NextResponse.json(
-        { success: false, error: 'Database error' },
+        { error: 'Failed to save logs' },
         { status: 500 }
-      );
+      )
     }
 
     return NextResponse.json({
       success: true,
-      processed: logData.length
-    });
+      message: `Successfully saved ${logs.length} logs`
+    })
 
   } catch (error) {
-    console.error('Log batch error:', error);
+    console.error('Error in logs batch endpoint:', error)
     return NextResponse.json(
-      { success: false, error: 'Processing error' },
+      { error: 'Internal server error' },
       { status: 500 }
-    );
-  } finally {
-    clearTimeout(timeoutId);
-  }
-}
-
-// Endpoint para métricas de rendimiento (ultra-ligero)
-export async function GET(req: NextRequest) {
-  try {
-    const supabase = createServiceClient();
-    
-    // Solo contar logs recientes (muy rápido)
-    const { count } = await supabase
-      .from('system_logs_lightweight')
-      .select('*', { count: 'exact', head: true })
-      .gte('created_at', new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString());
-
-    return NextResponse.json({
-      logsLast24h: count || 0,
-      timestamp: Date.now()
-    });
-
-  } catch (error) {
-    return NextResponse.json({ error: 'Failed to get metrics' }, { status: 500 });
+    )
   }
 }
