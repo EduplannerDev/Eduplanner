@@ -14,6 +14,8 @@ interface LogEntry {
   timestamp: number;
   sessionId?: string;
   userId?: string;
+  userEmail?: string;
+  userRole?: string;
 }
 
 interface LoggerConfig {
@@ -44,6 +46,31 @@ class LightweightLogger {
   }
 
   /**
+   * Obtener información del usuario actual
+   */
+  private getUserInfo(): {userId?: string, userEmail?: string, userRole?: string} {
+    try {
+      if (typeof window === 'undefined') return {}
+      
+      // Intentar obtener información del usuario desde localStorage o sessionStorage
+      const userData = localStorage.getItem('user') || sessionStorage.getItem('user')
+      if (userData) {
+        const user = JSON.parse(userData)
+        return {
+          userId: user.id || user.user_id,
+          userEmail: user.email,
+          userRole: user.role || user.user_role
+        }
+      }
+
+      return {}
+    } catch (error) {
+      // Silenciar errores al obtener información del usuario
+      return {}
+    }
+  }
+
+  /**
    * Log principal - completamente asíncrono y no-bloqueante
    */
   public log(level: LogEntry['level'], category: string, message: string, context?: Record<string, any>): void {
@@ -53,6 +80,9 @@ class LightweightLogger {
         return;
       }
 
+      // Obtener información del usuario
+      const userInfo = this.getUserInfo()
+      
       const entry: LogEntry = {
         level,
         category,
@@ -60,7 +90,7 @@ class LightweightLogger {
         context: this.sanitizeContext(context),
         timestamp: Date.now(),
         sessionId: this.getSessionId(),
-        userId: this.getCurrentUserId()
+        ...userInfo // Incluir información del usuario
       };
 
       // Console log inmediato (no bloquea)

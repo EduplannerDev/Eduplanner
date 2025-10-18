@@ -13,12 +13,12 @@ interface UseErrorLoggerOptions {
 }
 
 interface ErrorLoggerHook {
-  logError: (type: ErrorContext['errorType'], error: Error, context?: Partial<ErrorContext>) => void
-  logReactError: (error: Error, errorInfo?: { componentStack?: string }) => void
-  logAuthError: (error: Error, context?: Partial<ErrorContext>) => void
-  logNetworkError: (error: Error, url?: string, method?: string) => void
-  logComponentError: (error: Error, action?: string, additionalContext?: Record<string, any>) => void
-  logAsyncError: (error: Error, operation: string, context?: Record<string, any>) => void
+  logError: (type: ErrorContext['errorType'], error: Error, context?: Partial<ErrorContext>) => Promise<void>
+  logReactError: (error: Error, errorInfo?: { componentStack?: string }) => Promise<void>
+  logAuthError: (error: Error, context?: Partial<ErrorContext>) => Promise<void>
+  logNetworkError: (error: Error, url?: string, method?: string) => Promise<void>
+  logComponentError: (error: Error, action?: string, additionalContext?: Record<string, any>) => Promise<void>
+  logAsyncError: (error: Error, operation: string, context?: Record<string, any>) => Promise<void>
 }
 
 export function useErrorLogger(options: UseErrorLoggerOptions = {}): ErrorLoggerHook {
@@ -39,63 +39,63 @@ export function useErrorLogger(options: UseErrorLoggerOptions = {}): ErrorLogger
     }
   }, [module, userId])
 
-  const logErrorWrapper = useCallback((
+  const logErrorWrapper = useCallback(async (
     type: ErrorContext['errorType'],
     error: Error,
     context?: Partial<ErrorContext>
   ) => {
     const baseContext = getBaseContext()
-    logError(type, error, { ...baseContext, ...context })
+    await logError(type, error, { ...baseContext, ...context })
   }, [getBaseContext])
 
-  const logReactErrorWrapper = useCallback((
+  const logReactErrorWrapper = useCallback(async (
     error: Error,
     errorInfo?: { componentStack?: string }
   ) => {
     const baseContext = getBaseContext()
-    logReactError(error, {
+    await logReactError(error, {
       componentStack: errorInfo?.componentStack,
       errorBoundary: componentRef.current
     }, componentRef.current)
   }, [getBaseContext])
 
-  const logAuthErrorWrapper = useCallback((
+  const logAuthErrorWrapper = useCallback(async (
     error: Error,
     context?: Partial<ErrorContext>
   ) => {
     const baseContext = getBaseContext()
-    logAuthError(error, { ...baseContext, ...context })
+    await logAuthError(error, { ...baseContext, ...context })
   }, [getBaseContext])
 
-  const logNetworkErrorWrapper = useCallback((
+  const logNetworkErrorWrapper = useCallback(async (
     error: Error,
     url?: string,
     method?: string
   ) => {
     const baseContext = getBaseContext()
-    logNetworkError(error, url, method)
+    await logNetworkError(error, url, method)
   }, [getBaseContext])
 
-  const logComponentError = useCallback((
+  const logComponentError = useCallback(async (
     error: Error,
     action?: string,
     additionalContext?: Record<string, any>
   ) => {
     const baseContext = getBaseContext()
-    logErrorWrapper('react', error, {
+    await logErrorWrapper('react', error, {
       ...baseContext,
       action,
       ...additionalContext
     })
   }, [logErrorWrapper, getBaseContext])
 
-  const logAsyncError = useCallback((
+  const logAsyncError = useCallback(async (
     error: Error,
     operation: string,
     context?: Record<string, any>
   ) => {
     const baseContext = getBaseContext()
-    logErrorWrapper('javascript', error, {
+    await logErrorWrapper('javascript', error, {
       ...baseContext,
       action: operation,
       ...context
@@ -127,14 +127,14 @@ export function useAuthErrorLogger(componentName?: string) {
   
   return {
     logAuthError: logger.logAuthError,
-    logAuthFailure: (error: Error, action: string) => {
-      logger.logAuthError(error, { action })
+    logAuthFailure: async (error: Error, action: string) => {
+      await logger.logAuthError(error, { action })
     },
-    logTokenError: (error: Error) => {
-      logger.logAuthError(error, { action: 'token_validation' })
+    logTokenError: async (error: Error) => {
+      await logger.logAuthError(error, { action: 'token_validation' })
     },
-    logSessionError: (error: Error) => {
-      logger.logAuthError(error, { action: 'session_management' })
+    logSessionError: async (error: Error) => {
+      await logger.logAuthError(error, { action: 'session_management' })
     }
   }
 }
@@ -147,11 +147,11 @@ export function useNetworkErrorLogger(componentName?: string) {
   
   return {
     logNetworkError: logger.logNetworkError,
-    logApiError: (error: Error, endpoint: string, method: string = 'GET') => {
-      logger.logNetworkError(error, endpoint, method)
+    logApiError: async (error: Error, endpoint: string, method: string = 'GET') => {
+      await logger.logNetworkError(error, endpoint, method)
     },
-    logFetchError: (error: Error, url: string) => {
-      logger.logNetworkError(error, url, 'FETCH')
+    logFetchError: async (error: Error, url: string) => {
+      await logger.logNetworkError(error, url, 'FETCH')
     }
   }
 }
@@ -163,14 +163,14 @@ export function useFormErrorLogger(componentName: string, formName?: string) {
   const logger = useErrorLogger({ componentName, module: 'form' })
   
   return {
-    logValidationError: (error: Error, field: string) => {
-      logger.logComponentError(error, 'validation', { field, formName })
+    logValidationError: async (error: Error, field: string) => {
+      await logger.logComponentError(error, 'validation', { field, formName })
     },
-    logSubmitError: (error: Error, formData?: Record<string, any>) => {
-      logger.logComponentError(error, 'submit', { formName, formData })
+    logSubmitError: async (error: Error, formData?: Record<string, any>) => {
+      await logger.logComponentError(error, 'submit', { formName, formData })
     },
-    logFieldError: (error: Error, field: string, value?: any) => {
-      logger.logComponentError(error, 'field_error', { field, formName, value })
+    logFieldError: async (error: Error, field: string, value?: any) => {
+      await logger.logComponentError(error, 'field_error', { field, formName, value })
     }
   }
 }

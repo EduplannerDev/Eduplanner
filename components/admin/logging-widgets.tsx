@@ -40,6 +40,11 @@ interface CriticalError {
   message: string
   context?: any
   user_id?: string
+  user_email?: string
+  user_role?: string
+  module?: string
+  component?: string
+  action?: string
   created_at: string
 }
 
@@ -470,34 +475,71 @@ export function LoggingMetricsWidget() {
                             {error.message.substring(0, 200)}
                             {error.message.length > 200 && '...'}
                           </p>
-                          {/* Mostrar información del contexto si está disponible */}
-                          {error.context && (
-                            <div className="mt-2 text-xs text-gray-600">
-                              {(() => {
-                                try {
-                                  const context = typeof error.context === 'string' 
-                                    ? JSON.parse(error.context) 
-                                    : error.context;
-                                  
-                                  return (
-                                    <div className="space-y-1">
-                                      {context.module && context.module !== 'unknown' && (
-                                        <div><strong>Módulo:</strong> {context.module}</div>
-                                      )}
-                                      {context.component && context.component !== 'unknown' && (
-                                        <div><strong>Componente:</strong> {context.component}</div>
-                                      )}
-                                      {context.action && context.action !== 'unknown' && (
-                                        <div><strong>Acción:</strong> {context.action}</div>
-                                      )}
-                                    </div>
-                                  );
-                                } catch (e) {
-                                  return null;
-                                }
-                              })()}
-                            </div>
-                          )}
+                          {/* Mostrar información del usuario y contexto */}
+                          <div className="mt-2 text-xs text-gray-600 space-y-1">
+                            {/* Información del usuario */}
+                            {(error.user_email || error.user_role || error.user_id) && (
+                              <div className="bg-blue-50 dark:bg-blue-900/20 p-2 rounded border-l-2 border-blue-200 dark:border-blue-800">
+                                <div className="font-medium text-blue-800 dark:text-blue-200 mb-1">👤 Usuario:</div>
+                                {error.user_email && (
+                                  <div><strong>Email:</strong> {error.user_email}</div>
+                                )}
+                                {error.user_role && (
+                                  <div><strong>Rol:</strong> {error.user_role}</div>
+                                )}
+                                {error.user_id && (
+                                  <div><strong>ID:</strong> {error.user_id}</div>
+                                )}
+                              </div>
+                            )}
+                            
+                            {/* Información del módulo y contexto */}
+                            {(error.module || error.component || error.action || error.context) && (
+                              <div className="bg-gray-50 dark:bg-gray-800 p-2 rounded border-l-2 border-gray-200 dark:border-gray-700">
+                                <div className="font-medium text-gray-800 dark:text-gray-200 mb-1">🔧 Contexto:</div>
+                                {error.module && error.module !== 'unknown' && (
+                                  <div><strong>Módulo:</strong> {error.module}</div>
+                                )}
+                                {error.component && error.component !== 'unknown' && (
+                                  <div><strong>Componente:</strong> {error.component}</div>
+                                )}
+                                {error.action && error.action !== 'unknown' && (
+                                  <div><strong>Acción:</strong> {error.action}</div>
+                                )}
+                                
+                                {/* Información adicional del contexto */}
+                                {error.context && (() => {
+                                  try {
+                                    const context = typeof error.context === 'string' 
+                                      ? JSON.parse(error.context) 
+                                      : error.context;
+                                    
+                                    return (
+                                      <div className="mt-1">
+                                        {context.module && context.module !== 'unknown' && !error.module && (
+                                          <div><strong>Módulo:</strong> {context.module}</div>
+                                        )}
+                                        {context.component && context.component !== 'unknown' && !error.component && (
+                                          <div><strong>Componente:</strong> {context.component}</div>
+                                        )}
+                                        {context.action && context.action !== 'unknown' && !error.action && (
+                                          <div><strong>Acción:</strong> {context.action}</div>
+                                        )}
+                                        {context.url && (
+                                          <div><strong>URL:</strong> {context.url}</div>
+                                        )}
+                                        {context.userAgent && (
+                                          <div><strong>Navegador:</strong> {context.userAgent.substring(0, 50)}...</div>
+                                        )}
+                                      </div>
+                                    );
+                                  } catch (e) {
+                                    return null;
+                                  }
+                                })()}
+                              </div>
+                            )}
+                          </div>
                         </div>
                         <div className="ml-4">
                           <Button

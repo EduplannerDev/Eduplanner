@@ -29,7 +29,7 @@ export async function GET(req: NextRequest) {
 
     const { data: errors, error } = await supabase
       .from('error_logs')
-      .select('id, level, category, message, context, user_id, created_at')
+      .select('id, level, category, message, context, user_id, user_email, user_role, module, component, action, created_at')
       .in('level', ['ERROR', 'FATAL'])
       .gte('created_at', weekAgo)
       .order('created_at', { ascending: false })

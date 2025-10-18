@@ -10,6 +10,8 @@ interface ErrorContext {
   component?: string
   action?: string
   userId?: string
+  userEmail?: string
+  userRole?: string
   sessionId?: string
   url?: string
   userAgent?: string
@@ -33,6 +35,41 @@ class ErrorLogger {
   }
 
   /**
+   * Obtener información del usuario actual
+   */
+  private async getUserInfo(): Promise<{userId?: string, userEmail?: string, userRole?: string}> {
+    try {
+      // Intentar obtener información del usuario desde localStorage o sessionStorage
+      const userData = localStorage.getItem('user') || sessionStorage.getItem('user')
+      if (userData) {
+        const user = JSON.parse(userData)
+        return {
+          userId: user.id || user.user_id,
+          userEmail: user.email,
+          userRole: user.role || user.user_role
+        }
+      }
+
+      // Intentar obtener desde Supabase si está disponible
+      if (typeof window !== 'undefined' && window.supabase) {
+        const { data: { user } } = await window.supabase.auth.getUser()
+        if (user) {
+          return {
+            userId: user.id,
+            userEmail: user.email,
+            userRole: user.user_metadata?.role || user.app_metadata?.role
+          }
+        }
+      }
+
+      return {}
+    } catch (error) {
+      // Silenciar errores al obtener información del usuario
+      return {}
+    }
+  }
+
+  /**
    * Configurar captura global de errores
    */
   private setupGlobalErrorHandlers(): void {
@@ -45,7 +82,7 @@ class ErrorLogger {
         lineno: event.lineno,
         colno: event.colno,
         message: event.message
-      })
+      }).catch(() => {}) // Silenciar errores de logging
     })
 
     // Capturar promesas rechazadas
@@ -53,7 +90,7 @@ class ErrorLogger {
       this.logError('javascript', new Error(event.reason), {
         promiseRejection: true,
         reason: event.reason
-      })
+      }).catch(() => {}) // Silenciar errores de logging
     })
 
     // Capturar errores específicos de DOM
@@ -128,11 +165,11 @@ class ErrorLogger {
   /**
    * Log principal de errores con contexto detallado
    */
-  public logError(
+  public async logError(
     type: ErrorContext['errorType'],
     error: Error,
     additionalContext?: Partial<ErrorContext> & ReactErrorInfo
-  ): void {
+  ): Promise<void> {
     const errorKey = `${type}:${error.message}`
     const count = this.errorCounts.get(errorKey) || 0
 
@@ -149,12 +186,16 @@ class ErrorLogger {
     // Extraer información detallada del stack trace
     const stackInfo = this.extractDetailedStackInfo(error.stack)
     
+    // Obtener información del usuario
+    const userInfo = await this.getUserInfo()
+    
     const context: ErrorContext = {
       errorType: type,
       timestamp: Date.now(),
       url: typeof window !== 'undefined' ? window.location.href : undefined,
       userAgent: typeof window !== 'undefined' ? navigator.userAgent : undefined,
       stack: error.stack,
+      ...userInfo, // Incluir información del usuario
       // Información extraída del stack
       module: stackInfo.module || additionalContext?.module || 'unknown',
       component: stackInfo.component || additionalContext?.component || 'unknown',
@@ -369,8 +410,8 @@ class ErrorLogger {
   /**
    * Log específico para errores de React
    */
-  public logReactError(error: Error, errorInfo: ReactErrorInfo, componentName?: string): void {
-    this.logError('react', error, {
+  public async logReactError(error: Error, errorInfo: ReactErrorInfo, componentName?: string): Promise<void> {
+    await this.logError('react', error, {
       component: componentName,
       ...errorInfo
     })
@@ -379,15 +420,15 @@ class ErrorLogger {
   /**
    * Log específico para errores de autenticación
    */
-  public logAuthError(error: Error, context?: Partial<ErrorContext>): void {
-    this.logError('auth', error, context)
+  public async logAuthError(error: Error, context?: Partial<ErrorContext>): Promise<void> {
+    await this.logError('auth', error, context)
   }
 
   /**
    * Log específico para errores de red
    */
-  public logNetworkError(error: Error, url?: string, method?: string): void {
-    this.logError('network', error, {
+  public async logNetworkError(error: Error, url?: string, method?: string): Promise<void> {
+    await this.logError('network', error, {
       url,
       action: method
     })
@@ -417,25 +458,25 @@ class ErrorLogger {
 export const errorLogger = ErrorLogger.getInstance()
 
 // Exportar función de conveniencia para uso en componentes
-export const logError = (
+export const logError = async (
   type: ErrorContext['errorType'],
   error: Error,
   context?: Partial<ErrorContext>
 ) => {
-  errorLogger.logError(type, error, context)
+  await errorLogger.logError(type, error, context)
 }
 
 // Exportar funciones específicas
-export const logReactError = (error: Error, errorInfo: ReactErrorInfo, componentName?: string) => {
-  errorLogger.logReactError(error, errorInfo, componentName)
+export const logReactError = async (error: Error, errorInfo: ReactErrorInfo, componentName?: string) => {
+  await errorLogger.logReactError(error, errorInfo, componentName)
 }
 
-export const logAuthError = (error: Error, context?: Partial<ErrorContext>) => {
-  errorLogger.logAuthError(error, context)
+export const logAuthError = async (error: Error, context?: Partial<ErrorContext>) => {
+  await errorLogger.logAuthError(error, context)
 }
 
-export const logNetworkError = (error: Error, url?: string, method?: string) => {
-  errorLogger.logNetworkError(error, url, method)
+export const logNetworkError = async (error: Error, url?: string, method?: string) => {
+  await errorLogger.logNetworkError(error, url, method)
 }
 
 export type { ErrorContext, ReactErrorInfo }
