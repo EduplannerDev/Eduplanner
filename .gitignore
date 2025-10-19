@@ -40,3 +40,6 @@ scripts/check-grades.ts
 scripts/analyze-excel-structure.ts
 scripts/verify-import.ts
 scripts/verify-pdas-data.ts
+
+# Exports
+exports/

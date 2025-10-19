@@ -1,13 +1,15 @@
 "use client"
 
-import { Suspense, useState } from "react"
+import { Suspense, useState, useEffect } from "react"
 import { useAuth } from "@/hooks/use-auth"
 import { useIsMobile } from "@/hooks/use-mobile"
 import { useWelcomeModal } from "@/hooks/use-welcome-modal"
+import { useContextoTrabajo } from "@/hooks/use-contexto-trabajo"
 import LoginForm from "@/components/login-form"
 import Dashboard from "@/components/dashboard"
 import { MobileLanding } from "@/components/mobile-landing"
 import WelcomeModal from "@/components/welcome-modal"
+import { ContextoTrabajoModal } from "@/components/contexto-trabajo-modal"
 import { Loader2 } from "lucide-react"
 
 function LoadingFallback() {
@@ -23,8 +25,29 @@ export default function Home() {
   const isMobile = useIsMobile()
   const [showMobileLanding, setShowMobileLanding] = useState(true)
   const { showModal, closeModal } = useWelcomeModal()
+  const { hasContexto, loading: loadingContexto, actualizarContexto } = useContextoTrabajo()
+  const [showContextoModal, setShowContextoModal] = useState(false)
 
-  if (loading) {
+  // Verificar si necesita mostrar el modal de contexto de trabajo
+  useEffect(() => {
+    console.log('🔍 [DEBUG] Verificando modal:', { 
+      user: !!user, 
+      userId: user?.id,
+      loadingContexto, 
+      hasContexto
+    })
+    
+    // Solo mostrar modal si el usuario está cargado, no está cargando contexto, y NO tiene contexto
+    if (user && !loadingContexto && hasContexto === false) {
+      console.log('🚨 [DEBUG] Mostrando modal de contexto - usuario no tiene contexto')
+      setShowContextoModal(true)
+    } else if (user && !loadingContexto && hasContexto === true) {
+      console.log('✅ [DEBUG] Usuario ya tiene contexto, NO se muestra modal')
+      setShowContextoModal(false)
+    }
+  }, [user, loadingContexto, hasContexto])
+
+  if (loading || loadingContexto) {
     return <LoadingFallback />
   }
 
@@ -37,12 +60,22 @@ export default function Home() {
     )
   }
 
+  const handleContextoSuccess = () => {
+    actualizarContexto()
+    setShowContextoModal(false)
+  }
+
   return (
     <>
       <Suspense fallback={<LoadingFallback />}>
         {user ? <Dashboard /> : <LoginForm />}
       </Suspense>
       <WelcomeModal open={showModal} onClose={closeModal} />
+      <ContextoTrabajoModal 
+        isOpen={showContextoModal} 
+        onClose={() => setShowContextoModal(false)}
+        onSuccess={handleContextoSuccess}
+      />
     </>
   )
 }
