@@ -8,6 +8,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Textarea } from "@/components/ui/textarea"
 import { convertMarkdownToHtml } from "@/components/ui/rich-text-editor"
 import { useSafeScroll } from '@/hooks/use-safe-scroll'
+import { getGradoTexto } from "@/lib/grado-utils"
 
 // Función específica para convertir contenido del chat
 function convertChatMarkdownToHtml(content: string): string {

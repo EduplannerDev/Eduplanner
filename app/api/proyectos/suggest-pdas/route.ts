@@ -48,12 +48,12 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // Convertir grado de texto (ej: "2°") a número entero
-    const gradoNumero = parseInt(grado.toString().replace(/[^\d]/g, ''))
+    // Convertir grado de texto (ej: "2°", "-3") a número entero (incluyendo negativos para preescolar)
+    const gradoNumero = parseInt(grado.toString().replace(/[^\d-]/g, ''))
     
-    if (isNaN(gradoNumero) || gradoNumero < 1 || gradoNumero > 12) {
+    if (isNaN(gradoNumero) || gradoNumero < -3 || gradoNumero > 12) {
       return NextResponse.json(
-        { error: 'Grado inválido. Debe ser un número del 1 al 12' },
+        { error: 'Grado inválido. Debe ser un número del -3 al 12 (preescolar: -3 a -1, primaria: 1-6, secundaria: 7-9, bachillerato: 10-12)' },
         { status: 400 }
       )
     }

@@ -755,7 +755,7 @@ Por favor, genera una planeación completa y detallada para este contenido, incl
           </Button>
           <div>
             <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100">
-              Campos Formativos - {contexto?.grado}° Grado
+              Campos Formativos - {contexto ? getGradoTexto(contexto.grado) : ''}
             </h1>
             <p className="text-gray-600 dark:text-gray-400 mt-2">
               Selecciona un campo formativo para ver sus contenidos
@@ -777,7 +777,7 @@ Por favor, genera una planeación completa y detallada para este contenido, incl
                     No hay campos formativos
                   </h3>
                   <p className="text-gray-600 dark:text-gray-400">
-                    No se encontraron campos formativos para {contexto?.grado}° grado
+                    No se encontraron campos formativos para {contexto ? getGradoTexto(contexto.grado) : ''}
                   </p>
                 </CardContent>
               </Card>
@@ -835,7 +835,7 @@ Por favor, genera una planeación completa y detallada para este contenido, incl
           </Button>
           <div>
             <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100">
-              {campoSeleccionado} - {contexto?.grado}° Grado
+              {campoSeleccionado} - {contexto ? getGradoTexto(contexto.grado) : ''}
             </h1>
             <p className="text-gray-600 dark:text-gray-400 mt-2">
               Contenidos curriculares del campo formativo seleccionado
@@ -937,18 +937,49 @@ Por favor, genera una planeación completa y detallada para este contenido, incl
           <CardContent className="space-y-6">
             <div className="space-y-2">
               <label className="text-sm font-medium">Grado Escolar</label>
-              <Select value={gradoSeleccionado} onValueChange={setGradoSeleccionado}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Selecciona el grado" />
-                </SelectTrigger>
-                <SelectContent>
-                  {[1, 2, 3, 4, 5, 6].map((grado) => (
-                    <SelectItem key={grado} value={grado.toString()}>
-                      {grado}° Grado
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+        <Select value={gradoSeleccionado} onValueChange={setGradoSeleccionado}>
+          <SelectTrigger>
+            <SelectValue placeholder="Selecciona el grado" />
+          </SelectTrigger>
+          <SelectContent>
+            {/* Separador visual */}
+            <div className="px-2 py-1 text-xs text-muted-foreground font-medium">
+              Preescolar
+            </div>
+
+            {/* Grados de Preescolar */}
+            <SelectItem value="-3">1° Grado</SelectItem>
+            <SelectItem value="-2">2° Grado</SelectItem>
+            <SelectItem value="-1">3° Grado</SelectItem>
+
+            {/* Separador visual */}
+            <div className="px-2 py-1 text-xs text-muted-foreground font-medium">
+              Primaria
+            </div>
+
+            {/* Grados de Primaria */}
+            {[1, 2, 3, 4, 5, 6].map((grado) => (
+              <SelectItem key={grado} value={grado.toString()}>
+                {grado}° Grado
+              </SelectItem>
+            ))}
+
+            {/* Separador visual */}
+            <div className="px-2 py-1 text-xs text-muted-foreground font-medium">
+              Secundaria
+            </div>
+
+            {/* Grados de Secundaria */}
+            {[7, 8, 9].map((grado) => {
+              const gradoDisplay = grado - 6; // Convertir 7,8,9 a 1,2,3
+              return (
+                <SelectItem key={grado} value={grado.toString()}>
+                  {gradoDisplay}° Grado
+                </SelectItem>
+              );
+            })}
+          </SelectContent>
+        </Select>
             </div>
 
             <div className="space-y-2">
@@ -1124,7 +1155,7 @@ Por favor, genera una planeación completa y detallada para este contenido, incl
                   {/* Información adicional - más compacta */}
                   <div className="text-center">
                     <p className="text-xs text-gray-500 dark:text-gray-500">
-                      {estadisticasSeguimiento.totalPDAs} dosificados de {estadisticasSeguimiento.totalPDAs + estadisticasSeguimiento.pendientes} total • {contexto?.grado}° Grado
+                      {estadisticasSeguimiento.totalPDAs} dosificados de {estadisticasSeguimiento.totalPDAs + estadisticasSeguimiento.pendientes} total • {contexto ? getGradoTexto(contexto.grado) : ''}
                     </p>
                   </div>
                 </div>
