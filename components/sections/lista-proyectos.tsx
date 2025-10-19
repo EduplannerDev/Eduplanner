@@ -272,14 +272,6 @@ export function ListaProyectos() {
               </div>
             )}
           </div>
-          <Button 
-            onClick={handleCrearNuevo}
-            disabled={projectLimits ? !projectLimits.canCreate : false}
-            className="flex items-center space-x-2 bg-blue-600 hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
-          >
-            <Plus className="h-4 w-4" />
-            <span>Nuevo Proyecto</span>
-          </Button>
         </div>
 
         {/* Lista de Proyectos */}
@@ -306,15 +298,8 @@ export function ListaProyectos() {
                   No tienes proyectos aún
                 </h3>
                 <p className="text-gray-600 dark:text-gray-400 mb-6">
-                  Crea tu primer proyecto educativo y comienza a generar contenido con IA
+                  Para crear un proyecto, haz clic en <strong>"Crear Proyecto"</strong> en la barra lateral del menú
                 </p>
-                <Button 
-                  onClick={handleCrearNuevo}
-                  className="flex items-center space-x-2 bg-blue-600 hover:bg-blue-700"
-                >
-                  <Plus className="h-4 w-4" />
-                  <span>Crear mi Primer Proyecto</span>
-                </Button>
               </div>
             </CardContent>
           </Card>
