@@ -447,6 +447,41 @@ class ErrorLogger {
   }
 
   /**
+   * Log silencioso de errores de DOM (no spam en logs)
+   */
+  async logDOMErrorSilent(
+    error: Error,
+    context: Partial<ErrorContext> = {}
+  ): Promise<void> {
+    try {
+      const errorKey = `dom:${error.message}`
+      const count = this.errorCounts.get(errorKey) || 0
+
+      // Solo logear errores de DOM cada 10 ocurrencias para evitar spam
+      if (count % 10 === 0) {
+        this.errorCounts.set(errorKey, count + 1)
+        
+        const fullContext = await this.buildErrorContext('dom', {
+          ...context,
+          stack: error.stack
+        })
+
+        logger.error('dom_error_silent', `DOM Error (${count + 1} ocurrencias): ${error.message}`, {
+          ...fullContext,
+          silent: true,
+          occurrenceCount: count + 1
+        })
+      } else {
+        // Solo incrementar contador sin logear
+        this.errorCounts.set(errorKey, count + 1)
+      }
+    } catch (logError) {
+      // Fallback silencioso si el logging falla
+      console.error('Error en logDOMErrorSilent:', logError)
+    }
+  }
+
+  /**
    * Resetear contadores de errores (útil para testing)
    */
   public resetErrorCounts(): void {
@@ -477,6 +512,10 @@ export const logAuthError = async (error: Error, context?: Partial<ErrorContext>
 
 export const logNetworkError = async (error: Error, url?: string, method?: string) => {
   await errorLogger.logNetworkError(error, url, method)
+}
+
+export const logDOMErrorSilent = async (error: Error, context?: Partial<ErrorContext>) => {
+  await errorLogger.logDOMErrorSilent(error, context)
 }
 
 export type { ErrorContext, ReactErrorInfo }

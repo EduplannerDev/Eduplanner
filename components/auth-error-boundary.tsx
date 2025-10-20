@@ -4,7 +4,7 @@ import React, { Component, ReactNode } from 'react'
 import { Button } from '@/components/ui/button'
 import { AlertCircle, RefreshCw, RotateCcw } from 'lucide-react'
 import { clearSupabaseStorage, forceAuthReset } from '@/lib/auth-utils'
-import { logReactError, logAuthError } from '@/lib/error-logger'
+import { logReactError, logAuthError, logDOMErrorSilent } from '@/lib/error-logger'
 
 interface Props {
   children: ReactNode
@@ -17,6 +17,8 @@ interface State {
 }
 
 class AuthErrorBoundary extends Component<Props, State> {
+  private domErrorHandler: ((event: ErrorEvent) => void) | null = null
+
   constructor(props: Props) {
     super(props)
     this.state = {
@@ -26,16 +28,91 @@ class AuthErrorBoundary extends Component<Props, State> {
     }
   }
 
+  componentDidMount() {
+    // Interceptor global para errores de DOM
+    this.domErrorHandler = (event: ErrorEvent) => {
+      if (event.error && 
+          (event.error.message?.includes('insertBefore') ||
+           event.error.message?.includes('removeChild') ||
+           event.error.message?.includes('appendChild'))) {
+        
+        // Prevenir que el error se propague
+        event.preventDefault()
+        event.stopPropagation()
+        
+        // Log detallado para investigar la causa
+        console.group('🚨 GLOBAL DOM ERROR - DETAILED ANALYSIS')
+        console.error('Global DOM Error:', event.error)
+        console.log('Filename:', event.filename)
+        console.log('Line:', event.lineno, 'Column:', event.colno)
+        console.log('URL:', window.location.href)
+        console.log('Timestamp:', new Date().toISOString())
+        
+        // Analizar el estado del DOM
+        console.log('DOM Analysis:')
+        console.log('- Document ready state:', document.readyState)
+        console.log('- Active element:', document.activeElement?.tagName)
+        console.log('- Focused element:', document.activeElement)
+        console.log('- Body children:', document.body?.children?.length || 0)
+        
+        // Verificar si hay elementos React montándose/desmontándose
+        const reactRoots = document.querySelectorAll('[data-reactroot], #__next')
+        console.log('- React roots found:', reactRoots?.length || 0)
+        
+        console.groupEnd()
+        
+        // Log estructurado
+        logDOMErrorSilent(event.error, {
+          component: 'GlobalDOMInterceptor',
+          action: 'window_error',
+          filename: event.filename,
+          lineno: event.lineno,
+          colno: event.colno,
+          url: window.location.href,
+          domState: {
+            readyState: document.readyState,
+            activeElement: document.activeElement?.tagName,
+            bodyChildrenCount: document.body?.children?.length || 0,
+            reactRootsCount: reactRoots?.length || 0
+          },
+          intercepted: true
+        })
+        
+        return false
+      }
+    }
+    
+    window.addEventListener('error', this.domErrorHandler)
+  }
+
+  componentWillUnmount() {
+    if (this.domErrorHandler) {
+      window.removeEventListener('error', this.domErrorHandler)
+    }
+  }
+
   static getDerivedStateFromError(error: Error): State {
     // Verificar si es un error de autenticación
     const isAuthError = 
       error.message.includes('refresh_token_not_found') ||
       error.message.includes('Invalid Refresh Token') ||
       error.message.includes('AuthApiError') ||
-      error.message.includes('Refresh Token Not Found') ||
-      error.message.includes('insertBefore') || // Capturar errores de DOM comunes
+      error.message.includes('Refresh Token Not Found')
+
+    // Para errores de DOM, NO activar el error boundary pero SÍ logear detalladamente
+    const isDOMError = 
+      error.message.includes('insertBefore') ||
       error.message.includes('appendChild') ||
       error.message.includes('removeChild')
+
+    // Si es un error de DOM, no mostrar UI de error pero sí investigar
+    if (isDOMError) {
+      return {
+        hasError: false,
+        error: null,
+        isAuthError: false
+      }
+    }
 
     return {
       hasError: true,
@@ -45,9 +122,7 @@ class AuthErrorBoundary extends Component<Props, State> {
   }
 
   componentDidCatch(error: Error, errorInfo: React.ErrorInfo) {
-    console.error('Auth Error Boundary caught an error:', error, errorInfo)
-    
-    // Determinar el tipo de error y usar el logger apropiado
+    // Determinar el tipo de error
     const isAuthError = 
       error.message.includes('refresh_token_not_found') ||
       error.message.includes('Invalid Refresh Token') ||
@@ -59,33 +134,60 @@ class AuthErrorBoundary extends Component<Props, State> {
       error.message.includes('appendChild') ||
       error.message.includes('removeChild')
 
-    // Usar el nuevo sistema de logging mejorado
+    // Para errores de DOM, logear DETALLADAMENTE para investigar la causa
+    if (isDOMError) {
+      // Log detallado para investigar la causa raíz
+      console.group('🚨 DOM ERROR DETECTED - INVESTIGATING ROOT CAUSE')
+      console.error('Error:', error)
+      console.log('Component Stack:', errorInfo.componentStack)
+      console.log('Error Info:', errorInfo)
+      console.log('Current URL:', window.location.href)
+      console.log('User Agent:', navigator.userAgent)
+      console.log('Timestamp:', new Date().toISOString())
+      
+      // Log detallado del DOM actual
+      console.log('DOM State:')
+      console.log('- Document ready state:', document.readyState)
+      console.log('- Body children count:', document.body?.children?.length || 0)
+      console.log('- React root element:', document.getElementById('__next'))
+      
+      // Intentar identificar el componente problemático
+      const componentMatch = errorInfo.componentStack?.match(/at\s+(\w+)\s+\([^)]*\)/)
+      if (componentMatch) {
+        console.log('Suspected component:', componentMatch[1])
+      }
+      
+      console.groupEnd()
+      
+      // Log estructurado para análisis
+      logDOMErrorSilent(error, {
+        component: 'AuthErrorBoundary',
+        action: 'componentDidCatch',
+        componentStack: errorInfo.componentStack,
+        url: window.location.href,
+        userAgent: navigator.userAgent,
+        domState: {
+          readyState: document.readyState,
+          bodyChildrenCount: document.body?.children?.length || 0,
+          hasReactRoot: !!document.getElementById('__next')
+        },
+        suspectedComponent: componentMatch?.[1]
+      })
+      return // No hacer nada más para errores de DOM
+    }
+
+    // Para errores de autenticación y otros errores, usar el logging normal
+    console.error('Auth Error Boundary caught an error:', error, errorInfo)
+    
     if (isAuthError) {
       logAuthError(error, {
         component: 'AuthErrorBoundary',
         action: 'componentDidCatch',
         componentStack: errorInfo.componentStack?.substring(0, 500)
       })
-    } else if (isDOMError) {
-      // Para errores de DOM, intentar recuperación automática
-      console.warn('DOM Error detected, attempting recovery...', error.message)
       
-      // Intentar recuperación después de un breve delay
-      setTimeout(() => {
-        try {
-          // Forzar re-render del componente
-          this.setState({ hasError: false, error: null })
-        } catch (recoveryError) {
-          console.error('Recovery failed:', recoveryError)
-        }
-      }, 1000)
-      
-      logReactError(error, {
-        componentStack: errorInfo.componentStack?.substring(0, 500),
-        errorBoundary: 'AuthErrorBoundary',
-        domError: true,
-        recoveryAttempted: true
-      }, 'AuthErrorBoundary')
+      // Si es un error de autenticación, limpiar el storage
+      clearSupabaseStorage()
     } else {
       logReactError(error, {
         componentStack: errorInfo.componentStack?.substring(0, 500),
@@ -100,16 +202,11 @@ class AuthErrorBoundary extends Component<Props, State> {
           componentStack: errorInfo.componentStack?.substring(0, 500),
           errorName: error.name,
           isAuthError: this.state.isAuthError,
-          errorType: isDOMError ? 'DOM' : isAuthError ? 'Auth' : 'React'
+          errorType: isAuthError ? 'Auth' : 'React'
         })
       }).catch(() => {
         // Fallback silencioso si el logger falla
       })
-    }
-    
-    // Si es un error de autenticación, limpiar el storage
-    if (this.state.isAuthError) {
-      clearSupabaseStorage()
     }
   }
 

@@ -68,7 +68,7 @@ interface ChatIADosificacionProps {
   onBack: () => void
   onSaveSuccess: () => void
   initialMessage: string
-  contenidosSeleccionados: any[]
+  contenidosSeleccionados: any[] | undefined
   contexto: any
   mesActual: string
 }
@@ -153,7 +153,7 @@ export function ChatIADosificacion({ onBack, onSaveSuccess, initialMessage, cont
 He recibido la información de los contenidos que seleccionaste para el mes de ${getMesCompleto(mesActual)} y estoy generando automáticamente tu planeación didáctica.
 
 **Contenidos seleccionados:**
-${contenidosSeleccionados.map((c, i) => `${i + 1}. ${c.contenido}`).join('\n')}
+${(contenidosSeleccionados || []).map((c, i) => `${i + 1}. ${c.contenido}`).join('\n')}
 
 ¡Generando tu planeación personalizada! ✨`,
       },
@@ -234,7 +234,7 @@ ${contenidosSeleccionados.map((c, i) => `${i + 1}. ${c.contenido}`).join('\n')}
       
       const planeacionData = {
         titulo: planeacionInfo.titulo || `Planeación desde Dosificación - ${getMesCompleto(mesActual)}`,
-        materia: planeacionInfo.materia || contenidosSeleccionados[0]?.campo_formativo || null,
+        materia: planeacionInfo.materia || (contenidosSeleccionados && contenidosSeleccionados[0]?.campo_formativo) || null,
         grado: planeacionInfo.grado || contexto?.grado?.toString() || null,
         duracion: planeacionInfo.duracion || '50 minutos',
         objetivo: planeacionInfo.objetivo || 'Desarrollar los contenidos curriculares dosificados para el mes actual',
@@ -242,7 +242,7 @@ ${contenidosSeleccionados.map((c, i) => `${i + 1}. ${c.contenido}`).join('\n')}
         estado: 'completada' as const,
         // Marcar que viene desde dosificación
         origen: 'dosificacion' as const,
-        contenidos_relacionados: contenidosSeleccionados.map(c => c.contenido_id)
+        contenidos_relacionados: (contenidosSeleccionados || []).map(c => c.contenido_id)
       }
 
       const newPlaneacion = await createPlaneacion(planeacionData)
@@ -253,7 +253,7 @@ ${contenidosSeleccionados.map((c, i) => `${i + 1}. ${c.contenido}`).join('\n')}
         
         // Crear las relaciones con los contenidos seleccionados
         if (newPlaneacion.id) {
-          const relaciones = contenidosSeleccionados.map(contenido => ({
+          const relaciones = (contenidosSeleccionados || []).map(contenido => ({
             planeacion_id: newPlaneacion.id,
             contenido_id: contenido.contenido_id
           }))
@@ -635,7 +635,7 @@ ${contenidosSeleccionados.map((c, i) => `${i + 1}. ${c.contenido}`).join('\n')}
                 </div>
                 <div>
                   <span className="text-sm font-medium text-gray-600 dark:text-gray-400">Contenidos:</span>
-                  <p className="text-sm">{contenidosSeleccionados.length} seleccionados</p>
+                  <p className="text-sm">{(contenidosSeleccionados || []).length} seleccionados</p>
                 </div>
                 <div>
                   <span className="text-sm font-medium text-gray-600 dark:text-gray-400">Origen:</span>

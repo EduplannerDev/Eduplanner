@@ -1,7 +1,6 @@
 "use client"
 
-import { useState, useEffect } from "react"
-import { useSearchParams } from "next/navigation"
+import { useState, useEffect, useMemo } from "react"
 import { AppSidebar } from "./app-sidebar"
 import { DashboardHome } from "./sections/dashboard-home"
 import { NuevaPlaneacion } from "./sections/nueva-planeacion"
@@ -23,7 +22,6 @@ import { AdministracionPlantel } from "./sections/administracion-plantel"
 import { Agenda } from "./sections/agenda"
 import { DiarioProfesional } from "./sections/diario-profesional"
 import TomarAsistencia from "./sections/tomar-asistencia"
-import EnvioCorreos from "./sections/envio-correos"
 import { Dosificacion } from "./sections/dosificacion"
 import { BetaTestersAdmin } from "./sections/beta-testers-admin"
 import { BetaFeaturesDemo } from "./sections/beta-features-demo"
@@ -31,6 +29,7 @@ import { ListaProyectos } from "./sections/lista-proyectos"
 import { ProyectoWizard } from "./sections/proyecto-wizard"
 import { PlaneacionCime } from "./sections/planeacion-cime"
 import { WelcomeMessage } from "./ui/welcome-message"
+import { ClientOnly } from "./client-only"
 import { SidebarInset, SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar"
 import { Separator } from "@/components/ui/separator"
 import {
@@ -49,16 +48,16 @@ interface DashboardProps {
 }
 
 export default function Dashboard({ children, customContent = false }: DashboardProps = {}) {
-  const searchParams = useSearchParams()
   const [activeSection, setActiveSection] = useState("dashboard")
 
   // Leer parámetro de sección de la URL para proyectos (mantener compatibilidad)
   useEffect(() => {
-    const section = searchParams.get('section')
+    const urlParams = new URLSearchParams(window.location.search)
+    const section = urlParams.get('section')
     if (section === 'proyectos' || section === 'crear-proyecto') {
       setActiveSection(section)
     }
-  }, [searchParams])
+  }, [])
   const [preselectedStudent, setPreselectedStudent] = useState<any>(null)
   const [selectedStudentForMessages, setSelectedStudentForMessages] = useState<any>(null)
   const [initialChatMessage, setInitialChatMessage] = useState<string>("")
@@ -150,8 +149,6 @@ export default function Dashboard({ children, customContent = false }: Dashboard
         return "Panel de Administración"
       case "administracion-plantel":
         return "Administración de Plantel"
-      case "envio-correos":
-        return "Envío de Correos"
       case "beta-testers":
         return "Beta Testers"
       case "beta-features":
@@ -167,7 +164,8 @@ export default function Dashboard({ children, customContent = false }: Dashboard
     }
   }
 
-  const renderContent = () => {
+  // Memoizar el contenido para evitar re-renders innecesarios
+  const renderContent = useMemo(() => {
     switch (activeSection) {
       case "dashboard":
         return <DashboardHome onSectionChange={setActiveSection} />
@@ -213,9 +211,9 @@ export default function Dashboard({ children, customContent = false }: Dashboard
             clearChatStates()
           }}
           initialMessage={initialChatMessage}
-          contenidosSeleccionados={dosificacionData.contenidos}
+          contenidosSeleccionados={dosificacionData.contenidos || []}
           contexto={dosificacionData.contexto}
-          mesActual={dosificacionData.mesActual}
+          mesActual={dosificacionData.mesActual || ""}
         /> : null
       case "examenes":
         return <Examenes />
@@ -274,8 +272,6 @@ export default function Dashboard({ children, customContent = false }: Dashboard
           return <DashboardHome onSectionChange={setActiveSection} />
         }
         return <AdministracionPlantel isOpen={true} onClose={() => setActiveSection("admin-dashboard")} />
-      case "envio-correos":
-        return <EnvioCorreos />
       case "beta-testers":
         return <BetaTestersAdmin />
       case "beta-features":
@@ -297,39 +293,45 @@ export default function Dashboard({ children, customContent = false }: Dashboard
       default:
         return <DashboardHome onSectionChange={setActiveSection} />
     }
-  }
+  }, [activeSection, initialChatMessage, dosificacionData, previousSection, preselectedStudent, selectedStudentForMessages, isDirector])
 
   // Usar padding diferente para el chat y mensajes
   const isChat = activeSection === "generar-mensajes-padres"
 
   return (
-    <SidebarProvider>
-      <AppSidebar activeSection={activeSection} onSectionChange={setActiveSection} />
-      <SidebarInset>
-        <header className="flex h-16 shrink-0 items-center gap-2 border-b px-4">
-          <SidebarTrigger className="-ml-1" />
-          <Separator orientation="vertical" className="mr-2 h-4" />
-          <Breadcrumb>
-            <BreadcrumbList>
-              <BreadcrumbItem className="hidden md:block">
-                <BreadcrumbLink href="#">EduPlanner</BreadcrumbLink>
-              </BreadcrumbItem>
-              <BreadcrumbSeparator className="hidden md:block" />
-              <BreadcrumbItem>
-                <BreadcrumbPage>{getSectionTitle(activeSection)}</BreadcrumbPage>
-              </BreadcrumbItem>
-            </BreadcrumbList>
-          </Breadcrumb>
-        </header>
-        <div className={`flex flex-1 flex-col ${isChat ? "h-[calc(100vh-4rem)]" : "gap-4 p-4 pt-4"}`}>
-          <div
-            className={isChat ? "flex-1 h-full p-4" : "min-h-[100vh] flex-1 rounded-xl bg-muted/50 md:min-h-min p-6"}
-          >
-            {!isChat && !customContent && <WelcomeMessage />}
-            {renderContent()}
+    <ClientOnly fallback={
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+      </div>
+    }>
+      <SidebarProvider>
+        <AppSidebar activeSection={activeSection} onSectionChange={setActiveSection} />
+        <SidebarInset>
+          <header className="flex h-16 shrink-0 items-center gap-2 border-b px-4">
+            <SidebarTrigger className="-ml-1" />
+            <Separator orientation="vertical" className="mr-2 h-4" />
+            <Breadcrumb>
+              <BreadcrumbList>
+                <BreadcrumbItem className="hidden md:block">
+                  <BreadcrumbLink href="#">EduPlanner</BreadcrumbLink>
+                </BreadcrumbItem>
+                <BreadcrumbSeparator className="hidden md:block" />
+                <BreadcrumbItem>
+                  <BreadcrumbPage>{getSectionTitle(activeSection)}</BreadcrumbPage>
+                </BreadcrumbItem>
+              </BreadcrumbList>
+            </Breadcrumb>
+          </header>
+          <div className={`flex flex-1 flex-col ${isChat ? "h-[calc(100vh-4rem)]" : "gap-4 p-4 pt-4"}`}>
+            <div
+              className={isChat ? "flex-1 h-full p-4" : "min-h-[100vh] flex-1 rounded-xl bg-muted/50 md:min-h-min p-6"}
+            >
+              {!isChat && !customContent && <WelcomeMessage />}
+              {renderContent}
+            </div>
           </div>
-        </div>
-      </SidebarInset>
-    </SidebarProvider>
+        </SidebarInset>
+      </SidebarProvider>
+    </ClientOnly>
   )
 }

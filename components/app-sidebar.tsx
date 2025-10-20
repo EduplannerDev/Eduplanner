@@ -3,7 +3,7 @@
 import type React from "react";
 import { useState } from "react";
 
-import { FileText, User, LogOut, GraduationCap, Plus, MessageSquare, HelpCircle, Users, BookOpen, Calendar, Bot, Shield, Home, ChevronDown, ChevronRight, Notebook, Mail, BarChart3, Sparkles } from "lucide-react"
+import { FileText, User, LogOut, GraduationCap, Plus, MessageSquare, HelpCircle, Users, BookOpen, Calendar, Bot, Shield, Home, ChevronDown, ChevronRight, Notebook, BarChart3, Sparkles } from "lucide-react"
 
 import {
   Sidebar,
@@ -145,6 +145,7 @@ export function AppSidebar({ activeSection, onSectionChange, ...props }: AppSide
   const { isAdmin, isDirector } = useRoles()
   const { isBetaTester } = useBetaTesterCheck()
   const { state, setOpenMobile } = useSidebar()
+  
   const isMobile = useIsMobile()
   
   // Estado para manejar qué secciones están expandidas
@@ -482,18 +483,6 @@ export function AppSidebar({ activeSection, onSectionChange, ...props }: AppSide
                     <button onClick={() => handleNavigation("admin-dashboard")} className="w-full">
                       <Shield className="h-4 w-4" />
                       <span>Panel de Administración</span>
-                    </button>
-                  </SidebarMenuButton>
-                </SidebarMenuItem>
-                <SidebarMenuItem>
-                  <SidebarMenuButton
-                    asChild
-                    isActive={activeSection === "envio-correos"}
-                    tooltip="Enviar correos personalizados desde contacto@eduplanner.mx"
-                  >
-                    <button onClick={() => handleNavigation("envio-correos")} className="w-full">
-                      <Mail className="h-4 w-4" />
-                      <span>Envío de Correos</span>
                     </button>
                   </SidebarMenuButton>
                 </SidebarMenuItem>
