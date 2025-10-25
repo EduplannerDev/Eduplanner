@@ -157,7 +157,7 @@ export function ViewExamen({ examenId, onBack }: ViewExamenProps) {
 
   return (
     <div 
-      className="space-y-6 max-w-4xl mx-auto p-4 md:p-6 select-none"
+      className="space-y-6 max-w-4xl mx-auto p-2 sm:p-4 md:p-6 select-none w-full overflow-hidden"
       style={{ 
         userSelect: 'none', 
         WebkitUserSelect: 'none', 
@@ -167,19 +167,30 @@ export function ViewExamen({ examenId, onBack }: ViewExamenProps) {
         WebkitTapHighlightColor: 'transparent'
       }}
       onContextMenu={(e) => e.preventDefault()}
-      onSelectStart={(e) => e.preventDefault()}
       onDragStart={(e) => e.preventDefault()}
     >
       {/* Header */}
       <div className="flex items-center gap-4">
-        <Button variant="outline" size="icon" onClick={onBack} aria-label="Volver">
+        {/* Botón Volver - Solo visible en desktop */}
+        <Button variant="default" size="icon" onClick={onBack} aria-label="Volver" className="hidden sm:flex bg-primary hover:bg-primary/90 text-primary-foreground shadow-md">
           <ArrowLeft className="h-5 w-5" />
         </Button>
-        <div>
-          <h1 className="text-2xl md:text-3xl font-bold text-gray-900 dark:text-gray-100">{examen.title || 'Examen sin título'}</h1>
-          <p className="text-gray-600 dark:text-gray-400 mt-1">Detalles del examen</p>
+        <div className="flex-1 min-w-0">
+          <h1 className="text-xl sm:text-2xl md:text-3xl font-bold text-gray-900 dark:text-gray-100 break-words leading-tight">{examen.title || 'Examen sin título'}</h1>
+          <p className="text-gray-600 dark:text-gray-400 mt-1 text-sm sm:text-base">Detalles del examen</p>
         </div>
       </div>
+
+      {/* Botón flotante Volver - Solo visible en móviles */}
+      <Button 
+        variant="default" 
+        size="icon" 
+        onClick={onBack} 
+        className="fixed bottom-20 left-4 z-50 bg-primary hover:bg-primary/90 text-primary-foreground shadow-lg rounded-full w-12 h-12 sm:hidden"
+        aria-label="Volver"
+      >
+        <ArrowLeft className="h-5 w-5" />
+      </Button>
 
       {/* Información General */}
       <Card>
@@ -193,7 +204,6 @@ export function ViewExamen({ examenId, onBack }: ViewExamenProps) {
           className="space-y-3 select-none"
           style={{ userSelect: 'none', WebkitUserSelect: 'none', MozUserSelect: 'none', msUserSelect: 'none' }}
           onContextMenu={(e) => e.preventDefault()}
-          onSelectStart={(e) => e.preventDefault()}
           onDragStart={(e) => e.preventDefault()}
         >
           <div>
@@ -202,7 +212,6 @@ export function ViewExamen({ examenId, onBack }: ViewExamenProps) {
               className="text-md text-gray-800 dark:text-gray-200 select-none"
               style={{ userSelect: 'none', WebkitUserSelect: 'none', MozUserSelect: 'none', msUserSelect: 'none' }}
               onContextMenu={(e) => e.preventDefault()}
-              onSelectStart={(e) => e.preventDefault()}
             >
               {examen.subject || "No especificada"}
             </p>
@@ -213,7 +222,6 @@ export function ViewExamen({ examenId, onBack }: ViewExamenProps) {
               className="text-md text-gray-800 dark:text-gray-200 flex items-center gap-1 select-none"
               style={{ userSelect: 'none', WebkitUserSelect: 'none', MozUserSelect: 'none', msUserSelect: 'none' }}
               onContextMenu={(e) => e.preventDefault()}
-              onSelectStart={(e) => e.preventDefault()}
             >
               <Calendar className="h-4 w-4 text-gray-500 dark:text-gray-400" />
               {new Date(examen.created_at).toLocaleDateString("es-MX", { year: 'numeric', month: 'long', day: 'numeric' })}
@@ -225,7 +233,6 @@ export function ViewExamen({ examenId, onBack }: ViewExamenProps) {
               className="text-md text-gray-800 dark:text-gray-200 flex items-center gap-1 select-none"
               style={{ userSelect: 'none', WebkitUserSelect: 'none', MozUserSelect: 'none', msUserSelect: 'none' }}
               onContextMenu={(e) => e.preventDefault()}
-              onSelectStart={(e) => e.preventDefault()}
             >
               <Calendar className="h-4 w-4 text-gray-500 dark:text-gray-400" />
               {new Date(examen.updated_at).toLocaleDateString("es-MX", { year: 'numeric', month: 'long', day: 'numeric' })}
@@ -244,19 +251,17 @@ export function ViewExamen({ examenId, onBack }: ViewExamenProps) {
         </CardHeader>
         <CardContent>
           <div 
-            className="bg-gray-50 dark:bg-gray-800 p-4 sm:p-6 rounded-lg border dark:border-gray-700 select-none"
+            className="bg-gray-50 dark:bg-gray-800 p-3 sm:p-4 md:p-6 rounded-lg border dark:border-gray-700 select-none w-full overflow-hidden"
             style={{ userSelect: 'none', WebkitUserSelect: 'none', MozUserSelect: 'none', msUserSelect: 'none' }}
             onContextMenu={(e) => e.preventDefault()}
-            onSelectStart={(e) => e.preventDefault()}
             onDragStart={(e) => e.preventDefault()}
             onCopy={(e) => e.preventDefault()}
             onCut={(e) => e.preventDefault()}
           >
             <div 
-              className="prose dark:prose-invert max-w-none text-sm select-none"
-              style={{ userSelect: 'none', WebkitUserSelect: 'none', MozUserSelect: 'none', msUserSelect: 'none' }}
+              className="prose dark:prose-invert max-w-none text-sm select-none w-full overflow-hidden break-words exam-content-mobile"
+              style={{ userSelect: 'none', WebkitUserSelect: 'none', MozUserSelect: 'none', msUserSelect: 'none', wordWrap: 'break-word', overflowWrap: 'break-word' }}
               onContextMenu={(e) => e.preventDefault()}
-              onSelectStart={(e) => e.preventDefault()}
               onDragStart={(e) => e.preventDefault()}
             >
               <ReactMarkdown>{examenContent}</ReactMarkdown>
@@ -275,25 +280,23 @@ export function ViewExamen({ examenId, onBack }: ViewExamenProps) {
             </CardTitle>
           </CardHeader>
           <CardContent>
+          <div 
+            className="bg-emerald-50 dark:bg-emerald-900/20 p-3 sm:p-4 md:p-6 rounded-lg border border-emerald-200 dark:border-emerald-800 select-none w-full overflow-hidden"
+            style={{ userSelect: 'none', WebkitUserSelect: 'none', MozUserSelect: 'none', msUserSelect: 'none' }}
+            onContextMenu={(e) => e.preventDefault()}
+            onDragStart={(e) => e.preventDefault()}
+            onCopy={(e) => e.preventDefault()}
+            onCut={(e) => e.preventDefault()}
+          >
             <div 
-              className="bg-emerald-50 dark:bg-emerald-900/20 p-4 sm:p-6 rounded-lg border border-emerald-200 dark:border-emerald-800 select-none"
-              style={{ userSelect: 'none', WebkitUserSelect: 'none', MozUserSelect: 'none', msUserSelect: 'none' }}
+              className="prose dark:prose-invert max-w-none text-sm select-none w-full overflow-hidden break-words exam-content-mobile"
+              style={{ userSelect: 'none', WebkitUserSelect: 'none', MozUserSelect: 'none', msUserSelect: 'none', wordWrap: 'break-word', overflowWrap: 'break-word' }}
               onContextMenu={(e) => e.preventDefault()}
-              onSelectStart={(e) => e.preventDefault()}
               onDragStart={(e) => e.preventDefault()}
-              onCopy={(e) => e.preventDefault()}
-              onCut={(e) => e.preventDefault()}
             >
-              <div 
-                className="prose dark:prose-invert max-w-none text-sm select-none"
-                style={{ userSelect: 'none', WebkitUserSelect: 'none', MozUserSelect: 'none', msUserSelect: 'none' }}
-                onContextMenu={(e) => e.preventDefault()}
-                onSelectStart={(e) => e.preventDefault()}
-                onDragStart={(e) => e.preventDefault()}
-              >
-                <ReactMarkdown>{hojaRespuestas}</ReactMarkdown>
-              </div>
+              <ReactMarkdown>{hojaRespuestas}</ReactMarkdown>
             </div>
+          </div>
           </CardContent>
         </Card>
       )}

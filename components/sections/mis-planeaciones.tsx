@@ -157,18 +157,18 @@ export function MisPlaneaciones({ onCreateNew }: MisPlaneacionesProps) {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 w-full max-w-full overflow-hidden">
       {error && (
         <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded relative">
           {error}
         </div>
       )}
-      <div className="flex justify-between items-center">
-        <div>
-          <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100">Mis Planeaciones</h1>
-          <p className="text-gray-600 mt-2">Gestiona y edita tus planeaciones</p>
+      <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4">
+        <div className="flex-1">
+          <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-gray-100">Mis Planeaciones</h1>
+          <p className="text-gray-600 mt-2 text-sm sm:text-base">Gestiona y edita tus planeaciones</p>
         </div>
-        <Button onClick={onCreateNew}>
+        <Button onClick={onCreateNew} className="w-full sm:w-auto">
           <Plus className="mr-2 h-4 w-4" />
           Nueva Planeación
         </Button>
@@ -187,54 +187,65 @@ export function MisPlaneaciones({ onCreateNew }: MisPlaneacionesProps) {
           </CardContent>
         </Card>
       ) : (
-        <div className="grid gap-4">
+        <div className="grid gap-4 w-full max-w-full overflow-hidden">
           {planeaciones.map((planeacion) => (
             <Card 
               key={planeacion.id} 
-              className="hover:shadow-md transition-shadow cursor-pointer" 
+              className="hover:shadow-md transition-shadow cursor-pointer w-full max-w-full overflow-hidden" 
               onClick={() => handleView(planeacion.id)}
             >
-              <CardHeader>
-                <div className="flex justify-between items-start">
-                  <div className="flex-1">
-                    <CardTitle className="text-lg dark:text-gray-100">{cleanMarkdown(planeacion.titulo)}</CardTitle>
-                    <CardDescription className="flex items-center gap-4 mt-2 dark:text-gray-300">
-                      <span className="flex items-center gap-1">
-                        <Calendar className="h-4 w-4" />
+              <CardHeader className="pb-3">
+                <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-3">
+                  <div className="flex-1 min-w-0 overflow-hidden">
+                    <CardTitle className="text-base sm:text-lg dark:text-gray-100 leading-tight overflow-hidden text-ellipsis whitespace-nowrap">
+                      {cleanMarkdown(planeacion.titulo)}
+                    </CardTitle>
+                    <CardDescription className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4 mt-2 dark:text-gray-300 overflow-hidden">
+                      <span className="flex items-center gap-1 text-sm flex-shrink-0">
+                        <Calendar className="h-4 w-4 flex-shrink-0" />
                         {new Date(planeacion.created_at).toLocaleDateString("es-MX")}
                       </span>
-                      {planeacion.grado && <span className="dark:text-gray-300">{cleanMarkdown(planeacion.grado)}</span>}
-                      {planeacion.duracion && <span className="dark:text-gray-300">{cleanMarkdown(planeacion.duracion)}</span>}
+                      {planeacion.grado && (
+                        <span className="dark:text-gray-300 text-sm flex-shrink-0">{cleanMarkdown(planeacion.grado)}</span>
+                      )}
+                      {planeacion.duracion && (
+                        <span className="dark:text-gray-300 text-sm flex-shrink-0">{cleanMarkdown(planeacion.duracion)}</span>
+                      )}
                     </CardDescription>
                   </div>
-                  <Badge className={getOrigenInfo(planeacion).className}>
+                  <Badge className={`${getOrigenInfo(planeacion).className} self-start sm:self-auto flex-shrink-0`}>
                     {getOrigenInfo(planeacion).text}
                   </Badge>
                 </div>
               </CardHeader>
-              <CardContent>
-                <div className="flex justify-between items-center">
-                  <div className="flex items-center gap-2">
-                    {planeacion.materia && <Badge variant="outline" className="dark:text-gray-100 dark:border-gray-700">{cleanMarkdown(planeacion.materia)}</Badge>}
+              <CardContent className="pt-0">
+                <div className="flex flex-col gap-4">
+                  <div className="flex flex-col gap-2">
+                    {planeacion.materia && (
+                      <Badge variant="outline" className="dark:text-gray-100 dark:border-gray-700 w-fit">
+                        {cleanMarkdown(planeacion.materia)}
+                      </Badge>
+                    )}
                     {planeacion.objetivo && (
-                      <span className="text-sm text-gray-600 truncate max-w-md dark:text-gray-300">
-                        {cleanMarkdown(planeacion.objetivo).substring(0, 100)}
-                        {planeacion.objetivo.length > 100 ? "..." : ""}
-                      </span>
+                      <div className="text-sm text-gray-600 dark:text-gray-300 w-full">
+                        <p className="overflow-hidden text-ellipsis whitespace-nowrap">
+                          {cleanMarkdown(planeacion.objetivo)}
+                        </p>
+                      </div>
                     )}
                   </div>
-                  <div className="flex gap-2" onClick={(e) => e.stopPropagation()}>
-                    <Button size="sm" variant="outline" onClick={() => handleEdit(planeacion.id)}>
-                      <Edit className="h-4 w-4" />
+                  <div className="flex flex-col sm:flex-row gap-2" onClick={(e) => e.stopPropagation()}>
+                    <Button size="sm" variant="outline" onClick={() => handleEdit(planeacion.id)} className="w-full sm:w-auto">
+                      <Edit className="h-4 w-4 mr-2" />
                       Editar
                     </Button>
                     <DropdownMenu>
                       <DropdownMenuTrigger asChild>
-                        <Button size="sm" variant="outline" disabled={generatingPDF === planeacion.id}>
+                        <Button size="sm" variant="outline" disabled={generatingPDF === planeacion.id} className="w-full sm:w-auto">
                           {generatingPDF === planeacion.id ? (
-                            <Loader2 className="h-4 w-4 animate-spin" />
+                            <Loader2 className="h-4 w-4 animate-spin mr-2" />
                           ) : (
-                            <Download className="h-4 w-4" />
+                            <Download className="h-4 w-4 mr-2" />
                           )}
                           {generatingPDF === planeacion.id ? "Generando..." : "Descargar"}
                         </Button>
@@ -271,15 +282,15 @@ export function MisPlaneaciones({ onCreateNew }: MisPlaneacionesProps) {
                         <Button
                           size="sm"
                           variant="outline"
-                          className="text-red-600 hover:text-red-700"
+                          className="text-red-600 hover:text-red-700 w-full sm:w-auto"
                           disabled={deleting === planeacion.id}
                         >
                           {deleting === planeacion.id ? (
-                            <Loader2 className="h-4 w-4 animate-spin" />
+                            <Loader2 className="h-4 w-4 animate-spin mr-2" />
                           ) : (
-                            <Trash2 className="h-4 w-4" />
+                            <Trash2 className="h-4 w-4 mr-2" />
                           )}
-                           Eliminar
+                          Eliminar
                         </Button>
                       </AlertDialogTrigger>
                       <AlertDialogContent>

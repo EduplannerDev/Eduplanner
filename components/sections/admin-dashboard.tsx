@@ -20,15 +20,20 @@ import {
   Activity,
   UserCheck,
   Settings,
-  Monitor
+  Monitor,
+  Briefcase
 } from 'lucide-react'
 import { 
   getPlatformStats, 
   getRecentActivity, 
   getUsuariosSinPlantel,
+  getContextoTrabajoData,
+  getFeedbackData,
   type PlatformStats,
   type RecentActivity,
-  type UsuariosSinPlantel
+  type UsuariosSinPlantel,
+  type ContextoTrabajoData,
+  type FeedbackData
 } from '@/lib/admin-stats'
 import { LoggingMetricsWidget } from '@/components/admin/logging-widgets'
 
@@ -40,6 +45,8 @@ export function AdminDashboard() {
   const [platformStats, setPlatformStats] = useState<PlatformStats | null>(null)
   const [recentActivity, setRecentActivity] = useState<RecentActivity | null>(null)
   const [usuariosSinPlantel, setUsuariosSinPlantel] = useState<UsuariosSinPlantel | null>(null)
+  const [contextoTrabajo, setContextoTrabajo] = useState<ContextoTrabajoData[]>([])
+  const [feedbackData, setFeedbackData] = useState<FeedbackData[]>([])
   const [statsLoading, setStatsLoading] = useState(true)
   
   // Cargar estadísticas cuando el componente se monta
@@ -52,15 +59,19 @@ export function AdminDashboard() {
   const loadDashboardStats = async () => {
     try {
       setStatsLoading(true)
-      const [stats, activity, usuariosSinPlantelData] = await Promise.all([
+      const [stats, activity, usuariosSinPlantelData, contextoTrabajoData, feedbackDataResponse] = await Promise.all([
         getPlatformStats(),
         getRecentActivity(),
-        getUsuariosSinPlantel()
+        getUsuariosSinPlantel(),
+        getContextoTrabajoData(),
+        getFeedbackData()
       ])
       
       setPlatformStats(stats)
       setRecentActivity(activity)
       setUsuariosSinPlantel(usuariosSinPlantelData)
+      setContextoTrabajo(contextoTrabajoData)
+      setFeedbackData(feedbackDataResponse)
     } catch (error) {
       console.error('Error cargando estadísticas del dashboard:', error)
     } finally {
@@ -118,7 +129,7 @@ export function AdminDashboard() {
 
       {/* Tabs de navegación */}
       <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-        <TabsList className="grid w-full grid-cols-4">
+        <TabsList className="grid w-full grid-cols-6">
           <TabsTrigger value="overview" className="flex items-center gap-2">
             <BarChart3 className="h-4 w-4" />
             Resumen
@@ -126,6 +137,14 @@ export function AdminDashboard() {
           <TabsTrigger value="planteles" className="flex items-center gap-2">
             <Building2 className="h-4 w-4" />
             Planteles
+          </TabsTrigger>
+          <TabsTrigger value="contexto" className="flex items-center gap-2">
+            <Briefcase className="h-4 w-4" />
+            Grados y Maestros
+          </TabsTrigger>
+          <TabsTrigger value="feedback" className="flex items-center gap-2">
+            <MessageSquare className="h-4 w-4" />
+            Feedback
           </TabsTrigger>
           <TabsTrigger value="monitoring" className="flex items-center gap-2">
             <Monitor className="h-4 w-4" />
@@ -378,6 +397,185 @@ export function AdminDashboard() {
                 <h3 className="text-lg font-semibold mb-2">Acceso Restringido</h3>
                 <p className="text-muted-foreground">
                   Solo los administradores pueden gestionar planteles.
+                </p>
+              </CardContent>
+            </Card>
+          )}
+        </TabsContent>
+
+        <TabsContent value="contexto" className="space-y-6">
+          {isAdmin ? (
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Briefcase className="h-5 w-5" />
+                  Contexto de Trabajo - Grados y Maestros
+                </CardTitle>
+                <CardDescription>
+                  Registro de grados asignados a maestros por ciclo escolar
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                {contextoTrabajo.length === 0 ? (
+                  <div className="text-center py-8">
+                    <Briefcase className="mx-auto h-12 w-12 text-muted-foreground mb-4" />
+                    <p className="text-muted-foreground">
+                      No hay registros de contexto de trabajo disponibles.
+                    </p>
+                  </div>
+                ) : (
+                  <div className="overflow-x-auto">
+                    <table className="w-full border-collapse">
+                      <thead>
+                        <tr className="border-b border-border">
+                          <th className="text-left py-3 px-4 font-semibold text-sm">Profesor</th>
+                          <th className="text-left py-3 px-4 font-semibold text-sm">Email</th>
+                          <th className="text-center py-3 px-4 font-semibold text-sm">Grado</th>
+                          <th className="text-center py-3 px-4 font-semibold text-sm">Ciclo Escolar</th>
+                          <th className="text-center py-3 px-4 font-semibold text-sm">Estado</th>
+                          <th className="text-center py-3 px-4 font-semibold text-sm">Fecha Inicio</th>
+                          <th className="text-center py-3 px-4 font-semibold text-sm">Fecha Fin</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {contextoTrabajo.map((contexto) => (
+                          <tr key={contexto.id} className="border-b border-border hover:bg-muted/50">
+                            <td className="py-3 px-4">
+                              <div className="font-medium">{contexto.profesor_nombre}</div>
+                            </td>
+                            <td className="py-3 px-4 text-sm text-muted-foreground">
+                              {contexto.profesor_email}
+                            </td>
+                            <td className="py-3 px-4 text-center">
+                              <Badge variant="secondary">
+                                {contexto.grado > 0 
+                                  ? `${contexto.grado}°` 
+                                  : contexto.grado === -1 
+                                  ? '3° Preescolar' 
+                                  : contexto.grado === -2 
+                                  ? '2° Preescolar'
+                                  : '1° Preescolar'}
+                              </Badge>
+                            </td>
+                            <td className="py-3 px-4 text-center text-sm">
+                              {contexto.ciclo_escolar}
+                            </td>
+                            <td className="py-3 px-4 text-center">
+                              {contexto.es_activo ? (
+                                <Badge variant="default" className="bg-green-500">
+                                  Activo
+                                </Badge>
+                              ) : (
+                                <Badge variant="secondary">Inactivo</Badge>
+                              )}
+                            </td>
+                            <td className="py-3 px-4 text-center text-sm">
+                              {new Date(contexto.fecha_inicio).toLocaleDateString('es-MX')}
+                            </td>
+                            <td className="py-3 px-4 text-center text-sm">
+                              {contexto.fecha_fin 
+                                ? new Date(contexto.fecha_fin).toLocaleDateString('es-MX')
+                                : '-'}
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          ) : (
+            <Card>
+              <CardContent className="p-8 text-center">
+                <Briefcase className="mx-auto h-12 w-12 text-muted-foreground mb-4" />
+                <h3 className="text-lg font-semibold mb-2">Acceso Restringido</h3>
+                <p className="text-muted-foreground">
+                  Solo los administradores pueden ver el contexto de trabajo.
+                </p>
+              </CardContent>
+            </Card>
+          )}
+        </TabsContent>
+
+        <TabsContent value="feedback" className="space-y-6">
+          {isAdmin ? (
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <MessageSquare className="h-5 w-5" />
+                  Feedback del Sistema
+                </CardTitle>
+                <CardDescription>
+                  Comentarios, sugerencias y reportes de los usuarios
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                {feedbackData.length === 0 ? (
+                  <div className="text-center py-8">
+                    <MessageSquare className="mx-auto h-12 w-12 text-muted-foreground mb-4" />
+                    <p className="text-muted-foreground">
+                      No hay registros de feedback disponibles.
+                    </p>
+                  </div>
+                ) : (
+                  <div className="overflow-x-auto">
+                    <table className="w-full border-collapse">
+                      <thead>
+                        <tr className="border-b border-border">
+                          <th className="text-left py-3 px-4 font-semibold text-sm">Tipo</th>
+                          <th className="text-left py-3 px-4 font-semibold text-sm">Email</th>
+                          <th className="text-left py-3 px-4 font-semibold text-sm">Mensaje</th>
+                          <th className="text-center py-3 px-4 font-semibold text-sm">Fecha</th>
+                          <th className="text-center py-3 px-4 font-semibold text-sm">Acciones</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {feedbackData.map((feedback) => (
+                          <tr key={feedback.id} className="border-b border-border hover:bg-muted/50">
+                            <td className="py-3 px-4">
+                              <Badge variant="secondary">{feedback.type}</Badge>
+                            </td>
+                            <td className="py-3 px-4 text-sm text-muted-foreground">
+                              {feedback.email || 'Sin email'}
+                            </td>
+                            <td className="py-3 px-4">
+                              <div className="max-w-md">
+                                <p className="text-sm truncate" title={feedback.text}>
+                                  {feedback.text}
+                                </p>
+                              </div>
+                            </td>
+                            <td className="py-3 px-4 text-center text-sm">
+                              {new Date(feedback.created_at).toLocaleDateString('es-MX')}
+                            </td>
+                            <td className="py-3 px-4 text-center">
+                              {feedback.image_url && (
+                                <a 
+                                  href={feedback.image_url} 
+                                  target="_blank" 
+                                  rel="noopener noreferrer"
+                                  className="text-blue-500 hover:text-blue-700 text-sm"
+                                >
+                                  Ver imagen
+                                </a>
+                              )}
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          ) : (
+            <Card>
+              <CardContent className="p-8 text-center">
+                <MessageSquare className="mx-auto h-12 w-12 text-muted-foreground mb-4" />
+                <h3 className="text-lg font-semibold mb-2">Acceso Restringido</h3>
+                <p className="text-muted-foreground">
+                  Solo los administradores pueden ver el feedback.
                 </p>
               </CardContent>
             </Card>

@@ -148,14 +148,15 @@ export function EditExamen({ examenId, onBack, onSaveSuccess }: EditExamenProps)
       {/* Header */}
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
         <div className="flex items-center gap-3">
-          <Button variant="outline" size="icon" onClick={handleCancel} aria-label="Volver">
+          {/* Botón Volver - Solo visible en desktop */}
+          <Button variant="default" size="icon" onClick={handleCancel} aria-label="Volver" className="hidden sm:flex bg-primary hover:bg-primary/90 text-primary-foreground shadow-md">
             <ArrowLeft className="h-5 w-5" />
           </Button>
-          <div>
-            <h1 className="text-2xl md:text-3xl font-bold text-gray-900 dark:text-gray-100">
+          <div className="flex-1 min-w-0">
+            <h1 className="text-xl sm:text-2xl md:text-3xl font-bold text-gray-900 dark:text-gray-100 break-words leading-tight">
               Editar: {examen.title || 'Examen sin título'}
             </h1>
-            <p className="text-gray-600 dark:text-gray-400 mt-1">Modifica los detalles de tu examen.</p>
+            <p className="text-gray-600 dark:text-gray-400 mt-1 text-sm sm:text-base">Modifica los detalles de tu examen.</p>
           </div>
         </div>
         <Button onClick={handleSave} disabled={saving} className="w-full sm:w-auto">
@@ -285,6 +286,17 @@ export function EditExamen({ examenId, onBack, onSaveSuccess }: EditExamenProps)
           </Card>
         )}
       </div>
+
+      {/* Botón flotante Volver - Solo visible en móviles */}
+      <Button 
+        variant="default" 
+        size="icon" 
+        onClick={handleCancel} 
+        className="fixed bottom-20 left-4 z-50 bg-primary hover:bg-primary/90 text-primary-foreground shadow-lg rounded-full w-12 h-12 sm:hidden"
+        aria-label="Volver"
+      >
+        <ArrowLeft className="h-5 w-5" />
+      </Button>
     </div>
   )
 }

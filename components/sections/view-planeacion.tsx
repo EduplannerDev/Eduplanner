@@ -101,7 +101,7 @@ export function ViewPlaneacion({ planeacionId, onBack }: ViewPlaneacionProps) {
 
   return (
     <div 
-      className="space-y-6 max-w-4xl mx-auto select-none" 
+      className="space-y-6 max-w-4xl mx-auto select-none w-full overflow-hidden px-2 sm:px-0" 
       style={{ 
         userSelect: 'none', 
         WebkitUserSelect: 'none', 
@@ -114,16 +114,30 @@ export function ViewPlaneacion({ planeacionId, onBack }: ViewPlaneacionProps) {
       onDragStart={(e) => e.preventDefault()}
     >
       {/* Header */}
-      <div className="flex items-center gap-4">
-        <Button variant="outline" size="sm" onClick={onBack}>
+      <div className="flex flex-col sm:flex-row sm:items-center gap-4">
+        {/* Botón Volver - Solo visible en desktop */}
+        <Button variant="default" size="sm" onClick={onBack} className="hidden sm:flex w-fit bg-primary hover:bg-primary/90 text-primary-foreground shadow-md">
           <ArrowLeft className="h-4 w-4 mr-2" />
           Volver
         </Button>
-        <div>
-          <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100">{cleanMarkdown(planeacion.titulo)}</h1>
-          <p className="text-gray-600 mt-1">Vista de planeación</p>
+        <div className="flex-1 min-w-0">
+          <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold text-gray-900 dark:text-gray-100 break-words leading-tight">
+            {cleanMarkdown(planeacion.titulo)}
+          </h1>
+          <p className="text-gray-600 mt-1 text-sm sm:text-base">Vista de planeación</p>
         </div>
       </div>
+
+      {/* Botón flotante Volver - Solo visible en móviles */}
+      <Button 
+        variant="default" 
+        size="icon" 
+        onClick={onBack} 
+        className="fixed bottom-20 left-4 z-50 bg-primary hover:bg-primary/90 text-primary-foreground shadow-lg rounded-full w-12 h-12 sm:hidden"
+        aria-label="Volver"
+      >
+        <ArrowLeft className="h-5 w-5" />
+      </Button>
 
       {/* Información General */}
       <Card>

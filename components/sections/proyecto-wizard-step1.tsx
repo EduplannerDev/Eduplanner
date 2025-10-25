@@ -173,12 +173,11 @@ export function ProyectoWizardStep1({ data, onDataChange, onNext, loading = fals
     <BetaFeatureWrapper 
       featureKey="proyectos" 
       fallback={<BetaAccessDenied featureName="Módulo de Proyectos" className="max-w-4xl mx-auto" />}
-      showBadge={true}
-      badgePosition="top-right"
+      showBadge={false}
     >
-      <div className="max-w-4xl mx-auto space-y-6">
-      {/* Botón Siguiente - Movido arriba */}
-      <div className="flex justify-end">
+      <div className="max-w-4xl mx-auto space-y-6 w-full max-w-full overflow-hidden px-2 sm:px-0 pb-20 sm:pb-6">
+      {/* Botón Siguiente - Solo visible en desktop */}
+      <div className="hidden sm:flex justify-end">
         <Button
           onClick={handleNext}
           disabled={!isFormComplete || loading}
@@ -199,31 +198,31 @@ export function ProyectoWizardStep1({ data, onDataChange, onNext, loading = fals
       </div>
 
       {/* Header */}
-      <div className="text-center space-y-2">
+      <div className="text-center space-y-2 w-full max-w-full overflow-hidden">
         <div className="flex items-center justify-center space-x-2">
-          <BookOpen className="h-8 w-8 text-blue-600 dark:text-blue-400" />
-          <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100">Define tu Proyecto</h1>
+          <BookOpen className="h-6 w-6 sm:h-8 sm:w-8 text-blue-600 dark:text-blue-400 flex-shrink-0" />
+          <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold text-gray-900 dark:text-gray-100 break-words leading-tight">Define tu Proyecto</h1>
         </div>
-        <p className="text-lg text-gray-600 dark:text-gray-400">
+        <p className="text-sm sm:text-base lg:text-lg text-gray-600 dark:text-gray-400 break-words">
           Comienza definiendo la información básica de tu proyecto educativo
         </p>
       </div>
 
       {/* Formulario */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center space-x-2">
-            <Target className="h-5 w-5 text-blue-600 dark:text-blue-400" />
-            <span>Información del Proyecto</span>
+      <Card className="w-full max-w-full overflow-hidden">
+        <CardHeader className="w-full max-w-full overflow-hidden">
+          <CardTitle className="flex items-center space-x-2 text-base sm:text-lg break-words leading-tight">
+            <Target className="h-4 w-4 sm:h-5 sm:w-5 text-blue-600 dark:text-blue-400 flex-shrink-0" />
+            <span className="break-words overflow-hidden">Información del Proyecto</span>
           </CardTitle>
-          <CardDescription>
+          <CardDescription className="text-xs sm:text-sm break-words">
             Proporciona los detalles fundamentales de tu proyecto
           </CardDescription>
         </CardHeader>
-        <CardContent className="space-y-6">
+        <CardContent className="space-y-6 w-full max-w-full overflow-hidden">
           {/* Nombre del Proyecto */}
-          <div className="space-y-2">
-            <Label htmlFor="nombre" className="text-sm font-medium">
+          <div className="space-y-2 w-full max-w-full overflow-hidden">
+            <Label htmlFor="nombre" className="text-sm font-medium break-words">
               Nombre del Proyecto *
             </Label>
             <Input
@@ -231,7 +230,7 @@ export function ProyectoWizardStep1({ data, onDataChange, onNext, loading = fals
               placeholder="Ej: Campaña de reciclaje en la escuela"
               value={data.nombre}
               onChange={(e) => handleDataChange('nombre', e.target.value)}
-              className={errors.nombre ? 'border-red-500' : ''}
+              className={`w-full max-w-full ${errors.nombre ? 'border-red-500' : ''}`}
             />
             {errors.nombre && (
               <p className="text-sm text-red-600 dark:text-red-400 flex items-center space-x-1">
@@ -358,23 +357,67 @@ export function ProyectoWizardStep1({ data, onDataChange, onNext, loading = fals
           </div>
 
           {/* Metodología NEM */}
-          <div className="space-y-2">
-            <Label htmlFor="metodologia" className="text-sm font-medium">
+          <div className="space-y-2 w-full max-w-full overflow-hidden">
+            <Label htmlFor="metodologia" className="text-sm font-medium break-words">
               Metodología NEM *
             </Label>
             <Select
               value={data.metodologia_nem}
               onValueChange={(value) => handleDataChange('metodologia_nem', value)}
             >
-              <SelectTrigger className={errors.metodologia_nem ? 'border-red-500' : ''}>
+              <SelectTrigger className={`w-full max-w-full ${errors.metodologia_nem ? 'border-red-500' : ''}`}>
                 <SelectValue placeholder="Selecciona una metodología" />
               </SelectTrigger>
-              <SelectContent>
+              <SelectContent 
+                className="w-full max-w-full min-w-[280px] sm:min-w-[400px]"
+                style={{ 
+                  maxWidth: 'calc(100vw - 2rem)',
+                  width: '100%'
+                }}
+              >
                 {metodologiasNEM.map((metodologia) => (
-                  <SelectItem key={metodologia.value} value={metodologia.value}>
-                    <div className="space-y-1">
-                      <div className="font-medium">{metodologia.label}</div>
-                      <div className="text-sm text-gray-500">{metodologia.description}</div>
+                  <SelectItem 
+                    key={metodologia.value} 
+                    value={metodologia.value} 
+                    className="w-full max-w-full p-3 cursor-pointer"
+                    style={{ 
+                      maxWidth: '100%',
+                      width: '100%',
+                      whiteSpace: 'normal',
+                      wordWrap: 'break-word',
+                      overflowWrap: 'break-word'
+                    }}
+                  >
+                    <div 
+                      className="space-y-1 w-full max-w-full"
+                      style={{ 
+                        maxWidth: '100%',
+                        width: '100%',
+                        whiteSpace: 'normal',
+                        wordWrap: 'break-word',
+                        overflowWrap: 'break-word'
+                      }}
+                    >
+                      <div 
+                        className="font-medium leading-tight text-left"
+                        style={{ 
+                          whiteSpace: 'normal',
+                          wordWrap: 'break-word',
+                          overflowWrap: 'break-word'
+                        }}
+                      >
+                        {metodologia.label}
+                      </div>
+                      <div 
+                        className="text-sm text-gray-500 leading-tight text-left"
+                        style={{ 
+                          whiteSpace: 'normal',
+                          wordWrap: 'break-word',
+                          overflowWrap: 'break-word'
+                        }}
+                      >
+                        {metodologia.description}
+                      </div>
                     </div>
                   </SelectItem>
                 ))}
@@ -405,6 +448,22 @@ export function ProyectoWizardStep1({ data, onDataChange, onNext, loading = fals
           )}
         </CardContent>
       </Card>
+
+      {/* Botón flotante para móviles */}
+      <div className="sm:hidden fixed bottom-4 left-4 z-50">
+        <Button
+          onClick={handleNext}
+          disabled={!isFormComplete || loading}
+          className="bg-primary hover:bg-primary/90 text-primary-foreground shadow-lg rounded-full w-14 h-14"
+          size="icon"
+        >
+          {loading ? (
+            <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div>
+          ) : (
+            <Lightbulb className="h-5 w-5" />
+          )}
+        </Button>
+      </div>
 
       </div>
     </BetaFeatureWrapper>

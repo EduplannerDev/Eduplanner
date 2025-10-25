@@ -87,7 +87,7 @@ const VisualizarExamen: React.FC<VisualizarExamenProps> = ({ examenContent, onBa
     <div className="p-4">
       <h1 className="text-2xl font-bold mb-4">Examen Generado</h1>
       <div className="flex space-x-2 mb-4">
-        <Button onClick={onBack} variant="outline">Volver a Generar Examen</Button>
+        <Button onClick={onBack} variant="default" className="bg-primary hover:bg-primary/90 text-primary-foreground shadow-md">Volver a Generar Examen</Button>
         <Button onClick={handleSaveClick}>Guardar Examen</Button>
         {onSaveSuccess && (
           <Button onClick={onSaveSuccess}>Ver Exámenes Guardados</Button>

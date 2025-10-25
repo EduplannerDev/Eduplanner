@@ -213,42 +213,18 @@ const Examenes = () => {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 w-full max-w-full overflow-hidden">
       {error && (
         <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded relative">
           {error}
         </div>
       )}
-      <div className="flex justify-between items-center">
-        <div>
-          <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100">Mis Exámenes</h1>
-          <p className="text-gray-600 mt-2">Gestiona y edita tus exámenes</p>
-          {/* Información de límites */}
-          {examLimits && (
-            <div className="mt-2 p-3 bg-gray-50 border border-gray-200 rounded-lg dark:bg-gray-800 dark:border-gray-700">
-              {examLimits.limit !== -1 && examLimits.currentCount >= examLimits.limit ? (
-                <div>
-                  <p className="text-sm text-orange-600 dark:text-orange-400 font-medium mb-2">
-                    🎉 ¡Felicitaciones! Has creado {examLimits.limit} exámenes increíbles
-                  </p>
-                  <p className="text-sm text-blue-600 dark:text-blue-400 font-medium">
-                    💫 Desbloquea tu potencial educativo con PRO: crea exámenes ilimitados y sigue inspirando a tus estudiantes
-                  </p>
-                </div>
-              ) : (
-                <p className="text-sm text-gray-600 dark:text-gray-400">
-                  <strong>Exámenes creados:</strong> {examLimits.currentCount}/{examLimits.limit === -1 ? 'ilimitados' : examLimits.limit}
-                </p>
-              )}
-              {examLimits.limit === -1 && (
-                <p className="text-sm text-green-600 dark:text-green-400 mt-2 font-medium">
-                  ✨ Plan PRO activo - ¡Tu creatividad no tiene límites!
-                </p>
-              )}
-            </div>
-          )}
+      <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4">
+        <div className="flex-1">
+          <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-gray-100">Mis Exámenes</h1>
+          <p className="text-gray-600 mt-2 text-sm sm:text-base">Gestiona y edita tus exámenes</p>
         </div>
-        <Button onClick={handleNewExamClick} disabled={examLimits && !examLimits.canCreate}>
+        <Button onClick={handleNewExamClick} disabled={examLimits && !examLimits.canCreate} className="w-full sm:w-auto">
           <Plus className="mr-2 h-4 w-4" />
           Nuevo Examen
         </Button>
@@ -267,44 +243,52 @@ const Examenes = () => {
           </CardContent>
         </Card>
       ) : (
-        <div className="grid gap-4">
+        <div className="grid gap-4 w-full max-w-full overflow-hidden">
           {examenes.map((examen) => (
             <Card 
               key={examen.id} 
-              className="hover:shadow-md transition-shadow cursor-pointer" 
+              className="hover:shadow-md transition-shadow cursor-pointer w-full max-w-full overflow-hidden" 
               onClick={() => handleViewExamen(examen.id)}
             >
-              <CardHeader>
-                <div className="flex justify-between items-start">
-                  <div className="flex-1">
-                    <CardTitle className="text-lg dark:text-gray-100">{examen.title || 'Examen sin título'}</CardTitle>
-                    <CardDescription className="flex items-center gap-4 mt-2 dark:text-gray-300">
-                      <span className="flex items-center gap-1">
-                        <Calendar className="h-4 w-4" />
+              <CardHeader className="pb-3">
+                <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-3">
+                  <div className="flex-1 min-w-0 overflow-hidden">
+                    <CardTitle className="text-base sm:text-lg dark:text-gray-100 break-words leading-tight overflow-hidden">
+                      {examen.title || 'Examen sin título'}
+                    </CardTitle>
+                    <CardDescription className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4 mt-2 dark:text-gray-300 overflow-hidden">
+                      <span className="flex items-center gap-1 text-sm flex-shrink-0">
+                        <Calendar className="h-4 w-4 flex-shrink-0" />
                         {new Date(examen.created_at).toLocaleDateString("es-MX")}
                       </span>
-                      {examen.subject && <span className="dark:text-gray-300">{examen.subject}</span>}
+                      {examen.subject && (
+                        <span className="dark:text-gray-300 text-sm flex-shrink-0">{examen.subject}</span>
+                      )}
                     </CardDescription>
                   </div>
                 </div>
               </CardHeader>
-              <CardContent>
-                <div className="flex justify-between items-center">
-                  <div className="flex items-center gap-2">
-                    {examen.subject && <Badge variant="outline" className="dark:text-gray-100 dark:border-gray-700">{examen.subject}</Badge>}
+              <CardContent className="pt-0">
+                <div className="flex flex-col gap-4">
+                  <div className="flex flex-col sm:flex-row sm:items-center gap-2">
+                    {examen.subject && (
+                      <Badge variant="outline" className="dark:text-gray-100 dark:border-gray-700 w-fit">
+                        {examen.subject}
+                      </Badge>
+                    )}
                     <span className="text-sm text-gray-600 dark:text-gray-300">
                       Examen generado
                     </span>
                   </div>
-                  <div className="flex gap-2" onClick={(e) => e.stopPropagation()}>
-                    <Button size="sm" variant="outline" onClick={() => handleEditExamen(examen.id)}>
-                      <Edit className="h-4 w-4" />
+                  <div className="flex flex-col sm:flex-row gap-2" onClick={(e) => e.stopPropagation()}>
+                    <Button size="sm" variant="outline" onClick={() => handleEditExamen(examen.id)} className="w-full sm:w-auto">
+                      <Edit className="h-4 w-4 mr-2" />
                       Editar
                     </Button>
                     <DropdownMenu>
                       <DropdownMenuTrigger asChild>
-                        <Button size="sm" variant="outline">
-                          <Download className="h-4 w-4" />
+                        <Button size="sm" variant="outline" className="w-full sm:w-auto">
+                          <Download className="h-4 w-4 mr-2" />
                           Descargar
                         </Button>
                       </DropdownMenuTrigger>

@@ -21,6 +21,7 @@ import {
   Bot,
   Sparkles,
   ArrowRight,
+  ArrowLeft,
   Loader2,
   AlertCircle
 } from 'lucide-react'
@@ -227,9 +228,9 @@ export function ProyectoWizardStep2({
 
 
   return (
-    <div className="max-w-7xl mx-auto space-y-6">
-      {/* Navegación - Movida arriba */}
-      <div className="flex justify-between">
+    <div className="max-w-7xl mx-auto space-y-6 w-full max-w-full overflow-hidden px-2 sm:px-0 pb-20 sm:pb-6">
+      {/* Navegación - Solo visible en desktop */}
+      <div className="hidden sm:flex justify-between">
         <Button
           variant="outline"
           onClick={onPrevious}
@@ -587,6 +588,34 @@ export function ProyectoWizardStep2({
           </CardContent>
         </Card>
       )}
+
+      {/* Botones flotantes para móviles */}
+      <div className="sm:hidden fixed bottom-4 left-4 z-50">
+        <Button
+          variant="outline"
+          onClick={onPrevious}
+          disabled={loading}
+          className="bg-white hover:bg-gray-50 text-gray-700 shadow-lg rounded-full w-12 h-12"
+          size="icon"
+        >
+          <ArrowLeft className="h-5 w-5" />
+        </Button>
+      </div>
+
+      <div className="sm:hidden fixed bottom-4 left-1/2 transform -translate-x-1/2 z-50">
+        <Button
+          onClick={onNext}
+          disabled={!isFormComplete || loading}
+          className="bg-primary hover:bg-primary/90 text-primary-foreground shadow-lg rounded-full w-14 h-14"
+          size="icon"
+        >
+          {loading ? (
+            <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div>
+          ) : (
+            <Plus className="h-5 w-5" />
+          )}
+        </Button>
+      </div>
 
     </div>
   )

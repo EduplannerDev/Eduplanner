@@ -320,13 +320,13 @@ export function ProyectoWizard({ onComplete, onSectionChange }: ProyectoWizardPr
 
 
   return (
-    <div className="max-w-6xl mx-auto space-y-6">
+    <div className="max-w-6xl mx-auto space-y-6 w-full max-w-full overflow-hidden px-2 sm:px-0">
         {/* Header con progreso - Solo mostrar si no ha alcanzado el límite */}
         {(!projectLimits || projectLimits.canCreate) && (
-          <div className="space-y-4">
+          <div className="space-y-4 w-full max-w-full overflow-hidden">
             <div className="text-center space-y-2">
-              <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100">Asistente de Proyectos</h1>
-              <p className="text-lg text-gray-600 dark:text-gray-400">
+              <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold text-gray-900 dark:text-gray-100 break-words leading-tight">Asistente de Proyectos</h1>
+              <p className="text-sm sm:text-base lg:text-lg text-gray-600 dark:text-gray-400 break-words">
                 Crea tu proyecto educativo paso a paso
               </p>
             </div>
@@ -344,15 +344,15 @@ export function ProyectoWizard({ onComplete, onSectionChange }: ProyectoWizardPr
 
         {/* Navegación de pasos - Solo mostrar si no ha alcanzado el límite */}
         {(!projectLimits || projectLimits.canCreate) && (
-          <Card>
-            <CardContent className="p-6">
-              <div className="flex items-center justify-between">
+          <Card className="w-full max-w-full overflow-hidden">
+            <CardContent className="p-3 sm:p-6 w-full max-w-full overflow-hidden">
+              <div className="flex flex-col sm:flex-row items-center justify-between gap-4 sm:gap-0 w-full max-w-full overflow-hidden">
                 {steps.map((step, index) => (
-                  <div key={step.id} className="flex items-center">
+                  <div key={step.id} className="flex items-center w-full sm:w-auto">
                     <button
                       onClick={() => goToStep(step.id)}
                       disabled={!isStepCompleted(step.id - 1) && step.id > 1}
-                      className={`flex items-center space-x-2 p-2 rounded-lg transition-colors ${
+                      className={`flex items-center space-x-2 p-2 rounded-lg transition-colors w-full sm:w-auto ${
                         step.current 
                           ? 'bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300' 
                           : isStepCompleted(step.id)
@@ -361,18 +361,18 @@ export function ProyectoWizard({ onComplete, onSectionChange }: ProyectoWizardPr
                       } ${!isStepCompleted(step.id - 1) && step.id > 1 ? 'cursor-not-allowed' : 'cursor-pointer'}`}
                     >
                       {isStepCompleted(step.id) ? (
-                        <CheckCircle2 className="h-5 w-5" />
+                        <CheckCircle2 className="h-4 w-4 sm:h-5 sm:w-5 flex-shrink-0" />
                       ) : (
-                        <Circle className="h-5 w-5" />
+                        <Circle className="h-4 w-4 sm:h-5 sm:w-5 flex-shrink-0" />
                       )}
-                      <div className="text-left">
-                        <div className="font-medium">{step.title}</div>
-                        <div className="text-xs opacity-75">{step.description}</div>
+                      <div className="text-left min-w-0 flex-1">
+                        <div className="font-medium text-sm sm:text-base break-words">{step.title}</div>
+                        <div className="text-xs opacity-75 break-words hidden sm:block">{step.description}</div>
                       </div>
                     </button>
                     
                     {index < steps.length - 1 && (
-                      <div className="w-8 h-px bg-gray-300 dark:bg-gray-600 mx-4"></div>
+                      <div className="hidden sm:block w-8 h-px bg-gray-300 dark:bg-gray-600 mx-4"></div>
                     )}
                   </div>
                 ))}
@@ -382,7 +382,7 @@ export function ProyectoWizard({ onComplete, onSectionChange }: ProyectoWizardPr
         )}
 
         {/* Contenido del paso actual */}
-        <div className="min-h-[600px]">
+        <div className="min-h-[400px] sm:min-h-[600px] w-full max-w-full overflow-hidden">
           {renderStepContent()}
         </div>
 

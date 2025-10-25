@@ -47,6 +47,31 @@ export interface UsuariosSinPlantel {
   usuariosRecientesSinPlantel: number; // últimos 7 días
 }
 
+export interface ContextoTrabajoData {
+  id: string;
+  profesor_id: string;
+  profesor_nombre: string;
+  profesor_email: string;
+  grado: number;
+  ciclo_escolar: string;
+  es_activo: boolean;
+  fecha_inicio: string;
+  fecha_fin: string | null;
+  notas: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface FeedbackData {
+  id: string;
+  text: string;
+  type: string;
+  email: string | null;
+  image_url: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
 /**
  * Obtiene estadísticas generales de la plataforma
  */
@@ -374,5 +399,89 @@ export async function getUsuariosSinPlantel(): Promise<UsuariosSinPlantel> {
       directoresSinPlantel: 0,
       usuariosRecientesSinPlantel: 0
     };
+  }
+}
+
+/**
+ * Obtiene información de todos los feedbacks
+ */
+export async function getFeedbackData(): Promise<FeedbackData[]> {
+  try {
+    const { data: feedbacks, error } = await supabase
+      .from('feedback')
+      .select('*')
+      .order('created_at', { ascending: false });
+
+    if (error) {
+      throw error;
+    }
+
+    return (feedbacks || []).map((item: any) => ({
+      id: item.id,
+      text: item.text,
+      type: item.type,
+      email: item.email,
+      image_url: item.image_url,
+      created_at: item.created_at,
+      updated_at: item.updated_at
+    }));
+  } catch (error) {
+    console.error('Error obteniendo datos de feedback:', error);
+    return [];
+  }
+}
+
+/**
+ * Obtiene información de contexto de trabajo de todos los profesores
+ */
+export async function getContextoTrabajoData(): Promise<ContextoTrabajoData[]> {
+  try {
+    // Primero obtener todos los contextos de trabajo
+    const { data: contextos, error } = await supabase
+      .from('contexto_trabajo')
+      .select('*')
+      .order('created_at', { ascending: false });
+
+    if (error) {
+      throw error;
+    }
+
+    if (!contextos || contextos.length === 0) {
+      return [];
+    }
+
+    // Obtener los IDs únicos de profesores
+    const profesorIds = [...new Set(contextos.map((ctx: any) => ctx.profesor_id))];
+
+    // Obtener información de los perfiles
+    const { data: perfiles } = await supabase
+      .from('profiles')
+      .select('id, full_name, email')
+      .in('id', profesorIds);
+
+    // Crear un mapa de perfiles para búsqueda rápida
+    const perfilesMap = new Map(perfiles?.map(p => [p.id, p]) || []);
+
+    // Transformar los datos para incluir información del perfil
+    return contextos.map((item: any) => {
+      const perfil = perfilesMap.get(item.profesor_id);
+      return {
+        id: item.id,
+        profesor_id: item.profesor_id,
+        profesor_nombre: perfil?.full_name || 'Sin nombre',
+        profesor_email: perfil?.email || 'Sin email',
+        grado: item.grado,
+        ciclo_escolar: item.ciclo_escolar,
+        es_activo: item.es_activo,
+        fecha_inicio: item.fecha_inicio,
+        fecha_fin: item.fecha_fin,
+        notas: item.notas,
+        created_at: item.created_at,
+        updated_at: item.updated_at
+      };
+    });
+  } catch (error) {
+    console.error('Error obteniendo datos de contexto de trabajo:', error);
+    return [];
   }
 }

@@ -268,30 +268,6 @@ export const GenerarExamen: React.FC<GenerarExamenProps> = ({ onBack, onSaveSucc
         💡 Al seleccionar varias planeaciones, se generará un examen que integre los temas de todas ellas, ideal para evaluaciones bimestrales o finales.
       </p>
       
-      {/* Información de límites */}
-      {examLimits && (
-        <div className="mb-4 p-3 bg-gray-50 border border-gray-200 rounded-lg dark:bg-gray-800 dark:border-gray-700">
-          {examLimits.limit !== -1 && examLimits.currentCount >= examLimits.limit ? (
-            <div>
-              <p className="text-sm text-orange-600 dark:text-orange-400 font-medium mb-2">
-                🎉 ¡Felicitaciones! Has creado {examLimits.limit} exámenes increíbles
-              </p>
-              <p className="text-sm text-blue-600 dark:text-blue-400 font-medium">
-                💫 Desbloquea tu potencial educativo con PRO: crea exámenes ilimitados y sigue inspirando a tus estudiantes
-              </p>
-            </div>
-          ) : (
-            <p className="text-sm text-gray-600 dark:text-gray-400">
-              <strong>Exámenes creados:</strong> {examLimits.currentCount}/{examLimits.limit === -1 ? 'ilimitados' : examLimits.limit}
-            </p>
-          )}
-          {examLimits.limit === -1 && (
-            <p className="text-sm text-green-600 dark:text-green-400 mt-2 font-medium">
-              ✨ Plan PRO activo - ¡Tu creatividad no tiene límites!
-            </p>
-          )}
-        </div>
-      )}
 
       {planeaciones.length === 0 ? (
         <p>No tienes planeaciones para seleccionar.</p>

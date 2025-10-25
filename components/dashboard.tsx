@@ -322,9 +322,9 @@ export default function Dashboard({ children, customContent = false }: Dashboard
               </BreadcrumbList>
             </Breadcrumb>
           </header>
-          <div className={`flex flex-1 flex-col ${isChat ? "h-[calc(100vh-4rem)]" : "gap-4 p-4 pt-4"}`}>
+          <div className={`flex flex-1 flex-col ${isChat ? "h-[calc(100vh-4rem)]" : "gap-4 p-2 sm:p-4 pt-4"}`}>
             <div
-              className={isChat ? "flex-1 h-full p-4" : "min-h-[100vh] flex-1 rounded-xl bg-muted/50 md:min-h-min p-6"}
+              className={isChat ? "flex-1 h-full p-4" : "min-h-[100vh] flex-1 rounded-xl bg-muted/50 md:min-h-min p-3 sm:p-6"}
             >
               {!isChat && !customContent && <WelcomeMessage />}
               {renderContent}

@@ -748,30 +748,42 @@ Por favor, genera una planeación completa y detallada para este contenido, incl
   // Vista de campos formativos
   if (vistaActual === "campos-formativos") {
     return (
-      <div className="space-y-6">
-        <div className="flex items-center gap-4">
-          <Button variant="outline" onClick={volverVistaPrincipal}>
+      <div className="space-y-6 w-full max-w-full overflow-hidden">
+        <div className="flex flex-col sm:flex-row sm:items-center gap-4">
+          {/* Botón Volver - Solo visible en desktop */}
+          <Button variant="default" onClick={volverVistaPrincipal} className="hidden sm:flex w-fit bg-primary hover:bg-primary/90 text-primary-foreground shadow-md">
             ← Volver
           </Button>
-          <div>
-            <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100">
+          <div className="flex-1 min-w-0">
+            <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold text-gray-900 dark:text-gray-100 break-words leading-tight">
               Campos Formativos - {contexto ? getGradoTexto(contexto.grado) : ''}
             </h1>
-            <p className="text-gray-600 dark:text-gray-400 mt-2">
+            <p className="text-gray-600 dark:text-gray-400 mt-2 text-sm sm:text-base">
               Selecciona un campo formativo para ver sus contenidos
             </p>
           </div>
         </div>
+
+        {/* Botón flotante Volver - Solo visible en móviles */}
+        <Button 
+          variant="default" 
+          size="icon" 
+          onClick={volverVistaPrincipal} 
+          className="fixed bottom-20 left-4 z-50 bg-primary hover:bg-primary/90 text-primary-foreground shadow-lg rounded-full w-12 h-12 sm:hidden"
+          aria-label="Volver"
+        >
+          ←
+        </Button>
 
         {loading ? (
           <div className="flex items-center justify-center min-h-[400px]">
             <Loader2 className="h-8 w-8 animate-spin" />
           </div>
         ) : (
-          <div className="grid gap-4 grid-cols-2 lg:grid-cols-4">
+          <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 w-full max-w-full overflow-hidden">
             {camposFormativos.length === 0 ? (
               <Card className="text-center py-12 col-span-full">
-                <CardContent>
+                <CardContent className="w-full max-w-full overflow-hidden">
                   <BookOpen className="h-12 w-12 text-gray-400 mx-auto mb-4" />
                   <h3 className="text-lg font-medium text-gray-900 dark:text-gray-100 mb-2">
                     No hay campos formativos
@@ -794,19 +806,19 @@ Por favor, genera una planeación completa y detallada para este contenido, incl
                 return (
                   <Card 
                     key={campo} 
-                    className={`group bg-white dark:bg-gray-800 border-2 ${colorScheme.border} ${colorScheme.hover} hover:shadow-xl cursor-pointer transition-all duration-300 transform hover:-translate-y-2 hover:scale-105`}
+                    className={`group bg-white dark:bg-gray-800 border-2 ${colorScheme.border} ${colorScheme.hover} hover:shadow-xl cursor-pointer transition-all duration-300 transform hover:-translate-y-2 hover:scale-105 w-full max-w-full overflow-hidden`}
                     onClick={() => handleSeleccionarCampo(campo)}
                   >
                     <CardHeader className="text-center pb-4">
-                      <div className={`bg-gradient-to-br ${colorScheme.bg} rounded-full p-4 w-20 h-20 mx-auto mb-6 group-hover:scale-110 transition-transform duration-300 shadow-lg`}>
-                        <BookOpen className="h-12 w-12 text-white mx-auto" />
+                      <div className={`bg-gradient-to-br ${colorScheme.bg} rounded-full p-3 sm:p-4 w-16 h-16 sm:w-20 sm:h-20 mx-auto mb-4 sm:mb-6 group-hover:scale-110 transition-transform duration-300 shadow-lg`}>
+                        <BookOpen className="h-8 w-8 sm:h-12 sm:w-12 text-white mx-auto" />
                       </div>
-                      <CardTitle className={`text-xl font-bold text-gray-800 dark:text-gray-100 ${colorScheme.text} transition-colors duration-300 leading-tight`}>
+                      <CardTitle className={`text-lg sm:text-xl font-bold text-gray-800 dark:text-gray-100 ${colorScheme.text} transition-colors duration-300 leading-tight break-words overflow-hidden`}>
                         {campo}
                       </CardTitle>
                     </CardHeader>
-                    <CardContent className="text-center px-6 pb-6">
-                      <p className="text-sm text-gray-600 dark:text-gray-400 leading-relaxed mb-4">
+                    <CardContent className="text-center px-4 sm:px-6 pb-4 sm:pb-6">
+                      <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-400 leading-relaxed mb-3 sm:mb-4 break-words">
                         Explora los contenidos curriculares de este campo formativo
                       </p>
                       <div className="flex items-center justify-center gap-2 text-xs text-gray-500 dark:text-gray-500">
@@ -828,20 +840,32 @@ Por favor, genera una planeación completa y detallada para este contenido, incl
   // Vista de contenidos de un campo específico
   if (vistaActual === "contenidos-campo") {
     return (
-      <div className="space-y-6">
-        <div className="flex items-center gap-4">
-          <Button variant="outline" onClick={volverACamposFormativos}>
+      <div className="space-y-6 w-full max-w-full overflow-hidden">
+        <div className="flex flex-col sm:flex-row sm:items-center gap-4">
+          {/* Botón Volver - Solo visible en desktop */}
+          <Button variant="default" onClick={volverACamposFormativos} className="hidden sm:flex w-fit bg-primary hover:bg-primary/90 text-primary-foreground shadow-md">
             ← Volver a Campos
           </Button>
-          <div>
-            <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100">
+          <div className="flex-1 min-w-0">
+            <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold text-gray-900 dark:text-gray-100 break-words leading-tight">
               {campoSeleccionado} - {contexto ? getGradoTexto(contexto.grado) : ''}
             </h1>
-            <p className="text-gray-600 dark:text-gray-400 mt-2">
+            <p className="text-gray-600 dark:text-gray-400 mt-2 text-sm sm:text-base">
               Contenidos curriculares del campo formativo seleccionado
             </p>
           </div>
         </div>
+
+        {/* Botón flotante Volver - Solo visible en móviles */}
+        <Button 
+          variant="default" 
+          size="icon" 
+          onClick={volverACamposFormativos} 
+          className="fixed bottom-20 left-4 z-50 bg-primary hover:bg-primary/90 text-primary-foreground shadow-lg rounded-full w-12 h-12 sm:hidden"
+          aria-label="Volver a Campos"
+        >
+          ←
+        </Button>
 
         {loading ? (
           <div className="flex items-center justify-center min-h-[400px]">
@@ -851,7 +875,7 @@ Por favor, genera una planeación completa y detallada para este contenido, incl
           <div className="grid gap-4">
             {curriculoData.length === 0 ? (
               <Card className="text-center py-12">
-                <CardContent>
+                <CardContent className="w-full max-w-full overflow-hidden">
                   <BookOpen className="h-12 w-12 text-gray-400 mx-auto mb-4" />
                   <h3 className="text-lg font-medium text-gray-900 dark:text-gray-100 mb-2">
                     No hay contenidos
@@ -863,8 +887,8 @@ Por favor, genera una planeación completa y detallada para este contenido, incl
               </Card>
             ) : (
               <div className="space-y-4">
-                {/* Tabla de dosificación */}
-                <div className="overflow-x-auto">
+                {/* Vista Desktop - Tabla */}
+                <div className="hidden md:block overflow-x-auto">
                   <table className="w-full border-collapse border border-gray-300 dark:border-gray-600">
                     <thead>
                       <tr className="bg-orange-400 dark:bg-orange-600 text-white">
@@ -905,6 +929,113 @@ Por favor, genera una planeación completa y detallada para este contenido, incl
                     </tbody>
                   </table>
                 </div>
+
+                {/* Vista Móvil - Tarjetas */}
+                <div className="md:hidden space-y-6">
+                  {curriculoData.map((item, index) => {
+                    const mesesSeleccionados = mesesEscolares.filter(mes => {
+                      const contenidoId = item.id.toString()
+                      return dosificacionMeses[contenidoId]?.[mes] || false
+                    })
+                    
+                    // Colores alternados para las tarjetas
+                    const colorSchemes = [
+                      { 
+                        gradient: 'from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/20',
+                        border: 'border-blue-200 dark:border-blue-700',
+                        accent: 'bg-blue-500',
+                        text: 'text-blue-700 dark:text-blue-300',
+                        badge: 'bg-blue-100 dark:bg-blue-800 text-blue-800 dark:text-blue-200'
+                      },
+                      { 
+                        gradient: 'from-emerald-50 to-teal-50 dark:from-emerald-900/20 dark:to-teal-900/20',
+                        border: 'border-emerald-200 dark:border-emerald-700',
+                        accent: 'bg-emerald-500',
+                        text: 'text-emerald-700 dark:text-emerald-300',
+                        badge: 'bg-emerald-100 dark:bg-emerald-800 text-emerald-800 dark:text-emerald-200'
+                      },
+                      { 
+                        gradient: 'from-purple-50 to-violet-50 dark:from-purple-900/20 dark:to-violet-900/20',
+                        border: 'border-purple-200 dark:border-purple-700',
+                        accent: 'bg-purple-500',
+                        text: 'text-purple-700 dark:text-purple-300',
+                        badge: 'bg-purple-100 dark:bg-purple-800 text-purple-800 dark:text-purple-200'
+                      },
+                      { 
+                        gradient: 'from-orange-50 to-amber-50 dark:from-orange-900/20 dark:to-amber-900/20',
+                        border: 'border-orange-200 dark:border-orange-700',
+                        accent: 'bg-orange-500',
+                        text: 'text-orange-700 dark:text-orange-300',
+                        badge: 'bg-orange-100 dark:bg-orange-800 text-orange-800 dark:text-orange-200'
+                      }
+                    ]
+                    
+                    const colorScheme = colorSchemes[index % colorSchemes.length]
+                    
+                    return (
+                      <Card key={item.id} className={`w-full overflow-hidden bg-gradient-to-br ${colorScheme.gradient} border-2 ${colorScheme.border} shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1`}>
+                        <CardHeader className="pb-4 relative">
+                          <div className={`absolute top-4 right-4 w-3 h-3 ${colorScheme.accent} rounded-full shadow-sm`}></div>
+                          <CardTitle className="text-base font-semibold text-gray-900 dark:text-gray-100 leading-tight pr-8">
+                            {item.contenido}
+                          </CardTitle>
+                        </CardHeader>
+                        <CardContent className="space-y-5">
+                          <div className="bg-white/60 dark:bg-gray-800/60 backdrop-blur-sm rounded-lg p-4 border border-white/20 dark:border-gray-700/50">
+                            <h4 className={`text-xs font-semibold ${colorScheme.text} mb-3 uppercase tracking-wider flex items-center gap-2`}>
+                              <div className={`w-2 h-2 ${colorScheme.accent} rounded-full`}></div>
+                              Proceso de Desarrollo y Aprendizaje
+                            </h4>
+                            <p className="text-sm text-gray-700 dark:text-gray-300 leading-relaxed">
+                              {item.pda}
+                            </p>
+                          </div>
+                          
+                          <div className="bg-white/40 dark:bg-gray-800/40 backdrop-blur-sm rounded-lg p-4 border border-white/20 dark:border-gray-700/50">
+                            <h4 className={`text-xs font-semibold ${colorScheme.text} mb-4 uppercase tracking-wider flex items-center gap-2`}>
+                              <div className={`w-2 h-2 ${colorScheme.accent} rounded-full`}></div>
+                              Calendario de Implementación
+                            </h4>
+                            <div className="grid grid-cols-3 gap-3">
+                              {mesesEscolares.map(mes => {
+                                const contenidoId = item.id.toString()
+                                const isChecked = dosificacionMeses[contenidoId]?.[mes] || false
+                                
+                                return (
+                                  <div key={mes} className="flex items-center space-x-2 group">
+                                    <Checkbox
+                                      id={`${item.id}-${mes}-mobile`}
+                                      checked={isChecked}
+                                      onCheckedChange={(checked) => handleSeleccionMes(item.id.toString(), mes, checked as boolean)}
+                                      className={`data-[state=checked]:bg-blue-600 data-[state=checked]:border-blue-600 dark:data-[state=checked]:bg-blue-500 dark:data-[state=checked]:border-blue-500 transition-all duration-200 group-hover:scale-110`}
+                                    />
+                                    <label 
+                                      htmlFor={`${item.id}-${mes}-mobile`}
+                                      className={`text-xs font-medium cursor-pointer transition-colors duration-200 group-hover:${colorScheme.text} ${isChecked ? colorScheme.text : 'text-gray-600 dark:text-gray-400'}`}
+                                    >
+                                      {mes}
+                                    </label>
+                                  </div>
+                                )
+                              })}
+                            </div>
+                          </div>
+                          
+                          {mesesSeleccionados.length > 0 && (
+                            <div className={`${colorScheme.badge} rounded-lg p-3 border border-current/20`}>
+                              <p className={`text-sm font-semibold ${colorScheme.text} flex items-center gap-2`}>
+                                <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                                  <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                                </svg>
+                                Programado para: {mesesSeleccionados.join(', ')}
+                              </p>
+                            </div>
+                          )}
+                        </CardContent>
+                      </Card>
+                    )
+                  })}
+                </div>
               </div>
             )}
           </div>
@@ -926,9 +1057,9 @@ Por favor, genera una planeación completa y detallada para este contenido, incl
 
         <Card className="max-w-2xl mx-auto">
           <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Settings className="h-5 w-5" />
-              Configuración Inicial
+            <CardTitle className="flex items-center gap-2 text-base sm:text-lg break-words leading-tight">
+              <Settings className="h-5 w-5 flex-shrink-0" />
+              <span className="break-words overflow-hidden">Configuración Inicial</span>
             </CardTitle>
             <CardDescription>
               Selecciona el grado y ciclo escolar con el que trabajarás
@@ -1019,38 +1150,52 @@ Por favor, genera una planeación completa y detallada para este contenido, incl
   // Vista de seguimiento
   if (vistaActual === "seguimiento") {
     return (
-      <div className="space-y-6">
-        <div className="flex items-center gap-4">
+      <div className="space-y-6 w-full max-w-full overflow-hidden pb-20 sm:pb-6 dashboard-mobile">
+        <div className="flex flex-col sm:flex-row sm:items-center gap-4">
+          {/* Botón Volver - Solo visible en desktop */}
           <Button 
-            variant="outline" 
+            variant="default" 
             onClick={() => setVistaActual("principal")}
-            className="flex items-center gap-2"
+            className="hidden sm:flex w-fit bg-primary hover:bg-primary/90 text-primary-foreground shadow-md"
           >
-            <ArrowLeft className="h-4 w-4" />
+            <ArrowLeft className="h-4 w-4 mr-2" />
             Volver
           </Button>
-          <div>
-            <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100">Seguimiento</h1>
-            <p className="text-gray-600 dark:text-gray-400">
+          <div className="flex-1 min-w-0">
+            <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold text-gray-900 dark:text-gray-100 break-words leading-tight">
+              Seguimiento
+            </h1>
+            <p className="text-gray-600 dark:text-gray-400 mt-2 text-sm sm:text-base">
               Monitorea el avance y cumplimiento de objetivos
             </p>
           </div>
         </div>
 
-        {/* Dashboard compacto - widgets en cuadrícula 2x2 */}
-        <div className="grid gap-6 lg:grid-cols-2">
+        {/* Botón flotante Volver - Solo visible en móviles */}
+        <Button 
+          variant="default" 
+          size="icon" 
+          onClick={() => setVistaActual("principal")} 
+          className="fixed bottom-4 left-4 z-50 bg-primary hover:bg-primary/90 text-primary-foreground shadow-lg rounded-full w-12 h-12 sm:hidden"
+          aria-label="Volver"
+        >
+          <ArrowLeft className="h-5 w-5" />
+        </Button>
+
+        {/* Dashboard compacto - widgets en cuadrícula responsiva */}
+        <div className="grid gap-4 sm:gap-6 grid-cols-1 lg:grid-cols-2 w-full max-w-full overflow-hidden px-2 sm:px-0">
           {/* Widget 1: Resumen General del Ciclo Escolar */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <TrendingUp className="h-5 w-5 text-blue-600" />
-                Resumen General del Ciclo Escolar
+          <Card className="w-full max-w-full overflow-hidden">
+            <CardHeader className="w-full max-w-full overflow-hidden">
+              <CardTitle className="flex items-center gap-2 text-sm sm:text-base lg:text-lg break-words leading-tight w-full">
+                <TrendingUp className="h-4 w-4 sm:h-5 sm:w-5 text-blue-600 flex-shrink-0" />
+                <span className="break-words overflow-hidden text-ellipsis">Resumen General del Ciclo Escolar</span>
               </CardTitle>
-              <CardDescription>
+              <CardDescription className="text-xs sm:text-sm break-words leading-tight">
                 Estado general de tu plan anual de dosificación curricular
               </CardDescription>
             </CardHeader>
-            <CardContent>
+            <CardContent className="w-full max-w-full overflow-hidden">
               {cargandoEstadisticas ? (
                 <div className="flex items-center justify-center py-12">
                   <Loader2 className="h-8 w-8 animate-spin text-gray-400" />
@@ -1164,17 +1309,17 @@ Por favor, genera una planeación completa y detallada para este contenido, incl
           </Card>
 
           {/* Widget 2: Progreso por Campo Formativo */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <BarChart3 className="h-5 w-5 text-purple-600" />
-                Progreso por Campo Formativo
+          <Card className="w-full max-w-full overflow-hidden">
+            <CardHeader className="w-full max-w-full overflow-hidden">
+              <CardTitle className="flex items-center gap-2 text-sm sm:text-base lg:text-lg break-words leading-tight w-full">
+                <BarChart3 className="h-4 w-4 sm:h-5 sm:w-5 text-purple-600 flex-shrink-0" />
+                <span className="break-words overflow-hidden text-ellipsis">Progreso por Campo Formativo</span>
               </CardTitle>
-              <CardDescription>
+              <CardDescription className="text-xs sm:text-sm break-words leading-tight">
                 Radiografía del avance en cada área curricular
               </CardDescription>
             </CardHeader>
-            <CardContent>
+            <CardContent className="w-full max-w-full overflow-hidden">
               {cargandoEstadisticas ? (
                 <div className="flex items-center justify-center py-8">
                   <Loader2 className="h-6 w-6 animate-spin text-gray-400" />
@@ -1190,30 +1335,79 @@ Por favor, genera una planeación completa y detallada para este contenido, incl
                   </p>
                 </div>
               ) : (
-                <div className="space-y-3">
-                  {estadisticasPorCampo.map((campo, index) => (
-                    <div key={campo.campo}>
-                      <BarraProgreso
-                        porcentaje={campo.porcentaje}
-                        label={campo.campo}
-                        completados={campo.completados}
-                        total={campo.total}
-                      />
-                      
-                      {/* Separador entre campos (excepto el último) */}
-                      {index < estadisticasPorCampo.length - 1 && (
-                        <div className="border-b border-gray-200 dark:border-gray-700 mt-3"></div>
-                      )}
-                    </div>
-                  ))}
+                <div className="space-y-4">
+                  {estadisticasPorCampo.map((campo, index) => {
+                    const colorSchemes = [
+                      { 
+                        gradient: 'from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/20',
+                        border: 'border-blue-200 dark:border-blue-700',
+                        accent: 'bg-blue-500',
+                        text: 'text-blue-700 dark:text-blue-300',
+                        progress: 'bg-gradient-to-r from-blue-500 to-blue-600'
+                      },
+                      { 
+                        gradient: 'from-emerald-50 to-teal-50 dark:from-emerald-900/20 dark:to-teal-900/20',
+                        border: 'border-emerald-200 dark:border-emerald-700',
+                        accent: 'bg-emerald-500',
+                        text: 'text-emerald-700 dark:text-emerald-300',
+                        progress: 'bg-gradient-to-r from-emerald-500 to-emerald-600'
+                      },
+                      { 
+                        gradient: 'from-purple-50 to-violet-50 dark:from-purple-900/20 dark:to-violet-900/20',
+                        border: 'border-purple-200 dark:border-purple-700',
+                        accent: 'bg-purple-500',
+                        text: 'text-purple-700 dark:text-purple-300',
+                        progress: 'bg-gradient-to-r from-purple-500 to-purple-600'
+                      },
+                      { 
+                        gradient: 'from-orange-50 to-amber-50 dark:from-orange-900/20 dark:to-amber-900/20',
+                        border: 'border-orange-200 dark:border-orange-700',
+                        accent: 'bg-orange-500',
+                        text: 'text-orange-700 dark:text-orange-300',
+                        progress: 'bg-gradient-to-r from-orange-500 to-orange-600'
+                      }
+                    ]
+                    
+                    const colorScheme = colorSchemes[index % colorSchemes.length]
+                    
+                    return (
+                      <div 
+                        key={campo.campo}
+                        className={`bg-gradient-to-br ${colorScheme.gradient} border-2 ${colorScheme.border} rounded-lg p-3 sm:p-4 shadow-sm hover:shadow-md transition-all duration-300 w-full max-w-full overflow-hidden`}
+                      >
+                        <div className="flex items-center justify-between mb-3">
+                          <h3 className={`text-sm sm:text-sm font-semibold ${colorScheme.text} leading-tight break-words overflow-hidden pr-2`}>
+                            {campo.campo}
+                          </h3>
+                          <div className={`w-3 h-3 ${colorScheme.accent} rounded-full shadow-sm flex-shrink-0`}></div>
+                        </div>
+                        
+                        <div className="space-y-2">
+                          <div className="flex justify-between text-sm sm:text-sm">
+                            <span className="text-gray-600 dark:text-gray-400 break-words">Progreso:</span>
+                            <span className={`font-semibold ${colorScheme.text} text-right`}>
+                              {campo.completados}/{campo.total} ({campo.porcentaje}%)
+                            </span>
+                          </div>
+                          
+                          <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-4 sm:h-3">
+                            <div 
+                              className={`h-4 sm:h-3 rounded-full transition-all duration-1000 ease-out ${colorScheme.progress}`}
+                              style={{ width: `${Math.max(campo.porcentaje, 5)}%` }}
+                            />
+                          </div>
+                        </div>
+                      </div>
+                    )
+                  })}
                   
-                  {/* Resumen general - más compacto */}
-                  <div className="mt-4 p-3 bg-gray-50 dark:bg-gray-800 rounded-lg">
+                  {/* Resumen general mejorado */}
+                  <div className="mt-4 p-3 sm:p-4 bg-gradient-to-r from-gray-50 to-gray-100 dark:from-gray-800 dark:to-gray-700 rounded-lg border border-gray-200 dark:border-gray-600 shadow-sm">
                     <div className="flex justify-between items-center">
-                      <span className="text-xs font-medium text-gray-700 dark:text-gray-300">
-                        Promedio
+                      <span className="text-sm font-semibold text-gray-700 dark:text-gray-300">
+                        Promedio General
                       </span>
-                      <span className="text-sm font-bold text-gray-900 dark:text-gray-100">
+                      <span className="text-lg font-bold text-gray-900 dark:text-gray-100">
                         {estadisticasPorCampo.length > 0 
                           ? Math.round(estadisticasPorCampo.reduce((acc, campo) => acc + campo.porcentaje, 0) / estadisticasPorCampo.length)
                           : 0}%
@@ -1227,36 +1421,36 @@ Por favor, genera una planeación completa y detallada para este contenido, incl
         </div>
 
         {/* Segunda fila de widgets */}
-        <div className="grid gap-6 lg:grid-cols-2 mt-6">
+        <div className="grid gap-4 sm:gap-6 grid-cols-1 lg:grid-cols-2 mt-6 w-full max-w-full overflow-hidden px-2 sm:px-0">
           {/* Widget 3: Carga de Trabajo por Trimestre */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Calendar className="h-5 w-5 text-indigo-600" />
-                Carga de Trabajo por Trimestre
+          <Card className="w-full max-w-full overflow-hidden">
+            <CardHeader className="w-full max-w-full overflow-hidden">
+              <CardTitle className="flex items-center gap-2 text-base sm:text-lg break-words leading-tight">
+                <Calendar className="h-5 w-5 text-indigo-600 flex-shrink-0" />
+                <span className="break-words overflow-hidden">Carga de Trabajo por Trimestre</span>
               </CardTitle>
               <CardDescription>
                 Distribución y progreso del año escolar por periodos
               </CardDescription>
             </CardHeader>
-            <CardContent>
+            <CardContent className="w-full max-w-full overflow-hidden">
               {cargandoEstadisticas ? (
                 <div className="flex items-center justify-center py-8">
                   <Loader2 className="h-6 w-6 animate-spin text-gray-400" />
                 </div>
               ) : (
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div className="grid grid-cols-1 gap-4 w-full max-w-full overflow-hidden">
                   {estadisticasPorTrimestre.map((trimestre) => (
                     <div 
                       key={trimestre.trimestre}
-                      className={`p-4 rounded-lg border-2 transition-all ${
+                      className={`p-3 sm:p-4 rounded-lg border-2 transition-all duration-300 shadow-sm hover:shadow-md transform hover:-translate-y-1 w-full max-w-full overflow-hidden ${
                         trimestre.esActual 
-                          ? 'border-indigo-500 bg-indigo-50 dark:bg-indigo-950/20' 
-                          : 'border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800'
+                          ? 'border-indigo-500 bg-gradient-to-br from-indigo-50 to-blue-50 dark:from-indigo-950/20 dark:to-blue-950/20' 
+                          : 'border-gray-200 dark:border-gray-700 bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-800 dark:to-gray-700'
                       }`}
                     >
                       <div className="flex items-center justify-between mb-3">
-                        <h3 className={`font-semibold text-sm ${
+                        <h3 className={`font-semibold text-sm break-words leading-tight ${
                           trimestre.esActual 
                             ? 'text-indigo-700 dark:text-indigo-300' 
                             : 'text-gray-700 dark:text-gray-300'
@@ -1271,15 +1465,15 @@ Por favor, genera una planeación completa y detallada para este contenido, incl
                       </div>
                       
                       <div className="space-y-2">
-                        <div className="flex justify-between text-xs">
-                          <span className="text-gray-600 dark:text-gray-400">PDAs asignados:</span>
+                        <div className="flex justify-between text-xs sm:text-sm">
+                          <span className="text-gray-600 dark:text-gray-400 break-words">PDAs asignados:</span>
                           <span className="font-medium text-gray-900 dark:text-gray-100">
                             {trimestre.asignados}
                           </span>
                         </div>
                         
-                        <div className="flex justify-between text-xs">
-                          <span className="text-gray-600 dark:text-gray-400">Completados:</span>
+                        <div className="flex justify-between text-xs sm:text-sm">
+                          <span className="text-gray-600 dark:text-gray-400 break-words">Completados:</span>
                           <span className="font-medium text-gray-900 dark:text-gray-100">
                             {trimestre.completados}
                             {trimestre.asignados === trimestre.completados && trimestre.asignados > 0 && (
@@ -1290,8 +1484,8 @@ Por favor, genera una planeación completa y detallada para este contenido, incl
                         
                         {trimestre.asignados > 0 && (
                           <div className="pt-2">
-                            <div className="flex justify-between text-xs mb-1">
-                              <span className="text-gray-600 dark:text-gray-400">Progreso:</span>
+                            <div className="flex justify-between text-xs sm:text-sm mb-1">
+                              <span className="text-gray-600 dark:text-gray-400 break-words">Progreso:</span>
                               <span className={`font-medium ${
                                 trimestre.porcentaje === 100 
                                   ? 'text-green-600 dark:text-green-400' 
@@ -1325,17 +1519,17 @@ Por favor, genera una planeación completa y detallada para este contenido, incl
           </Card>
 
           {/* Widget 4: Acciones Sugeridas */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Target className="h-5 w-5 text-orange-600" />
-                Acciones Sugeridas
+          <Card className="w-full max-w-full overflow-hidden">
+            <CardHeader className="w-full max-w-full overflow-hidden">
+              <CardTitle className="flex items-center gap-2 text-base sm:text-lg break-words leading-tight">
+                <Target className="h-5 w-5 text-orange-600 flex-shrink-0" />
+                <span className="break-words overflow-hidden">Acciones Sugeridas</span>
               </CardTitle>
               <CardDescription>
                 Próximos PDAs a cubrir en este trimestre
               </CardDescription>
             </CardHeader>
-            <CardContent>
+            <CardContent className="w-full max-w-full overflow-hidden">
               {cargandoEstadisticas ? (
                 <div className="flex items-center justify-center py-8">
                   <Loader2 className="h-6 w-6 animate-spin text-gray-400" />
@@ -1457,7 +1651,7 @@ Por favor, genera una planeación completa y detallada para este contenido, incl
                     Distribución Temporal
                   </CardTitle>
                 </CardHeader>
-                <CardContent>
+                <CardContent className="w-full max-w-full overflow-hidden">
                   <p className="text-sm text-gray-600 dark:text-gray-400 leading-relaxed">
                     Organiza contenidos por trimestres de forma inteligente
                   </p>
@@ -1478,7 +1672,7 @@ Por favor, genera una planeación completa y detallada para este contenido, incl
                     Contenidos Curriculares
                   </CardTitle>
                 </CardHeader>
-                <CardContent>
+                <CardContent className="w-full max-w-full overflow-hidden">
                   <p className="text-sm text-gray-600 dark:text-gray-400 leading-relaxed">
                     Define temas, subtemas y actividades por periodo
                   </p>
@@ -1502,7 +1696,7 @@ Por favor, genera una planeación completa y detallada para este contenido, incl
                     Seguimiento
                   </CardTitle>
                 </CardHeader>
-                <CardContent>
+                <CardContent className="w-full max-w-full overflow-hidden">
                   <p className="text-sm text-gray-600 dark:text-gray-400 leading-relaxed">
                     Monitorea el avance y cumplimiento de objetivos
                   </p>

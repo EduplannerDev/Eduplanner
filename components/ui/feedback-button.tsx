@@ -72,10 +72,11 @@ export function FeedbackButton({}: FeedbackButtonProps) {
   return (
     <>
       <Button
-        className="fixed bottom-4 right-4 rounded-full p-4 shadow-lg"
+        className="fixed bottom-4 right-4 rounded-full p-3 sm:p-4 shadow-lg z-50 text-xs sm:text-sm max-w-[calc(100vw-2rem)] sm:max-w-none"
         onClick={() => setIsOpen(true)}
       >
-        💬 Envíanos tu feedback
+        <span className="hidden sm:inline">💬 Envíanos tu feedback</span>
+        <span className="sm:hidden">💬</span>
       </Button>
 
       <AlertDialog open={isOpen} onOpenChange={setIsOpen}>
