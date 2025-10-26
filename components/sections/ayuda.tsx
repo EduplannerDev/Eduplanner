@@ -19,7 +19,8 @@ import {
   MessageCircle,
   Bot,
   BarChart3,
-  GraduationCap
+  GraduationCap,
+  NotebookPen
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { ContactForm } from "@/components/contact-form"
@@ -153,6 +154,14 @@ const videoData: VideoItem[] = [
     youtubeId: "i7jHj2JwUj0",
     duration: "14:15",
     category: "Exámenes"
+  },
+  {
+    id: "4",
+    title: "Cómo usar la Bitácora (Diario Profesional)",
+    description: "Aprende cómo documentar tus reflexiones, experiencias pedagógicas y actividades diarias en el diario profesional de EduPlanner.",
+    youtubeId: "HZAgfXq0YSs",
+    duration: "10:30",
+    category: "Bitácora"
   }
 ]
 
@@ -163,6 +172,7 @@ const categories = [
   { name: "Proyectos", icon: Bot, color: "bg-indigo-100 text-indigo-800 dark:bg-indigo-900/30 dark:text-indigo-300" },
   { name: "Dosificación", icon: BarChart3, color: "bg-cyan-100 text-cyan-800 dark:bg-cyan-900/30 dark:text-cyan-300" },
   { name: "Chat IA", icon: MessageSquare, color: "bg-orange-100 text-orange-800 dark:bg-orange-900/30 dark:text-orange-300" },
+  { name: "Bitácora", icon: NotebookPen, color: "bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-300" },
   { name: "Mensajes", icon: Users, color: "bg-pink-100 text-pink-800 dark:bg-pink-900/30 dark:text-pink-300" },
   { name: "Gestión", icon: Users, color: "bg-emerald-100 text-emerald-800 dark:bg-emerald-900/30 dark:text-emerald-300" },
   { name: "Evaluación", icon: GraduationCap, color: "bg-violet-100 text-violet-800 dark:bg-violet-900/30 dark:text-violet-300" },
