@@ -28,8 +28,14 @@ export default function WelcomeModal({ open, onClose }: WelcomeModalProps) {
     onClose()
   }
 
+  const handleOpenChange = (isOpen: boolean) => {
+    if (!isOpen) {
+      handleClose()
+    }
+  }
+
   return (
-    <Dialog open={open} onOpenChange={handleClose}>
+    <Dialog open={open} onOpenChange={handleOpenChange}>
       <DialogContent className="max-w-7xl w-[98vw] h-[90vh] sm:h-[85vh] p-0 overflow-hidden">
         <DialogHeader className="p-6 pb-0">
           <DialogTitle className="text-2xl font-bold text-center">

@@ -2,8 +2,14 @@
 
 import { useState, useEffect } from 'react'
 import { Button } from '@/components/ui/button'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog'
 import { supabase } from '@/lib/supabase'
 import { useAuth } from '@/hooks/use-auth'
 import { Loader2, GraduationCap } from 'lucide-react'
@@ -53,23 +59,27 @@ export function ContextoTrabajoModal({ isOpen, onClose, onSuccess }: ContextoTra
     }
   }
 
-  if (!isOpen) return null
+  const handleOpenChange = (open: boolean) => {
+    if (!open) {
+      onClose()
+    }
+  }
 
   return (
-    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-      <Card className="w-full max-w-md mx-auto">
-        <CardHeader className="text-center">
+    <Dialog open={isOpen} onOpenChange={handleOpenChange}>
+      <DialogContent className="max-w-md">
+        <DialogHeader>
           <div className="mx-auto mb-4 w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center">
             <GraduationCap className="h-6 w-6 text-blue-600" />
           </div>
-          <CardTitle className="text-xl font-bold text-gray-900 dark:text-gray-100">
+          <DialogTitle className="text-xl font-bold text-center">
             ¡EduPlanner se actualiza!
-          </CardTitle>
-          <CardDescription className="text-gray-600 dark:text-gray-400">
+          </DialogTitle>
+          <DialogDescription className="text-center">
             Ahora somos compatibles con Preescolar, Primaria y Secundaria. Para personalizar tu experiencia, ¿en qué nivel impartes clases?
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-6">
+          </DialogDescription>
+        </DialogHeader>
+        <div className="space-y-6 pt-6">
           <div className="space-y-2">
             <label className="text-sm font-medium text-gray-700 dark:text-gray-300">
               Grado Escolar
@@ -141,8 +151,8 @@ export function ContextoTrabajoModal({ isOpen, onClose, onSuccess }: ContextoTra
               )}
             </Button>
           </div>
-        </CardContent>
-      </Card>
-    </div>
+        </div>
+      </DialogContent>
+    </Dialog>
   )
 }
