@@ -3,12 +3,10 @@
 import { Suspense, useState, useEffect } from "react"
 import { useAuth } from "@/hooks/use-auth"
 import { useIsMobile } from "@/hooks/use-mobile"
-import { useWelcomeModal } from "@/hooks/use-welcome-modal"
 import { useContextoTrabajo } from "@/hooks/use-contexto-trabajo"
 import LoginForm from "@/components/login-form"
 import Dashboard from "@/components/dashboard"
 import { MobileLanding } from "@/components/mobile-landing"
-import WelcomeModal from "@/components/welcome-modal"
 import { ContextoTrabajoModal } from "@/components/contexto-trabajo-modal"
 import { Loader2 } from "lucide-react"
 
@@ -24,7 +22,6 @@ export default function Home() {
   const { user, loading } = useAuth()
   const isMobile = useIsMobile()
   const [showMobileLanding, setShowMobileLanding] = useState(true)
-  const { showModal, closeModal } = useWelcomeModal()
   const { hasContexto, loading: loadingContexto, actualizarContexto } = useContextoTrabajo()
   const [showContextoModal, setShowContextoModal] = useState(false)
 
@@ -70,7 +67,6 @@ export default function Home() {
       <Suspense fallback={<LoadingFallback />}>
         {user ? <Dashboard /> : <LoginForm />}
       </Suspense>
-      <WelcomeModal open={showModal} onClose={closeModal} />
       <ContextoTrabajoModal 
         isOpen={showContextoModal} 
         onClose={() => setShowContextoModal(false)}
