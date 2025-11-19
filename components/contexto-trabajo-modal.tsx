@@ -13,6 +13,7 @@ import {
 import { supabase } from '@/lib/supabase'
 import { useAuth } from '@/hooks/use-auth'
 import { Loader2, GraduationCap } from 'lucide-react'
+import { toast } from 'sonner'
 
 interface ContextoTrabajoModalProps {
   isOpen: boolean
@@ -24,6 +25,21 @@ export function ContextoTrabajoModal({ isOpen, onClose, onSuccess }: ContextoTra
   const { user } = useAuth()
   const [gradoSeleccionado, setGradoSeleccionado] = useState<string>("")
   const [loading, setLoading] = useState(false)
+  const [cicloEscolar, setCicloEscolar] = useState<string>("")
+
+  // Calcular ciclo escolar actual
+  useEffect(() => {
+    const now = new Date()
+    const currentYear = now.getFullYear()
+    const currentMonth = now.getMonth() // 0-11
+    
+    // Si estamos en agosto (7) o después, el ciclo inicia este año
+    // Si estamos antes de agosto, el ciclo inició el año pasado
+    const startYear = currentMonth >= 7 ? currentYear : currentYear - 1
+    const endYear = startYear + 1
+    
+    setCicloEscolar(`${startYear}-${endYear}`)
+  }, [])
 
   // Resetear el estado cuando se abre el modal
   useEffect(() => {
@@ -41,19 +57,22 @@ export function ContextoTrabajoModal({ isOpen, onClose, onSuccess }: ContextoTra
         .rpc('set_contexto_trabajo', {
           profesor_id_param: user.id,
           grado_param: parseInt(gradoSeleccionado),
-          ciclo_escolar_param: '2025-2026'
+          ciclo_escolar_param: cicloEscolar
         })
 
       if (error) {
         console.error('Error guardando configuración:', error)
+        toast.error('Error al guardar la configuración. Por favor intenta de nuevo.')
         return
       }
 
       // Cerrar modal y notificar éxito
+      toast.success('¡Configuración guardada correctamente!')
       onSuccess()
       onClose()
     } catch (error) {
       console.error('Error:', error)
+      toast.error('Ocurrió un error inesperado.')
     } finally {
       setLoading(false)
     }
@@ -131,7 +150,7 @@ export function ContextoTrabajoModal({ isOpen, onClose, onSuccess }: ContextoTra
 
           <div className="bg-blue-50 dark:bg-blue-950/50 p-3 rounded-lg">
             <p className="text-sm text-blue-800 dark:text-blue-200">
-              <strong>Ciclo escolar:</strong> 2025-2026
+              <strong>Ciclo escolar:</strong> {cicloEscolar}
             </p>
           </div>
 

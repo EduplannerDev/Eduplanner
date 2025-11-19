@@ -31,6 +31,7 @@ import { es } from "date-fns/locale"
 
 interface DashboardHomeProps {
   onSectionChange: (section: string) => void
+  onOpenPlaneacion?: (planeacionId: string) => void
 }
 
 interface Stats {
@@ -48,7 +49,7 @@ interface RecentActivity {
   status?: string
 }
 
-export function DashboardHome({ onSectionChange }: DashboardHomeProps) {
+export function DashboardHome({ onSectionChange, onOpenPlaneacion }: DashboardHomeProps) {
   const { user } = useAuth()
   const { userData } = useUserData(user?.id)
   const { profile } = useProfile()
@@ -508,20 +509,34 @@ export function DashboardHome({ onSectionChange }: DashboardHomeProps) {
           <CardContent className="px-4 md:px-6 pb-4 md:pb-6">
             {recentActivity.length > 0 ? (
               <div className="space-y-3">
-                {recentActivity.map((activity) => (
-                  <div key={activity.id} className="flex items-center gap-3 p-2 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-800">
-                    <div className={`p-2 rounded-full ${getActivityColor(activity.type)}`}>
-                      {getActivityIcon(activity.type)}
+                {recentActivity.map((activity) => {
+                  const isPlaneacion = activity.type === "planeacion"
+
+                  return (
+                    <div
+                      key={activity.id}
+                      className={`flex items-center gap-3 p-2 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-800 ${
+                        isPlaneacion ? "cursor-pointer" : ""
+                      }`}
+                      onClick={
+                        isPlaneacion && onOpenPlaneacion
+                          ? () => onOpenPlaneacion(activity.id)
+                          : undefined
+                      }
+                    >
+                      <div className={`p-2 rounded-full ${getActivityColor(activity.type)}`}>
+                        {getActivityIcon(activity.type)}
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm font-medium truncate">{activity.title}</p>
+                        <p className="text-xs text-muted-foreground">{activity.date}</p>
+                      </div>
+                      <Badge variant="secondary" className="text-xs">
+                        {activity.type}
+                      </Badge>
                     </div>
-                    <div className="flex-1 min-w-0">
-                      <p className="text-sm font-medium truncate">{activity.title}</p>
-                      <p className="text-xs text-muted-foreground">{activity.date}</p>
-                    </div>
-                    <Badge variant="secondary" className="text-xs">
-                      {activity.type}
-                    </Badge>
-                  </div>
-                ))}
+                  )
+                })}
               </div>
             ) : (
               <div className="text-center py-6 text-muted-foreground">

@@ -67,6 +67,7 @@ export default function Dashboard({ children, customContent = false }: Dashboard
     mesActual: string
   } | null>(null)
   const [previousSection, setPreviousSection] = useState<string>("grupos")
+  const [selectedPlaneacionFromHome, setSelectedPlaneacionFromHome] = useState<string | null>(null)
   const { isDirector } = useRoles()
 
   const handleNavigateToMensajesPadres = (studentData: any) => {
@@ -168,7 +169,15 @@ export default function Dashboard({ children, customContent = false }: Dashboard
   const renderContent = useMemo(() => {
     switch (activeSection) {
       case "dashboard":
-        return <DashboardHome onSectionChange={setActiveSection} />
+        return (
+          <DashboardHome
+            onSectionChange={setActiveSection}
+            onOpenPlaneacion={(planeacionId) => {
+              setSelectedPlaneacionFromHome(planeacionId)
+              setActiveSection("mis-planeaciones")
+            }}
+          />
+        )
       case "nueva-planeacion":
         return <NuevaPlaneacion 
           onCreateClass={() => {
@@ -180,10 +189,15 @@ export default function Dashboard({ children, customContent = false }: Dashboard
           onNavigateToCime={() => setActiveSection("planeacion-cime")}
         />
       case "mis-planeaciones":
-        return <MisPlaneaciones onCreateNew={() => {
-          clearChatStates()
-          setActiveSection("chat-ia")
-        }} />
+        return (
+          <MisPlaneaciones
+            onCreateNew={() => {
+              clearChatStates()
+              setActiveSection("chat-ia")
+            }}
+            initialPlaneacionId={selectedPlaneacionFromHome || undefined}
+          />
+        )
       case "perfil":
         return <Perfil />
       case "mi-perfil":
@@ -293,7 +307,7 @@ export default function Dashboard({ children, customContent = false }: Dashboard
       default:
         return <DashboardHome onSectionChange={setActiveSection} />
     }
-  }, [activeSection, initialChatMessage, dosificacionData, previousSection, preselectedStudent, selectedStudentForMessages, isDirector])
+  }, [activeSection, initialChatMessage, dosificacionData, previousSection, preselectedStudent, selectedStudentForMessages, isDirector, selectedPlaneacionFromHome])
 
   // Usar padding diferente para el chat y mensajes
   const isChat = activeSection === "generar-mensajes-padres"
