@@ -13,43 +13,43 @@ import { getGradoTexto } from "@/lib/grado-utils"
 // Función específica para convertir contenido del chat
 function convertChatMarkdownToHtml(content: string): string {
   if (!content) return ''
-  
+
   let html = content
-  
+
   // Convertir encabezados
   html = html.replace(/^### (.*$)/gm, '<h3 class="text-lg font-semibold mb-2">$1</h3>')
   html = html.replace(/^## (.*$)/gm, '<h2 class="text-xl font-semibold mb-3">$1</h2>')
   html = html.replace(/^# (.*$)/gm, '<h1 class="text-2xl font-bold mb-4">$1</h1>')
-  
+
   // Convertir texto en negrita
   html = html.replace(/\*\*(.*?)\*\*/g, '<strong class="font-semibold">$1</strong>')
-  
+
   // Convertir texto en cursiva
   html = html.replace(/(?<!\*)\*([^*\n]+?)\*(?!\*)/g, '<em class="italic">$1</em>')
-  
+
   // Convertir listas no ordenadas
   html = html.replace(/^\s*[-*+]\s+(.*)$/gm, '<li class="ml-4 mb-1">• $1</li>')
   html = html.replace(/((<li[^>]*>[\s\S]*?<\/li>\s*)+)/g, '<ul class="mb-3">$1</ul>')
-  
+
   // Convertir listas ordenadas
   html = html.replace(/^\s*(\d+)\.\s+(.*)$/gm, '<li class="ml-4 mb-1">$1. $2</li>')
-  
+
   // Convertir saltos de línea dobles en párrafos
   const paragraphs = html.split(/\n\s*\n/)
   html = paragraphs.map(paragraph => {
     const trimmed = paragraph.trim()
     if (!trimmed) return ''
-    
+
     // No envolver en <p> si ya tiene tags de bloque
     if (trimmed.match(/^<(h[1-6]|ul|ol|li|div)/)) {
       return trimmed
     }
-    
+
     // Convertir saltos de línea simples en <br>
     const withBreaks = trimmed.replace(/\n/g, '<br>')
-    return `<p class="mb-3 leading-relaxed">${withBreaks}</p>`
+    return `<div class="mb-3 leading-relaxed">${withBreaks}</div>`
   }).filter(p => p).join('')
-  
+
   return html
 }
 import { ArrowLeft, Send, Bot, User, Loader2, Sparkles, AlertCircle, Save, CheckCircle, ThumbsUp, ThumbsDown, Crown, AlertTriangle } from "lucide-react"
@@ -75,11 +75,11 @@ interface ChatIADosificacionProps {
 
 export function ChatIADosificacion({ onBack, onSaveSuccess, initialMessage, contenidosSeleccionados, contexto, mesActual }: ChatIADosificacionProps) {
   const messagesEndRef = useRef<HTMLDivElement>(null)
-  const [lastPlaneacionContent, setLastPlaneacionContent] = useState<string>("") 
+  const [lastPlaneacionContent, setLastPlaneacionContent] = useState<string>("")
   const [showSaveButton, setShowSaveButton] = useState(false)
   const [savedPlaneacionId, setSavedPlaneacionId] = useState<string | null>(null)
   const [autoSendTriggered, setAutoSendTriggered] = useState(false)
-  
+
   // Estados para el sistema de feedback de calidad
   const [showQualityFeedback, setShowQualityFeedback] = useState(false)
   const [qualityRating, setQualityRating] = useState<'useful' | 'needs_improvement' | null>(null)
@@ -99,7 +99,7 @@ export function ChatIADosificacion({ onBack, onSaveSuccess, initialMessage, cont
   const getMesCompleto = (mesAbreviado: string) => {
     const meses: { [key: string]: string } = {
       'ENE': 'Enero',
-      'FEB': 'Febrero', 
+      'FEB': 'Febrero',
       'MAR': 'Marzo',
       'ABR': 'Abril',
       'MAY': 'Mayo',
@@ -122,7 +122,7 @@ export function ChatIADosificacion({ onBack, onSaveSuccess, initialMessage, cont
     monthlyCount,
     loading: planeacionesLoading,
   } = usePlaneaciones()
-  
+
   const isPro = profile ? isUserPro(profile) : false
   const hasReachedLimit = !planeacionesLoading && !profileLoading && !isPro && monthlyCount >= 5
 
@@ -185,7 +185,7 @@ ${(contenidosSeleccionados || []).map((c, i) => `${i + 1}. ${c.contenido}`).join
   // Función personalizada para manejar el envío con validación de límites
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
-    
+
     // Verificar límite antes de enviar
     if (hasReachedLimit) {
       Swal.fire({
@@ -231,7 +231,7 @@ ${(contenidosSeleccionados || []).map((c, i) => `${i + 1}. ${c.contenido}`).join
     try {
       const planeacionInfo = extractPlaneacionInfo(lastPlaneacionContent)
       const cleanContent = getCleanContentForSaving(lastPlaneacionContent)
-      
+
       const planeacionData = {
         titulo: planeacionInfo.titulo || `Planeación desde Dosificación - ${getMesCompleto(mesActual)}`,
         materia: planeacionInfo.materia || (contenidosSeleccionados && contenidosSeleccionados[0]?.campo_formativo) || null,
@@ -246,11 +246,11 @@ ${(contenidosSeleccionados || []).map((c, i) => `${i + 1}. ${c.contenido}`).join
       }
 
       const newPlaneacion = await createPlaneacion(planeacionData)
-      
+
       if (newPlaneacion) {
         setSavedPlaneacionId(newPlaneacion.id)
         setShowSaveButton(false)
-        
+
         // Crear las relaciones con los contenidos seleccionados
         if (newPlaneacion.id) {
           const relaciones = (contenidosSeleccionados || []).map(contenido => ({
@@ -261,7 +261,7 @@ ${(contenidosSeleccionados || []).map((c, i) => `${i + 1}. ${c.contenido}`).join
           // Aquí deberías llamar a una función para crear las relaciones
           // await createPlaneacionContenidos(relaciones)
         }
-        
+
         Swal.fire({
           title: '¡Planeación guardada!',
           text: 'Tu planeación ha sido guardada exitosamente.',
@@ -304,7 +304,7 @@ ${(contenidosSeleccionados || []).map((c, i) => `${i + 1}. ${c.contenido}`).join
     try {
       // Aquí enviarías el feedback a tu API
 
-      
+
       setShowQualityFeedback(false)
       setShowFollowUp(false)
       setFeedbackText('')
@@ -392,12 +392,12 @@ ${(contenidosSeleccionados || []).map((c, i) => `${i + 1}. ${c.contenido}`).join
 
                       <div
                         className={`max-w-[85%] rounded-lg p-3 break-words dark:bg-gray-900  dark:border-gray-500  ${message.role === "user"
-                            ? "bg-blue-600 text-white"
-                            : "bg-gray-100 text-gray-900 dark:text-gray-100 border border-gray-200"
+                          ? "bg-blue-600 text-white"
+                          : "bg-gray-100 text-gray-900 dark:text-gray-100 border border-gray-200"
                           }`}
                       >
                         {message.role === "assistant" ? (
-                          <div 
+                          <div
                             className="text-sm text-gray-900 dark:text-gray-100 leading-relaxed select-none"
                             dangerouslySetInnerHTML={{ __html: convertChatMarkdownToHtml(message.content) }}
                           />
@@ -438,7 +438,7 @@ ${(contenidosSeleccionados || []).map((c, i) => `${i + 1}. ${c.contenido}`).join
                         <CardContent className="pt-6">
                           <div className="text-center">
                             <h3 className="font-medium text-lg mb-2 select-none">Calidad de la Planeación</h3>
-                            
+
                             {!showFollowUp ? (
                               <>
                                 <p className="text-sm mb-6 text-gray-600 dark:text-gray-300">

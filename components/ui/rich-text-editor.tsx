@@ -3,13 +3,13 @@
 import { useEditor, EditorContent } from '@tiptap/react'
 import StarterKit from '@tiptap/starter-kit'
 import { Button } from '@/components/ui/button'
-import { 
-  Bold, 
-  Italic, 
-  List, 
-  ListOrdered, 
-  Quote, 
-  Undo, 
+import {
+  Bold,
+  Italic,
+  List,
+  ListOrdered,
+  Quote,
+  Undo,
   Redo,
   Heading1,
   Heading2,
@@ -26,12 +26,12 @@ interface RichTextEditorProps {
   disabled?: boolean
 }
 
-export function RichTextEditor({ 
-  content, 
-  onChange, 
-  placeholder = "Escribe aquí...", 
+export function RichTextEditor({
+  content,
+  onChange,
+  placeholder = "Escribe aquí...",
   className,
-  disabled = false 
+  disabled = false
 }: RichTextEditorProps) {
   const editor = useEditor({
     extensions: [StarterKit],
@@ -93,7 +93,7 @@ export function RichTextEditor({
         >
           <Bold className="h-4 w-4" />
         </Button>
-        
+
         <Button
           variant={editor.isActive('italic') ? 'default' : 'ghost'}
           size="sm"
@@ -192,8 +192,8 @@ export function RichTextEditor({
       </div>
 
       {/* Área de edición */}
-      <EditorContent 
-        editor={editor} 
+      <EditorContent
+        editor={editor}
         className="prose prose-sm max-w-none p-4 min-h-[200px] focus-within:outline-none"
       />
     </div>
@@ -203,30 +203,30 @@ export function RichTextEditor({
 // Función utilitaria para convertir markdown a HTML
 export function convertMarkdownToHtml(content: string): string {
   if (!content) return ''
-  
+
   // Verificar si ya es HTML válido (contiene tags HTML estructurales)
   const hasStructuralHtml = /<(p|div|h[1-6]|ul|ol|li|strong|em|br)\s*[^>]*>/i.test(content)
   if (hasStructuralHtml) {
     return content
   }
-  
+
   let html = content
-  
+
   // Convertir encabezados
   html = html.replace(/^### (.*$)/gm, '<h3>$1</h3>')
   html = html.replace(/^## (.*$)/gm, '<h2>$1</h2>')
   html = html.replace(/^# (.*$)/gm, '<h1>$1</h1>')
-  
+
   // Convertir texto en negrita
   html = html.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
-  
+
   // Convertir texto en cursiva (solo asteriscos simples que no sean parte de negritas)
   html = html.replace(/(?<!\*)\*([^*\n]+?)\*(?!\*)/g, '<em>$1</em>')
-  
+
   // Convertir listas no ordenadas
   html = html.replace(/^\s*[-*+]\s+(.*)$/gm, '<li>$1</li>')
   html = html.replace(/((<li>[\s\S]*?<\/li>\s*)+)/g, '<ul>$1</ul>')
-  
+
   // Convertir listas ordenadas
   html = html.replace(/^\s*\d+\.\s+(.*)$/gm, '<li>$1</li>')
   // Reemplazar las listas ordenadas que no fueron capturadas por las no ordenadas
@@ -236,64 +236,64 @@ export function convertMarkdownToHtml(content: string): string {
     const hasNumbers = originalLines.some(line => /^\s*\d+\.\s+/.test(line))
     return hasNumbers ? `<ol>${listItems}</ol>` : match
   })
-  
+
   // Convertir citas
   html = html.replace(/^>\s+(.*)$/gm, '<blockquote>$1</blockquote>')
-  
+
   // Convertir saltos de línea dobles en párrafos
   const paragraphs = html.split(/\n\s*\n/)
   html = paragraphs.map(paragraph => {
     const trimmed = paragraph.trim()
     if (!trimmed) return ''
-    
+
     // No envolver en <p> si ya tiene tags de bloque
     if (trimmed.match(/^<(h[1-6]|ul|ol|blockquote|div)/)) {
       return trimmed
     }
-    
+
     // Convertir saltos de línea simples en <br>
     const withBreaks = trimmed.replace(/\n/g, '<br>')
-    return `<p>${withBreaks}</p>`
+    return `<div>${withBreaks}</div>`
   }).filter(p => p).join('')
-  
+
   return html
 }
 
 // Función utilitaria para convertir contenido legacy a HTML
 export function convertLegacyToHtml(content: string): string {
   if (!content) return ''
-  
+
   // Si ya es HTML (contiene tags), devolverlo tal como está
   if (content.includes('<') && content.includes('>')) {
     return content
   }
-  
+
   // Primero intentar convertir como markdown
   const markdownHtml = convertMarkdownToHtml(content)
   if (markdownHtml !== content) {
     return markdownHtml
   }
-  
+
   // Fallback: convertir texto plano a HTML básico
   return content
     .split('\n')
     .map(line => line.trim())
     .filter(line => line.length > 0)
-    .map(line => `<p>${line}</p>`)
+    .map(line => `<div class="mb-2">${line}</div>`)
     .join('')
 }
 
 // Función utilitaria para convertir HTML a texto plano (para compatibilidad legacy)
 export function convertHtmlToPlainText(html: string): string {
   if (!html) return ''
-  
+
   // Crear un elemento temporal para extraer el texto
   if (typeof window !== 'undefined') {
     const temp = document.createElement('div')
     temp.innerHTML = html
     return temp.textContent || temp.innerText || ''
   }
-  
+
   // Fallback para SSR - remover tags HTML básicos
   return html
     .replace(/<[^>]*>/g, '')

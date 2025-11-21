@@ -11,43 +11,43 @@ import { convertMarkdownToHtml } from "@/components/ui/rich-text-editor"
 // Función específica para convertir contenido del chat
 function convertChatMarkdownToHtml(content: string): string {
   if (!content) return ''
-  
+
   let html = content
-  
+
   // Convertir encabezados
   html = html.replace(/^### (.*$)/gm, '<h3 class="text-lg font-semibold mb-2">$1</h3>')
   html = html.replace(/^## (.*$)/gm, '<h2 class="text-xl font-semibold mb-3">$1</h2>')
   html = html.replace(/^# (.*$)/gm, '<h1 class="text-2xl font-bold mb-4">$1</h1>')
-  
+
   // Convertir texto en negrita
   html = html.replace(/\*\*(.*?)\*\*/g, '<strong class="font-semibold">$1</strong>')
-  
+
   // Convertir texto en cursiva
   html = html.replace(/(?<!\*)\*([^*\n]+?)\*(?!\*)/g, '<em class="italic">$1</em>')
-  
+
   // Convertir listas no ordenadas
   html = html.replace(/^\s*[-*+]\s+(.*)$/gm, '<li class="ml-4 mb-1">• $1</li>')
   html = html.replace(/((<li[^>]*>[\s\S]*?<\/li>\s*)+)/g, '<ul class="mb-3">$1</ul>')
-  
+
   // Convertir listas ordenadas
   html = html.replace(/^\s*(\d+)\.\s+(.*)$/gm, '<li class="ml-4 mb-1">$1. $2</li>')
-  
+
   // Convertir saltos de línea dobles en párrafos
   const paragraphs = html.split(/\n\s*\n/)
   html = paragraphs.map(paragraph => {
     const trimmed = paragraph.trim()
     if (!trimmed) return ''
-    
+
     // No envolver en <p> si ya tiene tags de bloque
     if (trimmed.match(/^<(h[1-6]|ul|ol|li|div)/)) {
       return trimmed
     }
-    
+
     // Convertir saltos de línea simples en <br>
     const withBreaks = trimmed.replace(/\n/g, '<br>')
-    return `<p class="mb-3 leading-relaxed">${withBreaks}</p>`
+    return `<div class="mb-3 leading-relaxed">${withBreaks}</div>`
   }).filter(p => p).join('')
-  
+
   return html
 }
 import { ArrowLeft, Send, Bot, User, Loader2, Sparkles, AlertCircle, Save, CheckCircle, ThumbsUp, ThumbsDown, Crown, AlertTriangle } from "lucide-react"
@@ -71,10 +71,10 @@ interface ChatIAProps {
 export function ChatIA({ onBack, onSaveSuccess, initialMessage }: ChatIAProps) {
   const scrollAreaRef = useRef<HTMLDivElement>(null)
   const messagesEndRef = useRef<HTMLDivElement>(null)
-  const [lastPlaneacionContent, setLastPlaneacionContent] = useState<string>("") 
+  const [lastPlaneacionContent, setLastPlaneacionContent] = useState<string>("")
   const [showSaveButton, setShowSaveButton] = useState(false)
   const [savedPlaneacionId, setSavedPlaneacionId] = useState<string | null>(null)
-  
+
   // Estados para el sistema de feedback de calidad
   const [showQualityFeedback, setShowQualityFeedback] = useState(false)
   const [qualityRating, setQualityRating] = useState<'useful' | 'needs_improvement' | null>(null)
@@ -98,7 +98,7 @@ export function ChatIA({ onBack, onSaveSuccess, initialMessage }: ChatIAProps) {
     monthlyCount,
     loading: planeacionesLoading,
   } = usePlaneaciones()
-  
+
   const isPro = profile ? isUserPro(profile) : false
   const hasReachedLimit = !planeacionesLoading && !profileLoading && !isPro && monthlyCount >= 5
 
@@ -160,7 +160,7 @@ Puedes contarme:
   // Función personalizada para manejar el envío con validación de límites
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
-    
+
     // Verificar límite antes de enviar
     if (hasReachedLimit) {
       Swal.fire({
@@ -178,7 +178,7 @@ Puedes contarme:
       })
       return
     }
-    
+
     // Si no hay límite, proceder con el envío normal
     originalHandleSubmit(e)
   }
@@ -206,9 +206,9 @@ Puedes contarme:
 
   const handleSubmitFeedback = async () => {
     if (!qualityRating) return
-    
+
     setSubmittingFeedback(true)
-    
+
     try {
       const feedbackData = {
         planeacion_content: lastPlaneacionContent,
@@ -217,7 +217,7 @@ Puedes contarme:
         user_id: user?.id,
         created_at: new Date().toISOString()
       }
-      
+
       const response = await fetch('/api/quality-feedback', {
         method: 'POST',
         headers: {
@@ -225,7 +225,7 @@ Puedes contarme:
         },
         body: JSON.stringify(feedbackData),
       })
-      
+
       if (response.ok) {
         // Ocultar el feedback y mostrar mensaje de agradecimiento
         setShowQualityFeedback(false)
@@ -432,12 +432,12 @@ Puedes contarme:
 
                       <div
                         className={`max-w-[85%] rounded-lg p-3 break-words dark:bg-gray-900  dark:border-gray-500  ${message.role === "user"
-                            ? "bg-blue-600 text-white"
-                            : "bg-gray-100 text-gray-900 dark:text-gray-100 border border-gray-200"
+                          ? "bg-blue-600 text-white"
+                          : "bg-gray-100 text-gray-900 dark:text-gray-100 border border-gray-200"
                           }`}
                       >
                         {message.role === "assistant" ? (
-                          <div 
+                          <div
                             className="text-sm text-gray-900 dark:text-gray-100 leading-relaxed select-none"
                             dangerouslySetInnerHTML={{ __html: convertChatMarkdownToHtml(message.content) }}
                           />
@@ -478,7 +478,7 @@ Puedes contarme:
                         <CardContent className="pt-6">
                           <div className="text-center">
                             <h3 className="font-medium text-lg mb-2 select-none">Calidad de la Planeación</h3>
-                            
+
                             {!showFollowUp ? (
                               <>
                                 <p className="text-sm mb-6 text-gray-600 dark:text-gray-300">
@@ -667,27 +667,27 @@ Puedes contarme:
             </CardHeader>
             <CardContent className="flex-1 overflow-hidden">
               <div className="space-y-3">
-                  {[
-                    "Crear una clase de matemáticas sobre fracciones para 4° grado",
-                    "Diseñar una lección de ciencias sobre el sistema solar para 5° grado",
-                    "Planificar una clase de español sobre comprensión lectora para 3° grado",
-                    "Crear una actividad de historia sobre la Revolución Mexicana para 6° grado",
-                    "Clase de educación física con juegos cooperativos para 2° grado",
-                    "Taller de arte sobre colores primarios para 1° grado",
-                    "Clase de geografía sobre los estados de México para 5° grado",
-                    "Actividad de valores sobre la amistad para 3° grado",
-                  ].map((suggestion, index) => (
-                    <Button
-                      key={index}
-                      variant="outline"
-                      className="w-full text-left h-auto p-3 justify-start whitespace-normal dark:bg-gray-700 dark:hover:bg-gray-600 dark:text-gray-100"
-                      onClick={() => handleQuickSuggestion(suggestion)}
-                      disabled={isLoading || hasReachedLimit}
-                    >
-                      <div className="text-sm leading-relaxed">{suggestion}</div>
-                    </Button>
-                  ))}
-                </div>
+                {[
+                  "Crear una clase de matemáticas sobre fracciones para 4° grado",
+                  "Diseñar una lección de ciencias sobre el sistema solar para 5° grado",
+                  "Planificar una clase de español sobre comprensión lectora para 3° grado",
+                  "Crear una actividad de historia sobre la Revolución Mexicana para 6° grado",
+                  "Clase de educación física con juegos cooperativos para 2° grado",
+                  "Taller de arte sobre colores primarios para 1° grado",
+                  "Clase de geografía sobre los estados de México para 5° grado",
+                  "Actividad de valores sobre la amistad para 3° grado",
+                ].map((suggestion, index) => (
+                  <Button
+                    key={index}
+                    variant="outline"
+                    className="w-full text-left h-auto p-3 justify-start whitespace-normal dark:bg-gray-700 dark:hover:bg-gray-600 dark:text-gray-100"
+                    onClick={() => handleQuickSuggestion(suggestion)}
+                    disabled={isLoading || hasReachedLimit}
+                  >
+                    <div className="text-sm leading-relaxed">{suggestion}</div>
+                  </Button>
+                ))}
+              </div>
             </CardContent>
           </Card>
         </div>
