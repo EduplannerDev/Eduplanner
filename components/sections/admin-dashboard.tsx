@@ -7,15 +7,15 @@ import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { AdministracionPlanteles } from './administracion-planteles'
 import { useRoles } from '@/hooks/use-roles'
-import { 
-  Building2, 
-  Shield, 
-  BarChart3, 
-  Users, 
-  GraduationCap, 
-  BookOpen, 
-  FileText, 
-  MessageSquare, 
+import {
+  Building2,
+  Shield,
+  BarChart3,
+  Users,
+  GraduationCap,
+  BookOpen,
+  FileText,
+  MessageSquare,
   DollarSign,
   Activity,
   UserCheck,
@@ -23,9 +23,9 @@ import {
   Monitor,
   Briefcase
 } from 'lucide-react'
-import { 
-  getPlatformStats, 
-  getRecentActivity, 
+import {
+  getPlatformStats,
+  getRecentActivity,
   getUsuariosSinPlantel,
   getContextoTrabajoData,
   getFeedbackData,
@@ -40,7 +40,7 @@ import { LoggingMetricsWidget } from '@/components/admin/logging-widgets'
 export function AdminDashboard() {
   const { isAdmin, isDirector, plantel, role, loading } = useRoles()
   const [activeTab, setActiveTab] = useState('overview')
-  
+
   // Estados para las estadísticas
   const [platformStats, setPlatformStats] = useState<PlatformStats | null>(null)
   const [recentActivity, setRecentActivity] = useState<RecentActivity | null>(null)
@@ -48,7 +48,7 @@ export function AdminDashboard() {
   const [contextoTrabajo, setContextoTrabajo] = useState<ContextoTrabajoData[]>([])
   const [feedbackData, setFeedbackData] = useState<FeedbackData[]>([])
   const [statsLoading, setStatsLoading] = useState(true)
-  
+
   // Cargar estadísticas cuando el componente se monta
   useEffect(() => {
     if (isAdmin) {
@@ -66,7 +66,7 @@ export function AdminDashboard() {
         getContextoTrabajoData(),
         getFeedbackData()
       ])
-      
+
       setPlatformStats(stats)
       setRecentActivity(activity)
       setUsuariosSinPlantel(usuariosSinPlantelData)
@@ -271,6 +271,10 @@ export function AdminDashboard() {
                         <span>Nuevos (7 días):</span>
                         <span className="font-medium text-green-600">{usuariosSinPlantel?.usuariosRecientesSinPlantel || 0}</span>
                       </div>
+                      <div className="flex justify-between text-sm">
+                        <span>Sin contexto de trabajo:</span>
+                        <span className="font-medium text-orange-600">{usuariosSinPlantel?.usuariosSinContexto || 0}</span>
+                      </div>
                     </div>
                   </CardContent>
                 </Card>
@@ -448,13 +452,13 @@ export function AdminDashboard() {
                             </td>
                             <td className="py-3 px-4 text-center">
                               <Badge variant="secondary">
-                                {contexto.grado > 0 
-                                  ? `${contexto.grado}°` 
-                                  : contexto.grado === -1 
-                                  ? '3° Preescolar' 
-                                  : contexto.grado === -2 
-                                  ? '2° Preescolar'
-                                  : '1° Preescolar'}
+                                {contexto.grado > 0
+                                  ? `${contexto.grado}°`
+                                  : contexto.grado === -1
+                                    ? '3° Preescolar'
+                                    : contexto.grado === -2
+                                      ? '2° Preescolar'
+                                      : '1° Preescolar'}
                               </Badge>
                             </td>
                             <td className="py-3 px-4 text-center text-sm">
@@ -473,7 +477,7 @@ export function AdminDashboard() {
                               {new Date(contexto.fecha_inicio).toLocaleDateString('es-MX')}
                             </td>
                             <td className="py-3 px-4 text-center text-sm">
-                              {contexto.fecha_fin 
+                              {contexto.fecha_fin
                                 ? new Date(contexto.fecha_fin).toLocaleDateString('es-MX')
                                 : '-'}
                             </td>
@@ -551,9 +555,9 @@ export function AdminDashboard() {
                             </td>
                             <td className="py-3 px-4 text-center">
                               {feedback.image_url && (
-                                <a 
-                                  href={feedback.image_url} 
-                                  target="_blank" 
+                                <a
+                                  href={feedback.image_url}
+                                  target="_blank"
                                   rel="noopener noreferrer"
                                   className="text-blue-500 hover:text-blue-700 text-sm"
                                 >

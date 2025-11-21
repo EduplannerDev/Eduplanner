@@ -45,6 +45,7 @@ export interface UsuariosSinPlantel {
   profesoresSinPlantel: number;
   directoresSinPlantel: number;
   usuariosRecientesSinPlantel: number; // últimos 7 días
+  usuariosSinContexto: number;
 }
 
 export interface ContextoTrabajoData {
@@ -93,39 +94,39 @@ export async function getPlatformStats(): Promise<PlatformStats> {
         .from('planteles')
         .select('*', { count: 'exact', head: true })
         .eq('activo', true),
-      
+
       // Total de usuarios por rol
       supabase
         .from('profiles')
         .select('role'),
-      
+
       // Usuarios con plantel asignado
       supabase
         .from('user_plantel_assignments')
         .select('user_id', { count: 'exact', head: true })
         .eq('activo', true),
-      
+
       // Total de grupos y alumnos
       supabase
         .from('grupos')
         .select('numero_alumnos')
         .eq('activo', true),
-      
+
       // Total de planeaciones creadas
       supabase
         .from('planeacion_creations')
         .select('*', { count: 'exact', head: true }),
-      
+
       // Total de exámenes
       supabase
         .from('examenes')
         .select('*', { count: 'exact', head: true }),
-      
+
       // Total de mensajes
       supabase
         .from('messages')
         .select('*', { count: 'exact', head: true }),
-      
+
       // Total de mensajes a padres
       supabase
         .from('parent_messages')
@@ -202,17 +203,17 @@ export async function getRecentActivity(): Promise<RecentActivity> {
         .from('profiles')
         .select('*', { count: 'exact', head: true })
         .gte('created_at', fechaLimiteISO),
-      
+
       supabase
         .from('planeacion_creations')
         .select('*', { count: 'exact', head: true })
         .gte('created_at', fechaLimiteISO),
-      
+
       supabase
         .from('examenes')
         .select('*', { count: 'exact', head: true })
         .gte('created_at', fechaLimiteISO),
-      
+
       supabase
         .from('grupos')
         .select('*', { count: 'exact', head: true })
@@ -305,7 +306,7 @@ export async function getTopPlanteles(): Promise<TopPlanteles[]> {
             .select('numero_alumnos')
             .eq('plantel_id', plantel.id)
             .eq('activo', true),
-          
+
           supabase
             .from('user_plantel_assignments')
             .select('*', { count: 'exact', head: true })
@@ -369,7 +370,7 @@ export async function getUsuariosSinPlantel(): Promise<UsuariosSinPlantel> {
     const idsConPlantel = new Set(usuariosConPlantel?.map(u => u.user_id) || []);
 
     // Filtrar usuarios sin plantel
-    const usuariosSinPlantel = (todosUsuarios || []).filter(usuario => 
+    const usuariosSinPlantel = (todosUsuarios || []).filter(usuario =>
       !idsConPlantel.has(usuario.id)
     );
 
@@ -381,15 +382,30 @@ export async function getUsuariosSinPlantel(): Promise<UsuariosSinPlantel> {
     // Usuarios sin plantel de los últimos 7 días
     const fechaLimite = new Date();
     fechaLimite.setDate(fechaLimite.getDate() - 7);
-    const usuariosRecientesSinPlantel = usuariosSinPlantel.filter(u => 
+    const usuariosRecientesSinPlantel = usuariosSinPlantel.filter(u =>
       new Date(u.created_at) >= fechaLimite
     ).length;
+
+    // Obtener usuarios con contexto de trabajo
+    const { data: contextos, error: contextoError } = await supabase
+      .from('contexto_trabajo')
+      .select('profesor_id');
+
+    let usuariosSinContexto = 0;
+    if (!contextoError && contextos) {
+      const idsConContexto = new Set(contextos.map(c => c.profesor_id));
+      // Contamos usuarios (que no sean administradores) que no tienen contexto
+      usuariosSinContexto = (todosUsuarios || []).filter(u =>
+        u.role !== 'administrador' && !idsConContexto.has(u.id)
+      ).length;
+    }
 
     return {
       totalUsuariosSinPlantel,
       profesoresSinPlantel,
       directoresSinPlantel,
-      usuariosRecientesSinPlantel
+      usuariosRecientesSinPlantel,
+      usuariosSinContexto
     };
   } catch (error) {
     console.error('Error obteniendo usuarios sin plantel:', error);
@@ -397,7 +413,8 @@ export async function getUsuariosSinPlantel(): Promise<UsuariosSinPlantel> {
       totalUsuariosSinPlantel: 0,
       profesoresSinPlantel: 0,
       directoresSinPlantel: 0,
-      usuariosRecientesSinPlantel: 0
+      usuariosRecientesSinPlantel: 0,
+      usuariosSinContexto: 0
     };
   }
 }
