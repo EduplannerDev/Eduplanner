@@ -11,11 +11,11 @@ import { useState, useEffect, useRef } from 'react'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
-import { 
-  AlertTriangle, 
-  CheckCircle, 
-  XCircle, 
-  Activity, 
+import {
+  AlertTriangle,
+  CheckCircle,
+  XCircle,
+  Activity,
   Clock,
   RefreshCw,
   TrendingUp,
@@ -87,12 +87,12 @@ export function LoggingMetricsWidget() {
       }
 
       const result = await response.json()
-      
+
       // Recargar métricas después de marcar como resuelto
       await loadMetrics(true)
-      
+
       toast.success(result.message || 'Error marcado como resuelto')
-      
+
     } catch (error) {
       console.error('Error marking error as resolved:', error)
       toast.error(error instanceof Error ? error.message : 'Error al marcar como resuelto')
@@ -105,7 +105,7 @@ export function LoggingMetricsWidget() {
   const clearOldErrors = async () => {
     try {
       setClearingErrors(true)
-      
+
       const response = await fetch('/api/admin/clear-old-errors', {
         method: 'POST',
         headers: {
@@ -122,12 +122,12 @@ export function LoggingMetricsWidget() {
       }
 
       const result = await response.json()
-      
+
       // Recargar métricas después de limpiar
       await loadMetrics(true)
-      
+
       toast.success(result.message)
-      
+
     } catch (error) {
       console.error('Error clearing old errors:', error)
       toast.error(error instanceof Error ? error.message : 'Error al limpiar errores antiguos')
@@ -142,7 +142,7 @@ export function LoggingMetricsWidget() {
   const clearAllErrors = async () => {
     try {
       setClearingErrors(true)
-      
+
       const response = await fetch('/api/admin/clear-old-errors', {
         method: 'POST',
         headers: {
@@ -159,12 +159,12 @@ export function LoggingMetricsWidget() {
       }
 
       const result = await response.json()
-      
+
       // Recargar métricas después de limpiar
       await loadMetrics(true)
-      
+
       toast.success(result.message)
-      
+
     } catch (error) {
       console.error('Error clearing all errors:', error)
       toast.error(error instanceof Error ? error.message : 'Error al limpiar todos los errores')
@@ -178,7 +178,7 @@ export function LoggingMetricsWidget() {
    */
   const loadMetrics = async (forceRefresh = false) => {
     const now = Date.now()
-    
+
     // Verificar cache
     if (!forceRefresh && cacheRef.current && (now - cacheRef.current.timestamp) < CACHE_DURATION) {
       setMetrics(cacheRef.current.data.metrics)
@@ -191,7 +191,7 @@ export function LoggingMetricsWidget() {
 
     try {
       setIsLoading(true)
-      
+
       // Cargar datos en paralelo
       const [metricsRes, errorsRes] = await Promise.all([
         fetch('/api/admin/logs-summary'),
@@ -227,7 +227,7 @@ export function LoggingMetricsWidget() {
 
       // Actualizar cache
       cacheRef.current = { data, timestamp: now }
-      
+
       setMetrics(metricsData)
       setCriticalErrors(errorsData.errors || [])
       setSystemStatus(newSystemStatus)
@@ -355,21 +355,21 @@ export function LoggingMetricsWidget() {
           value={metrics?.totalLogs || 0}
           icon={<Activity className="w-4 h-4" />}
           color="blue"
-          trend={metrics?.totalLogs > 1000 ? 'up' : 'stable'}
+          trend={(metrics?.totalLogs || 0) > 1000 ? 'up' : 'stable'}
         />
         <MetricCard
           title="Errores"
           value={metrics?.errorCount || 0}
           icon={<XCircle className="w-4 h-4" />}
-          color={metrics?.errorCount > 10 ? 'red' : 'green'}
-          trend={metrics?.errorCount > 20 ? 'up' : 'down'}
+          color={(metrics?.errorCount || 0) > 10 ? 'red' : 'green'}
+          trend={(metrics?.errorCount || 0) > 20 ? 'up' : 'down'}
         />
         <MetricCard
           title="Tiempo Respuesta"
           value={`${metrics?.avgResponseTime || 0}ms`}
           icon={<Clock className="w-4 h-4" />}
-          color={metrics?.avgResponseTime > 2000 ? 'orange' : 'green'}
-          trend={metrics?.avgResponseTime > 3000 ? 'up' : 'down'}
+          color={(metrics?.avgResponseTime || 0) > 2000 ? 'orange' : 'green'}
+          trend={(metrics?.avgResponseTime || 0) > 3000 ? 'up' : 'down'}
         />
         <MetricCard
           title="Errores Recientes"
@@ -400,8 +400,8 @@ export function LoggingMetricsWidget() {
                 <span className="text-sm font-medium">Base de Datos</span>
               </div>
               <Badge variant={systemStatus.database === 'healthy' ? 'default' : 'destructive'}>
-                {systemStatus.database === 'healthy' ? 'Saludable' : 
-                 systemStatus.database === 'warning' ? 'Advertencia' : 'Error'}
+                {systemStatus.database === 'healthy' ? 'Saludable' :
+                  systemStatus.database === 'warning' ? 'Advertencia' : 'Error'}
               </Badge>
             </div>
             <div className="flex items-center justify-between p-3 rounded-lg border">
@@ -412,8 +412,8 @@ export function LoggingMetricsWidget() {
                 <span className="text-sm font-medium">API Routes</span>
               </div>
               <Badge variant={systemStatus.api === 'healthy' ? 'default' : 'destructive'}>
-                {systemStatus.api === 'healthy' ? 'Saludable' : 
-                 systemStatus.api === 'warning' ? 'Advertencia' : 'Error'}
+                {systemStatus.api === 'healthy' ? 'Saludable' :
+                  systemStatus.api === 'warning' ? 'Advertencia' : 'Error'}
               </Badge>
             </div>
             <div className="flex items-center justify-between p-3 rounded-lg border">
@@ -424,8 +424,8 @@ export function LoggingMetricsWidget() {
                 <span className="text-sm font-medium">Servicios Externos</span>
               </div>
               <Badge variant={systemStatus.external === 'healthy' ? 'default' : 'destructive'}>
-                {systemStatus.external === 'healthy' ? 'Saludable' : 
-                 systemStatus.external === 'warning' ? 'Advertencia' : 'Error'}
+                {systemStatus.external === 'healthy' ? 'Saludable' :
+                  systemStatus.external === 'warning' ? 'Advertencia' : 'Error'}
               </Badge>
             </div>
           </div>
@@ -492,7 +492,7 @@ export function LoggingMetricsWidget() {
                                 )}
                               </div>
                             )}
-                            
+
                             {/* Información del módulo y contexto */}
                             {(error.module || error.component || error.action || error.context) && (
                               <div className="bg-gray-50 dark:bg-gray-800 p-2 rounded border-l-2 border-gray-200 dark:border-gray-700">
@@ -506,30 +506,68 @@ export function LoggingMetricsWidget() {
                                 {error.action && error.action !== 'unknown' && (
                                   <div><strong>Acción:</strong> {error.action}</div>
                                 )}
-                                
+
                                 {/* Información adicional del contexto */}
                                 {error.context && (() => {
                                   try {
-                                    const context = typeof error.context === 'string' 
-                                      ? JSON.parse(error.context) 
+                                    const context = typeof error.context === 'string'
+                                      ? JSON.parse(error.context)
                                       : error.context;
-                                    
+
                                     return (
-                                      <div className="mt-1">
-                                        {context.module && context.module !== 'unknown' && !error.module && (
-                                          <div><strong>Módulo:</strong> {context.module}</div>
-                                        )}
-                                        {context.component && context.component !== 'unknown' && !error.component && (
-                                          <div><strong>Componente:</strong> {context.component}</div>
-                                        )}
-                                        {context.action && context.action !== 'unknown' && !error.action && (
-                                          <div><strong>Acción:</strong> {context.action}</div>
-                                        )}
-                                        {context.url && (
-                                          <div><strong>URL:</strong> {context.url}</div>
-                                        )}
-                                        {context.userAgent && (
-                                          <div><strong>Navegador:</strong> {context.userAgent.substring(0, 50)}...</div>
+                                      <div className="mt-1 space-y-2">
+                                        {/* Contexto General */}
+                                        <div>
+                                          {context.module && context.module !== 'unknown' && !error.module && (
+                                            <div><strong>Módulo:</strong> {context.module}</div>
+                                          )}
+                                          {context.component && context.component !== 'unknown' && !error.component && (
+                                            <div><strong>Componente:</strong> {context.component}</div>
+                                          )}
+                                          {context.action && context.action !== 'unknown' && !error.action && (
+                                            <div><strong>Acción:</strong> {context.action}</div>
+                                          )}
+                                          {context.url && (
+                                            <div><strong>URL:</strong> {context.url}</div>
+                                          )}
+                                          {context.userAgent && (
+                                            <div><strong>Navegador:</strong> {context.userAgent.substring(0, 50)}...</div>
+                                          )}
+                                        </div>
+
+                                        {/* Detalles del DOM (para errores removeChild/insertBefore) */}
+                                        {(context.targetNodeHTML || context.parentNodeHTML || context.activeElement) && (
+                                          <div className="bg-orange-50 dark:bg-orange-900/20 p-2 rounded border-l-2 border-orange-200 dark:border-orange-800 mt-2">
+                                            <div className="font-medium text-orange-800 dark:text-orange-200 mb-1">🔍 Detalles DOM:</div>
+
+                                            {context.operation && (
+                                              <div className="mb-1"><strong>Operación:</strong> {context.operation}</div>
+                                            )}
+
+                                            {context.activeElement && (
+                                              <div className="mb-1 text-xs">
+                                                <strong>Elemento Activo:</strong> <code className="bg-white dark:bg-black px-1 rounded">{context.activeElement}</code>
+                                              </div>
+                                            )}
+
+                                            {context.targetNodeHTML && (
+                                              <div className="mt-2">
+                                                <div className="text-xs font-semibold mb-1">Nodo Objetivo:</div>
+                                                <pre className="text-[10px] bg-white dark:bg-black p-2 rounded overflow-x-auto border border-orange-100 dark:border-orange-900">
+                                                  {context.targetNodeHTML}
+                                                </pre>
+                                              </div>
+                                            )}
+
+                                            {context.parentNodeHTML && (
+                                              <div className="mt-2">
+                                                <div className="text-xs font-semibold mb-1">Nodo Padre:</div>
+                                                <pre className="text-[10px] bg-white dark:bg-black p-2 rounded overflow-x-auto border border-orange-100 dark:border-orange-900">
+                                                  {context.parentNodeHTML}
+                                                </pre>
+                                              </div>
+                                            )}
+                                          </div>
                                         )}
                                       </div>
                                     );
@@ -556,7 +594,7 @@ export function LoggingMetricsWidget() {
                     </div>
                   ))}
               </div>
-              
+
               {/* Paginación */}
               {criticalErrors.length > errorsPerPage && (
                 <div className="flex items-center justify-between mt-6 pt-4 border-t">
@@ -594,10 +632,10 @@ export function LoggingMetricsWidget() {
 /**
  * Componente de métrica optimizado
  */
-function MetricCard({ 
-  title, 
-  value, 
-  icon, 
+function MetricCard({
+  title,
+  value,
+  icon,
   color,
   trend
 }: {

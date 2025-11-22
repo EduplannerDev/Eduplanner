@@ -8,51 +8,12 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Textarea } from "@/components/ui/textarea"
 import { convertMarkdownToHtml } from "@/components/ui/rich-text-editor"
 import { useSafeScroll } from '@/hooks/use-safe-scroll'
+import ReactMarkdown from "react-markdown"
 import { getGradoTexto } from "@/lib/grado-utils"
 
-// Función específica para convertir contenido del chat
-function convertChatMarkdownToHtml(content: string): string {
-  if (!content) return ''
+// Eliminar la función convertChatMarkdownToHtml ya que usaremos ReactMarkdown
 
-  let html = content
-
-  // Convertir encabezados
-  html = html.replace(/^### (.*$)/gm, '<h3 class="text-lg font-semibold mb-2">$1</h3>')
-  html = html.replace(/^## (.*$)/gm, '<h2 class="text-xl font-semibold mb-3">$1</h2>')
-  html = html.replace(/^# (.*$)/gm, '<h1 class="text-2xl font-bold mb-4">$1</h1>')
-
-  // Convertir texto en negrita
-  html = html.replace(/\*\*(.*?)\*\*/g, '<strong class="font-semibold">$1</strong>')
-
-  // Convertir texto en cursiva
-  html = html.replace(/(?<!\*)\*([^*\n]+?)\*(?!\*)/g, '<em class="italic">$1</em>')
-
-  // Convertir listas no ordenadas
-  html = html.replace(/^\s*[-*+]\s+(.*)$/gm, '<li class="ml-4 mb-1">• $1</li>')
-  html = html.replace(/((<li[^>]*>[\s\S]*?<\/li>\s*)+)/g, '<ul class="mb-3">$1</ul>')
-
-  // Convertir listas ordenadas
-  html = html.replace(/^\s*(\d+)\.\s+(.*)$/gm, '<li class="ml-4 mb-1">$1. $2</li>')
-
-  // Convertir saltos de línea dobles en párrafos
-  const paragraphs = html.split(/\n\s*\n/)
-  html = paragraphs.map(paragraph => {
-    const trimmed = paragraph.trim()
-    if (!trimmed) return ''
-
-    // No envolver en <p> si ya tiene tags de bloque
-    if (trimmed.match(/^<(h[1-6]|ul|ol|li|div)/)) {
-      return trimmed
-    }
-
-    // Convertir saltos de línea simples en <br>
-    const withBreaks = trimmed.replace(/\n/g, '<br>')
-    return `<div class="mb-3 leading-relaxed">${withBreaks}</div>`
-  }).filter(p => p).join('')
-
-  return html
-}
-import { ArrowLeft, Send, Bot, User, Loader2, Sparkles, AlertCircle, Save, CheckCircle, ThumbsUp, ThumbsDown, Crown, AlertTriangle } from "lucide-react"
+import { ArrowLeft, Send, Bot, User as UserIcon, Loader2, Sparkles, AlertCircle, Save, CheckCircle, ThumbsUp, ThumbsDown, Crown, AlertTriangle } from "lucide-react"
 import { useChat } from "ai/react"
 import { useEffect, useRef, useState } from "react"
 import { useAuth } from "@/hooks/use-auth"
@@ -397,10 +358,23 @@ ${(contenidosSeleccionados || []).map((c, i) => `${i + 1}. ${c.contenido}`).join
                           }`}
                       >
                         {message.role === "assistant" ? (
-                          <div
-                            className="text-sm text-gray-900 dark:text-gray-100 leading-relaxed select-none"
-                            dangerouslySetInnerHTML={{ __html: convertChatMarkdownToHtml(message.content) }}
-                          />
+                          <div className="text-sm text-gray-900 dark:text-gray-100 leading-relaxed select-none">
+                            <ReactMarkdown
+                              components={{
+                                h1: ({ node, ...props }) => <h1 className="text-2xl font-bold mb-4" {...props} />,
+                                h2: ({ node, ...props }) => <h2 className="text-xl font-semibold mb-3" {...props} />,
+                                h3: ({ node, ...props }) => <h3 className="text-lg font-semibold mb-2" {...props} />,
+                                p: ({ node, ...props }) => <p className="mb-3 leading-relaxed last:mb-0" {...props} />,
+                                ul: ({ node, ...props }) => <ul className="mb-3 list-disc pl-4" {...props} />,
+                                ol: ({ node, ...props }) => <ol className="mb-3 list-decimal pl-4" {...props} />,
+                                li: ({ node, ...props }) => <li className="mb-1 pl-1" {...props} />,
+                                strong: ({ node, ...props }) => <strong className="font-semibold" {...props} />,
+                                em: ({ node, ...props }) => <em className="italic" {...props} />,
+                              }}
+                            >
+                              {message.content}
+                            </ReactMarkdown>
+                          </div>
                         ) : (
                           <div className="whitespace-pre-wrap text-sm leading-relaxed select-none dark:bg-gray-900 dark:border-gray-500">{message.content}</div>
                         )}
@@ -409,7 +383,7 @@ ${(contenidosSeleccionados || []).map((c, i) => `${i + 1}. ${c.contenido}`).join
                       {message.role === "user" && (
                         <Avatar className="h-8 w-8 flex-shrink-0">
                           <AvatarFallback className="bg-blue-100 text-blue-600">
-                            {userData?.email ? getInitials(userData.email) : <User className="h-4 w-4" />}
+                            {user?.email ? getInitials(user.email) : <UserIcon className="h-4 w-4" />}
                           </AvatarFallback>
                         </Avatar>
                       )}

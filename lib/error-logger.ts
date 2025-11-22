@@ -5,6 +5,12 @@
 
 import { logger } from './lightweight-logger'
 
+declare global {
+  interface Window {
+    supabase?: any
+  }
+}
+
 interface ErrorContext {
   module?: string
   component?: string
@@ -18,6 +24,22 @@ interface ErrorContext {
   timestamp: number
   stack?: string
   errorType: 'react' | 'dom' | 'javascript' | 'auth' | 'network' | 'unknown'
+  // DOM specific fields
+  operation?: string
+  targetNodeHTML?: string
+  parentNodeHTML?: string
+  activeElement?: string
+  newNodeType?: number
+  newNodeName?: string
+  referenceNodeType?: number
+  referenceNodeName?: string
+  parentNodeType?: number
+  parentNodeName?: string
+  parentNodeId?: string
+  parentNodeClass?: string
+  oldNodeType?: number
+  oldNodeName?: string
+  [key: string]: any // Allow other properties
 }
 
 interface ReactErrorInfo {
@@ -37,7 +59,7 @@ class ErrorLogger {
   /**
    * Obtener información del usuario actual
    */
-  private async getUserInfo(): Promise<{userId?: string, userEmail?: string, userRole?: string}> {
+  private async getUserInfo(): Promise<{ userId?: string, userEmail?: string, userRole?: string }> {
     try {
       // Intentar obtener información del usuario desde localStorage o sessionStorage
       const userData = localStorage.getItem('user') || sessionStorage.getItem('user')
@@ -82,7 +104,7 @@ class ErrorLogger {
         lineno: event.lineno,
         colno: event.colno,
         message: event.message
-      }).catch(() => {}) // Silenciar errores de logging
+      }).catch(() => { }) // Silenciar errores de logging
     })
 
     // Capturar promesas rechazadas
@@ -90,7 +112,7 @@ class ErrorLogger {
       this.logError('javascript', new Error(event.reason), {
         promiseRejection: true,
         reason: event.reason
-      }).catch(() => {}) // Silenciar errores de logging
+      }).catch(() => { }) // Silenciar errores de logging
     })
 
     // Capturar errores específicos de DOM
@@ -108,9 +130,23 @@ class ErrorLogger {
     const originalAppendChild = Node.prototype.appendChild
     const originalRemoveChild = Node.prototype.removeChild
 
-    Node.prototype.insertBefore = function(newNode: Node, referenceNode: Node | null) {
+    // Helper para obtener HTML seguro (truncado)
+    const getSafeHTML = (node: Node | null): string | undefined => {
+      if (!node || !('outerHTML' in node)) return undefined
+      const html = (node as Element).outerHTML
+      return html.length > 200 ? html.substring(0, 200) + '...' : html
+    }
+
+    // Helper para obtener elemento activo
+    const getActiveElementInfo = () => {
+      if (typeof document === 'undefined' || !document.activeElement) return undefined
+      const el = document.activeElement
+      return `${el.tagName}${el.className ? '.' + el.className.split(' ').join('.') : ''}${el.id ? '#' + el.id : ''}`
+    }
+
+    Node.prototype.insertBefore = function <T extends Node>(newNode: T, referenceNode: Node | null): T {
       try {
-        return originalInsertBefore.call(this, newNode, referenceNode)
+        return originalInsertBefore.call(this, newNode, referenceNode) as T
       } catch (error) {
         ErrorLogger.getInstance().logError('dom', error as Error, {
           operation: 'insertBefore',
@@ -121,15 +157,19 @@ class ErrorLogger {
           parentNodeType: this.nodeType,
           parentNodeName: this.nodeName,
           parentNodeId: (this as Element).id || undefined,
-          parentNodeClass: (this as Element).className || undefined
+          parentNodeClass: (this as Element).className || undefined,
+          // Nuevo contexto detallado
+          targetNodeHTML: getSafeHTML(newNode),
+          parentNodeHTML: getSafeHTML(this),
+          activeElement: getActiveElementInfo()
         })
         throw error
       }
     }
 
-    Node.prototype.appendChild = function(newNode: Node) {
+    Node.prototype.appendChild = function <T extends Node>(newNode: T): T {
       try {
-        return originalAppendChild.call(this, newNode)
+        return originalAppendChild.call(this, newNode) as T
       } catch (error) {
         ErrorLogger.getInstance().logError('dom', error as Error, {
           operation: 'appendChild',
@@ -138,15 +178,19 @@ class ErrorLogger {
           parentNodeType: this.nodeType,
           parentNodeName: this.nodeName,
           parentNodeId: (this as Element).id || undefined,
-          parentNodeClass: (this as Element).className || undefined
+          parentNodeClass: (this as Element).className || undefined,
+          // Nuevo contexto detallado
+          targetNodeHTML: getSafeHTML(newNode),
+          parentNodeHTML: getSafeHTML(this),
+          activeElement: getActiveElementInfo()
         })
         throw error
       }
     }
 
-    Node.prototype.removeChild = function(oldNode: Node) {
+    Node.prototype.removeChild = function <T extends Node>(oldNode: T): T {
       try {
-        return originalRemoveChild.call(this, oldNode)
+        return originalRemoveChild.call(this, oldNode) as T
       } catch (error) {
         ErrorLogger.getInstance().logError('dom', error as Error, {
           operation: 'removeChild',
@@ -155,11 +199,35 @@ class ErrorLogger {
           parentNodeType: this.nodeType,
           parentNodeName: this.nodeName,
           parentNodeId: (this as Element).id || undefined,
-          parentNodeClass: (this as Element).className || undefined
+          parentNodeClass: (this as Element).className || undefined,
+          // Nuevo contexto detallado
+          targetNodeHTML: getSafeHTML(oldNode),
+          parentNodeHTML: getSafeHTML(this),
+          activeElement: getActiveElementInfo()
         })
         throw error
       }
     }
+  }
+
+  /**
+   * Construir contexto de error completo
+   */
+  private async buildErrorContext(
+    type: ErrorContext['errorType'],
+    additionalContext?: Partial<ErrorContext>
+  ): Promise<ErrorContext> {
+    // Obtener información del usuario
+    const userInfo = await this.getUserInfo()
+
+    return {
+      errorType: type,
+      timestamp: Date.now(),
+      url: typeof window !== 'undefined' ? window.location.href : undefined,
+      userAgent: typeof window !== 'undefined' ? navigator.userAgent : undefined,
+      ...userInfo,
+      ...additionalContext
+    } as ErrorContext // Cast to ErrorContext to satisfy the return type, as additionalContext can have arbitrary keys
   }
 
   /**
@@ -185,23 +253,16 @@ class ErrorLogger {
 
     // Extraer información detallada del stack trace
     const stackInfo = this.extractDetailedStackInfo(error.stack)
-    
-    // Obtener información del usuario
-    const userInfo = await this.getUserInfo()
-    
-    const context: ErrorContext = {
-      errorType: type,
-      timestamp: Date.now(),
-      url: typeof window !== 'undefined' ? window.location.href : undefined,
-      userAgent: typeof window !== 'undefined' ? navigator.userAgent : undefined,
+
+    // Construir contexto completo
+    const context = await this.buildErrorContext(type, {
       stack: error.stack,
-      ...userInfo, // Incluir información del usuario
       // Información extraída del stack
       module: stackInfo.module || additionalContext?.module || 'unknown',
       component: stackInfo.component || additionalContext?.component || 'unknown',
       action: additionalContext?.action || 'unknown',
       ...additionalContext
-    }
+    })
 
     // Log usando el sistema ligero con contexto mejorado
     try {
@@ -291,7 +352,7 @@ class ErrorLogger {
     }
 
     const lines = stack.split('\n')
-    
+
     for (const line of lines) {
       // Buscar patrones como: at ComponentName (file.tsx:line:column)
       const componentMatch = line.match(/at\s+(\w+)\s+\([^)]*\/components\/[^)]*\)/)
@@ -385,7 +446,7 @@ class ErrorLogger {
     if (!stack) return null
 
     const lines = stack.split('\n')
-    
+
     // Buscar líneas que contengan rutas de archivos de la aplicación
     for (const line of lines) {
       // Buscar patrones como: at ComponentName (file.tsx:line:column)
@@ -460,7 +521,7 @@ class ErrorLogger {
       // Solo logear errores de DOM cada 10 ocurrencias para evitar spam
       if (count % 10 === 0) {
         this.errorCounts.set(errorKey, count + 1)
-        
+
         const fullContext = await this.buildErrorContext('dom', {
           ...context,
           stack: error.stack
