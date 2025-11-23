@@ -33,7 +33,7 @@ const ContextMenuSubTrigger = React.forwardRef<
     )}
     {...props}
   >
-    {children}
+    <span className="notranslate">{children}</span>
     <ChevronRight className="ml-auto h-4 w-4" />
   </ContextMenuPrimitive.SubTrigger>
 ))
@@ -76,7 +76,7 @@ const ContextMenuItem = React.forwardRef<
   React.ComponentPropsWithoutRef<typeof ContextMenuPrimitive.Item> & {
     inset?: boolean
   }
->(({ className, inset, ...props }, ref) => (
+>(({ className, inset, children, ...props }, ref) => (
   <ContextMenuPrimitive.Item
     ref={ref}
     className={cn(
@@ -85,7 +85,9 @@ const ContextMenuItem = React.forwardRef<
       className
     )}
     {...props}
-  />
+  >
+    <span className="notranslate">{children}</span>
+  </ContextMenuPrimitive.Item>
 ))
 ContextMenuItem.displayName = ContextMenuPrimitive.Item.displayName
 
@@ -107,7 +109,7 @@ const ContextMenuCheckboxItem = React.forwardRef<
         <Check className="h-4 w-4" />
       </ContextMenuPrimitive.ItemIndicator>
     </span>
-    {children}
+    <span className="notranslate">{children}</span>
   </ContextMenuPrimitive.CheckboxItem>
 ))
 ContextMenuCheckboxItem.displayName =
@@ -130,7 +132,7 @@ const ContextMenuRadioItem = React.forwardRef<
         <Circle className="h-2 w-2 fill-current" />
       </ContextMenuPrimitive.ItemIndicator>
     </span>
-    {children}
+    <span className="notranslate">{children}</span>
   </ContextMenuPrimitive.RadioItem>
 ))
 ContextMenuRadioItem.displayName = ContextMenuPrimitive.RadioItem.displayName
