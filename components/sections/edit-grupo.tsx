@@ -40,7 +40,7 @@ const EditGrupo = ({ grupoId, onBack, onSaveSuccess }: EditGrupoProps) => {
   const getCurrentSchoolYear = () => {
     const currentYear = new Date().getFullYear()
     const currentMonth = new Date().getMonth()
-    
+
     if (currentMonth >= 7) {
       return `${currentYear}-${currentYear + 1}`
     } else {
@@ -91,7 +91,7 @@ const EditGrupo = ({ grupoId, onBack, onSaveSuccess }: EditGrupoProps) => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    
+
     if (!formData.nombre?.trim() || !formData.grado || !formData.nivel || !formData.ciclo_escolar) {
       setError('Por favor completa todos los campos obligatorios')
       return
@@ -179,15 +179,15 @@ const EditGrupo = ({ grupoId, onBack, onSaveSuccess }: EditGrupoProps) => {
 
               <div className="space-y-2">
                 <Label htmlFor="nivel">Nivel Educativo *</Label>
-                <Select 
-                  value={formData.nivel || ''} 
+                <Select
+                  value={formData.nivel || ''}
                   onValueChange={(value) => {
                     handleInputChange('nivel', value)
                     handleInputChange('grado', '') // Reset grado when nivel changes
                   }}
                 >
                   <SelectTrigger>
-                    <SelectValue placeholder="Selecciona el nivel" />
+                    <SelectValue placeholder={<span className="notranslate">Selecciona el nivel</span>} />
                   </SelectTrigger>
                   <SelectContent>
                     {niveles.map((nivel) => (
@@ -201,13 +201,13 @@ const EditGrupo = ({ grupoId, onBack, onSaveSuccess }: EditGrupoProps) => {
 
               <div className="space-y-2">
                 <Label htmlFor="grado">Grado *</Label>
-                <Select 
-                  value={formData.grado || ''} 
+                <Select
+                  value={formData.grado || ''}
                   onValueChange={(value) => handleInputChange('grado', value)}
                   disabled={!formData.nivel}
                 >
                   <SelectTrigger>
-                    <SelectValue placeholder="Selecciona el grado" />
+                    <SelectValue placeholder={<span className="notranslate">Selecciona el grado</span>} />
                   </SelectTrigger>
                   <SelectContent>
                     {formData.nivel && grados[formData.nivel as keyof typeof grados]?.map((grado) => (
@@ -221,12 +221,12 @@ const EditGrupo = ({ grupoId, onBack, onSaveSuccess }: EditGrupoProps) => {
 
               <div className="space-y-2">
                 <Label htmlFor="ciclo_escolar">Ciclo Escolar *</Label>
-                <Select 
-                  value={formData.ciclo_escolar || ''} 
+                <Select
+                  value={formData.ciclo_escolar || ''}
                   onValueChange={(value) => handleInputChange('ciclo_escolar', value)}
                 >
                   <SelectTrigger>
-                    <SelectValue placeholder="Selecciona el ciclo escolar" />
+                    <SelectValue placeholder={<span className="notranslate">Selecciona el ciclo escolar</span>} />
                   </SelectTrigger>
                   <SelectContent>
                     {ciclosEscolares.map((ciclo) => (

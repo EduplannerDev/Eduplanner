@@ -32,12 +32,12 @@ export function ContextoTrabajoModal({ isOpen, onClose, onSuccess }: ContextoTra
     const now = new Date()
     const currentYear = now.getFullYear()
     const currentMonth = now.getMonth() // 0-11
-    
+
     // Si estamos en agosto (7) o después, el ciclo inicia este año
     // Si estamos antes de agosto, el ciclo inició el año pasado
     const startYear = currentMonth >= 7 ? currentYear : currentYear - 1
     const endYear = startYear + 1
-    
+
     setCicloEscolar(`${startYear}-${endYear}`)
   }, [])
 
@@ -105,7 +105,7 @@ export function ContextoTrabajoModal({ isOpen, onClose, onSuccess }: ContextoTra
             </label>
             <Select value={gradoSeleccionado} onValueChange={setGradoSeleccionado}>
               <SelectTrigger>
-                <SelectValue placeholder="Selecciona el grado" />
+                <SelectValue placeholder={<span className="notranslate">Selecciona el grado</span>} />
               </SelectTrigger>
               <SelectContent>
                 {/* Separador visual */}

@@ -90,7 +90,7 @@ const NuevoGrupo = ({ onBack, onSaveSuccess }: NuevoGrupoProps) => {
   const getCurrentSchoolYear = () => {
     const currentYear = new Date().getFullYear()
     const currentMonth = new Date().getMonth()
-    
+
     if (currentMonth >= 7) {
       return `${currentYear}-${currentYear + 1}`
     } else {
@@ -103,7 +103,7 @@ const NuevoGrupo = ({ onBack, onSaveSuccess }: NuevoGrupoProps) => {
       ...prev,
       [field]: value
     }))
-    
+
     if (field === 'nombre' && !formData.ciclo_escolar) {
       setFormData(prev => ({
         ...prev,
@@ -114,7 +114,7 @@ const NuevoGrupo = ({ onBack, onSaveSuccess }: NuevoGrupoProps) => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    
+
     if (!user?.id) {
       setErrorMsg('Usuario no autenticado')
       return
@@ -137,7 +137,7 @@ const NuevoGrupo = ({ onBack, onSaveSuccess }: NuevoGrupoProps) => {
     try {
       // Usar el plantel del usuario actual
       const plantelId = plantel?.id || null
-      
+
       await createGrupo(user.id, plantelId, {
         ...formData,
         nombre: formData.nombre.trim()
@@ -217,32 +217,32 @@ const NuevoGrupo = ({ onBack, onSaveSuccess }: NuevoGrupoProps) => {
       {/* Formulario - solo mostrar si puede crear grupos */}
       {!limitCheck.loading && limitCheck.canCreate && (
         <Card>
-        <CardHeader>
-          <CardTitle>Información del Grupo</CardTitle>
-          {/* Mostrar progreso de grupos para usuarios free */}
-          {limitCheck.limit > 0 && (
-            <div className="mt-2 p-3 bg-blue-50 border border-blue-200 rounded-lg">
-              <div className="flex items-center justify-between mb-2">
-                <span className="text-sm font-medium text-blue-800">Grupos utilizados</span>
-                <span className="text-sm text-blue-600">
-                  {limitCheck.currentCount} / {limitCheck.limit}
-                </span>
+          <CardHeader>
+            <CardTitle>Información del Grupo</CardTitle>
+            {/* Mostrar progreso de grupos para usuarios free */}
+            {limitCheck.limit > 0 && (
+              <div className="mt-2 p-3 bg-blue-50 border border-blue-200 rounded-lg">
+                <div className="flex items-center justify-between mb-2">
+                  <span className="text-sm font-medium text-blue-800">Grupos utilizados</span>
+                  <span className="text-sm text-blue-600">
+                    {limitCheck.currentCount} / {limitCheck.limit}
+                  </span>
+                </div>
+                <div className="w-full bg-blue-200 rounded-full h-2">
+                  <div
+                    className="bg-blue-600 h-2 rounded-full transition-all duration-300"
+                    style={{
+                      width: `${Math.min(100, (limitCheck.currentCount / limitCheck.limit) * 100)}%`
+                    }}
+                  ></div>
+                </div>
+                <p className="text-xs text-blue-600 mt-1">
+                  💡 Plan gratuito - Actualiza a PRO para grupos ilimitados y mejor organización
+                </p>
               </div>
-              <div className="w-full bg-blue-200 rounded-full h-2">
-                <div 
-                  className="bg-blue-600 h-2 rounded-full transition-all duration-300"
-                  style={{ 
-                    width: `${Math.min(100, (limitCheck.currentCount / limitCheck.limit) * 100)}%` 
-                  }}
-                ></div>
-              </div>
-              <p className="text-xs text-blue-600 mt-1">
-                💡 Plan gratuito - Actualiza a PRO para grupos ilimitados y mejor organización
-              </p>
-            </div>
-          )}
-        </CardHeader>
-        <CardContent>
+            )}
+          </CardHeader>
+          <CardContent>
             <form onSubmit={handleSubmit} className="space-y-6">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div className="space-y-2">
@@ -259,15 +259,15 @@ const NuevoGrupo = ({ onBack, onSaveSuccess }: NuevoGrupoProps) => {
 
                 <div className="space-y-2">
                   <Label htmlFor="nivel">Nivel Educativo *</Label>
-                  <Select 
-                    value={formData.nivel} 
+                  <Select
+                    value={formData.nivel}
                     onValueChange={(value) => {
                       handleInputChange('nivel', value)
                       handleInputChange('grado', '')
                     }}
                   >
                     <SelectTrigger>
-                      <SelectValue placeholder="Selecciona el nivel" />
+                      <SelectValue placeholder={<span className="notranslate">Selecciona el nivel</span>} />
                     </SelectTrigger>
                     <SelectContent>
                       {niveles.map((nivel) => (
@@ -281,13 +281,13 @@ const NuevoGrupo = ({ onBack, onSaveSuccess }: NuevoGrupoProps) => {
 
                 <div className="space-y-2">
                   <Label htmlFor="grado">Grado *</Label>
-                  <Select 
-                    value={formData.grado} 
+                  <Select
+                    value={formData.grado}
                     onValueChange={(value) => handleInputChange('grado', value)}
                     disabled={!formData.nivel}
                   >
                     <SelectTrigger>
-                      <SelectValue placeholder="Selecciona el grado" />
+                      <SelectValue placeholder={<span className="notranslate">Selecciona el grado</span>} />
                     </SelectTrigger>
                     <SelectContent>
                       {formData.nivel && grados[formData.nivel as keyof typeof grados]?.map((grado) => (
@@ -301,12 +301,12 @@ const NuevoGrupo = ({ onBack, onSaveSuccess }: NuevoGrupoProps) => {
 
                 <div className="space-y-2">
                   <Label htmlFor="grupo">Grupo *</Label>
-                  <Select 
-                    value={formData.grupo} 
+                  <Select
+                    value={formData.grupo}
                     onValueChange={(value) => handleInputChange('grupo', value)}
                   >
                     <SelectTrigger>
-                      <SelectValue placeholder="Selecciona el grupo" />
+                      <SelectValue placeholder={<span className="notranslate">Selecciona el grupo</span>} />
                     </SelectTrigger>
                     <SelectContent>
                       {grupos.map((grupo) => (

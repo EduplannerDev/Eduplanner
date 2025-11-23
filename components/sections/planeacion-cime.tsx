@@ -172,7 +172,7 @@ Por favor, crea una planeación siguiendo las 3 etapas del método CIME: Concret
       } else {
         setError('Error al guardar la planeación generada')
       }
-      
+
     } catch (error) {
       console.error("Error generando planeación CIME:", error)
       setError(error instanceof Error ? error.message : "Error al generar la planeación. Inténtalo de nuevo.")
@@ -203,7 +203,7 @@ Por favor, crea una planeación siguiendo las 3 etapas del método CIME: Concret
             </p>
           </div>
         </div>
-        
+
         <div className="flex items-center justify-center py-12">
           <div className="flex items-center gap-3">
             <Loader2 className="w-6 h-6 animate-spin text-blue-600" />
@@ -249,17 +249,17 @@ Por favor, crea una planeación siguiendo las 3 etapas del método CIME: Concret
           <CardContent>
             <div className="space-y-4">
               <p className="text-amber-800 dark:text-amber-300">
-                El asistente de Planeación CIME te permite crear planeaciones especializadas para Matemáticas 
+                El asistente de Planeación CIME te permite crear planeaciones especializadas para Matemáticas
                 utilizando material concreto como Regletas Cuisenaire y Geoplanos, siguiendo la metodología CIME.
               </p>
               <div className="flex gap-2">
-                <Button 
+                <Button
                   onClick={() => window.location.href = '#perfil'}
                   className="bg-amber-600 hover:bg-amber-700 text-white"
                 >
                   Actualizar Plan
                 </Button>
-                <Button 
+                <Button
                   variant="outline"
                   onClick={onBack}
                 >
@@ -314,7 +314,7 @@ Por favor, crea una planeación siguiendo las 3 etapas del método CIME: Concret
                 <Label htmlFor="grado">Grado Escolar *</Label>
                 <Select value={formData.grado} onValueChange={(value) => handleInputChange("grado", value)}>
                   <SelectTrigger>
-                    <SelectValue placeholder="Selecciona el grado" />
+                    <SelectValue placeholder={<span className="notranslate">Selecciona el grado</span>} />
                   </SelectTrigger>
                   <SelectContent>
                     {GRADOS.map((grado) => (
@@ -348,11 +348,10 @@ Por favor, crea una planeación siguiendo las 3 etapas del método CIME: Concret
                     <button
                       key={material.value}
                       onClick={() => handleMaterialSelect(material.value)}
-                      className={`p-4 border-2 rounded-lg text-left transition-all hover:shadow-md ${
-                        formData.material === material.value
+                      className={`p-4 border-2 rounded-lg text-left transition-all hover:shadow-md ${formData.material === material.value
                           ? "border-blue-500 bg-blue-50 dark:bg-blue-900/20"
                           : "border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600"
-                      }`}
+                        }`}
                     >
                       <div className="space-y-2">
                         <div className="flex items-center gap-2">
@@ -391,24 +390,24 @@ Por favor, crea una planeación siguiendo las 3 etapas del método CIME: Concret
               )}
 
               {/* Botón de Generación */}
-                <Button
-                  onClick={handleGenerate}
-                  disabled={isGenerating || creating}
-                  className="w-full bg-blue-600 hover:bg-blue-700 text-white"
-                  size="lg"
-                >
-                  {isGenerating || creating ? (
-                    <>
-                      <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                      Generando Planeación CIME...
-                    </>
-                  ) : (
-                    <>
-                      <Sparkles className="h-4 w-4 mr-2" />
-                      Generar Planeación CIME con IA
-                    </>
-                  )}
-                </Button>
+              <Button
+                onClick={handleGenerate}
+                disabled={isGenerating || creating}
+                className="w-full bg-blue-600 hover:bg-blue-700 text-white"
+                size="lg"
+              >
+                {isGenerating || creating ? (
+                  <>
+                    <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                    Generando Planeación CIME...
+                  </>
+                ) : (
+                  <>
+                    <Sparkles className="h-4 w-4 mr-2" />
+                    Generar Planeación CIME con IA
+                  </>
+                )}
+              </Button>
             </CardContent>
           </Card>
         </div>
@@ -425,8 +424,8 @@ Por favor, crea una planeación siguiendo las 3 etapas del método CIME: Concret
             </CardHeader>
             <CardContent className="space-y-3">
               <p className="text-blue-700 dark:text-blue-300 text-sm">
-                CIME (Concreto, Imaginario, Mental, Esquemático) es una metodología 
-                para enseñar matemáticas que utiliza material concreto para facilitar 
+                CIME (Concreto, Imaginario, Mental, Esquemático) es una metodología
+                para enseñar matemáticas que utiliza material concreto para facilitar
                 la comprensión de conceptos abstractos.
               </p>
               <div className="space-y-2">
@@ -496,7 +495,7 @@ Por favor, crea una planeación siguiendo las 3 etapas del método CIME: Concret
               </CardHeader>
               <CardContent>
                 <div className="bg-gray-50 dark:bg-gray-800 p-6 rounded-lg border">
-                  <div 
+                  <div
                     className="prose prose-sm max-w-none dark:prose-invert text-gray-900 dark:text-gray-100 leading-relaxed"
                     dangerouslySetInnerHTML={{ __html: generatedContent }}
                   />

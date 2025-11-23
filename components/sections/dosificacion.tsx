@@ -40,10 +40,10 @@ export function Dosificacion({ onCreateNew, onNavigateToChatDosificacion }: Dosi
   const [vistaActual, setVistaActual] = useState<"principal" | "campos-formativos" | "contenidos-campo" | "seguimiento">("principal")
   const [curriculoData, setCurriculoData] = useState<any[]>([])
   const [camposFormativos, setCamposFormativos] = useState<string[]>([])
-  const [campoSeleccionado, setCampoSeleccionado] = useState<string>("")  
+  const [campoSeleccionado, setCampoSeleccionado] = useState<string>("")
   const [contenidosSeleccionados, setContenidosSeleccionados] = useState<Set<string>>(new Set())
-  const [dosificacionMeses, setDosificacionMeses] = useState<{[contenidoId: string]: {[mes: string]: boolean}}>({})
-  
+  const [dosificacionMeses, setDosificacionMeses] = useState<{ [contenidoId: string]: { [mes: string]: boolean } }>({})
+
   // Estados para el dashboard de seguimiento
   const [estadisticasSeguimiento, setEstadisticasSeguimiento] = useState({
     totalPDAs: 0,
@@ -77,7 +77,7 @@ export function Dosificacion({ onCreateNew, onNavigateToChatDosificacion }: Dosi
     mes_completo: string
   }>>([])
   const [cargandoEstadisticas, setCargandoEstadisticas] = useState(false)
-  
+
   const { user } = useAuth()
 
   // Cargar contexto de trabajo al montar el componente
@@ -151,13 +151,13 @@ export function Dosificacion({ onCreateNew, onNavigateToChatDosificacion }: Dosi
   const generarCiclosEscolares = () => {
     const ciclos = []
     const añoActual = new Date().getFullYear()
-    
+
     for (let i = 0; i < 3; i++) {
       const añoInicio = añoActual - i
       const añoFin = añoInicio + 1
       ciclos.push(`${añoInicio}-${añoFin}`)
     }
-    
+
     return ciclos
   }
 
@@ -191,7 +191,7 @@ export function Dosificacion({ onCreateNew, onNavigateToChatDosificacion }: Dosi
     try {
       setLoading(true)
       const { data, error } = await supabase
-        .rpc('get_curriculo_by_grado_campo', { 
+        .rpc('get_curriculo_by_grado_campo', {
           grado_param: grado,
           campo_formativo_param: campoFormativo
         })
@@ -202,7 +202,7 @@ export function Dosificacion({ onCreateNew, onNavigateToChatDosificacion }: Dosi
       }
 
       setCurriculoData(data || [])
-      
+
       // Cargar dosificación de meses para los contenidos cargados
       // Pasamos los datos directamente para evitar problemas de estado asíncrono
       await cargarDosificacionMesesConDatos(data || [])
@@ -281,7 +281,7 @@ export function Dosificacion({ onCreateNew, onNavigateToChatDosificacion }: Dosi
 
       // Crear un mapa de contenidos con planeación
       const contenidosConPlaneacion = new Set()
-      
+
       planeaciones?.forEach(planeacion => {
         if (planeacion.contenidos_relacionados && Array.isArray(planeacion.contenidos_relacionados)) {
           planeacion.contenidos_relacionados.forEach(contenidoId => {
@@ -342,7 +342,7 @@ export function Dosificacion({ onCreateNew, onNavigateToChatDosificacion }: Dosi
         }
         const stats = estadisticasPorCampoMap.get(campo)!
         stats.total++
-        
+
         if (contenidosConPlaneacion.has(contenido.contenido_id)) {
           stats.completados++
         } else {
@@ -375,13 +375,13 @@ export function Dosificacion({ onCreateNew, onNavigateToChatDosificacion }: Dosi
 
       const estadisticasPorTrimestreArray = trimestres.map(trimestre => {
         // Contar contenidos asignados en este trimestre
-        const asignados = contenidosDosificados?.filter(contenido => 
+        const asignados = contenidosDosificados?.filter(contenido =>
           trimestre.meses.includes(contenido.mes)
         ).length || 0
 
         // Contar contenidos completados en este trimestre
-        const completados = contenidosDosificados?.filter(contenido => 
-          trimestre.meses.includes(contenido.mes) && 
+        const completados = contenidosDosificados?.filter(contenido =>
+          trimestre.meses.includes(contenido.mes) &&
           contenidosConPlaneacion.has(contenido.contenido_id)
         ).length || 0
 
@@ -404,8 +404,8 @@ export function Dosificacion({ onCreateNew, onNavigateToChatDosificacion }: Dosi
       const trimestreActualData = estadisticasPorTrimestreArray.find(t => t.esActual)
       if (trimestreActualData) {
         // Obtener PDAs del trimestre actual que no tienen planeación
-        const pdasPendientesTrimestre = contenidosDosificados?.filter(contenido => 
-          trimestreActualData.meses.includes(contenido.mes) && 
+        const pdasPendientesTrimestre = contenidosDosificados?.filter(contenido =>
+          trimestreActualData.meses.includes(contenido.mes) &&
           !contenidosConPlaneacion.has(contenido.contenido_id)
         ).slice(0, 5) || [] // Limitar a 5 PDAs
 
@@ -433,7 +433,7 @@ export function Dosificacion({ onCreateNew, onNavigateToChatDosificacion }: Dosi
   const getMesCompleto = (mesAbrev: string): string => {
     const meses: { [key: string]: string } = {
       'ENE': 'Enero',
-      'FEB': 'Febrero', 
+      'FEB': 'Febrero',
       'MAR': 'Marzo',
       'ABR': 'Abril',
       'MAY': 'Mayo',
@@ -485,11 +485,11 @@ Por favor, genera una planeación completa y detallada para este contenido, incl
   }
 
   // Componente para barra de progreso - más compacto
-  const BarraProgreso = ({ porcentaje, label, completados, total }: { 
-    porcentaje: number, 
-    label: string, 
-    completados: number, 
-    total: number 
+  const BarraProgreso = ({ porcentaje, label, completados, total }: {
+    porcentaje: number,
+    label: string,
+    completados: number,
+    total: number
   }) => {
     return (
       <div className="space-y-1">
@@ -502,7 +502,7 @@ Por favor, genera una planeación completa y detallada para este contenido, incl
           </span>
         </div>
         <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2">
-          <div 
+          <div
             className="bg-gradient-to-r from-green-500 to-green-600 h-2 rounded-full transition-all duration-1000 ease-out"
             style={{ width: `${porcentaje}%` }}
           />
@@ -592,10 +592,10 @@ Por favor, genera una planeación completa y detallada para este contenido, incl
         return
       }
 
-      
+
       // Primero obtener los IDs de contenidos del campo actual
       const contenidosIds = curriculoData.map(item => item.id)
-      
+
       if (contenidosIds.length === 0) {
         setDosificacionMeses({})
         return
@@ -613,7 +613,7 @@ Por favor, genera una planeación completa y detallada para este contenido, incl
         return
       }
 
-      const dosificacion: {[contenidoId: string]: {[mes: string]: boolean}} = {}
+      const dosificacion: { [contenidoId: string]: { [mes: string]: boolean } } = {}
       data?.forEach(item => {
         const contenidoIdStr = item.contenido_id.toString()
         if (!dosificacion[contenidoIdStr]) {
@@ -621,7 +621,7 @@ Por favor, genera una planeación completa y detallada para este contenido, incl
         }
         dosificacion[contenidoIdStr][item.mes] = item.seleccionado
       })
-      
+
       setDosificacionMeses(dosificacion)
     } catch (error) {
       console.error('Error en cargarDosificacionMeses:', error)
@@ -635,10 +635,10 @@ Por favor, genera una planeación completa y detallada para este contenido, incl
         return
       }
 
-      
+
       // Obtener los IDs de contenidos de los datos pasados
       const contenidosIds = contenidos.map(item => item.id)
-      
+
       if (contenidosIds.length === 0) {
         setDosificacionMeses({})
         return
@@ -656,7 +656,7 @@ Por favor, genera una planeación completa y detallada para este contenido, incl
         return
       }
 
-      const dosificacion: {[contenidoId: string]: {[mes: string]: boolean}} = {}
+      const dosificacion: { [contenidoId: string]: { [mes: string]: boolean } } = {}
       data?.forEach(item => {
         const contenidoIdStr = item.contenido_id.toString()
         if (!dosificacion[contenidoIdStr]) {
@@ -664,7 +664,7 @@ Por favor, genera una planeación completa y detallada para este contenido, incl
         }
         dosificacion[contenidoIdStr][item.mes] = item.seleccionado
       })
-      
+
       setDosificacionMeses(dosificacion)
     } catch (error) {
       console.error('Error en cargarDosificacionMesesConDatos:', error)
@@ -765,10 +765,10 @@ Por favor, genera una planeación completa y detallada para este contenido, incl
         </div>
 
         {/* Botón flotante Volver - Solo visible en móviles */}
-        <Button 
-          variant="default" 
-          size="icon" 
-          onClick={volverVistaPrincipal} 
+        <Button
+          variant="default"
+          size="icon"
+          onClick={volverVistaPrincipal}
           className="fixed bottom-20 left-4 z-50 bg-primary hover:bg-primary/90 text-primary-foreground shadow-lg rounded-full w-12 h-12 sm:hidden"
           aria-label="Volver"
         >
@@ -802,10 +802,10 @@ Por favor, genera una planeación completa y detallada para este contenido, incl
                   { bg: 'from-orange-500 to-orange-600', border: 'border-orange-200 dark:border-orange-800', hover: 'hover:border-orange-400', text: 'group-hover:text-orange-600 dark:group-hover:text-orange-400' }
                 ]
                 const colorScheme = colors[index % colors.length]
-                
+
                 return (
-                  <Card 
-                    key={campo} 
+                  <Card
+                    key={campo}
                     className={`group bg-white dark:bg-gray-800 border-2 ${colorScheme.border} ${colorScheme.hover} hover:shadow-xl cursor-pointer transition-all duration-300 transform hover:-translate-y-2 hover:scale-105 w-full max-w-full overflow-hidden`}
                     onClick={() => handleSeleccionarCampo(campo)}
                   >
@@ -857,10 +857,10 @@ Por favor, genera una planeación completa y detallada para este contenido, incl
         </div>
 
         {/* Botón flotante Volver - Solo visible en móviles */}
-        <Button 
-          variant="default" 
-          size="icon" 
-          onClick={volverACamposFormativos} 
+        <Button
+          variant="default"
+          size="icon"
+          onClick={volverACamposFormativos}
           className="fixed bottom-20 left-4 z-50 bg-primary hover:bg-primary/90 text-primary-foreground shadow-lg rounded-full w-12 h-12 sm:hidden"
           aria-label="Volver a Campos"
         >
@@ -925,7 +925,7 @@ Por favor, genera una planeación completa y detallada para este contenido, incl
                             </td>
                           ))}
                         </tr>
-                      ))} 
+                      ))}
                     </tbody>
                   </table>
                 </div>
@@ -937,31 +937,31 @@ Por favor, genera una planeación completa y detallada para este contenido, incl
                       const contenidoId = item.id.toString()
                       return dosificacionMeses[contenidoId]?.[mes] || false
                     })
-                    
+
                     // Colores alternados para las tarjetas
                     const colorSchemes = [
-                      { 
+                      {
                         gradient: 'from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/20',
                         border: 'border-blue-200 dark:border-blue-700',
                         accent: 'bg-blue-500',
                         text: 'text-blue-700 dark:text-blue-300',
                         badge: 'bg-blue-100 dark:bg-blue-800 text-blue-800 dark:text-blue-200'
                       },
-                      { 
+                      {
                         gradient: 'from-emerald-50 to-teal-50 dark:from-emerald-900/20 dark:to-teal-900/20',
                         border: 'border-emerald-200 dark:border-emerald-700',
                         accent: 'bg-emerald-500',
                         text: 'text-emerald-700 dark:text-emerald-300',
                         badge: 'bg-emerald-100 dark:bg-emerald-800 text-emerald-800 dark:text-emerald-200'
                       },
-                      { 
+                      {
                         gradient: 'from-purple-50 to-violet-50 dark:from-purple-900/20 dark:to-violet-900/20',
                         border: 'border-purple-200 dark:border-purple-700',
                         accent: 'bg-purple-500',
                         text: 'text-purple-700 dark:text-purple-300',
                         badge: 'bg-purple-100 dark:bg-purple-800 text-purple-800 dark:text-purple-200'
                       },
-                      { 
+                      {
                         gradient: 'from-orange-50 to-amber-50 dark:from-orange-900/20 dark:to-amber-900/20',
                         border: 'border-orange-200 dark:border-orange-700',
                         accent: 'bg-orange-500',
@@ -969,9 +969,9 @@ Por favor, genera una planeación completa y detallada para este contenido, incl
                         badge: 'bg-orange-100 dark:bg-orange-800 text-orange-800 dark:text-orange-200'
                       }
                     ]
-                    
+
                     const colorScheme = colorSchemes[index % colorSchemes.length]
-                    
+
                     return (
                       <Card key={item.id} className={`w-full overflow-hidden bg-gradient-to-br ${colorScheme.gradient} border-2 ${colorScheme.border} shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1`}>
                         <CardHeader className="pb-4 relative">
@@ -990,7 +990,7 @@ Por favor, genera una planeación completa y detallada para este contenido, incl
                               {item.pda}
                             </p>
                           </div>
-                          
+
                           <div className="bg-white/40 dark:bg-gray-800/40 backdrop-blur-sm rounded-lg p-4 border border-white/20 dark:border-gray-700/50">
                             <h4 className={`text-xs font-semibold ${colorScheme.text} mb-4 uppercase tracking-wider flex items-center gap-2`}>
                               <div className={`w-2 h-2 ${colorScheme.accent} rounded-full`}></div>
@@ -1000,7 +1000,7 @@ Por favor, genera una planeación completa y detallada para este contenido, incl
                               {mesesEscolares.map(mes => {
                                 const contenidoId = item.id.toString()
                                 const isChecked = dosificacionMeses[contenidoId]?.[mes] || false
-                                
+
                                 return (
                                   <div key={mes} className="flex items-center space-x-2 group">
                                     <Checkbox
@@ -1009,7 +1009,7 @@ Por favor, genera una planeación completa y detallada para este contenido, incl
                                       onCheckedChange={(checked) => handleSeleccionMes(item.id.toString(), mes, checked as boolean)}
                                       className={`data-[state=checked]:bg-blue-600 data-[state=checked]:border-blue-600 dark:data-[state=checked]:bg-blue-500 dark:data-[state=checked]:border-blue-500 transition-all duration-200 group-hover:scale-110`}
                                     />
-                                    <label 
+                                    <label
                                       htmlFor={`${item.id}-${mes}-mobile`}
                                       className={`text-xs font-medium cursor-pointer transition-colors duration-200 group-hover:${colorScheme.text} ${isChecked ? colorScheme.text : 'text-gray-600 dark:text-gray-400'}`}
                                     >
@@ -1020,7 +1020,7 @@ Por favor, genera una planeación completa y detallada para este contenido, incl
                               })}
                             </div>
                           </div>
-                          
+
                           {mesesSeleccionados.length > 0 && (
                             <div className={`${colorScheme.badge} rounded-lg p-3 border border-current/20`}>
                               <p className={`text-sm font-semibold ${colorScheme.text} flex items-center gap-2`}>
@@ -1068,56 +1068,56 @@ Por favor, genera una planeación completa y detallada para este contenido, incl
           <CardContent className="space-y-6">
             <div className="space-y-2">
               <label className="text-sm font-medium">Grado Escolar</label>
-        <Select value={gradoSeleccionado} onValueChange={setGradoSeleccionado}>
-          <SelectTrigger>
-            <SelectValue placeholder="Selecciona el grado" />
-          </SelectTrigger>
-          <SelectContent>
-            {/* Separador visual */}
-            <div className="px-2 py-1 text-xs text-muted-foreground font-medium">
-              Preescolar
-            </div>
+              <Select value={gradoSeleccionado} onValueChange={setGradoSeleccionado}>
+                <SelectTrigger>
+                  <SelectValue placeholder={<span className="notranslate">Selecciona el grado</span>} />
+                </SelectTrigger>
+                <SelectContent>
+                  {/* Separador visual */}
+                  <div className="px-2 py-1 text-xs text-muted-foreground font-medium">
+                    Preescolar
+                  </div>
 
-            {/* Grados de Preescolar */}
-            <SelectItem value="-3">1° Grado</SelectItem>
-            <SelectItem value="-2">2° Grado</SelectItem>
-            <SelectItem value="-1">3° Grado</SelectItem>
+                  {/* Grados de Preescolar */}
+                  <SelectItem value="-3">1° Grado</SelectItem>
+                  <SelectItem value="-2">2° Grado</SelectItem>
+                  <SelectItem value="-1">3° Grado</SelectItem>
 
-            {/* Separador visual */}
-            <div className="px-2 py-1 text-xs text-muted-foreground font-medium">
-              Primaria
-            </div>
+                  {/* Separador visual */}
+                  <div className="px-2 py-1 text-xs text-muted-foreground font-medium">
+                    Primaria
+                  </div>
 
-            {/* Grados de Primaria */}
-            {[1, 2, 3, 4, 5, 6].map((grado) => (
-              <SelectItem key={grado} value={grado.toString()}>
-                {grado}° Grado
-              </SelectItem>
-            ))}
+                  {/* Grados de Primaria */}
+                  {[1, 2, 3, 4, 5, 6].map((grado) => (
+                    <SelectItem key={grado} value={grado.toString()}>
+                      {grado}° Grado
+                    </SelectItem>
+                  ))}
 
-            {/* Separador visual */}
-            <div className="px-2 py-1 text-xs text-muted-foreground font-medium">
-              Secundaria
-            </div>
+                  {/* Separador visual */}
+                  <div className="px-2 py-1 text-xs text-muted-foreground font-medium">
+                    Secundaria
+                  </div>
 
-            {/* Grados de Secundaria */}
-            {[7, 8, 9].map((grado) => {
-              const gradoDisplay = grado - 6; // Convertir 7,8,9 a 1,2,3
-              return (
-                <SelectItem key={grado} value={grado.toString()}>
-                  {gradoDisplay}° Grado
-                </SelectItem>
-              );
-            })}
-          </SelectContent>
-        </Select>
+                  {/* Grados de Secundaria */}
+                  {[7, 8, 9].map((grado) => {
+                    const gradoDisplay = grado - 6; // Convertir 7,8,9 a 1,2,3
+                    return (
+                      <SelectItem key={grado} value={grado.toString()}>
+                        {gradoDisplay}° Grado
+                      </SelectItem>
+                    );
+                  })}
+                </SelectContent>
+              </Select>
             </div>
 
             <div className="space-y-2">
               <label className="text-sm font-medium">Ciclo Escolar</label>
               <Select value={cicloSeleccionado} onValueChange={setCicloSeleccionado}>
                 <SelectTrigger>
-                  <SelectValue placeholder="Selecciona el ciclo escolar" />
+                  <SelectValue placeholder={<span className="notranslate">Selecciona el ciclo escolar</span>} />
                 </SelectTrigger>
                 <SelectContent>
                   {generarCiclosEscolares().map((ciclo) => (
@@ -1129,8 +1129,8 @@ Por favor, genera una planeación completa y detallada para este contenido, incl
               </Select>
             </div>
 
-            <Button 
-              onClick={guardarConfiguracion} 
+            <Button
+              onClick={guardarConfiguracion}
               disabled={loading || !gradoSeleccionado || !cicloSeleccionado}
               className="w-full"
             >
@@ -1153,8 +1153,8 @@ Por favor, genera una planeación completa y detallada para este contenido, incl
       <div className="space-y-6 w-full max-w-full overflow-hidden pb-20 sm:pb-6 dashboard-mobile">
         <div className="flex flex-col sm:flex-row sm:items-center gap-4">
           {/* Botón Volver - Solo visible en desktop */}
-          <Button 
-            variant="default" 
+          <Button
+            variant="default"
             onClick={() => setVistaActual("principal")}
             className="hidden sm:flex w-fit bg-primary hover:bg-primary/90 text-primary-foreground shadow-md"
           >
@@ -1172,10 +1172,10 @@ Por favor, genera una planeación completa y detallada para este contenido, incl
         </div>
 
         {/* Botón flotante Volver - Solo visible en móviles */}
-        <Button 
-          variant="default" 
-          size="icon" 
-          onClick={() => setVistaActual("principal")} 
+        <Button
+          variant="default"
+          size="icon"
+          onClick={() => setVistaActual("principal")}
           className="fixed bottom-4 left-4 z-50 bg-primary hover:bg-primary/90 text-primary-foreground shadow-lg rounded-full w-12 h-12 sm:hidden"
           aria-label="Volver"
         >
@@ -1204,8 +1204,8 @@ Por favor, genera una planeación completa y detallada para este contenido, incl
                 <div className="space-y-6">
                   {/* Gráfico circular de progreso principal - más pequeño */}
                   <div className="flex justify-center">
-                    <GraficoCircularProgreso 
-                      porcentaje={estadisticasSeguimiento.porcentajeCompletado} 
+                    <GraficoCircularProgreso
+                      porcentaje={estadisticasSeguimiento.porcentajeCompletado}
                       size={160}
                     />
                   </div>
@@ -1338,28 +1338,28 @@ Por favor, genera una planeación completa y detallada para este contenido, incl
                 <div className="space-y-4">
                   {estadisticasPorCampo.map((campo, index) => {
                     const colorSchemes = [
-                      { 
+                      {
                         gradient: 'from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/20',
                         border: 'border-blue-200 dark:border-blue-700',
                         accent: 'bg-blue-500',
                         text: 'text-blue-700 dark:text-blue-300',
                         progress: 'bg-gradient-to-r from-blue-500 to-blue-600'
                       },
-                      { 
+                      {
                         gradient: 'from-emerald-50 to-teal-50 dark:from-emerald-900/20 dark:to-teal-900/20',
                         border: 'border-emerald-200 dark:border-emerald-700',
                         accent: 'bg-emerald-500',
                         text: 'text-emerald-700 dark:text-emerald-300',
                         progress: 'bg-gradient-to-r from-emerald-500 to-emerald-600'
                       },
-                      { 
+                      {
                         gradient: 'from-purple-50 to-violet-50 dark:from-purple-900/20 dark:to-violet-900/20',
                         border: 'border-purple-200 dark:border-purple-700',
                         accent: 'bg-purple-500',
                         text: 'text-purple-700 dark:text-purple-300',
                         progress: 'bg-gradient-to-r from-purple-500 to-purple-600'
                       },
-                      { 
+                      {
                         gradient: 'from-orange-50 to-amber-50 dark:from-orange-900/20 dark:to-amber-900/20',
                         border: 'border-orange-200 dark:border-orange-700',
                         accent: 'bg-orange-500',
@@ -1367,11 +1367,11 @@ Por favor, genera una planeación completa y detallada para este contenido, incl
                         progress: 'bg-gradient-to-r from-orange-500 to-orange-600'
                       }
                     ]
-                    
+
                     const colorScheme = colorSchemes[index % colorSchemes.length]
-                    
+
                     return (
-                      <div 
+                      <div
                         key={campo.campo}
                         className={`bg-gradient-to-br ${colorScheme.gradient} border-2 ${colorScheme.border} rounded-lg p-3 sm:p-4 shadow-sm hover:shadow-md transition-all duration-300 w-full max-w-full overflow-hidden`}
                       >
@@ -1381,7 +1381,7 @@ Por favor, genera una planeación completa y detallada para este contenido, incl
                           </h3>
                           <div className={`w-3 h-3 ${colorScheme.accent} rounded-full shadow-sm flex-shrink-0`}></div>
                         </div>
-                        
+
                         <div className="space-y-2">
                           <div className="flex justify-between text-sm sm:text-sm">
                             <span className="text-gray-600 dark:text-gray-400 break-words">Progreso:</span>
@@ -1389,9 +1389,9 @@ Por favor, genera una planeación completa y detallada para este contenido, incl
                               {campo.completados}/{campo.total} ({campo.porcentaje}%)
                             </span>
                           </div>
-                          
+
                           <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-4 sm:h-3">
-                            <div 
+                            <div
                               className={`h-4 sm:h-3 rounded-full transition-all duration-1000 ease-out ${colorScheme.progress}`}
                               style={{ width: `${Math.max(campo.porcentaje, 5)}%` }}
                             />
@@ -1400,7 +1400,7 @@ Por favor, genera una planeación completa y detallada para este contenido, incl
                       </div>
                     )
                   })}
-                  
+
                   {/* Resumen general mejorado */}
                   <div className="mt-4 p-3 sm:p-4 bg-gradient-to-r from-gray-50 to-gray-100 dark:from-gray-800 dark:to-gray-700 rounded-lg border border-gray-200 dark:border-gray-600 shadow-sm">
                     <div className="flex justify-between items-center">
@@ -1408,7 +1408,7 @@ Por favor, genera una planeación completa y detallada para este contenido, incl
                         Promedio General
                       </span>
                       <span className="text-lg font-bold text-gray-900 dark:text-gray-100">
-                        {estadisticasPorCampo.length > 0 
+                        {estadisticasPorCampo.length > 0
                           ? Math.round(estadisticasPorCampo.reduce((acc, campo) => acc + campo.porcentaje, 0) / estadisticasPorCampo.length)
                           : 0}%
                       </span>
@@ -1441,20 +1441,18 @@ Por favor, genera una planeación completa y detallada para este contenido, incl
               ) : (
                 <div className="grid grid-cols-1 gap-4 w-full max-w-full overflow-hidden">
                   {estadisticasPorTrimestre.map((trimestre) => (
-                    <div 
+                    <div
                       key={trimestre.trimestre}
-                      className={`p-3 sm:p-4 rounded-lg border-2 transition-all duration-300 shadow-sm hover:shadow-md transform hover:-translate-y-1 w-full max-w-full overflow-hidden ${
-                        trimestre.esActual 
-                          ? 'border-indigo-500 bg-gradient-to-br from-indigo-50 to-blue-50 dark:from-indigo-950/20 dark:to-blue-950/20' 
-                          : 'border-gray-200 dark:border-gray-700 bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-800 dark:to-gray-700'
-                      }`}
+                      className={`p-3 sm:p-4 rounded-lg border-2 transition-all duration-300 shadow-sm hover:shadow-md transform hover:-translate-y-1 w-full max-w-full overflow-hidden ${trimestre.esActual
+                        ? 'border-indigo-500 bg-gradient-to-br from-indigo-50 to-blue-50 dark:from-indigo-950/20 dark:to-blue-950/20'
+                        : 'border-gray-200 dark:border-gray-700 bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-800 dark:to-gray-700'
+                        }`}
                     >
                       <div className="flex items-center justify-between mb-3">
-                        <h3 className={`font-semibold text-sm break-words leading-tight ${
-                          trimestre.esActual 
-                            ? 'text-indigo-700 dark:text-indigo-300' 
-                            : 'text-gray-700 dark:text-gray-300'
-                        }`}>
+                        <h3 className={`font-semibold text-sm break-words leading-tight ${trimestre.esActual
+                          ? 'text-indigo-700 dark:text-indigo-300'
+                          : 'text-gray-700 dark:text-gray-300'
+                          }`}>
                           {trimestre.nombre}
                         </h3>
                         {trimestre.esActual && (
@@ -1463,7 +1461,7 @@ Por favor, genera una planeación completa y detallada para este contenido, incl
                           </Badge>
                         )}
                       </div>
-                      
+
                       <div className="space-y-2">
                         <div className="flex justify-between text-xs sm:text-sm">
                           <span className="text-gray-600 dark:text-gray-400 break-words">PDAs asignados:</span>
@@ -1471,7 +1469,7 @@ Por favor, genera una planeación completa y detallada para este contenido, incl
                             {trimestre.asignados}
                           </span>
                         </div>
-                        
+
                         <div className="flex justify-between text-xs sm:text-sm">
                           <span className="text-gray-600 dark:text-gray-400 break-words">Completados:</span>
                           <span className="font-medium text-gray-900 dark:text-gray-100">
@@ -1481,30 +1479,28 @@ Por favor, genera una planeación completa y detallada para este contenido, incl
                             )}
                           </span>
                         </div>
-                        
+
                         {trimestre.asignados > 0 && (
                           <div className="pt-2">
                             <div className="flex justify-between text-xs sm:text-sm mb-1">
                               <span className="text-gray-600 dark:text-gray-400 break-words">Progreso:</span>
-                              <span className={`font-medium ${
-                                trimestre.porcentaje === 100 
-                                  ? 'text-green-600 dark:text-green-400' 
-                                  : trimestre.esActual 
-                                    ? 'text-indigo-600 dark:text-indigo-400'
-                                    : 'text-gray-600 dark:text-gray-400'
-                              }`}>
+                              <span className={`font-medium ${trimestre.porcentaje === 100
+                                ? 'text-green-600 dark:text-green-400'
+                                : trimestre.esActual
+                                  ? 'text-indigo-600 dark:text-indigo-400'
+                                  : 'text-gray-600 dark:text-gray-400'
+                                }`}>
                                 {trimestre.porcentaje}%
                               </span>
                             </div>
                             <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2">
-                              <div 
-                                className={`h-2 rounded-full transition-all duration-1000 ease-out ${
-                                  trimestre.porcentaje === 100 
-                                    ? 'bg-gradient-to-r from-green-500 to-green-600' 
-                                    : trimestre.esActual 
-                                      ? 'bg-gradient-to-r from-indigo-500 to-indigo-600'
-                                      : 'bg-gradient-to-r from-gray-400 to-gray-500'
-                                }`}
+                              <div
+                                className={`h-2 rounded-full transition-all duration-1000 ease-out ${trimestre.porcentaje === 100
+                                  ? 'bg-gradient-to-r from-green-500 to-green-600'
+                                  : trimestre.esActual
+                                    ? 'bg-gradient-to-r from-indigo-500 to-indigo-600'
+                                    : 'bg-gradient-to-r from-gray-400 to-gray-500'
+                                  }`}
                                 style={{ width: `${trimestre.porcentaje}%` }}
                               />
                             </div>
@@ -1565,9 +1561,9 @@ Por favor, genera una planeación completa y detallada para este contenido, incl
                         <Button
                           size="sm"
                           onClick={() => handleCrearPlaneacionDesdeAccion(
-                            accion.id, 
-                            accion.pda, 
-                            accion.campo_formativo, 
+                            accion.id,
+                            accion.pda,
+                            accion.campo_formativo,
                             accion.mes
                           )}
                           className="flex-shrink-0"
@@ -1576,14 +1572,14 @@ Por favor, genera una planeación completa y detallada para este contenido, incl
                           Crear Planeación
                         </Button>
                       </div>
-                      
+
                       {/* Separador entre acciones (excepto la última) */}
                       {index < accionesSugeridas.length - 1 && (
                         <div className="border-b border-gray-200 dark:border-gray-700 mt-3"></div>
                       )}
                     </div>
                   ))}
-                  
+
                   {/* Información adicional */}
                   <div className="mt-4 p-3 bg-orange-50 dark:bg-orange-950/20 rounded-lg border border-orange-200 dark:border-orange-800">
                     <div className="flex items-center gap-2">
@@ -1634,12 +1630,12 @@ Por favor, genera una planeación completa y detallada para este contenido, incl
         <Card className="bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 dark:from-blue-950/20 dark:via-indigo-950/20 dark:to-purple-950/20 border-0 shadow-xl">
           <CardContent className="text-center py-16 px-8">
             <p className="text-gray-600 dark:text-gray-300 mb-8 max-w-2xl mx-auto text-lg leading-relaxed">
-              Gestiona tu dosificación curricular de manera inteligente. Organiza contenidos, 
+              Gestiona tu dosificación curricular de manera inteligente. Organiza contenidos,
               distribuye por periodos y realiza seguimiento del progreso académico.
             </p>
-            
+
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-12 max-w-4xl mx-auto">
-              <Card 
+              <Card
                 className="group bg-white dark:bg-gray-800 border-2 border-blue-200 dark:border-blue-800 hover:border-blue-400 hover:shadow-xl cursor-pointer transition-all duration-300 transform hover:-translate-y-1"
                 onClick={handleDistribucionTemporal}
               >
@@ -1662,7 +1658,7 @@ Por favor, genera una planeación completa y detallada para este contenido, incl
                   </div>
                 </CardContent>
               </Card>
-              
+
               <Card className="group bg-white dark:bg-gray-800 border-2 border-gray-200 dark:border-gray-700 hover:border-purple-400 hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1">
                 <CardHeader className="pb-4">
                   <div className="bg-gradient-to-br from-purple-500 to-purple-600 rounded-full p-3 w-16 h-16 mx-auto mb-4 group-hover:scale-110 transition-transform duration-300">
@@ -1683,8 +1679,8 @@ Por favor, genera una planeación completa y detallada para este contenido, incl
                   </div>
                 </CardContent>
               </Card>
-              
-              <Card 
+
+              <Card
                 className="group bg-white dark:bg-gray-800 border-2 border-gray-200 dark:border-gray-700 hover:border-green-400 hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1 cursor-pointer"
                 onClick={handleIrSeguimiento}
               >
