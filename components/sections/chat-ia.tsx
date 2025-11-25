@@ -328,14 +328,14 @@ Puedes contarme:
         <div className="flex-1">
           <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100 flex items-center gap-2 select-none">
             <Sparkles className="h-8 w-8 text-purple-600" />
-            Crear Clase con IA
+            <span className="notranslate">Crear Clase con IA</span>
           </h1>
           <p className="text-gray-600 mt-2 select-none">Diseña tu clase individual con la ayuda de inteligencia artificial</p>
         </div>
         <div className="text-right">
           <p className="text-sm text-gray-600 select-none">
-            Planeaciones restantes este mes:{" "}
-            <span className="font-medium">{remainingPlaneaciones === -1 ? "∞" : remainingPlaneaciones}</span>
+            <span className="notranslate">Planeaciones restantes este mes:{" "}</span>
+            <span className="font-medium notranslate">{remainingPlaneaciones === -1 ? "∞" : remainingPlaneaciones}</span>
           </p>
         </div>
       </div>
@@ -438,11 +438,11 @@ Puedes contarme:
                       >
                         {message.role === "assistant" ? (
                           <div
-                            className="text-sm text-gray-900 dark:text-gray-100 leading-relaxed select-none"
+                            className="text-sm text-gray-900 dark:text-gray-100 leading-relaxed select-none notranslate"
                             dangerouslySetInnerHTML={{ __html: convertChatMarkdownToHtml(message.content) }}
                           />
                         ) : (
-                          <div className="whitespace-pre-wrap text-sm leading-relaxed select-none dark:bg-gray-900 dark:border-gray-500">{message.content}</div>
+                          <div className="whitespace-pre-wrap text-sm leading-relaxed select-none dark:bg-gray-900 dark:border-gray-500 notranslate">{message.content}</div>
                         )}
                       </div>
 
@@ -465,7 +465,7 @@ Puedes contarme:
                       <div className="bg-gray-100 text-gray-900 dark:text-gray-100 border border-gray-200 dark:bg-gray-700 dark:border-gray-600 rounded-lg p-3">
                         <div className="flex items-center gap-2">
                           <Loader2 className="h-4 w-4 animate-spin" />
-                          <span className="text-sm">Pensando...</span>
+                          <span className="text-sm notranslate">Pensando...</span>
                         </div>
                       </div>
                     </div>
@@ -684,7 +684,7 @@ Puedes contarme:
                     onClick={() => handleQuickSuggestion(suggestion)}
                     disabled={isLoading || hasReachedLimit}
                   >
-                    <div className="text-sm leading-relaxed">{suggestion}</div>
+                    <div className="text-sm leading-relaxed notranslate">{suggestion}</div>
                   </Button>
                 ))}
               </div>

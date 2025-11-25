@@ -43,6 +43,7 @@ const PaginationLink = ({
   className,
   isActive,
   size = "icon",
+  children,
   ...props
 }: PaginationLinkProps) => (
   <a
@@ -55,7 +56,9 @@ const PaginationLink = ({
       className
     )}
     {...props}
-  />
+  >
+    <span className="notranslate">{children}</span>
+  </a>
 )
 PaginationLink.displayName = "PaginationLink"
 
@@ -70,7 +73,7 @@ const PaginationPrevious = ({
     {...props}
   >
     <ChevronLeft className="h-4 w-4" />
-    <span>Atras</span>
+    <span className="notranslate">Atras</span>
   </PaginationLink>
 )
 PaginationPrevious.displayName = "PaginationPrevious"
@@ -85,7 +88,7 @@ const PaginationNext = ({
     className={cn("gap-1 pr-2.5", className)}
     {...props}
   >
-    <span>Siguiente</span>
+    <span className="notranslate">Siguiente</span>
     <ChevronRight className="h-4 w-4" />
   </PaginationLink>
 )

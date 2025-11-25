@@ -145,9 +145,9 @@ export function AppSidebar({ activeSection, onSectionChange, ...props }: AppSide
   const { isAdmin, isDirector } = useRoles()
   const { isBetaTester } = useBetaTesterCheck()
   const { state, setOpenMobile } = useSidebar()
-  
+
   const isMobile = useIsMobile()
-  
+
   // Estado para manejar qué secciones están expandidas
   const [expandedSections, setExpandedSections] = useState<Record<string, boolean>>({
     planeaciones: false,
@@ -164,7 +164,7 @@ export function AppSidebar({ activeSection, onSectionChange, ...props }: AppSide
   const getInitials = (email: string) => {
     return email.charAt(0).toUpperCase()
   }
-  
+
   const toggleSection = (sectionKey: string) => {
     setExpandedSections(prev => ({
       ...prev,
@@ -198,16 +198,16 @@ export function AppSidebar({ activeSection, onSectionChange, ...props }: AppSide
         {/* --- Logo y Texto Alineados Horizontalmente --- */}
         <div className="flex flex-row items-center justify-center gap-3">
           {/* Logo siempre visible */}
-          <img 
-            src="/images/Logo.png" 
-            alt="Logo EduPlanner" 
-            className={`w-auto ${state === "expanded" ? "h-10" : "h-8"}`} 
+          <img
+            src="/images/Logo.png"
+            alt="Logo EduPlanner"
+            className={`w-auto ${state === "expanded" ? "h-10" : "h-8"}`}
           />
           {/* Texto solo visible cuando está expandido */}
           {state === "expanded" && (
             <div className="text-left">
-              <span className="block text-sm font-semibold">EduPlanner</span>
-              <span className="block text-xs text-muted-foreground">Planeaciones con IA</span>
+              <span className="block text-sm font-semibold notranslate">EduPlanner</span>
+              <span className="block text-xs text-muted-foreground notranslate">Planeaciones con IA</span>
             </div>
           )}
         </div>
@@ -226,14 +226,14 @@ export function AppSidebar({ activeSection, onSectionChange, ...props }: AppSide
                 >
                   <button onClick={() => handleNavigation("dashboard")} className="w-full">
                     <Home className="h-4 w-4" />
-                    <span>Dashboard</span>
+                    <span className="notranslate">Dashboard</span>
                   </button>
                 </SidebarMenuButton>
               </SidebarMenuItem>
             </SidebarMenu>
           </SidebarGroupContent>
         </SidebarGroup>
-        
+
         {/* PLANIFICACIÓN Y EVALUACIÓN */}
         <SidebarGroup>
           {state === "expanded" && (
@@ -252,7 +252,7 @@ export function AppSidebar({ activeSection, onSectionChange, ...props }: AppSide
                         <CollapsibleTrigger asChild>
                           <SidebarMenuButton className="w-full">
                             <section.icon className="h-4 w-4" />
-                            <span>{section.title}</span>
+                            <span className="notranslate">{section.title}</span>
                             {expandedSections[getSectionKey(section.title)] ? (
                               <ChevronDown className="h-4 w-4 ml-auto" />
                             ) : (
@@ -269,7 +269,7 @@ export function AppSidebar({ activeSection, onSectionChange, ...props }: AppSide
                                   isActive={activeSection === item.url.replace("#", "")}
                                 >
                                   <button onClick={() => handleNavigation(item.url.replace("#", ""))} className="w-full">
-                                    <span>{item.title}</span>
+                                    <span className="notranslate">{item.title}</span>
                                   </button>
                                 </SidebarMenuSubButton>
                               </SidebarMenuSubItem>
@@ -294,7 +294,7 @@ export function AppSidebar({ activeSection, onSectionChange, ...props }: AppSide
                                 onClick={() => handleNavigation(item.url.replace("#", ""))}
                                 className="w-full text-left px-2 py-1 text-sm hover:bg-accent hover:text-accent-foreground rounded-sm transition-colors"
                               >
-                                {item.title}
+                                <span className="notranslate">{item.title}</span>
                               </button>
                             ))}
                           </div>
@@ -302,95 +302,95 @@ export function AppSidebar({ activeSection, onSectionChange, ...props }: AppSide
                       </Popover>
                     )
                   ) : (
-                     <SidebarMenuButton
-                       asChild
-                       isActive={activeSection === (section as any).url?.replace("#", "")}
-                       tooltip={(section as any).description}
-                     >
-                       <button onClick={() => handleNavigation((section as any).url?.replace("#", "") || "")} className="w-full">
-                         <section.icon className="h-4 w-4" />
-                         <span>{section.title}</span>
-                       </button>
-                     </SidebarMenuButton>
-                   )}
-                </SidebarMenuItem>
-              ))}
-              
-              {/* Proyectos - Disponible para todos */}
-              <SidebarMenuItem>
-                  {state === "expanded" ? (
-                    <Collapsible
-                      open={expandedSections.proyectos}
-                      onOpenChange={() => toggleSection('proyectos')}
+                    <SidebarMenuButton
+                      asChild
+                      isActive={activeSection === (section as any).url?.replace("#", "")}
+                      tooltip={(section as any).description}
                     >
-                      <CollapsibleTrigger asChild>
-                        <SidebarMenuButton className="w-full">
-                          <Bot className="h-4 w-4" />
-                          <span>Proyectos</span>
-                          {expandedSections.proyectos ? (
-                            <ChevronDown className="h-4 w-4 ml-auto" />
-                          ) : (
-                            <ChevronRight className="h-4 w-4 ml-auto" />
-                          )}
-                        </SidebarMenuButton>
-                      </CollapsibleTrigger>
-                      <CollapsibleContent>
-                        <SidebarMenuSub>
-                          <SidebarMenuSubItem>
-                            <SidebarMenuSubButton
-                              asChild
-                              isActive={activeSection === "crear-proyecto"}
-                            >
-                              <button onClick={() => handleNavigation("crear-proyecto")} className="w-full">
-                                <span>Crear Proyecto</span>
-                              </button>
-                            </SidebarMenuSubButton>
-                          </SidebarMenuSubItem>
-                          <SidebarMenuSubItem>
-                            <SidebarMenuSubButton
-                              asChild
-                              isActive={activeSection === "proyectos"}
-                            >
-                              <button onClick={() => handleNavigation("proyectos")} className="w-full">
-                                <span>Mis Proyectos</span>
-                              </button>
-                            </SidebarMenuSubButton>
-                          </SidebarMenuSubItem>
-                        </SidebarMenuSub>
-                      </CollapsibleContent>
-                    </Collapsible>
-                  ) : (
-                    <Popover>
-                      <PopoverTrigger asChild>
-                        <SidebarMenuButton
-                          tooltip="Proyectos"
-                        >
-                          <Bot className="h-4 w-4" />
-                        </SidebarMenuButton>
-                      </PopoverTrigger>
-                      <PopoverContent side="right" className="w-48 p-2">
-                        <div className="space-y-1">
-                          <button
-                            onClick={() => handleNavigation("crear-proyecto")}
-                            className="w-full text-left px-2 py-1 text-sm hover:bg-accent hover:text-accent-foreground rounded-sm transition-colors"
-                          >
-                            Crear Proyecto
-                          </button>
-                          <button
-                            onClick={() => handleNavigation("proyectos")}
-                            className="w-full text-left px-2 py-1 text-sm hover:bg-accent hover:text-accent-foreground rounded-sm transition-colors"
-                          >
-                            Mis Proyectos
-                          </button>
-                        </div>
-                      </PopoverContent>
-                    </Popover>
+                      <button onClick={() => handleNavigation((section as any).url?.replace("#", "") || "")} className="w-full">
+                        <section.icon className="h-4 w-4" />
+                        <span className="notranslate">{section.title}</span>
+                      </button>
+                    </SidebarMenuButton>
                   )}
                 </SidebarMenuItem>
+              ))}
+
+              {/* Proyectos - Disponible para todos */}
+              <SidebarMenuItem>
+                {state === "expanded" ? (
+                  <Collapsible
+                    open={expandedSections.proyectos}
+                    onOpenChange={() => toggleSection('proyectos')}
+                  >
+                    <CollapsibleTrigger asChild>
+                      <SidebarMenuButton className="w-full">
+                        <Bot className="h-4 w-4" />
+                        <span className="notranslate">Proyectos</span>
+                        {expandedSections.proyectos ? (
+                          <ChevronDown className="h-4 w-4 ml-auto" />
+                        ) : (
+                          <ChevronRight className="h-4 w-4 ml-auto" />
+                        )}
+                      </SidebarMenuButton>
+                    </CollapsibleTrigger>
+                    <CollapsibleContent>
+                      <SidebarMenuSub>
+                        <SidebarMenuSubItem>
+                          <SidebarMenuSubButton
+                            asChild
+                            isActive={activeSection === "crear-proyecto"}
+                          >
+                            <button onClick={() => handleNavigation("crear-proyecto")} className="w-full">
+                              <span className="notranslate">Crear Proyecto</span>
+                            </button>
+                          </SidebarMenuSubButton>
+                        </SidebarMenuSubItem>
+                        <SidebarMenuSubItem>
+                          <SidebarMenuSubButton
+                            asChild
+                            isActive={activeSection === "proyectos"}
+                          >
+                            <button onClick={() => handleNavigation("proyectos")} className="w-full">
+                              <span className="notranslate">Mis Proyectos</span>
+                            </button>
+                          </SidebarMenuSubButton>
+                        </SidebarMenuSubItem>
+                      </SidebarMenuSub>
+                    </CollapsibleContent>
+                  </Collapsible>
+                ) : (
+                  <Popover>
+                    <PopoverTrigger asChild>
+                      <SidebarMenuButton
+                        tooltip="Proyectos"
+                      >
+                        <Bot className="h-4 w-4" />
+                      </SidebarMenuButton>
+                    </PopoverTrigger>
+                    <PopoverContent side="right" className="w-48 p-2">
+                      <div className="space-y-1">
+                        <button
+                          onClick={() => handleNavigation("crear-proyecto")}
+                          className="w-full text-left px-2 py-1 text-sm hover:bg-accent hover:text-accent-foreground rounded-sm transition-colors"
+                        >
+                          <span className="notranslate">Crear Proyecto</span>
+                        </button>
+                        <button
+                          onClick={() => handleNavigation("proyectos")}
+                          className="w-full text-left px-2 py-1 text-sm hover:bg-accent hover:text-accent-foreground rounded-sm transition-colors"
+                        >
+                          <span className="notranslate">Mis Proyectos</span>
+                        </button>
+                      </div>
+                    </PopoverContent>
+                  </Popover>
+                )}
+              </SidebarMenuItem>
             </SidebarMenu>
           </SidebarGroupContent>
         </SidebarGroup>
-        
+
         {/* GESTIÓN DEL AULA */}
         <SidebarGroup>
           {state === "expanded" && (
@@ -407,7 +407,7 @@ export function AppSidebar({ activeSection, onSectionChange, ...props }: AppSide
                   >
                     <button onClick={() => handleNavigation((section as any).url?.replace("#", "") || "")} className="w-full">
                       <section.icon className="h-4 w-4" />
-                      <span>{section.title}</span>
+                      <span className="notranslate">{section.title}</span>
                     </button>
                   </SidebarMenuButton>
                 </SidebarMenuItem>
@@ -415,7 +415,7 @@ export function AppSidebar({ activeSection, onSectionChange, ...props }: AppSide
             </SidebarMenu>
           </SidebarGroupContent>
         </SidebarGroup>
-        
+
         {/* MI ESPACIO */}
         <SidebarGroup>
           {state === "expanded" && (
@@ -432,7 +432,7 @@ export function AppSidebar({ activeSection, onSectionChange, ...props }: AppSide
                   >
                     <button onClick={() => handleNavigation(section.url?.replace("#", "") || "")} className="w-full">
                       <section.icon className="h-4 w-4" />
-                      <span>{section.title}</span>
+                      <span className="notranslate">{section.title}</span>
                     </button>
                   </SidebarMenuButton>
                 </SidebarMenuItem>
@@ -440,7 +440,7 @@ export function AppSidebar({ activeSection, onSectionChange, ...props }: AppSide
             </SidebarMenu>
           </SidebarGroupContent>
         </SidebarGroup>
-        
+
         {/* AYUDA */}
         <SidebarGroup>
           {state === "expanded" && (
@@ -457,7 +457,7 @@ export function AppSidebar({ activeSection, onSectionChange, ...props }: AppSide
                   >
                     <button onClick={() => handleNavigation(section.url?.replace("#", "") || "")} className="w-full">
                       <section.icon className="h-4 w-4" />
-                      <span>{section.title}</span>
+                      <span className="notranslate">{section.title}</span>
                     </button>
                   </SidebarMenuButton>
                 </SidebarMenuItem>
@@ -482,7 +482,7 @@ export function AppSidebar({ activeSection, onSectionChange, ...props }: AppSide
                   >
                     <button onClick={() => handleNavigation("admin-dashboard")} className="w-full">
                       <Shield className="h-4 w-4" />
-                      <span>Panel de Administración</span>
+                      <span className="notranslate">Panel de Administración</span>
                     </button>
                   </SidebarMenuButton>
                 </SidebarMenuItem>
@@ -494,7 +494,7 @@ export function AppSidebar({ activeSection, onSectionChange, ...props }: AppSide
                   >
                     <button onClick={() => handleNavigation("beta-testers")} className="w-full">
                       <Sparkles className="h-4 w-4" />
-                      <span>Beta Testers</span>
+                      <span className="notranslate">Beta Testers</span>
                     </button>
                   </SidebarMenuButton>
                 </SidebarMenuItem>
@@ -519,7 +519,7 @@ export function AppSidebar({ activeSection, onSectionChange, ...props }: AppSide
                   >
                     <button onClick={() => handleNavigation("director-dashboard")} className="w-full">
                       <BarChart3 className="h-4 w-4" />
-                      <span>Dashboard Director</span>
+                      <span className="notranslate">Dashboard Director</span>
                     </button>
                   </SidebarMenuButton>
                 </SidebarMenuItem>
@@ -531,7 +531,7 @@ export function AppSidebar({ activeSection, onSectionChange, ...props }: AppSide
                   >
                     <button onClick={() => handleNavigation("administracion-plantel")} className="w-full">
                       <Users className="h-4 w-4" />
-                      <span>Gestión de Plantel</span>
+                      <span className="notranslate">Gestión de Plantel</span>
                     </button>
                   </SidebarMenuButton>
                 </SidebarMenuItem>
@@ -560,8 +560,8 @@ export function AppSidebar({ activeSection, onSectionChange, ...props }: AppSide
                       <AvatarFallback className="text-xs">{user?.email ? getInitials(user.email) : "U"}</AvatarFallback>
                     </Avatar>
                     <div className="flex flex-col flex-1 min-w-0 text-left">
-                      <span className="text-sm font-medium truncate">{displayName}</span>
-                      <span className="text-xs text-muted-foreground truncate">{user?.email}</span>
+                      <span className="text-sm font-medium truncate notranslate">{displayName}</span>
+                      <span className="text-xs text-muted-foreground truncate notranslate">{user?.email}</span>
                     </div>
                   </div>
                 )}
@@ -573,7 +573,7 @@ export function AppSidebar({ activeSection, onSectionChange, ...props }: AppSide
             <SidebarMenuButton asChild tooltip={state === "collapsed" ? "Cerrar Sesión" : undefined}>
               <button onClick={handleSignOut} className="w-full text-red-600 hover:text-red-700">
                 <LogOut className="h-4 w-4" />
-                {state === "expanded" && <span>Cerrar Sesión</span>}
+                {state === "expanded" && <span className="notranslate">Cerrar Sesión</span>}
               </button>
             </SidebarMenuButton>
           </SidebarMenuItem>

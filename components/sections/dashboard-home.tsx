@@ -5,12 +5,12 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Progress } from "@/components/ui/progress"
-import { 
-  BookOpen, 
-  Users, 
-  FileText, 
-  MessageSquare, 
-  Calendar, 
+import {
+  BookOpen,
+  Users,
+  FileText,
+  MessageSquare,
+  Calendar,
   TrendingUp,
   Clock,
   CheckCircle,
@@ -84,7 +84,7 @@ export function DashboardHome({ onSectionChange, onOpenPlaneacion }: DashboardHo
   const loadDashboardData = async () => {
     try {
       setLoading(true)
-      
+
       // Cargar estadísticas
       const [planeacionesRes, examenesRes, gruposRes, mensajesRes, monthlyCount] = await Promise.all([
         supabase.from('planeacion_creations').select('id').eq('user_id', user?.id),
@@ -101,7 +101,7 @@ export function DashboardHome({ onSectionChange, onOpenPlaneacion }: DashboardHo
         grupos: gruposRes.data?.length || 0,
         mensajes: mensajesRes.data?.length || 0
       })
-      
+
       setMonthlyPlaneaciones(monthlyCount)
 
       // Cargar actividad reciente
@@ -120,7 +120,7 @@ export function DashboardHome({ onSectionChange, onOpenPlaneacion }: DashboardHo
         .limit(2)
 
       const activities: RecentActivity[] = []
-      
+
       recentPlaneaciones.data?.forEach(item => {
         activities.push({
           id: item.id,
@@ -223,7 +223,7 @@ export function DashboardHome({ onSectionChange, onOpenPlaneacion }: DashboardHo
 
       // Crear un mapa de contenidos con planeación
       const contenidosConPlaneacion = new Set()
-      
+
       planeaciones?.forEach(planeacion => {
         if (planeacion.contenidos_relacionados && Array.isArray(planeacion.contenidos_relacionados)) {
           planeacion.contenidos_relacionados.forEach(contenidoId => {
@@ -387,7 +387,7 @@ export function DashboardHome({ onSectionChange, onOpenPlaneacion }: DashboardHo
       {/* Saludo personalizado */}
       <div className="mb-6 md:mb-8">
         <h1 className="text-2xl md:text-3xl font-bold text-foreground mb-2">
-          ¡Hola, {firstName}! 👋
+          <span className="notranslate">¡Hola, {firstName}! 👋</span>
         </h1>
         <p className="text-sm md:text-base text-muted-foreground">
           Bienvenido a tu panel de control. Aquí tienes un resumen de tu actividad educativa.
@@ -402,7 +402,7 @@ export function DashboardHome({ onSectionChange, onOpenPlaneacion }: DashboardHo
             <FileText className="h-3 w-3 md:h-4 md:w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent className="px-3 md:px-6 pb-3 md:pb-6">
-            <div className="text-lg md:text-2xl font-bold">{stats.planeaciones}</div>
+            <div className="text-lg md:text-2xl font-bold notranslate">{stats.planeaciones}</div>
             <p className="text-xs text-muted-foreground">Total creadas</p>
           </CardContent>
         </Card>
@@ -413,7 +413,7 @@ export function DashboardHome({ onSectionChange, onOpenPlaneacion }: DashboardHo
             <GraduationCap className="h-3 w-3 md:h-4 md:w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent className="px-3 md:px-6 pb-3 md:pb-6">
-            <div className="text-lg md:text-2xl font-bold">{stats.examenes}</div>
+            <div className="text-lg md:text-2xl font-bold notranslate">{stats.examenes}</div>
             <p className="text-xs text-muted-foreground">Total generados</p>
           </CardContent>
         </Card>
@@ -424,7 +424,7 @@ export function DashboardHome({ onSectionChange, onOpenPlaneacion }: DashboardHo
             <Users className="h-3 w-3 md:h-4 md:w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent className="px-3 md:px-6 pb-3 md:pb-6">
-            <div className="text-lg md:text-2xl font-bold">{stats.grupos}</div>
+            <div className="text-lg md:text-2xl font-bold notranslate">{stats.grupos}</div>
             <p className="text-xs text-muted-foreground">Grupos activos</p>
           </CardContent>
         </Card>
@@ -435,7 +435,7 @@ export function DashboardHome({ onSectionChange, onOpenPlaneacion }: DashboardHo
             <MessageSquare className="h-3 w-3 md:h-4 md:w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent className="px-3 md:px-6 pb-3 md:pb-6">
-            <div className="text-lg md:text-2xl font-bold">{stats.mensajes}</div>
+            <div className="text-lg md:text-2xl font-bold notranslate">{stats.mensajes}</div>
             <p className="text-xs text-muted-foreground">Mensajes enviados</p>
           </CardContent>
         </Card>
@@ -452,11 +452,11 @@ export function DashboardHome({ onSectionChange, onOpenPlaneacion }: DashboardHo
               <div>
                 <h3 className="text-lg md:text-xl font-bold text-white mb-1">Tomar Asistencia Hoy</h3>
                 <p className="text-emerald-100 text-xs md:text-sm">
-                   Registra la asistencia de tus {stats.grupos} grupos • {format(new Date(), "EEEE, d 'de' MMMM", { locale: es })}
-                 </p>
+                  Registra la asistencia de tus <span className="notranslate">{stats.grupos}</span> grupos • <span className="notranslate">{format(new Date(), "EEEE, d 'de' MMMM", { locale: es })}</span>
+                </p>
               </div>
             </div>
-            <Button 
+            <Button
               onClick={() => onSectionChange('tomar-asistencia')}
               className="bg-white text-emerald-600 hover:bg-emerald-50 font-semibold px-4 md:px-6 py-2 md:py-3 h-auto w-full md:w-auto"
             >
@@ -515,9 +515,8 @@ export function DashboardHome({ onSectionChange, onOpenPlaneacion }: DashboardHo
                   return (
                     <div
                       key={activity.id}
-                      className={`flex items-center gap-3 p-2 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-800 ${
-                        isPlaneacion ? "cursor-pointer" : ""
-                      }`}
+                      className={`flex items-center gap-3 p-2 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-800 ${isPlaneacion ? "cursor-pointer" : ""
+                        }`}
                       onClick={
                         isPlaneacion && onOpenPlaneacion
                           ? () => onOpenPlaneacion(activity.id)
@@ -528,8 +527,8 @@ export function DashboardHome({ onSectionChange, onOpenPlaneacion }: DashboardHo
                         {getActivityIcon(activity.type)}
                       </div>
                       <div className="flex-1 min-w-0">
-                        <p className="text-sm font-medium truncate">{activity.title}</p>
-                        <p className="text-xs text-muted-foreground">{activity.date}</p>
+                        <p className="text-sm font-medium truncate notranslate">{activity.title}</p>
+                        <p className="text-xs text-muted-foreground notranslate">{activity.date}</p>
                       </div>
                       <Badge variant="secondary" className="text-xs">
                         {activity.type}
@@ -573,9 +572,9 @@ export function DashboardHome({ onSectionChange, onOpenPlaneacion }: DashboardHo
                 <p className="text-gray-600 dark:text-gray-400 text-sm">
                   Ve al módulo de dosificación para comenzar
                 </p>
-                <Button 
-                  variant="outline" 
-                  size="sm" 
+                <Button
+                  variant="outline"
+                  size="sm"
                   className="mt-4"
                   onClick={() => onSectionChange('dosificacion')}
                 >
@@ -586,8 +585,8 @@ export function DashboardHome({ onSectionChange, onOpenPlaneacion }: DashboardHo
               <div className="space-y-4">
                 {/* Gráfico circular de progreso */}
                 <div className="flex justify-center">
-                  <GraficoCircularProgreso 
-                    porcentaje={estadisticasCiclo.porcentajeCompletado} 
+                  <GraficoCircularProgreso
+                    porcentaje={estadisticasCiclo.porcentajeCompletado}
                     size={100}
                   />
                 </div>
@@ -602,7 +601,7 @@ export function DashboardHome({ onSectionChange, onOpenPlaneacion }: DashboardHo
                     <p className="text-xs font-medium text-green-600 dark:text-green-400 mb-1">
                       Completados
                     </p>
-                    <p className="text-lg font-bold text-green-700 dark:text-green-300">
+                    <p className="text-lg font-bold text-green-700 dark:text-green-300 notranslate">
                       {estadisticasCiclo.completados}
                     </p>
                   </div>
@@ -615,7 +614,7 @@ export function DashboardHome({ onSectionChange, onOpenPlaneacion }: DashboardHo
                     <p className="text-xs font-medium text-blue-600 dark:text-blue-400 mb-1">
                       En Progreso
                     </p>
-                    <p className="text-lg font-bold text-blue-700 dark:text-blue-300">
+                    <p className="text-lg font-bold text-blue-700 dark:text-blue-300 notranslate">
                       {estadisticasCiclo.enProgreso}
                     </p>
                   </div>
@@ -628,7 +627,7 @@ export function DashboardHome({ onSectionChange, onOpenPlaneacion }: DashboardHo
                     <p className="text-xs font-medium text-orange-600 dark:text-orange-400 mb-1">
                       Pendientes
                     </p>
-                    <p className="text-lg font-bold text-orange-700 dark:text-orange-300">
+                    <p className="text-lg font-bold text-orange-700 dark:text-orange-300 notranslate">
                       {estadisticasCiclo.pendientes}
                     </p>
                   </div>
@@ -637,7 +636,7 @@ export function DashboardHome({ onSectionChange, onOpenPlaneacion }: DashboardHo
                 {/* Información adicional */}
                 <div className="text-center pt-2">
                   <p className="text-xs text-gray-500 dark:text-gray-500">
-                    {estadisticasCiclo.totalPDAs} dosificados de {estadisticasCiclo.totalPDAs + estadisticasCiclo.pendientes} total
+                    <span className="notranslate">{estadisticasCiclo.totalPDAs}</span> dosificados de <span className="notranslate">{estadisticasCiclo.totalPDAs + estadisticasCiclo.pendientes}</span> total
                   </p>
                 </div>
               </div>
@@ -660,7 +659,7 @@ export function DashboardHome({ onSectionChange, onOpenPlaneacion }: DashboardHo
               <div className="flex justify-between text-sm mb-1">
                 <span>Planeaciones creadas este mes</span>
                 <span>
-                  {monthlyPlaneaciones}
+                  <span className="notranslate">{monthlyPlaneaciones}</span>
                   {isPro ? " (Ilimitadas)" : `/5`}
                 </span>
               </div>
@@ -683,7 +682,7 @@ export function DashboardHome({ onSectionChange, onOpenPlaneacion }: DashboardHo
             <div>
               <div className="flex justify-between text-sm mb-1">
                 <span>Exámenes generados</span>
-                <span>{stats.examenes} (Ilimitados)</span>
+                <span><span className="notranslate">{stats.examenes}</span> (Ilimitados)</span>
               </div>
               <div className="flex items-center gap-2 text-sm text-green-600">
                 <CheckCircle className="h-4 w-4" />

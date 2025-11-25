@@ -20,7 +20,7 @@ export function WelcomeMessage() {
     if (welcomeMessage) {
       setMessage(decodeURIComponent(welcomeMessage))
       setIsVisible(true)
-      
+
       // Auto-ocultar después de 10 segundos
       const timer = setTimeout(() => {
         setIsVisible(false)
@@ -32,7 +32,7 @@ export function WelcomeMessage() {
     if (successMessage) {
       setMessage(decodeURIComponent(successMessage))
       setIsVisible(true)
-      
+
       // Auto-ocultar después de 10 segundos
       const timer = setTimeout(() => {
         setIsVisible(false)
@@ -51,7 +51,7 @@ export function WelcomeMessage() {
     setIsVisible(false)
     setMessage(null)
     setError(null)
-    
+
     // Limpiar los parámetros de la URL
     const url = new URL(window.location.href)
     url.searchParams.delete('welcome')
@@ -70,7 +70,7 @@ export function WelcomeMessage() {
         <Alert className="border-green-200 bg-green-50 text-green-800">
           <CheckCircle className="h-4 w-4" />
           <AlertDescription className="flex items-center justify-between">
-            <span>{message}</span>
+            <span className="notranslate">{message}</span>
             <Button
               variant="ghost"
               size="sm"
@@ -82,12 +82,12 @@ export function WelcomeMessage() {
           </AlertDescription>
         </Alert>
       )}
-      
+
       {error && (
         <Alert variant="destructive">
           <AlertCircle className="h-4 w-4" />
           <AlertDescription className="flex items-center justify-between">
-            <span>{error}</span>
+            <span className="notranslate">{error}</span>
             <Button
               variant="ghost"
               size="sm"

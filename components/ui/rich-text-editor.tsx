@@ -194,7 +194,7 @@ export function RichTextEditor({
       {/* Área de edición */}
       <EditorContent
         editor={editor}
-        className="prose prose-sm max-w-none p-4 min-h-[200px] focus-within:outline-none"
+        className="prose prose-sm max-w-none p-4 min-h-[200px] focus-within:outline-none notranslate"
       />
     </div>
   )

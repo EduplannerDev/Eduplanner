@@ -153,15 +153,15 @@ export function FileUpload({
   return (
     <div className={`space-y-4 ${className}`}>
       {/* Drop Zone */}
-      <Card 
-        {...getRootProps()} 
+      <Card
+        {...getRootProps()}
         className={`
           border-2 border-dashed transition-colors cursor-pointer
-          ${isDragActive || dropzoneDragActive 
-            ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/20' 
+          ${isDragActive || dropzoneDragActive
+            ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/20'
             : uploading
-            ? 'border-green-500 bg-green-50 dark:bg-green-900/20'
-            : 'border-gray-300 dark:border-gray-600 hover:border-gray-400 dark:hover:border-gray-500'
+              ? 'border-green-500 bg-green-50 dark:bg-green-900/20'
+              : 'border-gray-300 dark:border-gray-600 hover:border-gray-400 dark:hover:border-gray-500'
           }
           ${disabled ? 'opacity-50 cursor-not-allowed' : ''}
         `}
@@ -181,10 +181,10 @@ export function FileUpload({
             </div>
             <div className="space-y-2">
               <h3 className="text-lg font-medium text-gray-900 dark:text-gray-100">
-                {uploading 
-                  ? 'Subiendo archivos...' 
-                  : isDragActive || dropzoneDragActive 
-                    ? 'Suelta los archivos aquí' 
+                {uploading
+                  ? 'Subiendo archivos...'
+                  : isDragActive || dropzoneDragActive
+                    ? 'Suelta los archivos aquí'
                     : 'Arrastra y suelta archivos aquí'
                 }
               </h3>
@@ -232,7 +232,7 @@ export function FileUpload({
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center justify-between">
                         <p className="text-sm font-medium text-gray-900 dark:text-gray-100 truncate">
-                          {file.name}
+                          <span className="notranslate">{file.name}</span>
                         </p>
                         <Button
                           variant="ghost"
@@ -249,7 +249,7 @@ export function FileUpload({
                         </span>
                         {file.status === 'uploading' && (
                           <>
-                            <span className="text-xs text-blue-600 dark:text-blue-400 animate-pulse">
+                            <span className="text-xs text-blue-600 dark:text-blue-400 animate-pulse notranslate">
                               Subiendo...
                             </span>
                             <Loader2 className="h-3 w-3 animate-spin text-blue-600 dark:text-blue-400" />
@@ -258,13 +258,13 @@ export function FileUpload({
                         {file.status === 'completed' && (
                           <span className="text-xs text-green-600 dark:text-green-400 flex items-center space-x-1">
                             <span>✓</span>
-                            <span>Completado</span>
+                            <span className="notranslate">Completado</span>
                           </span>
                         )}
                         {file.status === 'error' && (
                           <span className="text-xs text-red-600 dark:text-red-400 flex items-center space-x-1">
                             <span>✗</span>
-                            <span>Error</span>
+                            <span className="notranslate">Error</span>
                           </span>
                         )}
                       </div>
