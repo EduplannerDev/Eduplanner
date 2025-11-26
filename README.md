@@ -1,8 +1,8 @@
 # 🎓 EduPlanner
 
-**Planeaciones Didácticas con Inteligencia Artificial**
+**Plataforma Integral de Gestión Educativa con IA**
 
-EduPlanner es una plataforma web moderna diseñada para ayudar a educadores a crear, gestionar y optimizar sus planeaciones didácticas, exámenes y comunicaciones con padres de familia utilizando inteligencia artificial.
+EduPlanner es una plataforma web moderna diseñada para ayudar a educadores a crear, gestionar y optimizar sus planeaciones didácticas, evaluaciones, proyectos educativos y comunicaciones escolares utilizando inteligencia artificial de última generación.
 
 ## ✨ Características Principales
 
@@ -11,8 +11,17 @@ EduPlanner es una plataforma web moderna diseñada para ayudar a educadores a cr
 - **Planeaciones NEM**: Metodología tradicional de la Nueva Escuela Mexicana
 - **Planeaciones CIME**: Metodología constructivista con materiales concretos (Solo PRO)
 - **Mis Planeaciones**: Visualiza, edita y gestiona todas tus planeaciones
-- **Exportación**: Descarga planeaciones en formato DOCX y PDF
+- **Exportación Múltiple**: Descarga planeaciones en formato DOCX, PDF y PPTX
 - **Enlace con Proyectos**: Vincula planeaciones directamente con momentos de proyectos
+
+### 📓 Bitácora / Diario Profesional
+- **Espacio Privado**: Sistema de bitácora personal protegida con contraseña
+- **Reflexiones Diarias**: Registra tus experiencias y reflexiones pedagógicas
+- **Historial de Versiones**: Versionado automático de entradas con opción de restauración
+- **Organización por Fecha**: Navega y filtra entradas por calendario
+- **Estado de Ánimo**: Registro del estado emocional en cada entrada
+- **Etiquetas**: Sistema de etiquetas para categorizar reflexiones
+- **Seguridad**: Autenticación con contraseña única y almacenamiento cifrado
 
 ### 📝 Sistema de Exámenes
 - **Generar Exámenes**: Crea exámenes automáticamente con IA
@@ -92,6 +101,13 @@ EduPlanner es una plataforma web moderna diseñada para ayudar a educadores a cr
 - **Estadísticas Avanzadas**: Dashboard con métricas detalladas de suscriptores PRO
 - **Gestión de Ventas**: Herramientas de administración para seguimiento de ingresos
 
+### 🧪 Sistema de Beta Testers
+- **Gestión de Accesos**: Panel administrativo para asignar funcionalidades beta a usuarios específicos
+- **Features Granulares**: Control individual de acceso a funcionalidades experimentales
+- **Fechas de Expiración**: Configuración de plazos de acceso temporal a beta features
+- **Dashboard de Testers**: Estadísticas de beta testers activos y features en prueba
+- **Activación/Desactivación**: Switches para habilitar o deshabilitar usuarios beta
+
 ## 🛠️ Tecnologías Utilizadas
 
 ### Frontend
@@ -118,11 +134,12 @@ EduPlanner es una plataforma web moderna diseñada para ayudar a educadores a cr
 - **Metodologías Especializadas** - Prompts específicos para NEM y CIME
 - **Generación Contextual** - IA adaptada al contexto de proyectos educativos
 
-### Generación de Documentos
-- **docx** - Generación de documentos Word
-- **jsPDF** - Creación de archivos PDF
-- **html2pdf.js** - Conversión HTML a PDF
-- **Puppeteer** - Generación de PDFs avanzada
+### 📄 Exportación y Documentación
+- **Formatos Múltiples**: Exportación de documentos en PDF, Word (DOCX), Excel (XLSX) y PowerPoint (PPTX)
+- **Presentaciones IA**: Generación automática de presentaciones PowerPoint con IA desde planeaciones
+- **Temas Visuales**: 5 temas profesionales de diseño para presentaciones
+- **Listas de Cotejo Excel**: Exportación de instrumentos de evaluación en formato Excel con estadísticas
+- **Reportes Automáticos**: Generación de listas de asistencia, reportes de evaluación y estadísticas
 
 ### Pagos y Comunicación
 - **Stripe** - Procesamiento de pagos
@@ -340,6 +357,18 @@ eduplanner/
 ```
 
 ## 🆕 Nuevas Funcionalidades
+
+### Bitácora / Diario Profesional
+- **Espacio Privado Seguro**: Sistema completo de bitácora personal protegida con autenticación
+- **Versionado Inteligente**: Historial automático de versiones con restauración de versiones anteriores
+- **Gestión Emocional**: Registro de estado de ánimo en cada entrada para seguimiento del bienestar docente
+- **Organización Avanzada**: Filtrado por fechas, etiquetas y búsqueda de reflexiones
+
+### Generadores Avanzados de Documentos
+- **PowerPoint con IA**: Generación automática de presentaciones profesionales desde planeaciones
+- **Temas Visuales Dinámicos**: 5 temas de diseño profesional que se aplican aleatoriamente
+- **Excel Avanzado**: Exportación de listas de cotejo con estadísticas y formato condicional
+- **Resúmenes Automáticos**: Hojas de resumen con métricas de cumplimiento en archivos Excel
 
 ### Modal de Bienvenida
 - **Video Introductorio**: Presentación automática para nuevos usuarios

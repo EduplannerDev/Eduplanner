@@ -3,7 +3,7 @@
 import type React from "react";
 import { useState } from "react";
 
-import { FileText, User, LogOut, GraduationCap, Plus, MessageSquare, HelpCircle, Users, BookOpen, Calendar, Bot, Shield, Home, ChevronDown, ChevronRight, Notebook, BarChart3, Sparkles } from "lucide-react"
+import { FileText, User, LogOut, GraduationCap, Plus, MessageSquare, HelpCircle, Users, BookOpen, Calendar, Bot, Shield, Home, ChevronDown, ChevronRight, Notebook, BarChart3, Sparkles, Presentation } from "lucide-react"
 
 import {
   Sidebar,
@@ -74,6 +74,12 @@ const menuStructure = {
         icon: BarChart3,
         url: "#dosificacion",
         description: "Gestión de dosificación curricular",
+      },
+      {
+        title: "Presentaciones IA",
+        icon: Presentation,
+        url: "#presentaciones-ia",
+        description: "Crea presentaciones PowerPoint con IA (Solo PRO)",
       },
       // Proyectos solo para beta testers - se maneja condicionalmente más abajo
     ],

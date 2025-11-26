@@ -1,52 +1,57 @@
 import { NextRequest, NextResponse } from 'next/server';
 import PptxGenJS from 'pptxgenjs';
 
-// Define different presentation themes
+// Temas profesionales mejorados
 const presentationThemes = [
   {
-    name: 'Profesional Azul',
-    primaryColor: '#2E86AB',
-    secondaryColor: '#A23B72',
-    accentColor: '#F18F01',
-    backgroundColor: '#F8F9FA',
-    textColor: '#2C3E50',
-    subtitleColor: '#5D6D7E'
+    name: 'Azul Profesional',
+    primary: '#2563EB',
+    secondary: '#7C3AED',
+    accent: '#F59E0B',
+    background: '#F8FAFC',
+    text: '#1E293B',
+    subtitle: '#64748B',
+    light: '#EFF6FF'
   },
   {
-    name: 'Moderno Verde',
-    primaryColor: '#27AE60',
-    secondaryColor: '#8E44AD',
-    accentColor: '#E67E22',
-    backgroundColor: '#FDFEFE',
-    textColor: '#1B4F72',
-    subtitleColor: '#566573'
+    name: 'Verde Moderno',
+    primary: '#10B981',
+    secondary: '#8B5CF6',
+    accent: '#F97316',
+    background: '#FAFAF9',
+    text: '#0F172A',
+    subtitle: '#71717A',
+    light: '#ECFDF5'
   },
   {
-    name: 'Elegante Púrpura',
-    primaryColor: '#8E44AD',
-    secondaryColor: '#E74C3C',
-    accentColor: '#F39C12',
-    backgroundColor: '#F4F6F7',
-    textColor: '#2E4057',
-    subtitleColor: '#5D6D7E'
+    name: 'Púrpura Elegante',
+    primary: '#8B5CF6',
+    secondary: '#EC4899',
+    accent: '#EAB308',
+    background: '#FAFAF9',
+    text: '#18181B',
+    subtitle: '#71717A',
+    light: '#FAF5FF'
   },
   {
-    name: 'Vibrante Naranja',
-    primaryColor: '#E67E22',
-    secondaryColor: '#3498DB',
-    accentColor: '#9B59B6',
-    backgroundColor: '#FEFEFE',
-    textColor: '#34495E',
-    subtitleColor: '#7F8C8D'
+    name: 'Naranja Energético',
+    primary: '#F97316',
+    secondary: '#3B82F6',
+    accent: '#10B981',
+    background: '#FEFCE8',
+    text: '#292524',
+    subtitle: '#78716C',
+    light: '#FFF7ED'
   },
   {
-    name: 'Minimalista Gris',
-    primaryColor: '#34495E',
-    secondaryColor: '#E74C3C',
-    accentColor: '#1ABC9C',
-    backgroundColor: '#FFFFFF',
-    textColor: '#2C3E50',
-    subtitleColor: '#95A5A6'
+    name: 'Azul Oscuro Pro',
+    primary: '#1E40AF',
+    secondary: '#DB2777',
+    accent: '#059669',
+    background: '#FFFFFF',
+    text: '#0F172A',
+    subtitle: '#475569',
+    light: '#EFF6FF'
   }
 ];
 
@@ -61,368 +66,582 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Select a random theme
-    const selectedTheme = presentationThemes[Math.floor(Math.random() * presentationThemes.length)];
-  
+    // Seleccionar tema basado en el color sugerido o aleatorio
+    const theme = presentationThemes[Math.floor(Math.random() * presentationThemes.length)];
 
-    // Create PowerPoint presentation
     const pptx = new PptxGenJS();
-    
-    // Set presentation properties
-    pptx.author = 'EduPlanner';
+
+    // Configuración de la presentación
+    pptx.layout = 'LAYOUT_WIDE';
+    pptx.author = 'EduPlanner IA';
     pptx.company = 'EduPlanner';
     pptx.subject = presentationData.titulo;
     pptx.title = presentationData.titulo;
-    
-    // Set slide master with theme background
-    pptx.defineSlideMaster({
-      title: 'MASTER_SLIDE',
-      background: { color: selectedTheme.backgroundColor }
-    });
-    
-    // Generate slides from AI data
-    presentationData.diapositivas.forEach((slide: any, index: number) => {
-      const pptxSlide = pptx.addSlide();
-      
-      switch (slide.tipo) {
-        case 'portada':
-          // Title slide with theme background
-          pptxSlide.background = { color: selectedTheme.backgroundColor };
-          
-          // Add decorative shape
-          pptxSlide.addShape(pptx.ShapeType.rect, {
-            x: 0,
-            y: 0,
-            w: 10,
-            h: 1,
-            fill: { color: selectedTheme.primaryColor }
-          });
-          
-          pptxSlide.addText(slide.titulo, {
-            x: 0.8,
-            y: 2.2,
-            w: 8.4,
-            h: 1.5,
-            fontSize: 32,
-            bold: true,
-            align: 'center',
-            valign: 'middle',
-            color: selectedTheme.primaryColor
-          });
-          
-          if (slide.subtitulo) {
-            pptxSlide.addText(slide.subtitulo, {
-              x: 0.8,
-              y: 3.8,
-              w: 8.4,
-              h: 1,
-              fontSize: 20,
-              align: 'center',
-              valign: 'middle',
-              color: selectedTheme.subtitleColor
-            });
-          }
-          
-          // Add image placeholder with theme colors
-          pptxSlide.addText('🖼️ ' + (slide.descripcion_imagen || 'Imagen de portada'), {
-            x: 0.8,
-            y: 5.0,
-            w: 8.4,
-            h: 1.0,
-            fontSize: 14,
-            align: 'center',
-            valign: 'middle',
-            color: selectedTheme.accentColor,
-            italic: true
-          });
-          
-          // Add teacher instructions
-          pptxSlide.addText('📝 INSTRUCCIONES PARA EL PROFESOR: Reemplazar este texto con una imagen relacionada al tema', {
-            x: 0.8,
-            y: 6.2,
-            w: 8.4,
-            h: 0.8,
-            fontSize: 10,
-            align: 'center',
-            color: selectedTheme.subtitleColor,
-            italic: true
-          });
-          break;
-          
-        case 'contenido':
-          // Content slide with theme styling
-          pptxSlide.background = { color: selectedTheme.backgroundColor };
-          
-          // Add header accent line
-          pptxSlide.addShape(pptx.ShapeType.rect, {
-            x: 0.8,
-            y: 1.3,
-            w: 8.4,
-            h: 0.1,
-            fill: { color: selectedTheme.secondaryColor }
-          });
-          
-          pptxSlide.addText(slide.titulo, {
-            x: 0.8,
-            y: 0.6,
-            w: 8.4,
-            h: 1,
-            fontSize: 26,
-            bold: true,
-            align: 'center',
-            valign: 'middle',
-            color: selectedTheme.primaryColor
-          });
-          
-          // Add bullet points with theme colors
-          if (slide.puntos && Array.isArray(slide.puntos)) {
-            const bulletText = slide.puntos.map((punto: string) => ({ text: punto, options: { bullet: true } }));
-            pptxSlide.addText(bulletText, {
-              x: 1.2,
-              y: 2,
-              w: 7.6,
-              h: 3.2,
-              fontSize: 16,
-              valign: 'top',
-              color: selectedTheme.textColor
-            });
-          }
-          
-          // Add image placeholder with theme colors
-          if (slide.descripcion_imagen) {
-            pptxSlide.addText('🖼️ ' + slide.descripcion_imagen, {
-              x: 0.8,
-              y: 5.5,
-              w: 8.4,
-              h: 0.7,
-              fontSize: 12,
-              align: 'center',
-              valign: 'middle',
-              color: selectedTheme.subtitleColor,
-              italic: true
-            });
-            
-            // Add teacher instructions for image
-            pptxSlide.addText('📝 PROFESOR: Insertar imagen aquí - ' + slide.descripcion_imagen, {
-              x: 0.8,
-              y: 6.3,
-              w: 8.4,
-              h: 0.5,
-              fontSize: 9,
-              align: 'center',
-              color: selectedTheme.accentColor,
-              italic: true
-            });
-          }
-          
-          // Add interactive activity with accent color
-          if (slide.actividad_interactiva) {
-            pptxSlide.addText('💡 Actividad: ' + slide.actividad_interactiva, {
-              x: 0.8,
-              y: 5.8,
-              w: 8.4,
-              h: 0.8,
-              fontSize: 14,
-              align: 'center',
-              valign: 'middle',
-              color: selectedTheme.accentColor,
-              bold: true
-            });
-          }
-          break;
-          
-        case 'actividad':
-          // Activity slide with theme styling
-          pptxSlide.background = { color: selectedTheme.backgroundColor };
-          
-          // Add activity icon background
-          pptxSlide.addShape(pptx.ShapeType.rect, {
-            x: 8.2,
-            y: 0.3,
-            w: 1,
-            h: 1,
-            fill: { color: selectedTheme.accentColor },
-            line: { color: selectedTheme.secondaryColor, width: 2 }
-          });
-          
-          pptxSlide.addText('🎯', {
-            x: 8.3,
-            y: 0.5,
-            w: 0.8,
-            h: 0.6,
-            fontSize: 24,
-            align: 'center'
-          });
-          
-          pptxSlide.addText(slide.titulo, {
-            x: 0.8,
-            y: 0.6,
-            w: 7.2,
-            h: 1,
-            fontSize: 26,
-            bold: true,
-            valign: 'middle',
-            color: selectedTheme.primaryColor
-          });
-          
-          if (slide.descripcion) {
-            pptxSlide.addText(slide.descripcion, {
-              x: 0.8,
-              y: 2,
-              w: 8.4,
-              h: 1.6,
-              fontSize: 16,
-              align: 'center',
-              valign: 'middle',
-              color: selectedTheme.textColor
-            });
-          }
-          
-          if (slide.instrucciones && Array.isArray(slide.instrucciones)) {
-            const instructionText = slide.instrucciones.map((inst: string) => ({ text: inst, options: { bullet: true } }));
-            pptxSlide.addText(instructionText, {
-              x: 1.2,
-              y: 4.0,
-              w: 7.6,
-              h: 2.2,
-              fontSize: 14,
-              valign: 'top',
-              color: selectedTheme.accentColor
-            });
-            
-            // Add teacher preparation notes
-            pptxSlide.addText('👨‍🏫 NOTAS PARA EL PROFESOR: Preparar materiales necesarios y organizar el espacio para la actividad', {
-              x: 0.8,
-              y: 6.8,
-              w: 8.4,
-              h: 0.6,
-              fontSize: 10,
-              align: 'center',
-              color: selectedTheme.primaryColor,
-              italic: true,
-              bold: true
-            });
-          }
-          break;
-          
-        case 'cierre':
-          // Closing slide with theme styling
-          pptxSlide.background = { color: selectedTheme.backgroundColor };
-          
-          // Add decorative footer
-          pptxSlide.addShape(pptx.ShapeType.rect, {
-            x: 0,
-            y: 6.5,
-            w: 10,
-            h: 1,
-            fill: { color: selectedTheme.primaryColor }
-          });
-          
-          // Add celebration icon
-          pptxSlide.addText('🎉', {
-            x: 4.5,
-            y: 0.8,
-            w: 1,
-            h: 0.8,
-            fontSize: 32,
-            align: 'center'
-          });
-          
-          pptxSlide.addText(slide.titulo, {
-            x: 0.8,
-            y: 2,
-            w: 8.4,
-            h: 1.2,
-            fontSize: 28,
-            bold: true,
-            align: 'center',
-            valign: 'middle',
-            color: selectedTheme.primaryColor
-          });
-          
-          if (slide.mensaje_final) {
-            pptxSlide.addText(slide.mensaje_final, {
-              x: 0.8,
-              y: 3.5,
-              w: 8.4,
-              h: 1.3,
-              fontSize: 18,
-              align: 'center',
-              valign: 'middle',
-              color: selectedTheme.textColor
-            });
-          }
-          
-          if (slide.puntos_clave && Array.isArray(slide.puntos_clave)) {
-            const keyPointsText = slide.puntos_clave.map((punto: string) => ({ text: punto, options: { bullet: true } }));
-            pptxSlide.addText(keyPointsText, {
-              x: 1.2,
-              y: 5.0,
-              w: 7.6,
-              h: 1.0,
-              fontSize: 14,
-              valign: 'top',
-              color: selectedTheme.accentColor
-            });
-            
-            // Add teacher closing instructions
-            pptxSlide.addText('🎓 PROFESOR: Tiempo para preguntas, reflexión final y asignación de tareas de seguimiento', {
-              x: 0.8,
-              y: 6.5,
-              w: 8.4,
-              h: 0.5,
-              fontSize: 10,
-              align: 'center',
-              color: selectedTheme.primaryColor,
-              italic: true,
-              bold: true
-            });
-          }
-          break;
-          
-        default:
-          // Generic slide
-          pptxSlide.addText(slide.titulo || 'Diapositiva', {
-            x: 0.5,
-            y: 0.5,
-            w: 9,
-            h: 1,
-            fontSize: 28,
-            bold: true,
-            color: presentationData.tema_color || '#2E86AB'
-          });
-          
-          if (slide.contenido) {
-            pptxSlide.addText(slide.contenido, {
-              x: 0.5,
-              y: 2,
-              w: 9,
-              h: 4,
-              fontSize: 18,
-              color: '333333'
-            });
-          }
-          break;
+
+    // Generar diapositivas
+    if (presentationData.diapositivas) {
+      for (const slide of presentationData.diapositivas) {
+        const pptxSlide = pptx.addSlide();
+        pptxSlide.background = { color: theme.background };
+
+        switch (slide.tipo) {
+          case 'portada':
+            await generatePortadaSlide(pptxSlide, slide, theme, pptx);
+            break;
+
+          case 'objetivos':
+            await generateObjetivosSlide(pptxSlide, slide, theme, pptx);
+            break;
+
+          case 'contenido':
+            await generateContenidoSlide(pptxSlide, slide, theme, pptx);
+            break;
+
+          case 'ejemplo':
+            await generateEjemploSlide(pptxSlide, slide, theme, pptx);
+            break;
+
+          case 'actividad':
+            await generateActividadSlide(pptxSlide, slide, theme, pptx);
+            break;
+
+          case 'interactivo':
+            await generateInteractivoSlide(pptxSlide, slide, theme, pptx);
+            break;
+
+          case 'resumen':
+            await generateResumenSlide(pptxSlide, slide, theme, pptx);
+            break;
+
+          case 'cierre':
+            await generateCierreSlide(pptxSlide, slide, theme, pptx);
+            break;
+
+          default:
+            await generateGenericSlide(pptxSlide, slide, theme, pptx);
+        }
       }
-    });
-    
-    // Generate the PowerPoint file as buffer
+    }
+
+    // Generar el archivo
     const pptxBuffer = await pptx.write({ outputType: 'arraybuffer' });
-    
-    // Return the file as response
+
     return new NextResponse(pptxBuffer, {
       status: 200,
       headers: {
         'Content-Type': 'application/vnd.openxmlformats-officedocument.presentationml.presentation',
-        'Content-Disposition': `attachment; filename="presentacion-${presentationData.titulo.replace(/[^a-zA-Z0-9]/g, '-')}.pptx"`,
+        'Content-Disposition': `attachment; filename=\"${presentationData.titulo.replace(/[^a-zA-Z0-9]/g, '-')}.pptx\"`,
       },
     });
-    
+
   } catch (error) {
     console.error('Error generating PowerPoint:', error);
     return NextResponse.json(
-      { error: 'Error interno del servidor al generar la presentación' },
+      { error: 'Error al generar la presentación' },
       { status: 500 }
     );
+  }
+}
+
+// ===== FUNCIÓN AUXILIAR PARA IMÁGENES =====
+
+async function addImageToSlide(slide: any, data: any, theme: any, x: number, y: number, w: number, h: number) {
+  // Si hay URL de imagen, intentar agregarla
+  if (data.imagen_url) {
+    try {
+      slide.addImage({
+        path: data.imagen_url,
+        x, y, w, h,
+        sizing: { type: 'cover', w, h }
+      });
+      return true; // Imagen agregada exitosamente
+    } catch (error) {
+      console.error('Error agregando imagen:', error);
+      // Si falla, continuar con la descripción de texto
+    }
+  }
+
+  // Fallback: mostrar descripción de imagen
+  if (data.descripcion_imagen) {
+    slide.addText('📸 ' + data.descripcion_imagen, {
+      x, y, w, h,
+      fontSize: 14, align: 'center',
+      valign: 'middle',
+      color: theme.accent, italic: true
+    });
+  }
+
+  return false;
+}
+
+// ===== GENERADORES DE DIAPOSITIVAS =====
+
+async function generatePortadaSlide(slide: any, data: any, theme: any, pptx: any) {
+  // Barra superior decorativa
+  slide.addShape(pptx.ShapeType.rect, {
+    x: 0, y: 0, w: '100%', h: 0.8,
+    fill: { color: theme.primary }
+  });
+
+  // Título principal
+  slide.addText(data.titulo, {
+    x: 1, y: 2.5, w: '80%', h: 1.5,
+    fontSize: 44, bold: true, align: 'center',
+    valign: 'middle', color: theme.primary
+  });
+
+  // Subtítulo
+  if (data.subtitulo) {
+    slide.addText(data.subtitulo, {
+      x: 1, y: 4.2, w: '80%', h: 0.8,
+      fontSize: 24, align: 'center',
+      color: theme.subtitle
+    });
+  }
+
+  // Imagen o descripción
+  await addImageToSlide(slide, data, theme, 1, 5.2, 8.5, 2.2);
+
+  // Barra inferior
+  slide.addShape(pptx.ShapeType.rect, {
+    x: 0, y: 6.75, w: '100%', h: 0.5,
+    fill: { color: theme.secondary }
+  });
+}
+
+async function generateObjetivosSlide(slide: any, data: any, theme: any, pptx: any) {
+  // Encabezado con icono
+  slide.addShape(pptx.ShapeType.rect, {
+    x: 0, y: 0, w: '100%', h: 1,
+    fill: { color: theme.light }
+  });
+
+  slide.addText((data.icono_sugerido || '🎯') + '  ' + data.titulo, {
+    x: 1, y: 0.2, w: '80%', h: 0.6,
+    fontSize: 32, bold: true, color: theme.primary
+  });
+
+  // Objetivos como lista numerada con iconos
+  if (data.objetivos && Array.isArray(data.objetivos)) {
+    data.objetivos.forEach((obj: string, i: number) => {
+      slide.addText(`${i + 1}.`, {
+        x: 1.5, y: 2 + (i * 0.8), w: 0.5, h: 0.6,
+        fontSize: 24, bold: true, color: theme.primary
+      });
+
+      slide.addText(obj, {
+        x: 2.2, y: 2 + (i * 0.8), w: 8, h: 0.6,
+        fontSize: 20, color: theme.text
+      });
+    });
+  }
+}
+
+async function generateContenidoSlide(slide: any, data: any, theme: any, pptx: any) {
+  // Barra lateral izquierda decorativa
+  slide.addShape(pptx.ShapeType.rect, {
+    x: 0, y: 0, w: 0.3, h: '100%',
+    fill: { color: theme.primary }
+  });
+
+  // Título
+  slide.addText(data.titulo, {
+    x: 0.8, y: 0.5, w: '75%', h: 0.8,
+    fontSize: 32, bold: true, color: theme.primary
+  });
+
+  // Subtema si existe
+  if (data.subtema) {
+    slide.addText(data.subtema, {
+      x: 0.8, y: 1.4, w: '75%', h: 0.5,
+      fontSize: 18, color: theme.subtitle, italic: true
+    });
+  }
+
+  // Determinar layout si hay imagen
+  const hasImage = data.imagen_url || data.descripcion_imagen;
+  const textWidth = hasImage ? 5.5 : 8.5;
+
+  // Puntos clave
+  if (data.puntos && Array.isArray(data.puntos)) {
+    const bullets = data.puntos.map((p: string) => ({
+      text: p,
+      options: { bullet: { code: '25CF' }, fontSize: 18, color: theme.text }
+    }));
+
+    slide.addText(bullets, {
+      x: 1.5, y: 2.5, w: textWidth, h: 3.5,
+      valign: 'top'
+    });
+  }
+
+  // Agregar imagen si existe
+  if (hasImage) {
+    await addImageToSlide(slide, data, theme, 7.2, 2.5, 2.5, 3);
+  }
+
+  // Pregunta de reflexión
+  if (data.pregunta_reflexion) {
+    slide.addShape(pptx.ShapeType.rect, {
+      x: 1, y: 6, w: 9, h: 0.8,
+      fill: { color: theme.accent, transparency: 80 }
+    });
+
+    slide.addText('💭 ' + data.pregunta_reflexion, {
+      x: 1.2, y: 6.1, w: 8.6, h: 0.6,
+      fontSize: 16, color: theme.text, italic: true
+    });
+  }
+}
+
+async function generateEjemploSlide(slide: any, data: any, theme: any, pptx: any) {
+  // Encabezado
+  slide.addShape(pptx.ShapeType.rect, {
+    x: 0, y: 0, w: '100%', h: 0.9,
+    fill: { color: theme.secondary }
+  });
+
+  slide.addText('📝 ' + data.titulo, {
+    x: 1, y: 0.15, w: '80%', h: 0.6,
+    fontSize: 28, bold: true, color: 'FFFFFF'
+  });
+
+  // Determinar layout si hay imagen
+  const hasImage = data.imagen_url || data.descripcion_imagen;
+  const textWidth = hasImage ? 5.5 : 8;
+
+  // Contexto
+  if (data.contexto) {
+    slide.addText(data.contexto, {
+      x: 1, y: 1.5, w: 9, h: 1,
+      fontSize: 18, color: theme.text
+    });
+  }
+
+  // Pasos numerados
+  if (data.pasos && Array.isArray(data.pasos)) {
+    data.pasos.forEach((paso: string, i: number) => {
+      // Círculo con número
+      slide.addShape(pptx.ShapeType.ellipse, {
+        x: 1, y: 3 + (i * 0.8), w: 0.5, h: 0.5,
+        fill: { color: theme.primary }
+      });
+
+      slide.addText((i + 1).toString(), {
+        x: 1, y: 3 + (i * 0.8), w: 0.5, h: 0.5,
+        fontSize: 18, bold: true, color: 'FFFFFF',
+        align: 'center', valign: 'middle'
+      });
+
+      slide.addText(paso, {
+        x: 1.8, y: 3 + (i * 0.8), w: textWidth, h: 0.6,
+        fontSize: 16, color: theme.text
+      });
+    });
+  }
+
+  // Agregar imagen si existe
+  if (hasImage) {
+    await addImageToSlide(slide, data, theme, 7.5, 3, 2.2, 2.5);
+  }
+
+  // Resultado esperado
+  if (data.resultado) {
+    slide.addText('✨ Resultado: ' + data.resultado, {
+      x: 1, y: 6.2, w: 9, h: 0.6,
+      fontSize: 16, bold: true, color: theme.accent
+    });
+  }
+}
+
+async function generateActividadSlide(slide: any, data: any, theme: any, pptx: any) {
+  // Banner superior
+  slide.addShape(pptx.ShapeType.rect, {
+    x: 0, y: 0, w: '100%', h: 1.2,
+    fill: { color: theme.accent }
+  });
+
+  slide.addText('🎯 ' + data.titulo, {
+    x: 1, y: 0.3, w: '80%', h: 0.6,
+    fontSize: 32, bold: true, color: 'FFFFFF'
+  });
+
+  // Determinar layout si hay imagen
+  const hasImage = data.imagen_url || data.descripcion_imagen;
+  const textWidth = hasImage ? 5.5 : 8;
+
+  // Descripción
+  if (data.descripcion) {
+    slide.addText(data.descripcion, {
+      x: 1, y: 1.5, w: 9, h: 0.8,
+      fontSize: 18, color: theme.text
+    });
+  }
+
+  // Instrucciones
+  if (data.instrucciones && Array.isArray(data.instrucciones)) {
+    slide.addText('📋 Instrucciones:', {
+      x: 1, y: 2.5, w: 4, h: 0.5,
+      fontSize: 20, bold: true, color: theme.primary
+    });
+
+    const bullets = data.instrucciones.map((inst: string) => ({
+      text: inst,
+      options: { bullet: true, fontSize: 16, color: theme.text }
+    }));
+
+    slide.addText(bullets, {
+      x: 1.5, y: 3.2, w: textWidth, h: 2.5
+    });
+  }
+
+  // Agregar imagen si existe
+  if (hasImage) {
+    await addImageToSlide(slide, data, theme, 7.5, 3, 2.2, 2.5);
+  }
+
+  // Info adicional en recuadros
+  const infoY = 6;
+  let infoX = 1;
+
+  if (data.tiempo_estimado) {
+    slide.addShape(pptx.ShapeType.rect, {
+      x: infoX, y: infoY, w: 2.5, h: 0.6,
+      fill: { color: theme.light }
+    });
+    slide.addText('⏱️ ' + data.tiempo_estimado, {
+      x: infoX + 0.2, y: infoY + 0.1, w: 2.1, h: 0.4,
+      fontSize: 14, color: theme.text
+    });
+    infoX += 2.7;
+  }
+
+  if (data.organizacion) {
+    slide.addShape(pptx.ShapeType.rect, {
+      x: infoX, y: infoY, w: 2.5, h: 0.6,
+      fill: { color: theme.light }
+    });
+    slide.addText('👥 ' + data.organizacion, {
+      x: infoX + 0.2, y: infoY + 0.1, w: 2.1, h: 0.4,
+      fontSize: 14, color: theme.text
+    });
+    infoX += 2.7;
+  }
+
+  if (data.materiales) {
+    slide.addShape(pptx.ShapeType.rect, {
+      x: infoX, y: infoY, w: 3, h: 0.6,
+      fill: { color: theme.light }
+    });
+    slide.addText('📦 ' + data.materiales, {
+      x: infoX + 0.2, y: infoY + 0.1, w: 2.6, h: 0.4,
+      fontSize: 14, color: theme.text
+    });
+  }
+}
+
+async function generateInteractivoSlide(slide: any, data: any, theme: any, pptx: any) {
+  // Fondo especial
+  slide.addShape(pptx.ShapeType.rect, {
+    x: 0, y: 0, w: '100%', h: '100%',
+    fill: { color: theme.light }
+  });
+
+  // Título
+  slide.addText('💬 ' + data.titulo, {
+    x: 1, y: 1, w: '80%', h: 1,
+    fontSize: 36, bold: true, align: 'center',
+    color: theme.primary
+  });
+
+  // Determinar layout si hay imagen
+  const hasImage = data.imagen_url || data.descripcion_imagen;
+  const questionWidth = hasImage ? 5.5 : 7.5;
+
+  // Pregunta principal
+  if (data.pregunta) {
+    slide.addText(data.pregunta, {
+      x: 1.5, y: 2.5, w: questionWidth, h: 1.5,
+      fontSize: 24, align: 'center',
+      valign: 'middle', color: theme.text
+    });
+  }
+
+  // Agregar imagen si existe
+  if (hasImage) {
+    await addImageToSlide(slide, data, theme, 7.5, 2.2, 2.5, 2);
+  }
+
+  // Opciones en tarjetas
+  if (data.opciones && Array.isArray(data.opciones)) {
+    const opcionWidth = 2.5;
+    const spacing = 0.5;
+    const startX = 1.5;
+
+    data.opciones.forEach((opcion: string, i: number) => {
+      const x = startX + (i * (opcionWidth + spacing));
+
+      slide.addShape(pptx.ShapeType.roundRect, {
+        x, y: 4.5, w: opcionWidth, h: 1.2,
+        fill: { color: theme.primary },
+        line: { width: 2, color: theme.secondary }
+      });
+
+      slide.addText(opcion, {
+        x, y: 4.7, w: opcionWidth, h: 0.8,
+        fontSize: 18, bold: true, color: 'FFFFFF',
+        align: 'center', valign: 'middle'
+      });
+    });
+  }
+
+  // Tipo de interacción
+  if (data.tipo_interaccion) {
+    slide.addText('💡 ' + data.tipo_interaccion, {
+      x: 1, y: 6.3, w: '80%', h: 0.5,
+      fontSize: 16, align: 'center',
+      color: theme.accent, italic: true
+    });
+  }
+}
+
+async function generateResumenSlide(slide: any, data: any, theme: any, pptx: any) {
+  // Encabezado estilizado
+  slide.addShape(pptx.ShapeType.rect, {
+    x: 0, y: 0, w: '100%', h: 1,
+    fill: { color: theme.primary }
+  });
+
+  slide.addText('📚 ' + data.titulo, {
+    x: 1, y: 0.2, w: '80%', h: 0.6,
+    fontSize: 32, bold: true, color: 'FFFFFF'
+  });
+
+  // Determinar layout si hay imagen
+  const hasImage = data.imagen_url || data.descripcion_imagen;
+  const boxWidth = hasImage ? 5.5 : 9;
+
+  // Puntos clave en cajas
+  if (data.puntos_clave && Array.isArray(data.puntos_clave)) {
+    data.puntos_clave.forEach((punto: string, i: number) => {
+      slide.addShape(pptx.ShapeType.rect, {
+        x: 1, y: 2 + (i * 1.2), w: boxWidth, h: 1,
+        fill: { color: theme.light },
+        line: { width: 2, color: theme.primary }
+      });
+
+      slide.addText('✓ ' + punto, {
+        x: 1.3, y: 2.2 + (i * 1.2), w: boxWidth - 0.6, h: 0.6,
+        fontSize: 18, color: theme.text
+      });
+    });
+  }
+
+  // Agregar imagen si existe
+  if (hasImage) {
+    await addImageToSlide(slide, data, theme, 7, 2, 3, 3);
+  }
+
+  // Conexión con la vida real
+  if (data.conexion_vida) {
+    slide.addShape(pptx.ShapeType.roundRect, {
+      x: 1, y: 6, w: 9, h: 1,
+      fill: { color: theme.accent, transparency: 80 }
+    });
+
+    slide.addText('🌟 ' + data.conexion_vida, {
+      x: 1.3, y: 6.2, w: 8.4, h: 0.6,
+      fontSize: 16, bold: true, color: theme.text
+    });
+  }
+}
+
+async function generateCierreSlide(slide: any, data: any, theme: any, pptx: any) {
+  // Fondo de cierre especial
+  slide.addShape(pptx.ShapeType.rect, {
+    x: 0, y: 0, w: '100%', h: 2,
+    fill: { color: theme.primary }
+  });
+
+  // Icono celebración
+  slide.addText('🎉', {
+    x: 4.5, y: 0.5, w: 1, h: 1,
+    fontSize: 48
+  });
+
+  // Título
+  slide.addText(data.titulo, {
+    x: 1, y: 2.2, w: '80%', h: 0.8,
+    fontSize: 32, bold: true, align: 'center',
+    color: theme.primary
+  });
+
+  // Determinar layout si hay imagen
+  const hasImage = data.imagen_url || data.descripcion_imagen;
+  const textWidth = hasImage ? 5 : 7.5;
+
+  // Resumen
+  if (data.resumen) {
+    slide.addText(data.resumen, {
+      x: 1.5, y: 3.3, w: textWidth, h: 1,
+      fontSize: 20, align: 'center',
+      color: theme.text
+    });
+  }
+
+  // Agregar imagen si existe
+  if (hasImage) {
+    await addImageToSlide(slide, data, theme, 7, 3.3, 2.5, 2);
+  }
+
+  // Pregunta de reflexión
+  if (data.pregunta_reflexion) {
+    slide.addShape(pptx.ShapeType.roundRect, {
+      x: 1, y: 4.8, w: 9, h: 1,
+      fill: { color: theme.light }
+    });
+
+    slide.addText('🤔 ' + data.pregunta_reflexion, {
+      x: 1.3, y: 5, w: 8.4, h: 0.6,
+      fontSize: 18, italic: true, color: theme.text
+    });
+  }
+
+  // Mensaje motivador
+  if (data.mensaje_motivador) {
+    slide.addText(data.mensaje_motivador, {
+      x: 1, y: 6.2, w: '80%', h: 0.6,
+      fontSize: 20, bold: true, align: 'center',
+      color: theme.accent
+    });
+  }
+
+  // Barra inferior
+  slide.addShape(pptx.ShapeType.rect, {
+    x: 0, y: 6.75, w: '100%', h: 0.5,
+    fill: { color: theme.primary }
+  });
+}
+
+async function generateGenericSlide(slide: any, data: any, theme: any, pptx: any) {
+  slide.addText(data.titulo || 'Diapositiva', {
+    x: 1, y: 0.5, w: '80%', h: 1,
+    fontSize: 32, bold: true, color: theme.primary
+  });
+
+  // Determinar layout si hay imagen
+  const hasImage = data.imagen_url || data.descripcion_imagen;
+  const textWidth = hasImage ? 5 : 9;
+
+  if (data.contenido) {
+    slide.addText(data.contenido, {
+      x: 1, y: 2, w: textWidth, h: 4,
+      fontSize: 18, color: theme.text
+    });
+  }
+
+  // Agregar imagen si existe
+  if (hasImage) {
+    await addImageToSlide(slide, data, theme, 6.5, 2, 3, 3);
   }
 }

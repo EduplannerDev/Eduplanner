@@ -28,6 +28,7 @@ import { BetaFeaturesDemo } from "./sections/beta-features-demo"
 import { ListaProyectos } from "./sections/lista-proyectos"
 import { ProyectoWizard } from "./sections/proyecto-wizard"
 import { PlaneacionCime } from "./sections/planeacion-cime"
+import { PresentacionesIA } from "./sections/presentaciones-ia"
 import { WelcomeMessage } from "./ui/welcome-message"
 import { ClientOnly } from "./client-only"
 import { SidebarInset, SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar"
@@ -156,6 +157,8 @@ export default function Dashboard({ children, customContent = false }: Dashboard
         return "Funcionalidades Beta"
       case "dosificacion":
         return "Dosificación"
+      case "presentaciones-ia":
+        return "Presentaciones IA"
       case "proyectos":
         return "Proyectos"
       case "planeacion-cime":
@@ -179,11 +182,11 @@ export default function Dashboard({ children, customContent = false }: Dashboard
           />
         )
       case "nueva-planeacion":
-        return <NuevaPlaneacion 
+        return <NuevaPlaneacion
           onCreateClass={() => {
             clearChatStates()
             setActiveSection("chat-ia")
-          }} 
+          }}
           onNavigateToChatWithMessage={handleNavigateToChatWithMessage}
           onNavigateToChatDosificacion={handleNavigateToChatDosificacion}
           onNavigateToCime={() => setActiveSection("planeacion-cime")}
@@ -203,11 +206,11 @@ export default function Dashboard({ children, customContent = false }: Dashboard
       case "mi-perfil":
         return <Perfil />
       case "chat-ia":
-        return <ChatIA 
+        return <ChatIA
           onBack={() => {
             setActiveSection("nueva-planeacion")
             clearChatStates()
-          }} 
+          }}
           onSaveSuccess={() => {
             setActiveSection("mis-planeaciones")
             clearChatStates()
@@ -215,11 +218,11 @@ export default function Dashboard({ children, customContent = false }: Dashboard
           initialMessage={initialChatMessage}
         />
       case "chat-ia-dosificacion":
-        return dosificacionData ? <ChatIADosificacion 
+        return dosificacionData ? <ChatIADosificacion
           onBack={() => {
             setActiveSection("nueva-planeacion")
             clearChatStates()
-          }} 
+          }}
           onSaveSuccess={() => {
             setActiveSection("mis-planeaciones")
             clearChatStates()
@@ -236,18 +239,18 @@ export default function Dashboard({ children, customContent = false }: Dashboard
       case "generar-mensajes":
         return <GenerarMensajes onBack={() => setActiveSection("nueva-planeacion")} onNavigateToMessages={() => setActiveSection("mis-mensajes")} />
       case "generar-mensajes-padres":
-        return <GenerarMensajesPadres 
+        return <GenerarMensajesPadres
           onBack={() => {
             setActiveSection(previousSection)
             setPreselectedStudent(null)
-          }} 
-          onNavigateToMessages={() => setActiveSection("mis-mensajes")} 
+          }}
+          onNavigateToMessages={() => setActiveSection("mis-mensajes")}
           preselectedStudent={preselectedStudent}
         />
       case "mis-mensajes":
         return <MisMensajes onCreateNew={() => setActiveSection("generar-mensajes")} />
       case "mensajes-padres-alumno":
-        return <MensajesPadresAlumno 
+        return <MensajesPadresAlumno
           onBack={() => {
             setActiveSection("grupos")
             setSelectedStudentForMessages(null)
@@ -258,8 +261,8 @@ export default function Dashboard({ children, customContent = false }: Dashboard
       case "ayuda":
         return <Ayuda />
       case "grupos":
-        return <MisGrupos 
-          onNavigateToMensajesPadres={handleNavigateToMensajesPadres} 
+        return <MisGrupos
+          onNavigateToMensajesPadres={handleNavigateToMensajesPadres}
           onNavigateToMensajesPadresAlumno={handleNavigateToMensajesPadresAlumno}
         />
       case "agenda":
@@ -291,17 +294,19 @@ export default function Dashboard({ children, customContent = false }: Dashboard
       case "beta-features":
         return <BetaFeaturesDemo />
       case "dosificacion":
-        return <Dosificacion 
-          onCreateNew={() => setActiveSection("dosificacion")} 
+        return <Dosificacion
+          onCreateNew={() => setActiveSection("dosificacion")}
           onNavigateToChatDosificacion={handleNavigateToChatDosificacion}
         />
+      case "presentaciones-ia":
+        return <PresentacionesIA />
       case "proyectos":
         return <ListaProyectos />
       case "crear-proyecto":
         return <ProyectoWizard onComplete={() => setActiveSection("proyectos")} onSectionChange={setActiveSection} />
       case "planeacion-cime":
-        return <PlaneacionCime 
-          onBack={() => setActiveSection("nueva-planeacion")} 
+        return <PlaneacionCime
+          onBack={() => setActiveSection("nueva-planeacion")}
           onSuccess={() => setActiveSection("mis-planeaciones")}
         />
       default:
