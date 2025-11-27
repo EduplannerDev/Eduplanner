@@ -11,10 +11,10 @@ export function ErrorLoggerProvider({ children }: { children: React.ReactNode })
   useEffect(() => {
     // El errorLogger ya se inicializa automáticamente al importarse
     // pero podemos agregar configuración adicional aquí si es necesario
-    
+
     // Log de inicialización
-    console.log('🔧 Sistema de logging de errores inicializado')
-    
+
+
     // Configurar logging adicional para desarrollo
     if (process.env.NODE_ENV === 'development') {
       // Interceptar console.error para logging adicional
@@ -22,7 +22,7 @@ export function ErrorLoggerProvider({ children }: { children: React.ReactNode })
       console.error = (...args) => {
         // Log original
         originalConsoleError.apply(console, args)
-        
+
         // Log adicional si es un error
         if (args[0] instanceof Error) {
           errorLogger.logError('javascript', args[0], {

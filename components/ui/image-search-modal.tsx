@@ -160,8 +160,8 @@ export function ImageSearchModal({ open, onClose, onSelectImage, initialQuery = 
                                         key={image.id}
                                         onClick={() => setSelectedImage(image)}
                                         className={`relative cursor-pointer rounded-lg overflow-hidden border-4 transition-all ${selectedImage?.url === image.url
-                                                ? 'border-purple-600 ring-2 ring-purple-400'
-                                                : 'border-transparent hover:border-gray-300'
+                                            ? 'border-purple-600 ring-2 ring-purple-400'
+                                            : 'border-transparent hover:border-gray-300'
                                             }`}
                                     >
                                         <img

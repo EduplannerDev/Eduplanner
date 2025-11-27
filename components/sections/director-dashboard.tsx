@@ -5,12 +5,12 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Badge } from "@/components/ui/badge"
 import { Progress } from "@/components/ui/progress"
 import { Separator } from "@/components/ui/separator"
-import { 
-  Users, 
-  FileText, 
-  FolderOpen, 
-  BookOpen, 
-  Activity, 
+import {
+  Users,
+  FileText,
+  FolderOpen,
+  BookOpen,
+  Activity,
   TrendingUp,
   UserCheck,
   Clock,
@@ -19,11 +19,11 @@ import {
   Target
 } from "lucide-react"
 import { useRoles } from "@/hooks/use-roles"
-import { 
-  getPlatformPulse, 
-  type DirectorDashboardStats, 
-  type TeacherActivity, 
-  type PlatformPulse 
+import {
+  getPlatformPulse,
+  type DirectorDashboardStats,
+  type TeacherActivity,
+  type PlatformPulse
 } from "@/lib/director-stats"
 import { format } from "date-fns"
 import { es } from "date-fns/locale"
@@ -48,20 +48,19 @@ export function DirectorDashboard({ onSectionChange }: DirectorDashboardProps) {
     try {
       setLoading(true)
       setError(null)
-      
+
       if (!plantel?.id) {
         throw new Error('No se encontró información del plantel')
       }
 
-      console.log('🔍 DIRECTOR DASHBOARD: Cargando datos para plantel:', plantel.id)
-      console.log('🔍 DIRECTOR DASHBOARD: Plantel info:', plantel)
-      
+
+
       const data = await getPlatformPulse(plantel.id)
-      console.log('🔍 DIRECTOR DASHBOARD: Datos recibidos:', data)
-      
+
+
       setPlatformData(data)
     } catch (err) {
-      console.error('❌ DIRECTOR DASHBOARD: Error cargando datos del dashboard:', err)
+
       setError('Error al cargar los datos del dashboard')
     } finally {
       setLoading(false)
@@ -86,7 +85,7 @@ export function DirectorDashboard({ onSectionChange }: DirectorDashboardProps) {
           <div className="text-destructive mb-4">⚠️</div>
           <h3 className="text-lg font-semibold mb-2">Error al cargar datos</h3>
           <p className="text-muted-foreground mb-4">{error}</p>
-          <button 
+          <button
             onClick={loadDashboardData}
             className="text-primary hover:underline"
           >
@@ -221,7 +220,7 @@ export function DirectorDashboard({ onSectionChange }: DirectorDashboardProps) {
                 Última semana
               </Badge>
             </div>
-            
+
             {teacherActivity.length === 0 ? (
               <Card>
                 <CardContent className="p-6 text-center">
@@ -236,15 +235,14 @@ export function DirectorDashboard({ onSectionChange }: DirectorDashboardProps) {
                 {teacherActivity.slice(0, 8).map((teacher, index) => {
                   const totalActivity = teacher.planeaciones + teacher.proyectos + teacher.notasSeguimiento + teacher.plantillasCompartidas
                   const isTopPerformer = index < 3 && totalActivity > 0
-                  
+
                   return (
                     <Card key={teacher.id} className={isTopPerformer ? "border-primary/30 bg-primary/5" : ""}>
                       <CardContent className="p-4">
                         <div className="flex items-center justify-between">
                           <div className="flex items-center gap-3">
-                            <div className={`w-10 h-10 rounded-full flex items-center justify-center text-sm font-medium ${
-                              isTopPerformer ? "bg-primary text-primary-foreground" : "bg-muted text-muted-foreground"
-                            }`}>
+                            <div className={`w-10 h-10 rounded-full flex items-center justify-center text-sm font-medium ${isTopPerformer ? "bg-primary text-primary-foreground" : "bg-muted text-muted-foreground"
+                              }`}>
                               {teacher.nombre.charAt(0)}{teacher.apellido.charAt(0)}
                             </div>
                             <div>
@@ -264,7 +262,7 @@ export function DirectorDashboard({ onSectionChange }: DirectorDashboardProps) {
                               </p>
                             </div>
                           </div>
-                          
+
                           <div className="text-right">
                             <div className="flex items-center gap-4 text-sm">
                               {teacher.planeaciones > 0 && (
@@ -292,13 +290,13 @@ export function DirectorDashboard({ onSectionChange }: DirectorDashboardProps) {
                                 </div>
                               )}
                             </div>
-                            
+
                             {totalActivity === 0 && (
                               <div className="text-sm text-muted-foreground">
                                 Sin actividad esta semana
                               </div>
                             )}
-                            
+
                             {teacher.ultimaActividad && (
                               <div className="flex items-center gap-1 text-xs text-muted-foreground mt-1">
                                 <Clock className="h-3 w-3" />
@@ -311,7 +309,7 @@ export function DirectorDashboard({ onSectionChange }: DirectorDashboardProps) {
                     </Card>
                   )
                 })}
-                
+
                 {teacherActivity.length > 8 && (
                   <Card className="border-dashed">
                     <CardContent className="p-4 text-center">
@@ -327,7 +325,7 @@ export function DirectorDashboard({ onSectionChange }: DirectorDashboardProps) {
 
           {/* Insights y Recomendaciones */}
           <Separator />
-          
+
           <div className="bg-muted/50 rounded-lg p-4">
             <div className="flex items-center gap-2 mb-2">
               <TrendingUp className="h-4 w-4 text-primary" />

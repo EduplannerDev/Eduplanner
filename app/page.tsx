@@ -27,19 +27,14 @@ export default function Home() {
 
   // Verificar si necesita mostrar el modal de contexto de trabajo
   useEffect(() => {
-    console.log('🔍 [DEBUG] Verificando modal:', { 
-      user: !!user, 
-      userId: user?.id,
-      loadingContexto, 
-      hasContexto
-    })
-    
+
+
     // Solo mostrar modal si el usuario está cargado, no está cargando contexto, y NO tiene contexto
     if (user && !loadingContexto && hasContexto === false) {
-      console.log('🚨 [DEBUG] Mostrando modal de contexto - usuario no tiene contexto')
+
       setShowContextoModal(true)
     } else if (user && !loadingContexto && hasContexto === true) {
-      console.log('✅ [DEBUG] Usuario ya tiene contexto, NO se muestra modal')
+
       setShowContextoModal(false)
     }
   }, [user, loadingContexto, hasContexto])
@@ -51,8 +46,8 @@ export default function Home() {
   // Mostrar landing móvil si estamos en móvil y no se ha elegido continuar
   if (isMobile && showMobileLanding && !user) {
     return (
-      <MobileLanding 
-        onContinueToDesktop={() => setShowMobileLanding(false)} 
+      <MobileLanding
+        onContinueToDesktop={() => setShowMobileLanding(false)}
       />
     )
   }
@@ -67,8 +62,8 @@ export default function Home() {
       <Suspense fallback={<LoadingFallback />}>
         {user ? <Dashboard /> : <LoginForm />}
       </Suspense>
-      <ContextoTrabajoModal 
-        isOpen={showContextoModal} 
+      <ContextoTrabajoModal
+        isOpen={showContextoModal}
         onClose={() => setShowContextoModal(false)}
         onSuccess={handleContextoSuccess}
       />

@@ -31,36 +31,18 @@ class AuthErrorBoundary extends Component<Props, State> {
   componentDidMount() {
     // Interceptor global para errores de DOM
     this.domErrorHandler = (event: ErrorEvent) => {
-      if (event.error && 
-          (event.error.message?.includes('insertBefore') ||
-           event.error.message?.includes('removeChild') ||
-           event.error.message?.includes('appendChild'))) {
-        
+      if (event.error &&
+        (event.error.message?.includes('insertBefore') ||
+          event.error.message?.includes('removeChild') ||
+          event.error.message?.includes('appendChild'))) {
+
         // Prevenir que el error se propague
         event.preventDefault()
         event.stopPropagation()
-        
-        // Log detallado para investigar la causa
-        console.group('🚨 GLOBAL DOM ERROR - DETAILED ANALYSIS')
-        console.error('Global DOM Error:', event.error)
-        console.log('Filename:', event.filename)
-        console.log('Line:', event.lineno, 'Column:', event.colno)
-        console.log('URL:', window.location.href)
-        console.log('Timestamp:', new Date().toISOString())
-        
-        // Analizar el estado del DOM
-        console.log('DOM Analysis:')
-        console.log('- Document ready state:', document.readyState)
-        console.log('- Active element:', document.activeElement?.tagName)
-        console.log('- Focused element:', document.activeElement)
-        console.log('- Body children:', document.body?.children?.length || 0)
-        
-        // Verificar si hay elementos React montándose/desmontándose
+
+        // Log detallado para investigar la        // Verificar si hay elementos React montándose/desmontándose
         const reactRoots = document.querySelectorAll('[data-reactroot], #__next')
-        console.log('- React roots found:', reactRoots?.length || 0)
-        
-        console.groupEnd()
-        
+
         // Log estructurado
         logDOMErrorSilent(event.error, {
           component: 'GlobalDOMInterceptor',
@@ -77,11 +59,11 @@ class AuthErrorBoundary extends Component<Props, State> {
           },
           intercepted: true
         })
-        
+
         return false
       }
     }
-    
+
     window.addEventListener('error', this.domErrorHandler)
   }
 
@@ -93,14 +75,14 @@ class AuthErrorBoundary extends Component<Props, State> {
 
   static getDerivedStateFromError(error: Error): State {
     // Verificar si es un error de autenticación
-    const isAuthError = 
+    const isAuthError =
       error.message.includes('refresh_token_not_found') ||
       error.message.includes('Invalid Refresh Token') ||
       error.message.includes('AuthApiError') ||
       error.message.includes('Refresh Token Not Found')
 
     // Para errores de DOM, NO activar el error boundary pero SÍ logear detalladamente
-    const isDOMError = 
+    const isDOMError =
       error.message.includes('insertBefore') ||
       error.message.includes('appendChild') ||
       error.message.includes('removeChild')
@@ -123,42 +105,22 @@ class AuthErrorBoundary extends Component<Props, State> {
 
   componentDidCatch(error: Error, errorInfo: React.ErrorInfo) {
     // Determinar el tipo de error
-    const isAuthError = 
+    const isAuthError =
       error.message.includes('refresh_token_not_found') ||
       error.message.includes('Invalid Refresh Token') ||
       error.message.includes('AuthApiError') ||
       error.message.includes('Refresh Token Not Found')
 
-    const isDOMError = 
+    const isDOMError =
       error.message.includes('insertBefore') ||
       error.message.includes('appendChild') ||
       error.message.includes('removeChild')
 
     // Para errores de DOM, logear DETALLADAMENTE para investigar la causa
     if (isDOMError) {
-      // Log detallado para investigar la causa raíz
-      console.group('🚨 DOM ERROR DETECTED - INVESTIGATING ROOT CAUSE')
-      console.error('Error:', error)
-      console.log('Component Stack:', errorInfo.componentStack)
-      console.log('Error Info:', errorInfo)
-      console.log('Current URL:', window.location.href)
-      console.log('User Agent:', navigator.userAgent)
-      console.log('Timestamp:', new Date().toISOString())
-      
-      // Log detallado del DOM actual
-      console.log('DOM State:')
-      console.log('- Document ready state:', document.readyState)
-      console.log('- Body children count:', document.body?.children?.length || 0)
-      console.log('- React root element:', document.getElementById('__next'))
-      
-      // Intentar identificar el componente problemático
+      // Log detallado para investigar la causa      // Intentar identificar el componente problemático
       const componentMatch = errorInfo.componentStack?.match(/at\s+(\w+)\s+\([^)]*\)/)
-      if (componentMatch) {
-        console.log('Suspected component:', componentMatch[1])
-      }
-      
-      console.groupEnd()
-      
+
       // Log estructurado para análisis
       logDOMErrorSilent(error, {
         component: 'AuthErrorBoundary',
@@ -177,15 +139,15 @@ class AuthErrorBoundary extends Component<Props, State> {
     }
 
     // Para errores de autenticación y otros errores, usar el logging normal
-    console.error('Auth Error Boundary caught an error:', error, errorInfo)
-    
+
+
     if (isAuthError) {
       logAuthError(error, {
         component: 'AuthErrorBoundary',
         action: 'componentDidCatch',
         componentStack: errorInfo.componentStack?.substring(0, 500)
       })
-      
+
       // Si es un error de autenticación, limpiar el storage
       clearSupabaseStorage()
     } else {
@@ -194,7 +156,7 @@ class AuthErrorBoundary extends Component<Props, State> {
         errorBoundary: 'AuthErrorBoundary'
       }, 'AuthErrorBoundary')
     }
-    
+
     // Log optimizado usando el logger ligero (fallback)
     if (typeof window !== 'undefined') {
       import('@/lib/lightweight-logger').then(({ logger }) => {
@@ -239,7 +201,7 @@ class AuthErrorBoundary extends Component<Props, State> {
                 <div className="mx-auto w-12 h-12 bg-yellow-100 rounded-full flex items-center justify-center">
                   <AlertCircle className="w-6 h-6 text-yellow-600" />
                 </div>
-                
+
                 <div className="space-y-2">
                   <h2 className="text-xl font-semibold text-foreground">
                     Error de Aplicación
@@ -255,7 +217,7 @@ class AuthErrorBoundary extends Component<Props, State> {
                         <div><strong>Mensaje:</strong> {this.state.error.message}</div>
                         {this.state.error.message.includes('insertBefore') && (
                           <div className="text-yellow-600">
-                            <strong>Nota:</strong> Este es un error común de React cuando hay problemas con el DOM. 
+                            <strong>Nota:</strong> Este es un error común de React cuando hay problemas con el DOM.
                             Intenta recargar la página.
                           </div>
                         )}
@@ -263,9 +225,9 @@ class AuthErrorBoundary extends Component<Props, State> {
                     </details>
                   )}
                 </div>
-                
+
                 <div className="space-y-2">
-                  <Button 
+                  <Button
                     onClick={this.handleReload}
                     className="w-full"
                     size="sm"
@@ -273,8 +235,8 @@ class AuthErrorBoundary extends Component<Props, State> {
                     <RefreshCw className="w-4 h-4 mr-2" />
                     Recargar Página
                   </Button>
-                  
-                  <Button 
+
+                  <Button
                     onClick={this.handleReset}
                     variant="outline"
                     className="w-full"
@@ -283,7 +245,7 @@ class AuthErrorBoundary extends Component<Props, State> {
                     Intentar de Nuevo
                   </Button>
 
-                  <Button 
+                  <Button
                     onClick={this.handleForceReset}
                     variant="destructive"
                     className="w-full"
@@ -293,7 +255,7 @@ class AuthErrorBoundary extends Component<Props, State> {
                     Reset Completo
                   </Button>
                 </div>
-                
+
               </div>
             </div>
           </div>
@@ -308,7 +270,7 @@ class AuthErrorBoundary extends Component<Props, State> {
               <div className="mx-auto w-12 h-12 bg-red-100 rounded-full flex items-center justify-center">
                 <AlertCircle className="w-6 h-6 text-red-600" />
               </div>
-              
+
               <div className="space-y-2">
                 <h2 className="text-xl font-semibold text-foreground">
                   Error General
@@ -324,7 +286,7 @@ class AuthErrorBoundary extends Component<Props, State> {
                       <div><strong>Mensaje:</strong> {this.state.error.message}</div>
                       {this.state.error.message.includes('insertBefore') && (
                         <div className="text-yellow-600">
-                          <strong>Nota:</strong> Este es un error común de React cuando hay problemas con el DOM. 
+                          <strong>Nota:</strong> Este es un error común de React cuando hay problemas con el DOM.
                           Intenta recargar la página.
                         </div>
                       )}
@@ -332,9 +294,9 @@ class AuthErrorBoundary extends Component<Props, State> {
                   </details>
                 )}
               </div>
-              
+
               <div className="space-y-2">
-                <Button 
+                <Button
                   onClick={this.handleReload}
                   className="w-full"
                   size="sm"
@@ -342,8 +304,8 @@ class AuthErrorBoundary extends Component<Props, State> {
                   <RefreshCw className="w-4 h-4 mr-2" />
                   Recargar Página
                 </Button>
-                
-                <Button 
+
+                <Button
                   onClick={this.handleReset}
                   variant="outline"
                   className="w-full"
@@ -352,7 +314,7 @@ class AuthErrorBoundary extends Component<Props, State> {
                   Intentar de Nuevo
                 </Button>
               </div>
-              
+
             </div>
           </div>
         </div>

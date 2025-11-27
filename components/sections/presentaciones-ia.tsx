@@ -52,6 +52,8 @@ export function PresentacionesIA() {
     const [viewingPresentation, setViewingPresentation] = useState<PresentacionIA | null>(null)
     const [currentSlideIndex, setCurrentSlideIndex] = useState(0)
 
+    const { isBetaTester, loading: loadingBeta } = useBetaTesterCheck()
+
     useEffect(() => {
         if (profile?.id && !loadingProfile) {
             loadPresentaciones()
@@ -175,8 +177,6 @@ export function PresentacionesIA() {
             />
         )
     }
-
-    const { isBetaTester, loading: loadingBeta } = useBetaTesterCheck()
 
     // Mostrar loader mientras se verifica el perfil o estado beta
     if (loadingProfile || loadingBeta) {

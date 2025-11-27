@@ -42,7 +42,7 @@ export function NuevaPresentacionWizard({ onClose, onComplete }: NuevaPresentaci
         onFinish: async (message) => {
             try {
                 setGenerating(true)
-                console.log('✅ Respuesta completa de la IA:', message.content)
+
 
                 // Parsear el JSON de la respuesta (igual que en chat-ia)
                 let presentationData
@@ -103,7 +103,7 @@ export function NuevaPresentacionWizard({ onClose, onComplete }: NuevaPresentaci
                 onComplete()
 
             } catch (error) {
-                console.error('💥 Error generando presentación:', error)
+
                 toast({
                     title: "Error al generar presentación",
                     description: error instanceof Error ? error.message : "Ocurrió un error inesperado",
@@ -114,7 +114,7 @@ export function NuevaPresentacionWizard({ onClose, onComplete }: NuevaPresentaci
             }
         },
         onError: (error) => {
-            console.error('Error en el chat:', error)
+
             toast({
                 title: "Error de IA",
                 description: "No se pudo generar la respuesta. Intenta de nuevo.",
@@ -161,7 +161,7 @@ export function NuevaPresentacionWizard({ onClose, onComplete }: NuevaPresentaci
             Tema: ${planeacion.tema}
             
             Contenido de la planeación:
-            ${JSON.stringify(planeacion.contenido_json)}
+            ${JSON.stringify(planeacion.contenido)}
             
             La presentación debe tener entre 5 y 8 diapositivas.
             

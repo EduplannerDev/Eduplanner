@@ -82,7 +82,7 @@ export function useBetaFeatures() {
         })
 
       } catch (error) {
-        console.error('Error fetching beta features:', error)
+
         setData({
           isBetaTester: false,
           features: [],
@@ -98,9 +98,9 @@ export function useBetaFeatures() {
   // Función para verificar si el usuario tiene acceso a una feature específica
   const hasFeatureAccess = (featureKey: string): boolean => {
     if (!data.isBetaTester || !data.features || !Array.isArray(data.features)) return false
-    
-    return data.features.some(feature => 
-      feature.feature_key === featureKey && 
+
+    return data.features.some(feature =>
+      feature.feature_key === featureKey &&
       (!feature.expires_at || new Date(feature.expires_at) > new Date())
     )
   }
@@ -129,7 +129,7 @@ export function useBetaFeatures() {
 // Hook específico para verificar una feature individual
 export function useBetaFeature(featureKey: string) {
   const { hasFeatureAccess, isBetaTester, loading, error } = useBetaFeatures()
-  
+
   return {
     hasAccess: hasFeatureAccess(featureKey),
     isBetaTester: isBetaTester(),
@@ -165,11 +165,11 @@ export function useBetaTesterCheck() {
         }
 
         const betaTesterStatus = profile?.is_beta_tester || false
-        console.log('Beta tester check result:', { userId: user.id, isBetaTester: betaTesterStatus, profile })
+
         setIsBetaTester(betaTesterStatus)
         setError(null)
       } catch (err) {
-        console.error('Error checking beta tester status:', err)
+
         setIsBetaTester(false)
         setError(err instanceof Error ? err.message : 'Error desconocido')
       } finally {
@@ -179,7 +179,7 @@ export function useBetaTesterCheck() {
 
     checkBetaTester()
   }, [user?.id])
-  
+
   return {
     isBetaTester,
     loading,

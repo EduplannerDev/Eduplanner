@@ -31,15 +31,15 @@ type Profile = {
 
 type UserRole = 'profesor' | 'director' | 'administrador'
 import { supabase } from '@/lib/supabase'
-import { 
-  ArrowLeft, 
-  Building2, 
-  Users, 
-  GraduationCap, 
-  Shield, 
-  Settings, 
-  UserPlus, 
-  Edit, 
+import {
+  ArrowLeft,
+  Building2,
+  Users,
+  GraduationCap,
+  Shield,
+  Settings,
+  UserPlus,
+  Edit,
   Trash2,
   Mail,
   Phone,
@@ -86,16 +86,16 @@ export function VistaPlantel({ plantelId, onBack }: VistaPlantelProps) {
   const [selectedRole, setSelectedRole] = useState<UserRole>('profesor')
   const [isSearching, setIsSearching] = useState(false)
   const [isAssigning, setIsAssigning] = useState(false)
-  
+
   // Estados para invitaciones
   const [isInviteDialogOpen, setIsInviteDialogOpen] = useState(false)
   const [inviteEmail, setInviteEmail] = useState('')
   const [inviteRole, setInviteRole] = useState<UserRole>('profesor')
   const [inviting, setInviting] = useState(false)
-  
+
   // Estados para confirmación de eliminación
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false)
-  const [userToDelete, setUserToDelete] = useState<{id: string, name: string} | null>(null)
+  const [userToDelete, setUserToDelete] = useState<{ id: string, name: string } | null>(null)
   const [editFormData, setEditFormData] = useState({
     max_profesores: 0,
     max_directores: 0
@@ -117,9 +117,9 @@ export function VistaPlantel({ plantelId, onBack }: VistaPlantelProps) {
     setLoading(true)
     try {
       const plantelData = await getPlantelWithLimits(plantelId)
-      console.log('DEBUG: Datos del plantel cargados:', plantelData)
+
       setPlantel(plantelData)
-      
+
       // Cargar usuarios del plantel
       const usuariosData = await getPlantelUsers(plantelId)
       const usuariosFormateados: UsuarioPlantel[] = usuariosData.map((assignment: any) => {
@@ -135,12 +135,12 @@ export function VistaPlantel({ plantelId, onBack }: VistaPlantelProps) {
         }
       })
       setUsuarios(usuariosFormateados)
-      
+
       setEditFormData({
         max_profesores: plantelData?.max_profesores || 0,
         max_directores: plantelData?.max_directores || 0
       })
-      
+
       setEditInfoFormData({
         nombre: plantelData?.nombre || '',
         direccion: plantelData?.direccion || '',
@@ -216,18 +216,18 @@ export function VistaPlantel({ plantelId, onBack }: VistaPlantelProps) {
         .limit(10)
 
       if (error) throw error
-      
+
       // Filtrar usuarios que ya están en el plantel
       const plantelUsers = plantel ? await getPlantelUsers(plantel.id) : []
       const existingUserIds = plantelUsers.map(assignment => assignment.user_id)
-      
-      const filtered = data?.filter(user => 
+
+      const filtered = data?.filter(user =>
         !existingUserIds.includes(user.id)
       ) || []
-      
+
       return filtered
     } catch (error) {
-      console.error('Error searching users:', error)
+
       return []
     }
   }
@@ -270,7 +270,7 @@ export function VistaPlantel({ plantelId, onBack }: VistaPlantelProps) {
 
       setSearchResults(usersWithAssignmentStatus)
     } catch (error) {
-      console.error('Error searching users:', error)
+
       toast({
         title: "Error",
         description: "Error al buscar usuarios",
@@ -285,14 +285,14 @@ export function VistaPlantel({ plantelId, onBack }: VistaPlantelProps) {
   const handleAssignUser = async (userId: string) => {
     if (!plantel) return
 
-    console.log('DEBUG: Intentando asignar usuario con rol:', selectedRole)
-    console.log('DEBUG: Plantel ID:', plantelId)
-    console.log('DEBUG: Usuario ID:', userId)
+
+
+
 
     setIsAssigning(true)
     try {
       const result = await assignUserToPlantelWithValidation(userId, plantelId, selectedRole)
-      
+
       if (result.success) {
         toast({
           title: "Usuario asignado",
@@ -311,7 +311,7 @@ export function VistaPlantel({ plantelId, onBack }: VistaPlantelProps) {
         })
       }
     } catch (error) {
-      console.error('Error assigning user:', error)
+
       toast({
         title: "Error",
         description: "Ocurrió un error al asignar el usuario",
@@ -336,7 +336,7 @@ export function VistaPlantel({ plantelId, onBack }: VistaPlantelProps) {
     try {
       // Verificar límites antes de invitar
       const canAdd = await canAddUserToPlantel(plantel.id, inviteRole)
-      
+
       if (!canAdd) {
         toast({
           title: "Límite alcanzado",
@@ -531,8 +531,8 @@ export function VistaPlantel({ plantelId, onBack }: VistaPlantelProps) {
                     <span>Utilizados</span>
                     <span>{plantel.profesores_actuales || 0} / {plantel.max_profesores || 0}</span>
                   </div>
-                  <Progress 
-                    value={((plantel.profesores_actuales || 0) / (plantel.max_profesores || 1)) * 100} 
+                  <Progress
+                    value={((plantel.profesores_actuales || 0) / (plantel.max_profesores || 1)) * 100}
                     className="h-2"
                   />
                   <p className="text-xs text-muted-foreground">
@@ -558,8 +558,8 @@ export function VistaPlantel({ plantelId, onBack }: VistaPlantelProps) {
                     <span>Utilizados</span>
                     <span>{plantel.directores_actuales || 0} / {plantel.max_directores || 0}</span>
                   </div>
-                  <Progress 
-                    value={((plantel.directores_actuales || 0) / (plantel.max_directores || 1)) * 100} 
+                  <Progress
+                    value={((plantel.directores_actuales || 0) / (plantel.max_directores || 1)) * 100}
                     className="h-2"
                   />
                   <p className="text-xs text-muted-foreground">
@@ -583,112 +583,112 @@ export function VistaPlantel({ plantelId, onBack }: VistaPlantelProps) {
                     Agregar Usuario
                   </Button>
                 </DialogTrigger>
-              <DialogContent className="max-w-2xl">
-                <DialogHeader>
-                  <DialogTitle>Agregar Usuario al Plantel</DialogTitle>
-                  <DialogDescription>
-                    Busca y asigna un usuario existente a este plantel
-                  </DialogDescription>
-                </DialogHeader>
-                <div className="space-y-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="role">Rol del Usuario</Label>
-                    <Select value={selectedRole} onValueChange={(value: UserRole) => setSelectedRole(value)}>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Selecciona un rol" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="profesor">Profesor</SelectItem>
-                        <SelectItem value="director">Director</SelectItem>
-                        <SelectItem value="administrador">Administrador</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  
-                  <div className="space-y-2">
-                    <Label htmlFor="search">Buscar Usuario</Label>
-                    <div className="flex space-x-2">
-                      <Input
-                        id="search"
-                        placeholder="Buscar por nombre o email..."
-                        value={searchTerm}
-                        onChange={(e) => setSearchTerm(e.target.value)}
-                        onKeyPress={(e) => e.key === 'Enter' && handleSearchUsers()}
-                      />
-                      <Button onClick={handleSearchUsers} disabled={isSearching}>
-                        {isSearching ? 'Buscando...' : 'Buscar'}
-                      </Button>
-                    </div>
-                  </div>
-
-                  {searchResults.length > 0 && (
+                <DialogContent className="max-w-2xl">
+                  <DialogHeader>
+                    <DialogTitle>Agregar Usuario al Plantel</DialogTitle>
+                    <DialogDescription>
+                      Busca y asigna un usuario existente a este plantel
+                    </DialogDescription>
+                  </DialogHeader>
+                  <div className="space-y-4">
                     <div className="space-y-2">
-                      <Label>Resultados de Búsqueda</Label>
-                      <div className="max-h-60 overflow-y-auto border rounded-md">
-                        <Table>
-                          <TableHeader>
-                            <TableRow>
-                              <TableHead>Usuario</TableHead>
-                              <TableHead>Email</TableHead>
-                              <TableHead>Estado</TableHead>
-                              <TableHead>Acción</TableHead>
-                            </TableRow>
-                          </TableHeader>
-                          <TableBody>
-                            {searchResults.map((user) => (
-                              <TableRow key={user.id}>
-                                <TableCell className="font-medium">
-                                  {user.full_name || 'Sin nombre'}
-                                </TableCell>
-                                <TableCell>{user.email}</TableCell>
-                                <TableCell>
-                                  {user.isAssigned ? (
-                                    <Badge variant="secondary">
-                                      Ya asignado como {user.currentRole}
-                                    </Badge>
-                                  ) : (
-                                    <Badge variant="outline">
-                                      Disponible
-                                    </Badge>
-                                  )}
-                                </TableCell>
-                                <TableCell>
-                                  <Button
-                                    size="sm"
-                                    onClick={() => handleAssignUser(user.id)}
-                                    disabled={isAssigning || user.isAssigned}
-                                  >
-                                    {user.isAssigned ? 'Ya asignado' : (isAssigning ? 'Asignando...' : 'Asignar')}
-                                  </Button>
-                                </TableCell>
-                              </TableRow>
-                            ))}
-                          </TableBody>
-                        </Table>
+                      <Label htmlFor="role">Rol del Usuario</Label>
+                      <Select value={selectedRole} onValueChange={(value: UserRole) => setSelectedRole(value)}>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Selecciona un rol" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="profesor">Profesor</SelectItem>
+                          <SelectItem value="director">Director</SelectItem>
+                          <SelectItem value="administrador">Administrador</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label htmlFor="search">Buscar Usuario</Label>
+                      <div className="flex space-x-2">
+                        <Input
+                          id="search"
+                          placeholder="Buscar por nombre o email..."
+                          value={searchTerm}
+                          onChange={(e) => setSearchTerm(e.target.value)}
+                          onKeyPress={(e) => e.key === 'Enter' && handleSearchUsers()}
+                        />
+                        <Button onClick={handleSearchUsers} disabled={isSearching}>
+                          {isSearching ? 'Buscando...' : 'Buscar'}
+                        </Button>
                       </div>
                     </div>
-                  )}
 
-                  {searchTerm && searchResults.length === 0 && !isSearching && (
-                    <p className="text-center text-muted-foreground py-4">
-                      No se encontraron usuarios con ese criterio de búsqueda
-                    </p>
-                  )}
-                </div>
-                <div className="flex justify-end space-x-2">
-                  <Button variant="outline" onClick={() => {
-                    setIsAddUserDialogOpen(false)
-                    setSearchTerm('')
-                    setSearchResults([])
-                  }}>
-                    Cancelar
-                  </Button>
-                </div>
-              </DialogContent>
+                    {searchResults.length > 0 && (
+                      <div className="space-y-2">
+                        <Label>Resultados de Búsqueda</Label>
+                        <div className="max-h-60 overflow-y-auto border rounded-md">
+                          <Table>
+                            <TableHeader>
+                              <TableRow>
+                                <TableHead>Usuario</TableHead>
+                                <TableHead>Email</TableHead>
+                                <TableHead>Estado</TableHead>
+                                <TableHead>Acción</TableHead>
+                              </TableRow>
+                            </TableHeader>
+                            <TableBody>
+                              {searchResults.map((user) => (
+                                <TableRow key={user.id}>
+                                  <TableCell className="font-medium">
+                                    {user.full_name || 'Sin nombre'}
+                                  </TableCell>
+                                  <TableCell>{user.email}</TableCell>
+                                  <TableCell>
+                                    {user.isAssigned ? (
+                                      <Badge variant="secondary">
+                                        Ya asignado como {user.currentRole}
+                                      </Badge>
+                                    ) : (
+                                      <Badge variant="outline">
+                                        Disponible
+                                      </Badge>
+                                    )}
+                                  </TableCell>
+                                  <TableCell>
+                                    <Button
+                                      size="sm"
+                                      onClick={() => handleAssignUser(user.id)}
+                                      disabled={isAssigning || user.isAssigned}
+                                    >
+                                      {user.isAssigned ? 'Ya asignado' : (isAssigning ? 'Asignando...' : 'Asignar')}
+                                    </Button>
+                                  </TableCell>
+                                </TableRow>
+                              ))}
+                            </TableBody>
+                          </Table>
+                        </div>
+                      </div>
+                    )}
+
+                    {searchTerm && searchResults.length === 0 && !isSearching && (
+                      <p className="text-center text-muted-foreground py-4">
+                        No se encontraron usuarios con ese criterio de búsqueda
+                      </p>
+                    )}
+                  </div>
+                  <div className="flex justify-end space-x-2">
+                    <Button variant="outline" onClick={() => {
+                      setIsAddUserDialogOpen(false)
+                      setSearchTerm('')
+                      setSearchResults([])
+                    }}>
+                      Cancelar
+                    </Button>
+                  </div>
+                </DialogContent>
               </Dialog>
             </div>
           </div>
-          
+
           <Card>
             <CardContent className="p-0">
               <Table>
@@ -732,8 +732,8 @@ export function VistaPlantel({ plantelId, onBack }: VistaPlantelProps) {
                             <Button size="sm" variant="outline">
                               <Edit className="h-4 w-4" />
                             </Button>
-                            <Button 
-                              size="sm" 
+                            <Button
+                              size="sm"
                               variant="outline"
                               onClick={() => handleRemoveUser(usuario.user_id, usuario.nombre)}
                             >
@@ -755,191 +755,191 @@ export function VistaPlantel({ plantelId, onBack }: VistaPlantelProps) {
           <div className="flex justify-between items-center">
             <h3 className="text-lg font-semibold">Usuarios del Plantel</h3>
           </div>
-            <h3 className="text-lg font-semibold">Configuración del Plantel</h3>
-            <div className="flex space-x-2">
-              <Dialog open={isEditInfoDialogOpen} onOpenChange={setIsEditInfoDialogOpen}>
-                <DialogTrigger asChild>
-                  <Button variant="outline">
-                    <Edit className="h-4 w-4 mr-2" />
-                    Editar Información
-                  </Button>
-                </DialogTrigger>
-                <DialogContent className="max-w-2xl">
-                  <DialogHeader>
-                    <DialogTitle>Editar Información del Plantel</DialogTitle>
-                    <DialogDescription>
-                      Modifica la información básica del plantel
-                    </DialogDescription>
-                  </DialogHeader>
-                  <div className="space-y-4 max-h-96 overflow-y-auto">
-                    <div className="grid grid-cols-2 gap-4">
-                      <div className="space-y-2">
-                        <Label htmlFor="edit_nombre">Nombre *</Label>
-                        <Input
-                          id="edit_nombre"
-                          value={editInfoFormData.nombre}
-                          onChange={(e) => setEditInfoFormData(prev => ({ ...prev, nombre: e.target.value }))}
-                          placeholder="Nombre del plantel"
-                        />
-                      </div>
-                      <div className="space-y-2">
-                        <Label htmlFor="edit_codigo_plantel">Código del Plantel</Label>
-                        <Input
-                          id="edit_codigo_plantel"
-                          value={editInfoFormData.codigo_plantel}
-                          onChange={(e) => setEditInfoFormData(prev => ({ ...prev, codigo_plantel: e.target.value }))}
-                          placeholder="Código único"
-                        />
-                      </div>
-                    </div>
-                    
+          <h3 className="text-lg font-semibold">Configuración del Plantel</h3>
+          <div className="flex space-x-2">
+            <Dialog open={isEditInfoDialogOpen} onOpenChange={setIsEditInfoDialogOpen}>
+              <DialogTrigger asChild>
+                <Button variant="outline">
+                  <Edit className="h-4 w-4 mr-2" />
+                  Editar Información
+                </Button>
+              </DialogTrigger>
+              <DialogContent className="max-w-2xl">
+                <DialogHeader>
+                  <DialogTitle>Editar Información del Plantel</DialogTitle>
+                  <DialogDescription>
+                    Modifica la información básica del plantel
+                  </DialogDescription>
+                </DialogHeader>
+                <div className="space-y-4 max-h-96 overflow-y-auto">
+                  <div className="grid grid-cols-2 gap-4">
                     <div className="space-y-2">
-                      <Label htmlFor="edit_nivel_educativo">Nivel Educativo *</Label>
-                      <Select 
-                        value={editInfoFormData.nivel_educativo} 
-                        onValueChange={(value) => setEditInfoFormData(prev => ({ ...prev, nivel_educativo: value }))}
-                      >
-                        <SelectTrigger>
-                          <SelectValue placeholder="Selecciona el nivel educativo" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {nivelesEducativos.map((nivel) => (
-                            <SelectItem key={nivel} value={nivel}>
-                              {nivel}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                    </div>
-
-                    <div className="space-y-2">
-                      <Label htmlFor="edit_direccion">Dirección</Label>
-                      <Textarea
-                        id="edit_direccion"
-                        value={editInfoFormData.direccion}
-                        onChange={(e) => setEditInfoFormData(prev => ({ ...prev, direccion: e.target.value }))}
-                        placeholder="Dirección completa del plantel"
-                        rows={2}
+                      <Label htmlFor="edit_nombre">Nombre *</Label>
+                      <Input
+                        id="edit_nombre"
+                        value={editInfoFormData.nombre}
+                        onChange={(e) => setEditInfoFormData(prev => ({ ...prev, nombre: e.target.value }))}
+                        placeholder="Nombre del plantel"
                       />
                     </div>
-
-                    <div className="grid grid-cols-3 gap-4">
-                      <div className="space-y-2">
-                        <Label htmlFor="edit_ciudad">Ciudad</Label>
-                        <Input
-                          id="edit_ciudad"
-                          value={editInfoFormData.ciudad}
-                          onChange={(e) => setEditInfoFormData(prev => ({ ...prev, ciudad: e.target.value }))}
-                          placeholder="Ciudad"
-                        />
-                      </div>
-                      <div className="space-y-2">
-                        <Label htmlFor="edit_estado">Estado</Label>
-                        <Input
-                          id="edit_estado"
-                          value={editInfoFormData.estado}
-                          onChange={(e) => setEditInfoFormData(prev => ({ ...prev, estado: e.target.value }))}
-                          placeholder="Estado"
-                        />
-                      </div>
-                      <div className="space-y-2">
-                        <Label htmlFor="edit_codigo_postal">Código Postal</Label>
-                        <Input
-                          id="edit_codigo_postal"
-                          value={editInfoFormData.codigo_postal}
-                          onChange={(e) => setEditInfoFormData(prev => ({ ...prev, codigo_postal: e.target.value }))}
-                          placeholder="CP"
-                        />
-                      </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="edit_codigo_plantel">Código del Plantel</Label>
+                      <Input
+                        id="edit_codigo_plantel"
+                        value={editInfoFormData.codigo_plantel}
+                        onChange={(e) => setEditInfoFormData(prev => ({ ...prev, codigo_plantel: e.target.value }))}
+                        placeholder="Código único"
+                      />
                     </div>
+                  </div>
 
-                    <div className="grid grid-cols-2 gap-4">
-                      <div className="space-y-2">
-                        <Label htmlFor="edit_telefono">Teléfono</Label>
-                        <Input
-                          id="edit_telefono"
-                          value={editInfoFormData.telefono}
-                          onChange={(e) => setEditInfoFormData(prev => ({ ...prev, telefono: e.target.value }))}
-                          placeholder="Teléfono de contacto"
-                        />
-                      </div>
-                      <div className="space-y-2">
-                        <Label htmlFor="edit_email">Email</Label>
-                        <Input
-                          id="edit_email"
-                          type="email"
-                          value={editInfoFormData.email}
-                          onChange={(e) => setEditInfoFormData(prev => ({ ...prev, email: e.target.value }))}
-                          placeholder="Email de contacto"
-                        />
-                      </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="edit_nivel_educativo">Nivel Educativo *</Label>
+                    <Select
+                      value={editInfoFormData.nivel_educativo}
+                      onValueChange={(value) => setEditInfoFormData(prev => ({ ...prev, nivel_educativo: value }))}
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder="Selecciona el nivel educativo" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {nivelesEducativos.map((nivel) => (
+                          <SelectItem key={nivel} value={nivel}>
+                            {nivel}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="edit_direccion">Dirección</Label>
+                    <Textarea
+                      id="edit_direccion"
+                      value={editInfoFormData.direccion}
+                      onChange={(e) => setEditInfoFormData(prev => ({ ...prev, direccion: e.target.value }))}
+                      placeholder="Dirección completa del plantel"
+                      rows={2}
+                    />
+                  </div>
+
+                  <div className="grid grid-cols-3 gap-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="edit_ciudad">Ciudad</Label>
+                      <Input
+                        id="edit_ciudad"
+                        value={editInfoFormData.ciudad}
+                        onChange={(e) => setEditInfoFormData(prev => ({ ...prev, ciudad: e.target.value }))}
+                        placeholder="Ciudad"
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="edit_estado">Estado</Label>
+                      <Input
+                        id="edit_estado"
+                        value={editInfoFormData.estado}
+                        onChange={(e) => setEditInfoFormData(prev => ({ ...prev, estado: e.target.value }))}
+                        placeholder="Estado"
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="edit_codigo_postal">Código Postal</Label>
+                      <Input
+                        id="edit_codigo_postal"
+                        value={editInfoFormData.codigo_postal}
+                        onChange={(e) => setEditInfoFormData(prev => ({ ...prev, codigo_postal: e.target.value }))}
+                        placeholder="CP"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="edit_telefono">Teléfono</Label>
+                      <Input
+                        id="edit_telefono"
+                        value={editInfoFormData.telefono}
+                        onChange={(e) => setEditInfoFormData(prev => ({ ...prev, telefono: e.target.value }))}
+                        placeholder="Teléfono de contacto"
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="edit_email">Email</Label>
+                      <Input
+                        id="edit_email"
+                        type="email"
+                        value={editInfoFormData.email}
+                        onChange={(e) => setEditInfoFormData(prev => ({ ...prev, email: e.target.value }))}
+                        placeholder="Email de contacto"
+                      />
+                    </div>
+                  </div>
+                </div>
+                <div className="flex justify-end space-x-2">
+                  <Button variant="outline" onClick={() => setIsEditInfoDialogOpen(false)}>
+                    Cancelar
+                  </Button>
+                  <Button onClick={handleUpdateInfo}>
+                    Guardar Cambios
+                  </Button>
+                </div>
+              </DialogContent>
+            </Dialog>
+
+            <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
+              <DialogTrigger asChild>
+                <Button>
+                  <Settings className="h-4 w-4 mr-2" />
+                  Editar Límites
+                </Button>
+              </DialogTrigger>
+              <DialogContent>
+                <DialogHeader>
+                  <DialogTitle>Editar Límites de Usuarios</DialogTitle>
+                  <DialogDescription>
+                    Modifica los límites máximos de usuarios para este plantel
+                  </DialogDescription>
+                </DialogHeader>
+                <div className="space-y-4">
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="max_profesores">Máximo Profesores</Label>
+                      <Input
+                        id="max_profesores"
+                        type="number"
+                        min="1"
+                        value={editFormData.max_profesores}
+                        onChange={(e) => setEditFormData(prev => ({
+                          ...prev,
+                          max_profesores: parseInt(e.target.value) || 0
+                        }))}
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="max_directores">Máximo Directores</Label>
+                      <Input
+                        id="max_directores"
+                        type="number"
+                        min="1"
+                        value={editFormData.max_directores}
+                        onChange={(e) => setEditFormData(prev => ({
+                          ...prev,
+                          max_directores: parseInt(e.target.value) || 0
+                        }))}
+                      />
                     </div>
                   </div>
                   <div className="flex justify-end space-x-2">
-                    <Button variant="outline" onClick={() => setIsEditInfoDialogOpen(false)}>
+                    <Button variant="outline" onClick={() => setIsEditDialogOpen(false)}>
                       Cancelar
                     </Button>
-                    <Button onClick={handleUpdateInfo}>
+                    <Button onClick={handleUpdateLimits}>
                       Guardar Cambios
                     </Button>
                   </div>
-                </DialogContent>
-              </Dialog>
-              
-              <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
-                <DialogTrigger asChild>
-                  <Button>
-                    <Settings className="h-4 w-4 mr-2" />
-                    Editar Límites
-                  </Button>
-                </DialogTrigger>
-                <DialogContent>
-                  <DialogHeader>
-                    <DialogTitle>Editar Límites de Usuarios</DialogTitle>
-                    <DialogDescription>
-                      Modifica los límites máximos de usuarios para este plantel
-                    </DialogDescription>
-                  </DialogHeader>
-                  <div className="space-y-4">
-                    <div className="grid grid-cols-2 gap-4">
-                      <div className="space-y-2">
-                        <Label htmlFor="max_profesores">Máximo Profesores</Label>
-                        <Input
-                          id="max_profesores"
-                          type="number"
-                          min="1"
-                          value={editFormData.max_profesores}
-                          onChange={(e) => setEditFormData(prev => ({ 
-                            ...prev, 
-                            max_profesores: parseInt(e.target.value) || 0 
-                          }))}
-                        />
-                      </div>
-                      <div className="space-y-2">
-                        <Label htmlFor="max_directores">Máximo Directores</Label>
-                        <Input
-                          id="max_directores"
-                          type="number"
-                          min="1"
-                          value={editFormData.max_directores}
-                          onChange={(e) => setEditFormData(prev => ({ 
-                            ...prev, 
-                            max_directores: parseInt(e.target.value) || 0 
-                          }))}
-                        />
-                      </div>
-                    </div>
-                    <div className="flex justify-end space-x-2">
-                      <Button variant="outline" onClick={() => setIsEditDialogOpen(false)}>
-                        Cancelar
-                      </Button>
-                      <Button onClick={handleUpdateLimits}>
-                        Guardar Cambios
-                      </Button>
-                    </div>
-                  </div>
-                </DialogContent>
-              </Dialog>
+                </div>
+              </DialogContent>
+            </Dialog>
           </div>
 
           {/* Información Básica */}
@@ -1042,8 +1042,8 @@ export function VistaPlantel({ plantelId, onBack }: VistaPlantelProps) {
             </DialogDescription>
           </DialogHeader>
           <div className="flex justify-end space-x-2 mt-4">
-            <Button 
-              variant="outline" 
+            <Button
+              variant="outline"
               onClick={() => {
                 setIsDeleteDialogOpen(false)
                 setUserToDelete(null)
@@ -1051,8 +1051,8 @@ export function VistaPlantel({ plantelId, onBack }: VistaPlantelProps) {
             >
               Cancelar
             </Button>
-            <Button 
-              variant="destructive" 
+            <Button
+              variant="destructive"
               onClick={confirmRemoveUser}
             >
               Eliminar

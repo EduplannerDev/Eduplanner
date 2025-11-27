@@ -59,7 +59,7 @@ export function AdministracionPlantel({ isOpen, onClose }: AdministracionPlantel
   const [saving, setSaving] = useState(false)
   const [profesores, setProfesores] = useState<ProfesorPlantel[]>([])
   const [loadingProfesores, setLoadingProfesores] = useState(false)
-  
+
   // Estados para gestión de profesores
   const [isInviteDialogOpen, setIsInviteDialogOpen] = useState(false)
   const [isAssignDialogOpen, setIsAssignDialogOpen] = useState(false)
@@ -82,26 +82,26 @@ export function AdministracionPlantel({ isOpen, onClose }: AdministracionPlantel
   // Función para cargar profesores
   const loadProfesores = async () => {
     if (!plantel) return
-    
+
     setLoadingProfesores(true)
     try {
       const users = await getPlantelUsers(plantel.id)
       const profesoresData: ProfesorPlantel[] = users
-         .filter(user => user.role === 'profesor')
-         .map(user => {
-           const profile = user.profiles
-           return {
-             id: user.id,
-             user_id: user.user_id,
-             nombre: profile?.full_name || profile?.email || 'Usuario sin nombre',
-             email: profile?.email || 'Sin email',
-             activo: user.activo,
-             fecha_asignacion: user.assigned_at
-           }
-         })
+        .filter(user => user.role === 'profesor')
+        .map(user => {
+          const profile = user.profiles
+          return {
+            id: user.id,
+            user_id: user.user_id,
+            nombre: profile?.full_name || profile?.email || 'Usuario sin nombre',
+            email: profile?.email || 'Sin email',
+            activo: user.activo,
+            fecha_asignacion: user.assigned_at
+          }
+        })
       setProfesores(profesoresData)
     } catch (err) {
-      console.error('Error loading profesores:', err)
+
       error("No se pudieron cargar los profesores.", {
         title: "Error"
       })
@@ -147,28 +147,28 @@ export function AdministracionPlantel({ isOpen, onClose }: AdministracionPlantel
 
   const validateForm = () => {
     const errors = []
-    
+
     // Validar teléfono: solo 10 dígitos numéricos
     if (editForm.telefono && !/^\d{10}$/.test(editForm.telefono)) {
       errors.push("El teléfono debe contener exactamente 10 dígitos numéricos")
     }
-    
+
     // Validar email: formato válido
     if (editForm.email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(editForm.email)) {
       errors.push("El email debe tener un formato válido")
     }
-    
+
     // Validar código postal: 5 dígitos
     if (editForm.codigo_postal && !/^\d{5}$/.test(editForm.codigo_postal)) {
       errors.push("El código postal debe contener exactamente 5 dígitos")
     }
-    
+
     return errors
   }
 
   const handleSave = async () => {
     if (!plantel) return
-    
+
     // Validar formulario
     const validationErrors = validateForm()
     if (validationErrors.length > 0) {
@@ -177,7 +177,7 @@ export function AdministracionPlantel({ isOpen, onClose }: AdministracionPlantel
       })
       return
     }
-    
+
     setSaving(true)
     try {
       const { error } = await supabase
@@ -200,10 +200,10 @@ export function AdministracionPlantel({ isOpen, onClose }: AdministracionPlantel
       success("La información del plantel se ha guardado correctamente.", {
         title: "Plantel actualizado"
       })
-      
+
       setIsEditing(false)
     } catch (err) {
-      console.error('Error updating plantel:', err)
+
       error("No se pudo actualizar la información del plantel.", {
         title: "Error"
       })
@@ -240,7 +240,7 @@ export function AdministracionPlantel({ isOpen, onClose }: AdministracionPlantel
     try {
       // Validar la invitación antes de proceder
       const validation = await validateInvitation(inviteEmail.trim(), plantel.id, 'profesor')
-      
+
       if (!validation.valid) {
         error(validation.error || "No se puede enviar la invitación", { title: "Error de validación" })
         return
@@ -248,7 +248,7 @@ export function AdministracionPlantel({ isOpen, onClose }: AdministracionPlantel
 
       // Verificar límites antes de invitar
       const canAdd = await canAddUserToPlantel(plantel.id, 'profesor')
-      
+
       if (!canAdd) {
         error("No se puede agregar más profesores. Se ha alcanzado el límite máximo para este plantel.", { title: "Límite alcanzado" })
         return
@@ -270,7 +270,7 @@ export function AdministracionPlantel({ isOpen, onClose }: AdministracionPlantel
         error(result.error || "Error al enviar la invitación", { title: "Error" })
       }
     } catch (err) {
-      console.error('Error in handleInviteProfesor:', err)
+
       error("Error al enviar la invitación", { title: "Error" })
     } finally {
       setInviting(false)
@@ -285,7 +285,7 @@ export function AdministracionPlantel({ isOpen, onClose }: AdministracionPlantel
 
     try {
       const result = await removeUserFromPlantel(userId, plantel.id)
-      
+
       if (result) {
         success("Profesor removido del plantel correctamente", { title: "Éxito" })
         loadProfesores()
@@ -293,7 +293,7 @@ export function AdministracionPlantel({ isOpen, onClose }: AdministracionPlantel
         error("Error al remover el profesor del plantel", { title: "Error" })
       }
     } catch (err) {
-      console.error('Error in handleRemoveProfesor:', err)
+
       error("Error al remover el profesor del plantel", { title: "Error" })
     }
   }
@@ -305,8 +305,8 @@ export function AdministracionPlantel({ isOpen, onClose }: AdministracionPlantel
     }
 
     try {
-      console.log('Buscando usuarios con término:', searchTerm)
-      
+
+
       // Primero, buscar todos los usuarios que coincidan (sin filtro de rol)
       const { data: allProfiles, error: allProfilesError } = await supabase
         .from('profiles')
@@ -315,10 +315,7 @@ export function AdministracionPlantel({ isOpen, onClose }: AdministracionPlantel
         .limit(20)
 
       if (allProfilesError) {
-        console.error('Error en la consulta general:', allProfilesError)
-      } else {
-        console.log('Todos los perfiles encontrados:', allProfiles)
-        console.log('Roles de los usuarios encontrados:', allProfiles?.map(p => ({ name: p.full_name, email: p.email, role: p.role })))
+
       }
 
       // Buscar usuarios que puedan ser asignados como profesores
@@ -331,27 +328,27 @@ export function AdministracionPlantel({ isOpen, onClose }: AdministracionPlantel
         .limit(10)
 
       if (profilesError) {
-        console.error('Error en la consulta de profesores:', profilesError)
+
         throw profilesError
       }
 
-      console.log('Profesores y usuarios sin rol encontrados:', profiles)
+
 
       // Filtrar usuarios que no estén ya asignados al plantel
       const currentUserIds = profesores.map(p => p.user_id)
-      console.log('IDs de profesores ya asignados:', currentUserIds)
-      
+
+
       const available = profiles?.filter(profile => !currentUserIds.includes(profile.id)) || []
-      
-      console.log('Usuarios disponibles después del filtro:', available)
+
+
       setAvailableUsers(available)
 
       // Si no se encontraron usuarios compatibles, mostrar mensaje informativo
       if (profiles && profiles.length === 0) {
-        console.log('No se encontraron profesores o usuarios sin rol con el término de búsqueda:', searchTerm)
+
       }
     } catch (err) {
-      console.error('Error loading available users:', err)
+
       error("Error al buscar usuarios", { title: "Error" })
     }
   }
@@ -364,14 +361,14 @@ export function AdministracionPlantel({ isOpen, onClose }: AdministracionPlantel
 
     try {
       const canAdd = await canAddUserToPlantel(plantel.id, 'profesor')
-      
+
       if (!canAdd) {
         error("No se puede agregar más profesores. Se ha alcanzado el límite máximo para este plantel.", { title: "Límite alcanzado" })
         return
       }
 
       const result = await assignUserToPlantelWithValidation(userId, plantel.id, 'profesor')
-      
+
       if (result.success) {
         success("Profesor asignado al plantel correctamente", { title: "Éxito" })
         loadProfesores()
@@ -382,7 +379,7 @@ export function AdministracionPlantel({ isOpen, onClose }: AdministracionPlantel
         error(result.error || "Error al asignar el profesor al plantel", { title: "Error" })
       }
     } catch (err) {
-      console.error('Error in handleAssignProfesor:', err)
+
       error("Error al asignar el profesor al plantel", { title: "Error" })
     }
   }
@@ -457,188 +454,188 @@ export function AdministracionPlantel({ isOpen, onClose }: AdministracionPlantel
           </Button>
         </CollapsibleTrigger>
         <CollapsibleContent className="space-y-4">
-      <Card>
-        <CardHeader>
-          <div className="flex items-center justify-between">
-            <div>
-              <CardTitle className="flex items-center gap-2">
-                <Settings className="h-5 w-5" />
-                Información del Plantel
-              </CardTitle>
-              <CardDescription>
-                Detalles y configuración de tu plantel
-              </CardDescription>
-            </div>
-            {!isEditing ? (
-              <Button onClick={() => setIsEditing(true)} variant="outline">
-                <Edit className="h-4 w-4 mr-2" />
-                Editar
-              </Button>
-            ) : (
-              <div className="flex gap-2">
-                <Button onClick={handleSave} disabled={saving}>
-                  <Save className="h-4 w-4 mr-2" />
-                  {saving ? "Guardando..." : "Guardar"}
-                </Button>
-                <Button onClick={handleCancel} variant="outline" disabled={saving}>
-                  <X className="h-4 w-4 mr-2" />
-                  Cancelar
-                </Button>
-              </div>
-            )}
-          </div>
-        </CardHeader>
-        <CardContent>
-          {!isEditing ? (
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
-                <p className="text-sm font-medium text-muted-foreground">Nombre</p>
-                <p className="text-lg">{plantel.nombre}</p>
-              </div>
-              <div>
-                <p className="text-sm font-medium text-muted-foreground">Estado</p>
-                <Badge variant={plantel.activo ? "default" : "secondary"}>
-                  {plantel.activo ? "Activo" : "Inactivo"}
-                </Badge>
-              </div>
-              {plantel.codigo_plantel && (
+          <Card>
+            <CardHeader>
+              <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm font-medium text-muted-foreground">Código de Plantel</p>
-                  <p>{plantel.codigo_plantel}</p>
+                  <CardTitle className="flex items-center gap-2">
+                    <Settings className="h-5 w-5" />
+                    Información del Plantel
+                  </CardTitle>
+                  <CardDescription>
+                    Detalles y configuración de tu plantel
+                  </CardDescription>
                 </div>
-              )}
-              {plantel.nivel_educativo && (
-                <div>
-                  <p className="text-sm font-medium text-muted-foreground">Nivel Educativo</p>
-                  <p>{plantel.nivel_educativo}</p>
-                </div>
-              )}
-              {plantel.email && (
-                <div>
-                  <p className="text-sm font-medium text-muted-foreground">Email</p>
-                  <p>{plantel.email}</p>
-                </div>
-              )}
-              {plantel.telefono && (
-                <div>
-                  <p className="text-sm font-medium text-muted-foreground">Teléfono</p>
-                  <p>{plantel.telefono}</p>
-                </div>
-              )}
-              {plantel.direccion && (
-                <div className="md:col-span-2">
-                  <p className="text-sm font-medium text-muted-foreground">Dirección</p>
-                  <p>{plantel.direccion}</p>
-                </div>
-              )}
-              {(plantel.ciudad || plantel.estado || plantel.codigo_postal) && (
-                <div className="md:col-span-2">
-                  <p className="text-sm font-medium text-muted-foreground">Ubicación</p>
-                  <p>
-                    {[plantel.ciudad, plantel.estado, plantel.codigo_postal].filter(Boolean).join(", ")}
-                  </p>
-                </div>
-              )}
-            </div>
-          ) : (
-            <div className="space-y-4">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label htmlFor="nombre">Nombre del Plantel</Label>
-                  <Input
-                    id="nombre"
-                    value={editForm.nombre}
-                    onChange={(e) => setEditForm(prev => ({ ...prev, nombre: e.target.value }))}
-                    placeholder="Nombre del plantel"
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="codigo_plantel">Código de Plantel</Label>
-                  <Input
-                    id="codigo_plantel"
-                    value={editForm.codigo_plantel}
-                    onChange={(e) => setEditForm(prev => ({ ...prev, codigo_plantel: e.target.value }))}
-                    placeholder="Código único del plantel"
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="nivel_educativo">Nivel Educativo</Label>
-                  <Input
-                    id="nivel_educativo"
-                    value={editForm.nivel_educativo}
-                    onChange={(e) => setEditForm(prev => ({ ...prev, nivel_educativo: e.target.value }))}
-                    placeholder="Ej: Primaria, Secundaria, Preparatoria"
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="email">Email</Label>
-                  <Input
-                    id="email"
-                    type="email"
-                    value={editForm.email}
-                    onChange={(e) => setEditForm(prev => ({ ...prev, email: e.target.value }))}
-                    placeholder="Email de contacto"
-                  />
-                </div>
-                <div className="space-y-2">
-                   <Label htmlFor="telefono">Teléfono</Label>
-                   <Input
-                     id="telefono"
-                     value={editForm.telefono}
-                     onChange={(e) => {
-                       const value = e.target.value.replace(/\D/g, '').slice(0, 10)
-                       setEditForm(prev => ({ ...prev, telefono: value }))
-                     }}
-                     placeholder="Teléfono de contacto (10 dígitos)"
-                     maxLength={10}
-                   />
-                 </div>
-                <div className="space-y-2">
-                  <Label htmlFor="ciudad">Ciudad</Label>
-                  <Input
-                    id="ciudad"
-                    value={editForm.ciudad}
-                    onChange={(e) => setEditForm(prev => ({ ...prev, ciudad: e.target.value }))}
-                    placeholder="Ciudad"
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="estado">Estado</Label>
-                  <Input
-                    id="estado"
-                    value={editForm.estado}
-                    onChange={(e) => setEditForm(prev => ({ ...prev, estado: e.target.value }))}
-                    placeholder="Estado"
-                  />
-                </div>
-                <div className="space-y-2">
-                   <Label htmlFor="codigo_postal">Código Postal</Label>
-                   <Input
-                     id="codigo_postal"
-                     value={editForm.codigo_postal}
-                     onChange={(e) => {
-                       const value = e.target.value.replace(/\D/g, '').slice(0, 5)
-                       setEditForm(prev => ({ ...prev, codigo_postal: value }))
-                     }}
-                     placeholder="Código postal (5 dígitos)"
-                     maxLength={5}
-                   />
-                 </div>
+                {!isEditing ? (
+                  <Button onClick={() => setIsEditing(true)} variant="outline">
+                    <Edit className="h-4 w-4 mr-2" />
+                    Editar
+                  </Button>
+                ) : (
+                  <div className="flex gap-2">
+                    <Button onClick={handleSave} disabled={saving}>
+                      <Save className="h-4 w-4 mr-2" />
+                      {saving ? "Guardando..." : "Guardar"}
+                    </Button>
+                    <Button onClick={handleCancel} variant="outline" disabled={saving}>
+                      <X className="h-4 w-4 mr-2" />
+                      Cancelar
+                    </Button>
+                  </div>
+                )}
               </div>
-              <div className="space-y-2">
-                <Label htmlFor="direccion">Dirección</Label>
-                <Textarea
-                  id="direccion"
-                  value={editForm.direccion}
-                  onChange={(e) => setEditForm(prev => ({ ...prev, direccion: e.target.value }))}
-                  placeholder="Dirección completa del plantel"
-                  rows={3}
-                />
-              </div>
-            </div>
-          )}
-        </CardContent>
-      </Card>
+            </CardHeader>
+            <CardContent>
+              {!isEditing ? (
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <p className="text-sm font-medium text-muted-foreground">Nombre</p>
+                    <p className="text-lg">{plantel.nombre}</p>
+                  </div>
+                  <div>
+                    <p className="text-sm font-medium text-muted-foreground">Estado</p>
+                    <Badge variant={plantel.activo ? "default" : "secondary"}>
+                      {plantel.activo ? "Activo" : "Inactivo"}
+                    </Badge>
+                  </div>
+                  {plantel.codigo_plantel && (
+                    <div>
+                      <p className="text-sm font-medium text-muted-foreground">Código de Plantel</p>
+                      <p>{plantel.codigo_plantel}</p>
+                    </div>
+                  )}
+                  {plantel.nivel_educativo && (
+                    <div>
+                      <p className="text-sm font-medium text-muted-foreground">Nivel Educativo</p>
+                      <p>{plantel.nivel_educativo}</p>
+                    </div>
+                  )}
+                  {plantel.email && (
+                    <div>
+                      <p className="text-sm font-medium text-muted-foreground">Email</p>
+                      <p>{plantel.email}</p>
+                    </div>
+                  )}
+                  {plantel.telefono && (
+                    <div>
+                      <p className="text-sm font-medium text-muted-foreground">Teléfono</p>
+                      <p>{plantel.telefono}</p>
+                    </div>
+                  )}
+                  {plantel.direccion && (
+                    <div className="md:col-span-2">
+                      <p className="text-sm font-medium text-muted-foreground">Dirección</p>
+                      <p>{plantel.direccion}</p>
+                    </div>
+                  )}
+                  {(plantel.ciudad || plantel.estado || plantel.codigo_postal) && (
+                    <div className="md:col-span-2">
+                      <p className="text-sm font-medium text-muted-foreground">Ubicación</p>
+                      <p>
+                        {[plantel.ciudad, plantel.estado, plantel.codigo_postal].filter(Boolean).join(", ")}
+                      </p>
+                    </div>
+                  )}
+                </div>
+              ) : (
+                <div className="space-y-4">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="nombre">Nombre del Plantel</Label>
+                      <Input
+                        id="nombre"
+                        value={editForm.nombre}
+                        onChange={(e) => setEditForm(prev => ({ ...prev, nombre: e.target.value }))}
+                        placeholder="Nombre del plantel"
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="codigo_plantel">Código de Plantel</Label>
+                      <Input
+                        id="codigo_plantel"
+                        value={editForm.codigo_plantel}
+                        onChange={(e) => setEditForm(prev => ({ ...prev, codigo_plantel: e.target.value }))}
+                        placeholder="Código único del plantel"
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="nivel_educativo">Nivel Educativo</Label>
+                      <Input
+                        id="nivel_educativo"
+                        value={editForm.nivel_educativo}
+                        onChange={(e) => setEditForm(prev => ({ ...prev, nivel_educativo: e.target.value }))}
+                        placeholder="Ej: Primaria, Secundaria, Preparatoria"
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="email">Email</Label>
+                      <Input
+                        id="email"
+                        type="email"
+                        value={editForm.email}
+                        onChange={(e) => setEditForm(prev => ({ ...prev, email: e.target.value }))}
+                        placeholder="Email de contacto"
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="telefono">Teléfono</Label>
+                      <Input
+                        id="telefono"
+                        value={editForm.telefono}
+                        onChange={(e) => {
+                          const value = e.target.value.replace(/\D/g, '').slice(0, 10)
+                          setEditForm(prev => ({ ...prev, telefono: value }))
+                        }}
+                        placeholder="Teléfono de contacto (10 dígitos)"
+                        maxLength={10}
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="ciudad">Ciudad</Label>
+                      <Input
+                        id="ciudad"
+                        value={editForm.ciudad}
+                        onChange={(e) => setEditForm(prev => ({ ...prev, ciudad: e.target.value }))}
+                        placeholder="Ciudad"
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="estado">Estado</Label>
+                      <Input
+                        id="estado"
+                        value={editForm.estado}
+                        onChange={(e) => setEditForm(prev => ({ ...prev, estado: e.target.value }))}
+                        placeholder="Estado"
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="codigo_postal">Código Postal</Label>
+                      <Input
+                        id="codigo_postal"
+                        value={editForm.codigo_postal}
+                        onChange={(e) => {
+                          const value = e.target.value.replace(/\D/g, '').slice(0, 5)
+                          setEditForm(prev => ({ ...prev, codigo_postal: value }))
+                        }}
+                        placeholder="Código postal (5 dígitos)"
+                        maxLength={5}
+                      />
+                    </div>
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="direccion">Dirección</Label>
+                    <Textarea
+                      id="direccion"
+                      value={editForm.direccion}
+                      onChange={(e) => setEditForm(prev => ({ ...prev, direccion: e.target.value }))}
+                      placeholder="Dirección completa del plantel"
+                      rows={3}
+                    />
+                  </div>
+                </div>
+              )}
+            </CardContent>
+          </Card>
         </CollapsibleContent>
       </Collapsible>
 
@@ -805,7 +802,7 @@ export function AdministracionPlantel({ isOpen, onClose }: AdministracionPlantel
                                 <AlertDialogHeader>
                                   <AlertDialogTitle>¿Remover profesor?</AlertDialogTitle>
                                   <AlertDialogDescription>
-                                    ¿Estás seguro de que deseas remover a {profesor.nombre} del plantel? 
+                                    ¿Estás seguro de que deseas remover a {profesor.nombre} del plantel?
                                     Esta acción no se puede deshacer.
                                   </AlertDialogDescription>
                                 </AlertDialogHeader>
