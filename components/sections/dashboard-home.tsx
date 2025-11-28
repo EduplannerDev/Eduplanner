@@ -18,7 +18,9 @@ import {
   AlertCircle,
   Plus,
   GraduationCap,
-  ClipboardCheck
+  ClipboardCheck,
+  Play,
+  X
 } from "lucide-react"
 import { useAuth } from "@/hooks/use-auth"
 import { useUserData } from "@/hooks/use-user-data"
@@ -28,6 +30,8 @@ import { getMonthlyPlaneacionesCount } from "@/lib/planeaciones"
 import { isUserPro } from "@/lib/subscription-utils"
 import { format } from "date-fns"
 import { es } from "date-fns/locale"
+import WelcomeModal from "@/components/welcome-modal"
+import { useWelcomeModal } from "@/hooks/use-welcome-modal"
 
 interface DashboardHomeProps {
   onSectionChange: (section: string) => void
@@ -65,6 +69,7 @@ export function DashboardHome({ onSectionChange, onOpenPlaneacion }: DashboardHo
     porcentajeCompletado: 0
   })
   const [cargandoEstadisticasCiclo, setCargandoEstadisticasCiclo] = useState(false)
+  const { showModal, setShowModal, closeModal, hasSeen, isLoading: loadingWelcome } = useWelcomeModal({ autoShow: false })
 
   const displayName = user?.user_metadata?.full_name || userData?.full_name || "Profesor"
   const firstName = displayName.split(' ')[0]
@@ -394,6 +399,48 @@ export function DashboardHome({ onSectionChange, onOpenPlaneacion }: DashboardHo
         </p>
       </div>
 
+      {/* Tarjeta de Bienvenida (Onboarding) */}
+      {!loadingWelcome && !hasSeen && (
+        <Card className="mb-6 md:mb-8 bg-gradient-to-r from-violet-600 to-indigo-600 border-0 shadow-xl overflow-hidden relative">
+          {/* Elementos decorativos de fondo */}
+          <div className="absolute top-0 right-0 -mt-4 -mr-4 w-32 h-32 bg-white/10 rounded-full blur-2xl"></div>
+          <div className="absolute bottom-0 left-0 -mb-4 -ml-4 w-24 h-24 bg-black/10 rounded-full blur-xl"></div>
+
+          <CardContent className="p-4 md:p-6 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 relative z-10">
+            <div className="flex items-start gap-4">
+              <div className="p-3 bg-white/20 rounded-full text-white hidden sm:block shadow-inner ring-1 ring-white/30">
+                <Play className="h-6 w-6 ml-1 fill-current" />
+              </div>
+              <div className="space-y-1">
+                <h3 className="text-lg font-bold text-white flex items-center gap-2">
+                  ¿Nuevo en EduPlanner? <span className="text-2xl animate-bounce">🎓</span>
+                </h3>
+                <p className="text-sm text-indigo-100 max-w-xl font-medium leading-relaxed">
+                  Descubre en 5 minutos cómo crear planeaciones con IA y domina la plataforma como un experto.
+                </p>
+              </div>
+            </div>
+            <div className="flex items-center gap-3 w-full sm:w-auto">
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={closeModal}
+                className="text-indigo-100 hover:text-white hover:bg-white/10"
+              >
+                Descartar
+              </Button>
+              <Button
+                onClick={() => setShowModal(true)}
+                className="bg-white text-indigo-600 hover:bg-indigo-50 font-bold shadow-lg flex-1 sm:flex-none transition-all hover:scale-105 active:scale-95"
+              >
+                <Play className="h-4 w-4 mr-2 fill-current" />
+                Ver Video
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
       {/* Estadísticas principales */}
       <div className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-4 gap-3 md:gap-4 mb-6 md:mb-8">
         <Card>
@@ -692,6 +739,8 @@ export function DashboardHome({ onSectionChange, onOpenPlaneacion }: DashboardHo
           </div>
         </CardContent>
       </Card>
+
+      <WelcomeModal open={showModal} onClose={closeModal} />
     </div>
   )
 }
