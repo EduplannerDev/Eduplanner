@@ -5,6 +5,13 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog"
 import { AdministracionPlanteles } from './administracion-planteles'
 import { useRoles } from '@/hooks/use-roles'
 import {
@@ -47,6 +54,7 @@ export function AdminDashboard() {
   const [usuariosSinPlantel, setUsuariosSinPlantel] = useState<UsuariosSinPlantel | null>(null)
   const [contextoTrabajo, setContextoTrabajo] = useState<ContextoTrabajoData[]>([])
   const [feedbackData, setFeedbackData] = useState<FeedbackData[]>([])
+  const [selectedFeedback, setSelectedFeedback] = useState<FeedbackData | null>(null)
   const [statsLoading, setStatsLoading] = useState(true)
 
   // Cargar estadísticas cuando el componente se monta
@@ -554,16 +562,25 @@ export function AdminDashboard() {
                               {new Date(feedback.created_at).toLocaleDateString('es-MX')}
                             </td>
                             <td className="py-3 px-4 text-center">
-                              {feedback.image_url && (
-                                <a
-                                  href={feedback.image_url}
-                                  target="_blank"
-                                  rel="noopener noreferrer"
-                                  className="text-blue-500 hover:text-blue-700 text-sm"
+                              <div className="flex items-center justify-center gap-2">
+                                <Button
+                                  variant="ghost"
+                                  size="sm"
+                                  onClick={() => setSelectedFeedback(feedback)}
                                 >
-                                  Ver imagen
-                                </a>
-                              )}
+                                  Ver
+                                </Button>
+                                {feedback.image_url && (
+                                  <a
+                                    href={feedback.image_url}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="text-blue-500 hover:text-blue-700 text-sm"
+                                  >
+                                    Imagen
+                                  </a>
+                                )}
+                              </div>
                             </td>
                           </tr>
                         ))}
@@ -641,6 +658,64 @@ export function AdminDashboard() {
         </TabsContent>
 
       </Tabs>
-    </div>
+
+      <Dialog open={!!selectedFeedback} onOpenChange={(open) => !open && setSelectedFeedback(null)}>
+        <DialogContent className="max-w-2xl">
+          <DialogHeader>
+            <DialogTitle>Detalle del Feedback</DialogTitle>
+            <DialogDescription>
+              Detalles completos del mensaje enviado por el usuario.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4 mt-4">
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <h4 className="font-semibold text-sm mb-1">Tipo</h4>
+                <Badge variant="secondary">{selectedFeedback?.type}</Badge>
+              </div>
+              <div>
+                <h4 className="font-semibold text-sm mb-1">Fecha</h4>
+                <p className="text-sm text-muted-foreground">
+                  {selectedFeedback && new Date(selectedFeedback.created_at).toLocaleString('es-MX')}
+                </p>
+              </div>
+            </div>
+
+            <div>
+              <h4 className="font-semibold text-sm mb-1">Usuario</h4>
+              <p className="text-sm">{selectedFeedback?.email || 'Anónimo'}</p>
+            </div>
+
+            <div className="bg-muted/30 p-4 rounded-md">
+              <h4 className="font-semibold text-sm mb-2">Mensaje</h4>
+              <p className="text-sm whitespace-pre-wrap">{selectedFeedback?.text}</p>
+            </div>
+
+            {selectedFeedback?.image_url && (
+              <div>
+                <h4 className="font-semibold text-sm mb-2">Imagen adjunta</h4>
+                <div className="border rounded-md p-2 bg-muted/10 flex justify-center">
+                  <img
+                    src={selectedFeedback.image_url}
+                    alt="Feedback adjunto"
+                    className="max-h-[400px] object-contain rounded-sm"
+                  />
+                </div>
+                <div className="mt-2 text-right">
+                  <a
+                    href={selectedFeedback.image_url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-xs text-blue-500 hover:underline"
+                  >
+                    Abrir imagen en nueva pestaña
+                  </a>
+                </div>
+              </div>
+            )}
+          </div>
+        </DialogContent>
+      </Dialog>
+    </div >
   )
 }

@@ -11,7 +11,7 @@ interface FeedbackButtonProps {
   // Puedes añadir props si es necesario, por ejemplo, para configurar el destino de la retroalimentación
 }
 
-export function FeedbackButton({}: FeedbackButtonProps) {
+export function FeedbackButton({ }: FeedbackButtonProps) {
   const { user } = useAuth();
   const [isOpen, setIsOpen] = useState(false);
   const [feedbackText, setFeedbackText] = useState('');
@@ -21,6 +21,15 @@ export function FeedbackButton({}: FeedbackButtonProps) {
   const [isLoading, setIsLoading] = useState(false);
 
   const handleSubmit = async () => {
+    if (!feedbackText.trim()) {
+      alert('Por favor, escribe un mensaje antes de enviar.');
+      return;
+    }
+    if (!feedbackType) {
+      alert('Por favor, selecciona un tipo de feedback.');
+      return;
+    }
+
     setIsLoading(true);
     const formData = new FormData();
     formData.append('feedbackText', feedbackText);
