@@ -8,12 +8,12 @@ import { Badge } from '@/components/ui/badge'
 import { ScrollArea } from '@/components/ui/scroll-area'
 import { Separator } from '@/components/ui/separator'
 import { Alert, AlertDescription } from '@/components/ui/alert'
-import { 
-  Search, 
-  Plus, 
-  X, 
-  BookOpen, 
-  CheckCircle2, 
+import {
+  Search,
+  Plus,
+  X,
+  BookOpen,
+  CheckCircle2,
   Circle,
   Filter,
   GraduationCap,
@@ -62,14 +62,14 @@ interface ProyectoWizardStep2Props {
   loading?: boolean
 }
 
-export function ProyectoWizardStep2({ 
-  grupoId, 
+export function ProyectoWizardStep2({
+  grupoId,
   problematica,
-  selectedPdas, 
-  onPdasChange, 
-  onNext, 
-  onPrevious, 
-  loading = false 
+  selectedPdas,
+  onPdasChange,
+  onNext,
+  onPrevious,
+  loading = false
 }: ProyectoWizardStep2Props) {
   const { user } = useAuth()
   const [aiSuggestions, setAiSuggestions] = useState<AISuggestion[]>([])
@@ -137,7 +137,7 @@ export function ProyectoWizardStep2({
 
         const data = await response.json()
         setAiSuggestions(data.suggestions || [])
-        
+
       } catch (error) {
         console.error('Error obteniendo sugerencias de IA:', error)
         setSuggestionsError(error instanceof Error ? error.message : 'Error desconocido')
@@ -159,7 +159,7 @@ export function ProyectoWizardStep2({
         setLoadingCurriculo(true)
         // Limpiar el grado para que sea solo un número entero (incluyendo negativos para preescolar)
         const gradoLimpio = parseInt(grupoInfo.grado.toString().replace(/[^\d-]/g, ''))
-        
+
         const { data: curriculo, error } = await supabase
           .from('curriculo_sep')
           .select('id, contenido, campo_formativo, grado, pda, ejes_articuladores')
@@ -173,7 +173,7 @@ export function ProyectoWizardStep2({
         }
 
         setCurriculoItems(curriculo || [])
-        
+
         // Extraer campos formativos únicos
         const camposUnicos = [...new Set((curriculo || []).map(item => item.campo_formativo))].sort()
         setMaterias(camposUnicos)
@@ -271,7 +271,7 @@ export function ProyectoWizardStep2({
 
       {/* Contenido principal - Dos paneles */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 min-h-[600px]">
-        
+
         {/* Panel Izquierdo - Sugerencias de IA o Búsqueda Manual */}
         <Card className="flex flex-col">
           <CardHeader className="pb-4">
@@ -290,13 +290,13 @@ export function ProyectoWizardStep2({
               )}
             </CardTitle>
             <CardDescription>
-              {showManualSearch 
+              {showManualSearch
                 ? "Explora todo el currículo y selecciona contenidos adicionales"
                 : "PDAs más relevantes para tu problemática"
               }
             </CardDescription>
           </CardHeader>
-          
+
           <CardContent className="flex-1 flex flex-col space-y-4">
             {!showManualSearch ? (
               /* Sugerencias de IA */
@@ -323,11 +323,10 @@ export function ProyectoWizardStep2({
                         return (
                           <div
                             key={suggestion.id}
-                            className={`p-4 rounded-lg border cursor-pointer transition-all hover:shadow-md w-full max-w-full ${
-                              isSelected 
-                                ? 'border-purple-500 dark:border-purple-400 bg-purple-50 dark:bg-purple-900/20' 
+                            className={`p-4 rounded-lg border cursor-pointer transition-all hover:shadow-md w-full max-w-full ${isSelected
+                                ? 'border-purple-500 dark:border-purple-400 bg-purple-50 dark:bg-purple-900/20'
                                 : 'border-gray-200 dark:border-gray-700 hover:border-purple-300 dark:hover:border-purple-600'
-                            }`}
+                              }`}
                             onClick={() => togglePdaSelection(suggestion.id)}
                           >
                             <div className="flex items-start space-x-3 w-full">
@@ -405,7 +404,7 @@ export function ProyectoWizardStep2({
                       className="pl-10"
                     />
                   </div>
-                  
+
                   <div className="flex items-center space-x-2">
                     <Filter className="h-4 w-4 text-gray-500" />
                     <select
@@ -434,11 +433,10 @@ export function ProyectoWizardStep2({
                         return (
                           <div
                             key={item.id}
-                            className={`p-3 rounded-lg border cursor-pointer transition-all hover:shadow-md w-full max-w-full ${
-                              isSelected 
-                                ? 'border-blue-500 dark:border-blue-400 bg-blue-50 dark:bg-blue-900/20' 
+                            className={`p-3 rounded-lg border cursor-pointer transition-all hover:shadow-md w-full max-w-full ${isSelected
+                                ? 'border-blue-500 dark:border-blue-400 bg-blue-50 dark:bg-blue-900/20'
                                 : 'border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600'
-                            }`}
+                              }`}
                             onClick={() => togglePdaSelection(item.id)}
                           >
                             <div className="flex items-start space-x-3 w-full">
@@ -471,7 +469,7 @@ export function ProyectoWizardStep2({
                           </div>
                         )
                       })}
-                      
+
                       {filteredItems.length === 0 && !loadingCurriculo && (
                         <div className="text-center py-8 text-gray-500 dark:text-gray-400">
                           <BookOpen className="h-12 w-12 mx-auto mb-4 text-gray-300 dark:text-gray-600" />
@@ -513,7 +511,7 @@ export function ProyectoWizardStep2({
               Contenidos que abordará tu proyecto
             </CardDescription>
           </CardHeader>
-          
+
           <CardContent className="flex-1 flex flex-col">
             <ScrollArea className="flex-1">
               {selectedItems.length === 0 ? (
@@ -557,7 +555,7 @@ export function ProyectoWizardStep2({
                 </div>
               )}
             </ScrollArea>
-            
+
             {selectedItems.length > 0 && (
               <div className="mt-4 pt-4 border-t">
                 <div className="flex items-center justify-between text-sm text-gray-600 dark:text-gray-400">
@@ -595,14 +593,14 @@ export function ProyectoWizardStep2({
           variant="outline"
           onClick={onPrevious}
           disabled={loading}
-          className="bg-white hover:bg-gray-50 text-gray-700 shadow-lg rounded-full w-12 h-12"
+          className="bg-white hover:bg-gray-50 text-gray-700 shadow-lg rounded-full w-14 h-14"
           size="icon"
         >
           <ArrowLeft className="h-5 w-5" />
         </Button>
       </div>
 
-      <div className="sm:hidden fixed bottom-4 left-1/2 transform -translate-x-1/2 z-50">
+      <div className="sm:hidden fixed bottom-4 right-4 z-50">
         <Button
           onClick={onNext}
           disabled={!isFormComplete || loading}

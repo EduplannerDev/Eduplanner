@@ -12,7 +12,6 @@ import { Alert, AlertDescription } from '@/components/ui/alert'
 import { ProyectoFormData, GrupoOption, MetodologiaOption } from '@/types/proyectos'
 import { supabase } from '@/lib/supabase'
 import { useAuth } from '@/hooks/use-auth'
-import { BetaFeatureWrapper, BetaAccessDenied } from '@/components/ui/beta-feature-wrapper'
 
 interface ProyectoWizardStep1Props {
   data: ProyectoFormData
@@ -148,7 +147,7 @@ export function ProyectoWizardStep1({ data, onDataChange, onNext, loading = fals
   const handleDataChange = (field: keyof ProyectoFormData, value: string) => {
     const newData = { ...data, [field]: value }
     onDataChange(newData)
-    
+
     // Limpiar error del campo cuando el usuario empiece a escribir
     if (errors[field]) {
       setErrors(prev => ({ ...prev, [field]: undefined }))
@@ -163,19 +162,14 @@ export function ProyectoWizardStep1({ data, onDataChange, onNext, loading = fals
   }
 
   // Verificar si el formulario está completo
-  const isFormComplete = data.nombre.trim() && 
-                        data.problematica.trim() && 
-                        data.producto_final.trim() && 
-                        data.grupo_id && 
-                        data.metodologia_nem
+  const isFormComplete = data.nombre.trim() &&
+    data.problematica.trim() &&
+    data.producto_final.trim() &&
+    data.grupo_id &&
+    data.metodologia_nem
 
   return (
-    <BetaFeatureWrapper 
-      featureKey="proyectos" 
-      fallback={<BetaAccessDenied featureName="Módulo de Proyectos" className="max-w-4xl mx-auto" />}
-      showBadge={false}
-    >
-      <div className="max-w-4xl mx-auto space-y-6 w-full max-w-full overflow-hidden px-2 sm:px-0 pb-20 sm:pb-6">
+    <div className="max-w-4xl mx-auto space-y-6 w-full max-w-full overflow-hidden px-2 sm:px-0 pb-20 sm:pb-6">
       {/* Botón Siguiente - Solo visible en desktop */}
       <div className="hidden sm:flex justify-end">
         <Button
@@ -326,7 +320,7 @@ export function ProyectoWizardStep1({ data, onDataChange, onNext, loading = fals
                 </AlertDescription>
               </Alert>
             )}
-            
+
             {/* Alerta prominente cuando no hay grupos disponibles */}
             {grupos.length === 0 && !loadingGrupos && !gruposError && (
               <Alert variant="destructive" className="border-2 border-red-500 bg-red-50 dark:bg-red-950/50 shadow-lg">
@@ -341,7 +335,7 @@ export function ProyectoWizardStep1({ data, onDataChange, onNext, loading = fals
                         Primero debes crear un grupo en el módulo correspondiente.
                       </p>
                     </div>
-                    <Button 
+                    <Button
                       onClick={() => onSectionChange?.('grupos')}
                       className="bg-red-600 hover:bg-red-700 text-white font-bold text-base px-6 py-3 shadow-lg transform hover:scale-105 transition-all duration-200"
                       size="lg"
@@ -368,19 +362,19 @@ export function ProyectoWizardStep1({ data, onDataChange, onNext, loading = fals
               <SelectTrigger className={`w-full max-w-full ${errors.metodologia_nem ? 'border-red-500' : ''}`}>
                 <SelectValue placeholder="Selecciona una metodología" />
               </SelectTrigger>
-              <SelectContent 
+              <SelectContent
                 className="w-full max-w-full min-w-[280px] sm:min-w-[400px]"
-                style={{ 
+                style={{
                   maxWidth: 'calc(100vw - 2rem)',
                   width: '100%'
                 }}
               >
                 {metodologiasNEM.map((metodologia) => (
-                  <SelectItem 
-                    key={metodologia.value} 
-                    value={metodologia.value} 
+                  <SelectItem
+                    key={metodologia.value}
+                    value={metodologia.value}
                     className="w-full max-w-full p-3 cursor-pointer"
-                    style={{ 
+                    style={{
                       maxWidth: '100%',
                       width: '100%',
                       whiteSpace: 'normal',
@@ -388,9 +382,9 @@ export function ProyectoWizardStep1({ data, onDataChange, onNext, loading = fals
                       overflowWrap: 'break-word'
                     }}
                   >
-                    <div 
+                    <div
                       className="space-y-1 w-full max-w-full"
-                      style={{ 
+                      style={{
                         maxWidth: '100%',
                         width: '100%',
                         whiteSpace: 'normal',
@@ -398,9 +392,9 @@ export function ProyectoWizardStep1({ data, onDataChange, onNext, loading = fals
                         overflowWrap: 'break-word'
                       }}
                     >
-                      <div 
+                      <div
                         className="font-medium leading-tight text-left"
-                        style={{ 
+                        style={{
                           whiteSpace: 'normal',
                           wordWrap: 'break-word',
                           overflowWrap: 'break-word'
@@ -408,9 +402,9 @@ export function ProyectoWizardStep1({ data, onDataChange, onNext, loading = fals
                       >
                         {metodologia.label}
                       </div>
-                      <div 
+                      <div
                         className="text-sm text-gray-500 leading-tight text-left"
-                        style={{ 
+                        style={{
                           whiteSpace: 'normal',
                           wordWrap: 'break-word',
                           overflowWrap: 'break-word'
@@ -465,7 +459,6 @@ export function ProyectoWizardStep1({ data, onDataChange, onNext, loading = fals
         </Button>
       </div>
 
-      </div>
-    </BetaFeatureWrapper>
+    </div>
   )
 }

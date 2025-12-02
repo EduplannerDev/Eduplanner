@@ -104,7 +104,7 @@ function RubricaViewer({ contenido }: { contenido: any }) {
   const niveles = ['Sobresaliente', 'Logrado', 'En Proceso', 'Requiere Apoyo']
   const colores = {
     'Sobresaliente': 'bg-green-50 dark:bg-green-900/20 border-green-200 dark:border-green-800',
-    'Logrado': 'bg-blue-50 dark:bg-blue-900/20 border-blue-200 dark:border-blue-800', 
+    'Logrado': 'bg-blue-50 dark:bg-blue-900/20 border-blue-200 dark:border-blue-800',
     'En Proceso': 'bg-yellow-50 dark:bg-yellow-900/20 border-yellow-200 dark:border-yellow-800',
     'Requiere Apoyo': 'bg-red-50 dark:bg-red-900/20 border-red-200 dark:border-red-800'
   }
@@ -162,7 +162,7 @@ function RubricaViewer({ contenido }: { contenido: any }) {
           </tbody>
         </table>
       </div>
-      
+
       {/* Información adicional */}
       <div className="text-sm text-gray-600 dark:text-gray-400 bg-blue-50 dark:bg-blue-900/20 p-4 rounded-lg border-l-4 border-blue-200 dark:border-blue-800">
         <p><strong>Nota:</strong> Esta rúbrica contiene {contenido.criterios?.length || 0} criterio{(contenido.criterios?.length || 0) !== 1 ? 's' : ''} de evaluación con 4 niveles de desempeño cada uno.</p>
@@ -173,7 +173,7 @@ function RubricaViewer({ contenido }: { contenido: any }) {
 
 // Componente para visualizar listas de cotejo
 function ListaCotejoViewer({ contenido }: { contenido: any }) {
-  const [evaluaciones, setEvaluaciones] = useState<{[key: number]: {si: boolean, no: boolean, observaciones: string}}>({})
+  const [evaluaciones, setEvaluaciones] = useState<{ [key: number]: { si: boolean, no: boolean, observaciones: string } }>({})
 
   // Verificar si el contenido es de la nueva estructura (con indicadores) o la antigua (con criterios)
   const indicadores = contenido?.indicadores || contenido?.criterios || []
@@ -218,7 +218,7 @@ function ListaCotejoViewer({ contenido }: { contenido: any }) {
       cumple: evaluaciones[index]?.si ? 'Sí' : evaluaciones[index]?.no ? 'No' : 'Sin evaluar',
       observaciones: evaluaciones[index]?.observaciones || ''
     }))
-    
+
     try {
       if (formato === 'excel') {
         const { exportarListaCotejoExcel } = await import('@/lib/excel-generator')
@@ -226,7 +226,7 @@ function ListaCotejoViewer({ contenido }: { contenido: any }) {
           contenido.titulo_instrumento || 'Lista de Cotejo',
           resultados
         )
-        
+
         toast.success(`Archivo Excel exportado: ${resultado.filename}`, {
           description: `${resultado.stats.cumplidos}/${resultado.stats.total} indicadores cumplidos (${resultado.stats.porcentajeCumplimiento}%)`
         })
@@ -243,10 +243,10 @@ function ListaCotejoViewer({ contenido }: { contenido: any }) {
             }))
           }
         }
-        
+
         const { generateListaCotejoPDF } = await import('@/lib/pdf-generator')
         await generateListaCotejoPDF(instrumentoParaPDF)
-        
+
         toast.success('PDF exportado exitosamente')
       }
     } catch (error) {
@@ -277,7 +277,7 @@ function ListaCotejoViewer({ contenido }: { contenido: any }) {
             <div className="col-span-4">Observaciones</div>
           </div>
         </div>
-        
+
         <div className="divide-y dark:divide-gray-600">
           {indicadores.map((indicador: any, index: number) => (
             <div key={index} className="px-6 py-4 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors">
@@ -293,7 +293,7 @@ function ListaCotejoViewer({ contenido }: { contenido: any }) {
                     </p>
                   )}
                 </div>
-                
+
                 {/* Checkbox Sí */}
                 <div className="col-span-1 flex justify-center">
                   <Checkbox
@@ -302,7 +302,7 @@ function ListaCotejoViewer({ contenido }: { contenido: any }) {
                     className="w-5 h-5"
                   />
                 </div>
-                
+
                 {/* Checkbox No */}
                 <div className="col-span-1 flex justify-center">
                   <Checkbox
@@ -311,7 +311,7 @@ function ListaCotejoViewer({ contenido }: { contenido: any }) {
                     className="w-5 h-5"
                   />
                 </div>
-                
+
                 {/* Campo de observaciones */}
                 <div className="col-span-4">
                   <Textarea
@@ -341,7 +341,7 @@ function ListaCotejoViewer({ contenido }: { contenido: any }) {
 export function ViewProyecto({ proyectoId, onBack }: ViewProyectoProps) {
   const router = useRouter()
   const { obtenerProyecto, obtenerFasesProyecto, loading, error } = useProyectos()
-  const { logComponentError } = useErrorLogger({ 
+  const { logComponentError } = useErrorLogger({
     componentName: 'ViewProyecto',
     module: 'proyectos'
   })
@@ -357,7 +357,7 @@ export function ViewProyecto({ proyectoId, onBack }: ViewProyectoProps) {
   const [instrumentos, setInstrumentos] = useState<InstrumentoEvaluacion[]>([])
   const [activeTab, setActiveTab] = useState('plano-didactico')
   const [generatingPDF, setGeneratingPDF] = useState(false)
-  
+
   // Estado para el modal de crear instrumento
   const [modalStep, setModalStep] = useState<'form' | 'criteria'>('form')
   const [instrumentForm, setInstrumentForm] = useState({
@@ -369,13 +369,13 @@ export function ViewProyecto({ proyectoId, onBack }: ViewProyectoProps) {
     titulo: '',
     tipo: ''
   })
-  
+
   // Estado para PDAs y criterios personalizados
   const [pdasProyecto, setPdasProyecto] = useState<any[]>([])
   const [pdasSeleccionados, setPdasSeleccionados] = useState<string[]>([])
   const [criteriosPersonalizados, setCriteriosPersonalizados] = useState<string[]>([])
   const [nuevoCriterio, setNuevoCriterio] = useState('')
-  
+
   // Estado para el modal de visualización de rúbricas
   const [showViewDialog, setShowViewDialog] = useState(false)
   const [instrumentoSeleccionado, setInstrumentoSeleccionado] = useState<InstrumentoEvaluacion | null>(null)
@@ -385,13 +385,13 @@ export function ViewProyecto({ proyectoId, onBack }: ViewProyectoProps) {
   const [selectedMomentoId, setSelectedMomentoId] = useState<string | null>(null)
   const [selectedMomentoName, setSelectedMomentoName] = useState<string | null>(null)
   const [searchTerm, setSearchTerm] = useState('')
-  
+
   // Estados para el modal de confirmación
   const [showConfirmModal, setShowConfirmModal] = useState(false)
   const [planeacionToLink, setPlaneacionToLink] = useState<any>(null)
-  
+
   // Estado para almacenar las planeaciones enlazadas a cada momento
-  const [linkedPlaneaciones, setLinkedPlaneaciones] = useState<{[momentoId: string]: any}>({})
+  const [linkedPlaneaciones, setLinkedPlaneaciones] = useState<{ [momentoId: string]: any }>({})
   const [showViewModal, setShowViewModal] = useState(false)
   const [planeacionToView, setPlaneacionToView] = useState<any>(null)
   const [showUnlinkModal, setShowUnlinkModal] = useState(false)
@@ -402,14 +402,14 @@ export function ViewProyecto({ proyectoId, onBack }: ViewProyectoProps) {
   const [showGeneratingView, setShowGeneratingView] = useState(false)
   const [showNemForm, setShowNemForm] = useState(false)
   const [showNemGeneratingView, setShowNemGeneratingView] = useState(false)
-  
+
   // Estados para el formulario CIME
   const [grado, setGrado] = useState('')
   const [temaEspecifico, setTemaEspecifico] = useState('')
   const [materialPrincipal, setMaterialPrincipal] = useState('')
   const [conocimientosPrevios, setConocimientosPrevios] = useState('')
   const [isGenerating, setIsGenerating] = useState(false)
-  
+
   // Estados para el formulario NEM
   const [nemGrado, setNemGrado] = useState('')
   const [nemTema, setNemTema] = useState('')
@@ -417,11 +417,11 @@ export function ViewProyecto({ proyectoId, onBack }: ViewProyectoProps) {
   const [nemActividades, setNemActividades] = useState('')
   const [nemEvaluacion, setNemEvaluacion] = useState('')
   const [isNemGenerating, setIsNemGenerating] = useState(false)
-  
-  
+
+
   // Hook para obtener las planeaciones del profesor
   const { planeaciones: planeacionesProfesor, loading: loadingPlaneaciones, createPlaneacion } = usePlaneaciones()
-  
+
   // Hook para obtener el perfil del usuario
   const { profile } = useProfile()
 
@@ -441,12 +441,12 @@ export function ViewProyecto({ proyectoId, onBack }: ViewProyectoProps) {
     setInitialLoading(true)
     setHasError(false)
     setEnlacesLoaded(false) // Reset enlaces cuando se carga un nuevo proyecto
-    
+
     try {
       const proyectoData = await obtenerProyecto(proyectoId)
       if (proyectoData) {
         setProyecto(proyectoData)
-        
+
         // Cargar fases del proyecto
         setLoadingFases(true)
         const fasesData = await obtenerFasesProyecto(proyectoId)
@@ -531,8 +531,8 @@ export function ViewProyecto({ proyectoId, onBack }: ViewProyectoProps) {
   }
 
   const togglePdaSelection = (pdaId: string) => {
-    setPdasSeleccionados(prev => 
-      prev.includes(pdaId) 
+    setPdasSeleccionados(prev =>
+      prev.includes(pdaId)
         ? prev.filter(id => id !== pdaId)
         : [...prev, pdaId]
     )
@@ -575,7 +575,7 @@ export function ViewProyecto({ proyectoId, onBack }: ViewProyectoProps) {
       }
 
       toast.success(`Instrumento "${instrumento.titulo}" eliminado correctamente`)
-      
+
       // Recargar la lista de instrumentos
       await cargarInstrumentos()
     } catch (error) {
@@ -639,7 +639,7 @@ export function ViewProyecto({ proyectoId, onBack }: ViewProyectoProps) {
     try {
       const fasesData = await obtenerFasesProyecto(proyectoId)
       setFases(fasesData)
-      
+
       // Actualizar el proyecto con las fases cargadas
       if (proyecto) {
         setProyecto({
@@ -657,12 +657,12 @@ export function ViewProyecto({ proyectoId, onBack }: ViewProyectoProps) {
   // Función para cargar las planeaciones enlazadas a cada momento
   const cargarPlaneacionesEnlazadas = async () => {
     setLoadingEnlaces(true)
-    const enlaces: {[momentoId: string]: any} = {}
-    
+    const enlaces: { [momentoId: string]: any } = {}
+
     try {
       // Obtener todos los IDs de las fases
       const faseIds = fases.map(fase => fase.id)
-      
+
       if (faseIds.length === 0) {
         setLinkedPlaneaciones(enlaces)
         setEnlacesLoaded(true)
@@ -704,7 +704,7 @@ export function ViewProyecto({ proyectoId, onBack }: ViewProyectoProps) {
           }
         })
       }
-      
+
       setLinkedPlaneaciones(enlaces)
       setEnlacesLoaded(true)
     } catch (error) {
@@ -733,7 +733,7 @@ export function ViewProyecto({ proyectoId, onBack }: ViewProyectoProps) {
       toast.warning('Este momento ya tiene una planeación enlazada. Desenlázala primero para generar una nueva.')
       return
     }
-    
+
     setMomentoToGenerate(momento)
     setShowGenerateModal(true)
   }
@@ -750,7 +750,7 @@ export function ViewProyecto({ proyectoId, onBack }: ViewProyectoProps) {
   // Función para manejar la selección de planeación
   const handleSelectPlaneacion = (planeacionId: string) => {
     const planeacionSeleccionada = planeacionesProfesor.find(p => p.id === planeacionId)
-    
+
     if (!planeacionSeleccionada) return
 
     // Guardar la planeación seleccionada y mostrar modal de confirmación
@@ -770,13 +770,13 @@ export function ViewProyecto({ proyectoId, onBack }: ViewProyectoProps) {
 
       if (success) {
         toast.success(`Planeación "${planeacionToLink.titulo}" enlazada al momento: ${selectedMomentoName}`)
-        
+
         // Actualizar el estado de enlaces
         setLinkedPlaneaciones(prev => ({
           ...prev,
           [selectedMomentoId]: planeacionToLink
         }))
-        
+
         // Cerrar ambos modales y limpiar estados
         setShowConfirmModal(false)
         setShowLinkPlaneacionModal(false)
@@ -832,14 +832,14 @@ export function ViewProyecto({ proyectoId, onBack }: ViewProyectoProps) {
 
       if (success) {
         toast.success('Planeación desenlazada correctamente')
-        
+
         // Actualizar el estado de enlaces
         setLinkedPlaneaciones(prev => {
           const newState = { ...prev }
           delete newState[momentoToUnlink]
           return newState
         })
-        
+
         // Cerrar modales y limpiar estados
         setShowUnlinkModal(false)
         setMomentoToUnlink(null)
@@ -872,7 +872,7 @@ export function ViewProyecto({ proyectoId, onBack }: ViewProyectoProps) {
       // Pre-llenar datos del proyecto y momento
       setNemGrado(proyecto.grupos?.grado || '')
       setNemTema(momentoToGenerate.momento_nombre)
-      
+
       setShowNemForm(true)
       setShowGenerateModal(false)
     }
@@ -881,11 +881,11 @@ export function ViewProyecto({ proyectoId, onBack }: ViewProyectoProps) {
   // Función para generar planeación CIME
   const handleGenerateCIME = () => {
     if (momentoToGenerate && proyecto) {
-      
+
       // Pre-llenar datos del proyecto y momento
       setGrado(proyecto.grupos?.grado || '')
       setTemaEspecifico(momentoToGenerate.momento_nombre)
-      
+
       setShowCimeForm(true)
       setShowGenerateModal(false)
     }
@@ -967,7 +967,7 @@ Evaluación Sugerida: [Sugiere una forma simple de evaluar la comprensión al fi
       }
 
       const data = await response.json()
-      
+
       if (!data.content) {
         throw new Error('No se pudo generar el contenido')
       }
@@ -988,7 +988,7 @@ Evaluación Sugerida: [Sugiere una forma simple de evaluar la comprensión al fi
 
       if (nuevaPlaneacion) {
         toast.success('Planeación CIME generada correctamente')
-        
+
         // Enlazar automáticamente la planeación al momento
         const success = await createProyectoMomentoPlaneacionLink(
           momentoToGenerate.id,
@@ -997,7 +997,7 @@ Evaluación Sugerida: [Sugiere una forma simple de evaluar la comprensión al fi
 
         if (success) {
           toast.success('Planeación enlazada automáticamente al momento')
-          
+
           // Actualizar el estado de enlaces
           setLinkedPlaneaciones(prev => ({
             ...prev,
@@ -1034,16 +1034,16 @@ Evaluación Sugerida: [Sugiere una forma simple de evaluar la comprensión al fi
     try {
 
       // Construir información de PDAs para el prompt
-      const pdasInfo = pdasProyecto && pdasProyecto.length > 0 
+      const pdasInfo = pdasProyecto && pdasProyecto.length > 0
         ? `\nPDAs DEL PROYECTO (Programas de Desarrollo de Aprendizaje):
-${pdasProyecto.map((pda, index) => 
-  `${index + 1}. [${pda.campo_formativo}] ${pda.contenido}
+${pdasProyecto.map((pda, index) =>
+          `${index + 1}. [${pda.campo_formativo}] ${pda.contenido}
      PDA: ${pda.pda}`
-).join('\n')}`
+        ).join('\n')}`
         : ''
 
-    // Crear el mensaje simple como lo haría el usuario en chat-ia
-    const mensajeUsuario = `Planeación de matemáticas para ${nemGrado}° grado sobre ${nemTema}${nemObjetivo ? ` con el objetivo: ${nemObjetivo}` : ''}${nemActividades ? `. Actividades sugeridas: ${nemActividades}` : ''}${nemEvaluacion ? `. Evaluación sugerida: ${nemEvaluacion}` : ''}.`
+      // Crear el mensaje simple como lo haría el usuario en chat-ia
+      const mensajeUsuario = `Planeación de matemáticas para ${nemGrado}° grado sobre ${nemTema}${nemObjetivo ? ` con el objetivo: ${nemObjetivo}` : ''}${nemActividades ? `. Actividades sugeridas: ${nemActividades}` : ''}${nemEvaluacion ? `. Evaluación sugerida: ${nemEvaluacion}` : ''}.`
 
       // Usar endpoint específico para NEM (como las planeaciones normales pero sin stream)
       const response = await fetch('/api/generate-nem', {
@@ -1051,7 +1051,7 @@ ${pdasProyecto.map((pda, index) =>
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ 
+        body: JSON.stringify({
           messages: [
             { role: 'user', content: mensajeUsuario }
           ]
@@ -1063,7 +1063,7 @@ ${pdasProyecto.map((pda, index) =>
       }
 
       const data = await response.json()
-      
+
       if (!data.content) {
         throw new Error('No se pudo generar el contenido')
       }
@@ -1084,7 +1084,7 @@ ${pdasProyecto.map((pda, index) =>
 
       if (nuevaPlaneacion) {
         toast.success('Planeación NEM generada correctamente')
-        
+
         // Enlazar automáticamente la planeación al momento
         try {
           const success = await createProyectoMomentoPlaneacionLink(
@@ -1094,7 +1094,7 @@ ${pdasProyecto.map((pda, index) =>
 
           if (success) {
             toast.success('Planeación enlazada automáticamente al momento')
-            
+
             // Actualizar el estado de enlaces
             setLinkedPlaneaciones(prev => ({
               ...prev,
@@ -1125,7 +1125,7 @@ ${pdasProyecto.map((pda, index) =>
   // Función para filtrar planeaciones basada en el término de búsqueda
   const filteredPlaneaciones = planeacionesProfesor.filter(planeacion => {
     if (!searchTerm) return true
-    
+
     const searchLower = searchTerm.toLowerCase()
     return (
       planeacion.titulo.toLowerCase().includes(searchLower) ||
@@ -1167,7 +1167,7 @@ ${pdasProyecto.map((pda, index) =>
   // Pantalla de espera "Magia de la IA" para generación de rúbrica
   if (generatingRubrica) {
     const tipoInstrumento = instrumentForm.tipo === 'rubrica_analitica' ? 'rúbrica analítica' : 'lista de cotejo';
-    
+
     return (
       <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 dark:from-gray-900 dark:to-gray-800 flex items-center justify-center">
         <div className="text-center max-w-2xl mx-auto p-8">
@@ -1179,7 +1179,7 @@ ${pdasProyecto.map((pda, index) =>
               La IA está generando tu {tipoInstrumento} personalizada
             </p>
           </div>
-          
+
           <Card className="bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700">
             <CardHeader>
               <CardTitle className="text-gray-900 dark:text-gray-100">Generación con IA</CardTitle>
@@ -1197,7 +1197,7 @@ ${pdasProyecto.map((pda, index) =>
                     Creando criterios de evaluación para: <strong className="text-gray-900 dark:text-gray-100">{proyecto?.nombre}</strong>
                   </p>
                 </div>
-                
+
                 <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 p-4 rounded-lg">
                   <p className="text-sm text-blue-800 dark:text-blue-200">
                     <strong>Procesando:</strong> Fases y momentos del proyecto
@@ -1212,299 +1212,301 @@ ${pdasProyecto.map((pda, index) =>
               </div>
             </CardContent>
           </Card>
-          
+
         </div>
       </div>
     )
   }
 
   return (
-    <div className="space-y-6 max-w-6xl mx-auto p-6">
-        {/* Header */}
-        <div className="mb-6">
-          <Button 
-            variant="outline" 
-            onClick={onBack}
-            className="mb-4"
-          >
-            <ArrowLeft className="h-4 w-4 mr-2" />
-            Volver a Proyectos
-          </Button>
-          
-          <div>
-            <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100">{proyecto.nombre}</h1>
-            <p className="text-lg text-gray-600 dark:text-gray-400 mt-2">{proyecto.grupos.nombre} - {proyecto.grupos.grado}° {proyecto.grupos.nivel}</p>
-          </div>
+    <div className="space-y-4 sm:space-y-6 max-w-6xl mx-auto p-3 sm:p-6">
+      {/* Header */}
+      <div className="mb-4 sm:mb-6">
+        <Button
+          variant="outline"
+          onClick={onBack}
+          className="mb-3 sm:mb-4 text-sm sm:text-base"
+        >
+          <ArrowLeft className="h-4 w-4 mr-2" />
+          <span className="hidden sm:inline">Volver a Proyectos</span>
+          <span className="sm:hidden">Volver</span>
+        </Button>
+
+        <div>
+          <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold text-gray-900 dark:text-gray-100 break-words leading-tight">{proyecto.nombre}</h1>
+          <p className="text-sm sm:text-base lg:text-lg text-gray-600 dark:text-gray-400 mt-1 sm:mt-2 break-words">{proyecto.grupos.nombre} - {proyecto.grupos.grado}° {proyecto.grupos.nivel}</p>
         </div>
+      </div>
 
-        {/* Pestañas del Proyecto */}
-        <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-          <TabsList className="grid w-full grid-cols-3">
-            <TabsTrigger value="plano-didactico" className="flex items-center gap-2">
-              <FileText className="h-4 w-4" />
-              Plano Didáctico
-            </TabsTrigger>
-            <TabsTrigger value="evaluacion" className="flex items-center gap-2">
-              <ClipboardList className="h-4 w-4" />
-              Evaluación
-            </TabsTrigger>
-            <TabsTrigger value="recursos" className="flex items-center gap-2">
-              <FolderOpen className="h-4 w-4" />
-              Recursos
-            </TabsTrigger>
-          </TabsList>
+      {/* Pestañas del Proyecto */}
+      <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full overflow-hidden">
+        <TabsList className="grid w-full grid-cols-3 h-auto">
+          <TabsTrigger value="plano-didactico" className="flex items-center gap-1 sm:gap-2 text-xs sm:text-sm px-2 sm:px-4 py-2">
+            <FileText className="h-3 w-3 sm:h-4 sm:w-4 flex-shrink-0" />
+            <span className="hidden sm:inline">Plano Didáctico</span>
+            <span className="sm:hidden">Plano</span>
+          </TabsTrigger>
+          <TabsTrigger value="evaluacion" className="flex items-center gap-1 sm:gap-2 text-xs sm:text-sm px-2 sm:px-4 py-2">
+            <ClipboardList className="h-3 w-3 sm:h-4 sm:w-4 flex-shrink-0" />
+            <span className="truncate">Evaluación</span>
+          </TabsTrigger>
+          <TabsTrigger value="recursos" className="flex items-center gap-1 sm:gap-2 text-xs sm:text-sm px-2 sm:px-4 py-2">
+            <FolderOpen className="h-3 w-3 sm:h-4 sm:w-4 flex-shrink-0" />
+            <span className="truncate">Recursos</span>
+          </TabsTrigger>
+        </TabsList>
 
-          {/* Pestaña: Plano Didáctico */}
-          <TabsContent value="plano-didactico" className="mt-6">
-            {/* Información del Proyecto */}
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
-              <Card className="dark:bg-gray-800">
-                <CardHeader className="pb-3">
-                  <CardTitle className="flex items-center text-lg">
-                    <Target className="h-5 w-5 mr-2 text-blue-600 dark:text-blue-400" />
-                    Problemática
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <p className="text-gray-700 dark:text-gray-300 leading-relaxed">{proyecto.problematica}</p>
-                </CardContent>
-              </Card>
-
-              <Card className="dark:bg-gray-800">
-                <CardHeader className="pb-3">
-                  <CardTitle className="flex items-center text-lg">
-                    <BookOpen className="h-5 w-5 mr-2 text-green-600 dark:text-green-400" />
-                    Producto Final
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <p className="text-gray-700 dark:text-gray-300 leading-relaxed">{proyecto.producto_final}</p>
-                </CardContent>
-              </Card>
-
-              <Card className="dark:bg-gray-800">
-                <CardHeader className="pb-3">
-                  <CardTitle className="flex items-center text-lg">
-                    <Lightbulb className="h-5 w-5 mr-2 text-purple-600 dark:text-purple-400" />
-                    Metodología
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <p className="text-gray-700 dark:text-gray-300 leading-relaxed">{proyecto.metodologia_nem}</p>
-                </CardContent>
-              </Card>
-            </div>
-
-            {/* Fases del Proyecto */}
+        {/* Pestaña: Plano Didáctico */}
+        <TabsContent value="plano-didactico" className="mt-4 sm:mt-6 space-y-4 sm:space-y-6">
+          {/* Información del Proyecto */}
+          <div className="grid grid-cols-1 gap-3 sm:gap-4 lg:grid-cols-3 lg:gap-6">
             <Card className="dark:bg-gray-800">
-              <CardHeader>
-                <CardTitle className="flex items-center">
-                  <Calendar className="h-5 w-5 mr-2 text-orange-600 dark:text-orange-400" />
-                  Fases y Momentos del Proyecto
+              <CardHeader className="pb-2 sm:pb-3">
+                <CardTitle className="flex items-center text-base sm:text-lg">
+                  <Target className="h-4 w-4 sm:h-5 sm:w-5 mr-2 text-blue-600 dark:text-blue-400 flex-shrink-0" />
+                  <span className="break-words">Problemática</span>
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                {loadingFases ? (
-                  <div className="text-center py-8">
-                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 dark:border-blue-400 mx-auto mb-4"></div>
-                    <p className="text-gray-600 dark:text-gray-400">Cargando fases del proyecto...</p>
-                  </div>
-                ) : fases && fases.length > 0 ? (
-                  <div className="space-y-6">
-                    {fases.map((fase, index) => (
-                      <div key={fase.id} className="border-l-4 border-blue-500 dark:border-blue-400 pl-6">
-                        <div className="mb-2">
-                          <h3 className="font-semibold text-lg text-blue-700 dark:text-blue-400">{fase.fase_nombre}</h3>
-                          <h4 className="font-medium text-md text-gray-700 dark:text-gray-300">{fase.momento_nombre}</h4>
+                <p className="text-sm sm:text-base text-gray-700 dark:text-gray-300 leading-relaxed break-words">{proyecto.problematica}</p>
+              </CardContent>
+            </Card>
+
+            <Card className="dark:bg-gray-800">
+              <CardHeader className="pb-2 sm:pb-3">
+                <CardTitle className="flex items-center text-base sm:text-lg">
+                  <BookOpen className="h-4 w-4 sm:h-5 sm:w-5 mr-2 text-green-600 dark:text-green-400 flex-shrink-0" />
+                  <span className="break-words">Producto Final</span>
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <p className="text-sm sm:text-base text-gray-700 dark:text-gray-300 leading-relaxed break-words">{proyecto.producto_final}</p>
+              </CardContent>
+            </Card>
+
+            <Card className="dark:bg-gray-800">
+              <CardHeader className="pb-2 sm:pb-3">
+                <CardTitle className="flex items-center text-base sm:text-lg">
+                  <Lightbulb className="h-4 w-4 sm:h-5 sm:w-5 mr-2 text-purple-600 dark:text-purple-400 flex-shrink-0" />
+                  <span className="break-words">Metodología</span>
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <p className="text-sm sm:text-base text-gray-700 dark:text-gray-300 leading-relaxed break-words">{proyecto.metodologia_nem}</p>
+              </CardContent>
+            </Card>
+          </div>
+
+          {/* Fases del Proyecto */}
+          <Card className="dark:bg-gray-800">
+            <CardHeader className="pb-2 sm:pb-3">
+              <CardTitle className="flex items-center text-base sm:text-lg">
+                <Calendar className="h-4 w-4 sm:h-5 sm:w-5 mr-2 text-orange-600 dark:text-orange-400 flex-shrink-0" />
+                <span className="break-words">Fases y Momentos del Proyecto</span>
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="px-3 sm:px-6">
+              {loadingFases ? (
+                <div className="text-center py-8">
+                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 dark:border-blue-400 mx-auto mb-4"></div>
+                  <p className="text-gray-600 dark:text-gray-400">Cargando fases del proyecto...</p>
+                </div>
+              ) : fases && fases.length > 0 ? (
+                <div className="space-y-4 sm:space-y-6">
+                  {fases.map((fase, index) => (
+                    <div key={fase.id} className="border-l-4 border-blue-500 dark:border-blue-400 pl-3 sm:pl-6">
+                      <div className="mb-2">
+                        <h3 className="font-semibold text-base sm:text-lg text-blue-700 dark:text-blue-400 break-words">{fase.fase_nombre}</h3>
+                        <h4 className="font-medium text-sm sm:text-md text-gray-700 dark:text-gray-300 break-words">{fase.momento_nombre}</h4>
+                      </div>
+                      <div className="bg-gray-50 dark:bg-gray-700 p-3 sm:p-4 rounded-lg">
+                        <p className="text-sm sm:text-base text-gray-700 dark:text-gray-300 leading-relaxed whitespace-pre-line break-words">
+                          {fase.contenido}
+                        </p>
+
+                        {/* Botones para enlazar/ver y generar planeaciones */}
+                        <div className="mt-3 sm:mt-4 flex flex-col sm:flex-row gap-2">
+                          {loadingEnlaces ? (
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              className="flex items-center gap-2"
+                              disabled
+                            >
+                              <Loader2 className="h-4 w-4 animate-spin" />
+                              Cargando...
+                            </Button>
+                          ) : linkedPlaneaciones[fase.id] ? (
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              className="flex items-center gap-2 bg-green-50 hover:bg-green-100 border-green-200 text-green-700"
+                              onClick={() => handleVerPlaneacion(fase.id)}
+                            >
+                              <BookOpen className="h-4 w-4" />
+                              Ver Planeación
+                            </Button>
+                          ) : (
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              className="flex items-center gap-2"
+                              onClick={() => handleEnlazarPlaneacion(fase.id)}
+                            >
+                              <BookOpen className="h-4 w-4" />
+                              Enlazar Planeación
+                            </Button>
+                          )}
+                          <TooltipProvider>
+                            <Tooltip>
+                              <TooltipTrigger asChild>
+                                <Button
+                                  variant="outline"
+                                  size="sm"
+                                  className="flex items-center gap-2"
+                                  onClick={() => handleGenerarPlaneacion(fase)}
+                                  disabled={loadingEnlaces || !!linkedPlaneaciones[fase.id]}
+                                >
+                                  <Bot className="h-4 w-4" />
+                                  Generar Planeación
+                                </Button>
+                              </TooltipTrigger>
+                              {linkedPlaneaciones[fase.id] && (
+                                <TooltipContent>
+                                  <p>Este momento ya tiene una planeación enlazada.</p>
+                                  <p>Desenlázala primero para generar una nueva.</p>
+                                </TooltipContent>
+                              )}
+                            </Tooltip>
+                          </TooltipProvider>
                         </div>
-                        <div className="bg-gray-50 dark:bg-gray-700 p-4 rounded-lg">
-                          <p className="text-gray-700 dark:text-gray-300 leading-relaxed whitespace-pre-line">
-                            {fase.contenido}
-                          </p>
-                          
-                          {/* Botones para enlazar/ver y generar planeaciones */}
-                          <div className="mt-4 flex gap-2">
-                            {loadingEnlaces ? (
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <div className="text-center py-8 text-gray-500 dark:text-gray-400">
+                  <Calendar className="h-12 w-12 mx-auto mb-4 text-gray-300 dark:text-gray-600" />
+                  <p>No se encontraron fases para este proyecto.</p>
+                  <p className="text-sm mt-2">Las fases se generan automáticamente cuando se crea el proyecto.</p>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        {/* Pestaña: Evaluación */}
+        <TabsContent value="evaluacion" className="mt-6">
+          <Card className="dark:bg-gray-800">
+            <CardHeader>
+              <CardTitle className="flex items-center justify-between">
+                <span className="flex items-center">
+                  <ClipboardList className="h-5 w-5 mr-2 text-purple-600 dark:text-purple-400" />
+                  Instrumentos de Evaluación
+                </span>
+                <Button
+                  onClick={abrirModalCrearInstrumento}
+                  variant="default"
+                  size="sm"
+                  className="bg-purple-600 hover:bg-purple-700 text-white font-medium"
+                >
+                  <BookOpen className="h-4 w-4 mr-2" />
+                  Crear Instrumento
+                </Button>
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              {instrumentos && instrumentos.length > 0 ? (
+                <div className="space-y-4">
+                  {instrumentos.map((instrumento) => (
+                    <Card key={instrumento.id} className="border-l-4 border-purple-500 dark:bg-gray-800 shadow-sm hover:shadow-md transition-shadow duration-200 dark:border-gray-700 dark:hover:border-gray-600">
+                      <CardHeader className="pb-4">
+                        <div className="flex items-center justify-between">
+                          <div>
+                            <CardTitle className="text-lg">{instrumento.titulo}</CardTitle>
+                            <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
+                              {instrumento.tipo === 'rubrica_analitica' ? 'Rúbrica Analítica' :
+                                instrumento.tipo === 'lista_cotejo' ? 'Lista de Cotejo' :
+                                  'Escala de Estimación'}
+                            </p>
+                          </div>
+                          <div className="flex items-center gap-2">
+                            <div className="flex gap-2">
                               <Button
                                 variant="outline"
                                 size="sm"
-                                className="flex items-center gap-2"
-                                disabled
+                                onClick={() => verInstrumento(instrumento)}
+                                className="hover:bg-purple-50 hover:text-purple-700 hover:border-purple-300 dark:hover:bg-purple-900/20 dark:hover:text-purple-300 dark:hover:border-purple-600"
                               >
-                                <Loader2 className="h-4 w-4 animate-spin" />
-                                Cargando...
+                                Ver
                               </Button>
-                            ) : linkedPlaneaciones[fase.id] ? (
-                              <Button
-                                variant="outline"
-                                size="sm"
-                                className="flex items-center gap-2 bg-green-50 hover:bg-green-100 border-green-200 text-green-700"
-                                onClick={() => handleVerPlaneacion(fase.id)}
-                              >
-                                <BookOpen className="h-4 w-4" />
-                                Ver Planeación
-                              </Button>
-                            ) : (
-                              <Button
-                                variant="outline"
-                                size="sm"
-                                className="flex items-center gap-2"
-                                onClick={() => handleEnlazarPlaneacion(fase.id)}
-                              >
-                                <BookOpen className="h-4 w-4" />
-                                Enlazar Planeación
-                              </Button>
-                            )}
-                            <TooltipProvider>
-                              <Tooltip>
-                                <TooltipTrigger asChild>
+                              <AlertDialog>
+                                <AlertDialogTrigger asChild>
                                   <Button
                                     variant="outline"
                                     size="sm"
-                                    className="flex items-center gap-2"
-                                    onClick={() => handleGenerarPlaneacion(fase)}
-                                    disabled={loadingEnlaces || !!linkedPlaneaciones[fase.id]}
+                                    className="text-red-600 hover:text-red-700 hover:bg-red-50 dark:text-red-400 dark:hover:text-red-300 dark:hover:bg-red-900/20 dark:border-red-800"
                                   >
-                                    <Bot className="h-4 w-4" />
-                                    Generar Planeación
+                                    <Trash2 className="h-4 w-4 mr-1" />
+                                    Eliminar
                                   </Button>
-                                </TooltipTrigger>
-                                {linkedPlaneaciones[fase.id] && (
-                                  <TooltipContent>
-                                    <p>Este momento ya tiene una planeación enlazada.</p>
-                                    <p>Desenlázala primero para generar una nueva.</p>
-                                  </TooltipContent>
-                                )}
-                              </Tooltip>
-                            </TooltipProvider>
+                                </AlertDialogTrigger>
+                                <AlertDialogContent>
+                                  <AlertDialogHeader>
+                                    <AlertDialogTitle>¿Eliminar instrumento?</AlertDialogTitle>
+                                    <AlertDialogDescription>
+                                      ¿Estás seguro de que quieres eliminar "{instrumento.titulo}"?
+                                      Esta acción no se puede deshacer.
+                                    </AlertDialogDescription>
+                                  </AlertDialogHeader>
+                                  <AlertDialogFooter>
+                                    <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                                    <AlertDialogAction
+                                      onClick={() => confirmarEliminarInstrumento(instrumento)}
+                                      className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                                    >
+                                      Eliminar
+                                    </AlertDialogAction>
+                                  </AlertDialogFooter>
+                                </AlertDialogContent>
+                              </AlertDialog>
+                            </div>
                           </div>
                         </div>
-                      </div>
-                    ))}
-                  </div>
-                ) : (
-                  <div className="text-center py-8 text-gray-500 dark:text-gray-400">
-                    <Calendar className="h-12 w-12 mx-auto mb-4 text-gray-300 dark:text-gray-600" />
-                    <p>No se encontraron fases para este proyecto.</p>
-                    <p className="text-sm mt-2">Las fases se generan automáticamente cuando se crea el proyecto.</p>
-                  </div>
-                )}
-              </CardContent>
-            </Card>
-          </TabsContent>
-
-          {/* Pestaña: Evaluación */}
-          <TabsContent value="evaluacion" className="mt-6">
-            <Card className="dark:bg-gray-800">
-              <CardHeader>
-                <CardTitle className="flex items-center justify-between">
-                  <span className="flex items-center">
-                    <ClipboardList className="h-5 w-5 mr-2 text-purple-600 dark:text-purple-400" />
-                    Instrumentos de Evaluación
-                  </span>
-                  <Button 
+                      </CardHeader>
+                      <CardContent className="pt-0">
+                        <p className="text-sm text-gray-600 dark:text-gray-400">
+                          Creado el {new Date(instrumento.created_at).toLocaleDateString('es-ES')}
+                        </p>
+                      </CardContent>
+                    </Card>
+                  ))}
+                </div>
+              ) : (
+                <div className="text-center py-12 text-gray-500">
+                  <ClipboardList className="h-16 w-16 mx-auto mb-4 text-gray-300" />
+                  <h3 className="text-lg font-medium mb-2">No hay instrumentos de evaluación</h3>
+                  <p className="mb-4">Crea tu primer instrumento de evaluación para este proyecto.</p>
+                  <Button
                     onClick={abrirModalCrearInstrumento}
                     variant="default"
-                    size="sm"
-                    className="bg-purple-600 hover:bg-purple-700 text-white font-medium"
+                    className="bg-purple-600 hover:bg-purple-700 text-white"
                   >
                     <BookOpen className="h-4 w-4 mr-2" />
                     Crear Instrumento
                   </Button>
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                {instrumentos && instrumentos.length > 0 ? (
-                  <div className="space-y-4">
-                    {instrumentos.map((instrumento) => (
-                      <Card key={instrumento.id} className="border-l-4 border-purple-500 dark:bg-gray-800 shadow-sm hover:shadow-md transition-shadow duration-200 dark:border-gray-700 dark:hover:border-gray-600">
-                        <CardHeader className="pb-4">
-                          <div className="flex items-center justify-between">
-                            <div>
-                              <CardTitle className="text-lg">{instrumento.titulo}</CardTitle>
-                              <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
-                                {instrumento.tipo === 'rubrica_analitica' ? 'Rúbrica Analítica' : 
-                                 instrumento.tipo === 'lista_cotejo' ? 'Lista de Cotejo' : 
-                                 'Escala de Estimación'}
-                              </p>
-                            </div>
-                            <div className="flex items-center gap-2">
-                              <div className="flex gap-2">
-                                 <Button 
-                                   variant="outline" 
-                                   size="sm"
-                                   onClick={() => verInstrumento(instrumento)}
-                                   className="hover:bg-purple-50 hover:text-purple-700 hover:border-purple-300 dark:hover:bg-purple-900/20 dark:hover:text-purple-300 dark:hover:border-purple-600"
-                                 >
-                                   Ver
-                                 </Button>
-                                 <AlertDialog>
-                                   <AlertDialogTrigger asChild>
-                                     <Button 
-                                       variant="outline" 
-                                       size="sm"
-                                       className="text-red-600 hover:text-red-700 hover:bg-red-50 dark:text-red-400 dark:hover:text-red-300 dark:hover:bg-red-900/20 dark:border-red-800"
-                                     >
-                                       <Trash2 className="h-4 w-4 mr-1" />
-                                       Eliminar
-                                     </Button>
-                                   </AlertDialogTrigger>
-                                   <AlertDialogContent>
-                                     <AlertDialogHeader>
-                                       <AlertDialogTitle>¿Eliminar instrumento?</AlertDialogTitle>
-                                       <AlertDialogDescription>
-                                         ¿Estás seguro de que quieres eliminar "{instrumento.titulo}"? 
-                                         Esta acción no se puede deshacer.
-                                       </AlertDialogDescription>
-                                     </AlertDialogHeader>
-                                     <AlertDialogFooter>
-                                       <AlertDialogCancel>Cancelar</AlertDialogCancel>
-                                       <AlertDialogAction
-                                         onClick={() => confirmarEliminarInstrumento(instrumento)}
-                                         className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-                                       >
-                                         Eliminar
-                                       </AlertDialogAction>
-                                     </AlertDialogFooter>
-                                   </AlertDialogContent>
-                                 </AlertDialog>
-                               </div>
-                            </div>
-                          </div>
-                        </CardHeader>
-                        <CardContent className="pt-0">
-                          <p className="text-sm text-gray-600 dark:text-gray-400">
-                            Creado el {new Date(instrumento.created_at).toLocaleDateString('es-ES')}
-                          </p>
-                        </CardContent>
-                      </Card>
-                    ))}
-                  </div>
-                ) : (
-                  <div className="text-center py-12 text-gray-500">
-                    <ClipboardList className="h-16 w-16 mx-auto mb-4 text-gray-300" />
-                    <h3 className="text-lg font-medium mb-2">No hay instrumentos de evaluación</h3>
-                    <p className="mb-4">Crea tu primer instrumento de evaluación para este proyecto.</p>
-                    <Button 
-                      onClick={abrirModalCrearInstrumento}
-                      variant="default"
-                      className="bg-purple-600 hover:bg-purple-700 text-white"
-                    >
-                      <BookOpen className="h-4 w-4 mr-2" />
-                      Crear Instrumento
-                    </Button>
-                  </div>
-                )}
-              </CardContent>
-            </Card>
-          </TabsContent>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        </TabsContent>
 
-          {/* Pestaña: Recursos */}
-          <TabsContent value="recursos" className="mt-6">
-            <ProyectoRecursos proyectoId={proyectoId} />
-          </TabsContent>
-        </Tabs>
-    
+        {/* Pestaña: Recursos */}
+        <TabsContent value="recursos" className="mt-6">
+          <ProyectoRecursos proyectoId={proyectoId} />
+        </TabsContent>
+      </Tabs>
+
       {/* Modal de crear instrumento - Nueva estructura de 2 vistas */}
       <Dialog open={showInstrumentDialog} onOpenChange={handleCloseModal}>
         <DialogContent className="sm:max-w-4xl">
@@ -1517,7 +1519,7 @@ ${pdasProyecto.map((pda, index) =>
                   Completa la información básica del instrumento que deseas crear.
                 </DialogDescription>
               </DialogHeader>
-              
+
               <div className="space-y-6 py-4">
                 {/* Título del Instrumento */}
                 <div className="space-y-2">
@@ -1550,11 +1552,10 @@ ${pdasProyecto.map((pda, index) =>
                     <Button
                       type="button"
                       variant={instrumentForm.tipo === 'rubrica_analitica' ? 'default' : 'outline'}
-                      className={`h-auto p-4 justify-start ${
-                        instrumentForm.tipo === 'rubrica_analitica' 
-                          ? 'bg-purple-600 hover:bg-purple-700 text-white' 
-                          : 'hover:bg-purple-50 dark:hover:bg-purple-900/20 dark:hover:border-purple-400'
-                      }`}
+                      className={`h-auto p-4 justify-start ${instrumentForm.tipo === 'rubrica_analitica'
+                        ? 'bg-purple-600 hover:bg-purple-700 text-white'
+                        : 'hover:bg-purple-50 dark:hover:bg-purple-900/20 dark:hover:border-purple-400'
+                        }`}
                       onClick={() => {
                         setInstrumentForm(prev => ({ ...prev, tipo: 'rubrica_analitica' }))
                         if (formErrors.tipo) {
@@ -1572,15 +1573,14 @@ ${pdasProyecto.map((pda, index) =>
                         </div>
                       </div>
                     </Button>
-                    
+
                     <Button
                       type="button"
                       variant={instrumentForm.tipo === 'lista_cotejo' ? 'default' : 'outline'}
-                      className={`h-auto p-4 justify-start ${
-                        instrumentForm.tipo === 'lista_cotejo' 
-                          ? 'bg-purple-600 hover:bg-purple-700 text-white' 
-                          : 'hover:bg-purple-50 dark:hover:bg-purple-900/20 dark:hover:border-purple-400'
-                      }`}
+                      className={`h-auto p-4 justify-start ${instrumentForm.tipo === 'lista_cotejo'
+                        ? 'bg-purple-600 hover:bg-purple-700 text-white'
+                        : 'hover:bg-purple-50 dark:hover:bg-purple-900/20 dark:hover:border-purple-400'
+                        }`}
                       onClick={() => {
                         setInstrumentForm(prev => ({ ...prev, tipo: 'lista_cotejo' }))
                         if (formErrors.tipo) {
@@ -1639,7 +1639,7 @@ ${pdasProyecto.map((pda, index) =>
                   Elige los PDAs del proyecto y/o agrega criterios personalizados para generar tu {instrumentForm.tipo === 'rubrica_analitica' ? 'rúbrica analítica' : 'lista de cotejo'}.
                 </DialogDescription>
               </DialogHeader>
-              
+
               <div className="space-y-6 max-h-[75vh] overflow-y-auto">
                 {/* Sección de PDAs del Proyecto */}
                 <div className="space-y-4">
@@ -1647,7 +1647,7 @@ ${pdasProyecto.map((pda, index) =>
                     <Target className="h-5 w-5 text-blue-600" />
                     <h3 className="text-lg font-semibold">Criterios del Proyecto (PDAs)</h3>
                   </div>
-                  
+
                   {loadingPdas ? (
                     <div className="flex items-center justify-center py-8">
                       <Loader2 className="h-6 w-6 animate-spin text-blue-600" />
@@ -1657,8 +1657,8 @@ ${pdasProyecto.map((pda, index) =>
                     <ScrollArea className="h-80 border rounded-lg p-4">
                       <div className="space-y-4">
                         {pdasProyecto.map((pda) => (
-                          <div 
-                            key={pda.id} 
+                          <div
+                            key={pda.id}
                             className="flex items-start space-x-4 p-4 border rounded-lg hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors cursor-pointer"
                             onClick={() => togglePdaSelection(pda.id)}
                           >
@@ -1692,7 +1692,7 @@ ${pdasProyecto.map((pda, index) =>
                       <p>No se encontraron PDAs para este proyecto</p>
                     </div>
                   )}
-                  
+
                   {pdasSeleccionados && pdasSeleccionados.length > 0 && (
                     <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
                       <p className="text-sm font-medium text-blue-700">
@@ -1708,7 +1708,7 @@ ${pdasProyecto.map((pda, index) =>
                     <Lightbulb className="h-5 w-5 text-purple-600" />
                     <h3 className="text-lg font-semibold">Criterios Personalizados</h3>
                   </div>
-                  
+
                   <div className="space-y-3">
                     <div className="flex gap-2">
                       <Input
@@ -1733,7 +1733,7 @@ ${pdasProyecto.map((pda, index) =>
                         Añadir Criterio
                       </Button>
                     </div>
-                    
+
                     {criteriosPersonalizados && criteriosPersonalizados.length > 0 && (
                       <div className="space-y-3">
                         {criteriosPersonalizados.map((criterio, index) => (
@@ -1775,7 +1775,7 @@ ${pdasProyecto.map((pda, index) =>
                   <ArrowLeft className="h-4 w-4 mr-2" />
                   Volver
                 </Button>
-                <Button 
+                <Button
                   onClick={async () => {
                     // Validar que se haya seleccionado al menos un criterio
                     if ((!pdasSeleccionados || pdasSeleccionados.length === 0) && (!criteriosPersonalizados || criteriosPersonalizados.length === 0)) {
@@ -1785,9 +1785,9 @@ ${pdasProyecto.map((pda, index) =>
 
                     handleCloseModal();
                     setGeneratingRubrica(true);
-                    
+
                     try {
-                      
+
                       const response = await fetch('/api/generate-rubrica', {
                         method: 'POST',
                         headers: {
@@ -1803,25 +1803,25 @@ ${pdasProyecto.map((pda, index) =>
                         }),
                         cache: 'no-store'
                       });
-                      
+
                       if (!response.ok) {
                         throw new Error(`Error: ${response.status}`);
                       }
-                      
+
                       const data = await response.json();
-                      
+
                       if (data.error) {
                         throw new Error(data.error);
                       }
-                      
+
                       toast.success(`¡${instrumentForm.tipo === 'rubrica_analitica' ? 'Rúbrica' : 'Lista de cotejo'} generada con éxito!`, {
                         description: "Ya puedes utilizarla para evaluar el proyecto"
                       });
-                      
+
                       // Recargar instrumentos y cambiar a la pestaña de evaluación
                       await cargarInstrumentos();
                       setActiveTab('evaluacion');
-                      
+
                     } catch (error) {
                       console.error("Error al generar el instrumento:", error);
                       toast.error("Error al generar el instrumento", {
@@ -1863,11 +1863,11 @@ ${pdasProyecto.map((pda, index) =>
                   {instrumentoSeleccionado.titulo}
                 </DialogTitle>
                 <DialogDescription>
-                  {instrumentoSeleccionado.tipo === 'rubrica_analitica' ? 'Rúbrica Analítica' : 'Lista de Cotejo'} • 
+                  {instrumentoSeleccionado.tipo === 'rubrica_analitica' ? 'Rúbrica Analítica' : 'Lista de Cotejo'} •
                   Creado el {new Date(instrumentoSeleccionado.created_at).toLocaleDateString()}
                 </DialogDescription>
               </DialogHeader>
-              
+
               <ScrollArea className="flex-1 mt-6">
                 <div className="pr-4">
                   {instrumentoSeleccionado.tipo === 'rubrica_analitica' ? (
@@ -1877,12 +1877,12 @@ ${pdasProyecto.map((pda, index) =>
                   )}
                 </div>
               </ScrollArea>
-              
+
               <div className="flex justify-end gap-3 pt-4 border-t mt-6 flex-shrink-0">
                 <Button variant="outline" onClick={() => setShowViewDialog(false)}>
                   Cerrar
                 </Button>
-                <Button 
+                <Button
                   className="bg-purple-600 hover:bg-purple-700"
                   onClick={descargarPDF}
                   disabled={generatingPDF}
@@ -1904,7 +1904,7 @@ ${pdasProyecto.map((pda, index) =>
 
       {/* Modal para Enlazar Planeación */}
       <Dialog open={showLinkPlaneacionModal} onOpenChange={handleCloseLinkModal}>
-        <DialogContent className="max-w-4xl w-full max-h-[80vh]">
+        <DialogContent className="w-[95vw] max-w-4xl max-h-[80vh] p-4 sm:p-6">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
               <BookOpen className="h-5 w-5" />
@@ -1920,10 +1920,10 @@ ${pdasProyecto.map((pda, index) =>
             <div className="relative">
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
               <Input
-                placeholder="Buscar planeación por título, materia, grado, objetivo..."
+                placeholder="Buscar planeación..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="pl-10"
+                className="pl-10 text-sm sm:text-base"
               />
             </div>
             {searchTerm && (
@@ -1932,7 +1932,7 @@ ${pdasProyecto.map((pda, index) =>
               </p>
             )}
           </div>
-          
+
           <ScrollArea className="h-[400px] pr-4">
             {loadingPlaneaciones ? (
               <div className="flex items-center justify-center py-8">
@@ -1954,34 +1954,34 @@ ${pdasProyecto.map((pda, index) =>
             ) : (
               <div className="space-y-3">
                 {filteredPlaneaciones.map((planeacion) => (
-                  <Card 
-                    key={planeacion.id} 
+                  <Card
+                    key={planeacion.id}
                     className="cursor-pointer hover:shadow-md transition-shadow"
                     onClick={() => handleSelectPlaneacion(planeacion.id)}
                   >
                     <CardContent className="p-4">
-                      <div className="flex justify-between items-start">
-                        <div className="flex-1">
-                          <h4 className="font-semibold text-gray-900 dark:text-gray-100">
+                      <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-2">
+                        <div className="flex-1 min-w-0">
+                          <h4 className="font-semibold text-gray-900 dark:text-gray-100 break-words text-sm sm:text-base">
                             {planeacion.titulo}
                           </h4>
-                          <div className="flex items-center gap-4 mt-2 text-sm text-gray-600 dark:text-gray-400">
+                          <div className="flex flex-wrap items-center gap-2 sm:gap-4 mt-1 sm:mt-2 text-xs sm:text-sm text-gray-600 dark:text-gray-400">
                             <span className="flex items-center gap-1">
-                              <Calendar className="h-4 w-4" />
+                              <Calendar className="h-3 w-3 sm:h-4 sm:w-4 flex-shrink-0" />
                               {new Date(planeacion.created_at).toLocaleDateString("es-MX")}
                             </span>
-                            {planeacion.grado && <span>{planeacion.grado}</span>}
+                            {planeacion.grado && <span className="bg-gray-100 dark:bg-gray-800 px-2 py-0.5 rounded text-xs">{planeacion.grado}</span>}
                             {planeacion.duracion && <span>{planeacion.duracion}</span>}
                           </div>
                           {planeacion.objetivo && (
-                            <p className="text-sm text-gray-600 dark:text-gray-400 mt-2 line-clamp-2">
+                            <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-400 mt-2 line-clamp-2 break-words">
                               {planeacion.objetivo}
                             </p>
                           )}
                         </div>
-                        <Badge className="ml-4">
-                          {planeacion.metodologia === 'CIME' ? 'CIME' : 
-                           planeacion.origen === 'dosificacion' ? 'Dosificación' : 'NEM'}
+                        <Badge className="self-start sm:ml-4 text-xs whitespace-nowrap flex-shrink-0">
+                          {planeacion.metodologia === 'CIME' ? 'CIME' :
+                            planeacion.origen === 'dosificacion' ? 'Dosificación' : 'NEM'}
                         </Badge>
                       </div>
                     </CardContent>
@@ -1990,7 +1990,7 @@ ${pdasProyecto.map((pda, index) =>
               </div>
             )}
           </ScrollArea>
-          
+
           <div className="flex justify-end gap-2 pt-4">
             <Button variant="outline" onClick={handleCloseLinkModal}>
               Cancelar
@@ -2008,7 +2008,7 @@ ${pdasProyecto.map((pda, index) =>
               Confirmar Enlazado
             </DialogTitle>
           </DialogHeader>
-          
+
           <div className="space-y-4">
             <p className="text-gray-700 dark:text-gray-300">
               ¿Estás seguro de que quieres enlazar la planeación{" "}
@@ -2020,12 +2020,12 @@ ${pdasProyecto.map((pda, index) =>
                 "{selectedMomentoName}"
               </strong>?
             </p>
-            
+
             <p className="text-sm text-gray-600 dark:text-gray-400">
               Esta acción vinculará la planeación seleccionada con el momento del proyecto.
             </p>
           </div>
-          
+
           <div className="flex justify-end gap-2 pt-4">
             <Button variant="outline" onClick={handleCancelLink}>
               Cancelar
@@ -2039,7 +2039,7 @@ ${pdasProyecto.map((pda, index) =>
 
       {/* Modal para Visualizar Planeación */}
       <Dialog open={showViewModal} onOpenChange={handleCloseViewModal}>
-        <DialogContent className="max-w-4xl max-h-[80vh]">
+        <DialogContent className="w-[95vw] max-w-4xl max-h-[90vh] p-4 sm:p-6 overflow-y-auto">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
               <BookOpen className="h-5 w-5" />
@@ -2049,34 +2049,36 @@ ${pdasProyecto.map((pda, index) =>
               Planeación enlazada al momento del proyecto
             </DialogDescription>
           </DialogHeader>
-          
+
           {planeacionToView && (
             <div className="space-y-4">
               {/* Información básica de la planeación */}
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-4 p-4 bg-gray-50 dark:bg-gray-800 rounded-lg">
+              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4 p-3 sm:p-4 bg-gray-50 dark:bg-gray-800 rounded-lg">
                 <div>
-                  <Label className="text-sm font-medium text-gray-600 dark:text-gray-400">Materia</Label>
-                  <p className="text-sm font-medium">{planeacionToView.materia}</p>
+                  <Label className="text-xs sm:text-sm font-medium text-gray-600 dark:text-gray-400">Materia</Label>
+                  <p className="text-sm font-medium break-words">{planeacionToView.materia}</p>
                 </div>
                 <div>
-                  <Label className="text-sm font-medium text-gray-600 dark:text-gray-400">Grado</Label>
-                  <p className="text-sm font-medium">{planeacionToView.grado}</p>
+                  <Label className="text-xs sm:text-sm font-medium text-gray-600 dark:text-gray-400">Grado</Label>
+                  <p className="text-sm font-medium break-words">{planeacionToView.grado}</p>
                 </div>
                 <div>
-                  <Label className="text-sm font-medium text-gray-600 dark:text-gray-400">Duración</Label>
-                  <p className="text-sm font-medium">{planeacionToView.duracion}</p>
+                  <Label className="text-xs sm:text-sm font-medium text-gray-600 dark:text-gray-400">Duración</Label>
+                  <p className="text-sm font-medium break-words">{planeacionToView.duracion}</p>
                 </div>
                 <div>
-                  <Label className="text-sm font-medium text-gray-600 dark:text-gray-400">Metodología</Label>
-                  <Badge 
-                    className={
-                      planeacionToView.metodologia === 'CIME' 
-                        ? 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200'
-                        : 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200'
-                    }
-                  >
-                    {planeacionToView.metodologia || 'NEM'}
-                  </Badge>
+                  <Label className="text-xs sm:text-sm font-medium text-gray-600 dark:text-gray-400">Metodología</Label>
+                  <div className="mt-1">
+                    <Badge
+                      className={
+                        planeacionToView.metodologia === 'CIME'
+                          ? 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200 text-xs'
+                          : 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200 text-xs'
+                      }
+                    >
+                      {planeacionToView.metodologia || 'NEM'}
+                    </Badge>
+                  </div>
                 </div>
               </div>
 
@@ -2093,12 +2095,12 @@ ${pdasProyecto.map((pda, index) =>
               {/* Contenido de la planeación */}
               <div>
                 <Label className="text-sm font-medium text-gray-700 dark:text-gray-300">Contenido de la Planeación</Label>
-                <ScrollArea className="h-96 w-full border rounded-md p-4 mt-2">
+                <div className="h-64 sm:h-96 w-full border rounded-md p-3 sm:p-4 mt-2 overflow-y-auto bg-white dark:bg-gray-900">
                   {planeacionToView.contenido ? (
-                    <div 
-                      className="prose prose-sm max-w-none dark:prose-invert"
-                      dangerouslySetInnerHTML={{ 
-                        __html: convertMarkdownToHtml(planeacionToView.contenido) 
+                    <div
+                      className="prose prose-sm max-w-none dark:prose-invert break-words"
+                      dangerouslySetInnerHTML={{
+                        __html: convertMarkdownToHtml(planeacionToView.contenido)
                       }}
                     />
                   ) : (
@@ -2107,7 +2109,7 @@ ${pdasProyecto.map((pda, index) =>
                       <p>No hay contenido disponible para esta planeación</p>
                     </div>
                   )}
-                </ScrollArea>
+                </div>
               </div>
 
               {/* Fecha de creación */}
@@ -2122,19 +2124,19 @@ ${pdasProyecto.map((pda, index) =>
               </div>
             </div>
           )}
-          
-          <div className="flex justify-between pt-4">
-            <Button 
-              variant="outline" 
+
+          <div className="flex flex-col-reverse sm:flex-row justify-between pt-4 gap-3 sm:gap-0">
+            <Button
+              variant="outline"
               onClick={() => handleUnlinkPlaneacion(
                 fases.find(f => linkedPlaneaciones[f.id]?.id === planeacionToView?.id)?.id || ''
               )}
-              className="flex items-center gap-2 text-red-600 hover:text-red-700 border-red-200 hover:border-red-300"
+              className="text-red-600 hover:text-red-700 hover:bg-red-50 border-red-200 w-full sm:w-auto"
             >
-              <Unlink className="h-4 w-4" />
-              Desenlazar
+              <Trash2 className="h-4 w-4 mr-2" />
+              Desenlazar Planeación
             </Button>
-            <Button variant="outline" onClick={handleCloseViewModal}>
+            <Button variant="outline" onClick={handleCloseViewModal} className="w-full sm:w-auto">
               Cerrar
             </Button>
           </div>
@@ -2157,18 +2159,18 @@ ${pdasProyecto.map((pda, index) =>
               del momento del proyecto?
             </AlertDialogDescription>
           </AlertDialogHeader>
-          
+
           <div className="bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-lg p-4 mt-4">
             <p className="text-sm text-yellow-800 dark:text-yellow-200">
               <strong>⚠️ Advertencia:</strong> Esta acción eliminará permanentemente el enlace entre la planeación y el momento del proyecto. Podrás volver a enlazarla más tarde si es necesario.
             </p>
           </div>
-          
+
           <AlertDialogFooter>
             <AlertDialogCancel onClick={handleCancelUnlink}>
               Cancelar
             </AlertDialogCancel>
-            <AlertDialogAction 
+            <AlertDialogAction
               onClick={handleConfirmUnlink}
               className="bg-red-600 hover:bg-red-700 focus:ring-red-500"
             >
@@ -2193,7 +2195,7 @@ ${pdasProyecto.map((pda, index) =>
               </strong>
             </DialogDescription>
           </DialogHeader>
-          
+
           <div className="space-y-4">
             {/* Información del momento */}
             <div className="bg-gray-50 dark:bg-gray-800 p-4 rounded-lg">
@@ -2211,7 +2213,7 @@ ${pdasProyecto.map((pda, index) =>
 
             {/* Opciones de tipo de planeación */}
             <div className="grid gap-3">
-              <Button 
+              <Button
                 onClick={handleGenerateNEM}
                 className="flex items-center justify-between p-4 h-auto bg-green-50 hover:bg-green-100 border border-green-200 text-green-800 hover:text-green-900"
                 variant="outline"
@@ -2228,7 +2230,7 @@ ${pdasProyecto.map((pda, index) =>
                 <ArrowRight className="h-4 w-4" />
               </Button>
 
-              <Button 
+              <Button
                 onClick={handleGenerateCIME}
                 className="flex items-center justify-between p-4 h-auto bg-blue-50 hover:bg-blue-100 border border-blue-200 text-blue-800 hover:text-blue-900"
                 variant="outline"
@@ -2246,7 +2248,7 @@ ${pdasProyecto.map((pda, index) =>
               </Button>
             </div>
           </div>
-          
+
           <div className="flex justify-end gap-2 pt-4">
             <Button variant="outline" onClick={handleCloseGenerateModal}>
               Cancelar
@@ -2264,13 +2266,13 @@ ${pdasProyecto.map((pda, index) =>
               {showGeneratingView ? 'Generando Planeación CIME' : 'Asistente de Planeación CIME para Matemáticas'}
             </DialogTitle>
             <DialogDescription>
-              {showGeneratingView 
+              {showGeneratingView
                 ? 'Por favor espera mientras generamos tu planeación...'
                 : `Generando planeación para el momento: "${momentoToGenerate?.momento_nombre}"`
               }
             </DialogDescription>
           </DialogHeader>
-          
+
           {showGeneratingView ? (
             /* Vista de Generación en Progreso */
             <div className="space-y-6">
@@ -2287,7 +2289,7 @@ ${pdasProyecto.map((pda, index) =>
                     Nuestra IA está creando una planeación personalizada siguiendo la metodología CIME
                   </p>
                 </div>
-                
+
                 {/* Detalles de la planeación */}
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
                   <div className="bg-white dark:bg-gray-800 rounded-lg p-3">
@@ -2342,7 +2344,7 @@ ${pdasProyecto.map((pda, index) =>
                   </div>
                   <div>
                     <p className="text-sm text-yellow-800 dark:text-yellow-200">
-                      <strong>No cierres esta ventana</strong> mientras se genera la planeación. 
+                      <strong>No cierres esta ventana</strong> mientras se genera la planeación.
                       El proceso continuará en segundo plano, pero podrías perder la confirmación del resultado.
                     </p>
                   </div>
@@ -2463,13 +2465,13 @@ ${pdasProyecto.map((pda, index) =>
               )}
             </div>
           )}
-          
+
           {!showGeneratingView && (
             <div className="flex justify-end gap-2 pt-4">
               <Button variant="outline" onClick={handleCloseCimeForm}>
                 Cancelar
               </Button>
-              <Button 
+              <Button
                 onClick={handleGenerateCimePlaneacion}
                 disabled={!grado || !temaEspecifico || !materialPrincipal || (profile && !isUserPro(profile))}
                 className="bg-blue-600 hover:bg-blue-700"
@@ -2491,13 +2493,13 @@ ${pdasProyecto.map((pda, index) =>
               {showNemGeneratingView ? 'Generando Planeación NEM' : 'Asistente de Planeación NEM para Matemáticas'}
             </DialogTitle>
             <DialogDescription>
-              {showNemGeneratingView 
+              {showNemGeneratingView
                 ? 'Por favor espera mientras generamos tu planeación...'
                 : `Generando planeación para el momento: "${momentoToGenerate?.momento_nombre}"`
               }
             </DialogDescription>
           </DialogHeader>
-          
+
           {showNemGeneratingView ? (
             /* Vista de Generación en Progreso */
             <div className="space-y-6">
@@ -2514,7 +2516,7 @@ ${pdasProyecto.map((pda, index) =>
                     Nuestra IA está creando una planeación personalizada siguiendo la metodología NEM tradicional
                   </p>
                 </div>
-                
+
                 {/* Detalles de la planeación */}
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
                   <div className="bg-white dark:bg-gray-800 rounded-lg p-3">
@@ -2569,7 +2571,7 @@ ${pdasProyecto.map((pda, index) =>
                   </div>
                   <div>
                     <p className="text-sm text-yellow-800 dark:text-yellow-200">
-                      <strong>No cierres esta ventana</strong> mientras se genera la planeación. 
+                      <strong>No cierres esta ventana</strong> mientras se genera la planeación.
                       El proceso continuará en segundo plano, pero podrías perder la confirmación del resultado.
                     </p>
                   </div>
@@ -2683,13 +2685,13 @@ ${pdasProyecto.map((pda, index) =>
               </div>
             </div>
           )}
-          
+
           {!showNemGeneratingView && (
             <div className="flex justify-end gap-2 pt-4">
               <Button variant="outline" onClick={handleCloseNemForm}>
                 Cancelar
               </Button>
-              <Button 
+              <Button
                 onClick={handleGenerateNemPlaneacion}
                 disabled={!nemGrado || !nemTema || !nemObjetivo}
                 className="bg-green-600 hover:bg-green-700"
