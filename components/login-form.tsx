@@ -23,7 +23,7 @@ export default function LoginForm() {
   const [showForgotPassword, setShowForgotPassword] = useState(false)
   const [message, setMessage] = useState<string | null>(null)
   const searchParams = useSearchParams()
-  
+
   // Hook para logging de errores de autenticación
   const { logAuthError, logAuthFailure } = useAuthErrorLogger('LoginForm')
 
@@ -97,7 +97,7 @@ export default function LoginForm() {
         }
       }
 
-  
+
       setMessage(errorMessage)
     }
   }, [searchParams])
@@ -213,8 +213,8 @@ export default function LoginForm() {
         }
 
         // Verificar si el usuario ya existe en la base de datos
-  
-        
+
+
         // Verificar en la tabla profiles
         const { data: existingProfile, error: profileError } = await supabase
           .from('profiles')
@@ -240,7 +240,7 @@ export default function LoginForm() {
           email,
           password,
           options: {
-            emailRedirectTo: `${window.location.origin}/dashboard`,
+            emailRedirectTo: `${window.location.origin}/auth/callback?next=/dashboard`,
             data: {
               full_name: null // Este dato se usará en el trigger
             }
@@ -249,16 +249,16 @@ export default function LoginForm() {
 
         if (signUpError) {
           console.error("Error en el registro:", signUpError)
-          
+
           // Verificar si el error es porque el usuario ya existe
-          if (signUpError.message.includes('User already registered') || 
-              signUpError.message.includes('already been registered') ||
-              signUpError.message.includes('Email address already in use')) {
+          if (signUpError.message.includes('User already registered') ||
+            signUpError.message.includes('already been registered') ||
+            signUpError.message.includes('Email address already in use')) {
             setMessage("Este email ya se encuentra registrado. Por favor, intenta iniciar sesión.")
             setIsLoading(false)
             return
           }
-          
+
           throw signUpError
         }
 
@@ -279,10 +279,10 @@ export default function LoginForm() {
       }
     } catch (error: any) {
       console.error("Error completo:", error)
-      
+
       // Log del error usando el nuevo sistema
       logAuthFailure(error, isSignUp ? 'signup' : 'signin')
-      
+
       let errorMessage = "Ha ocurrido un error. "
 
       if (error.message) {
@@ -319,7 +319,7 @@ export default function LoginForm() {
     } catch (error: any) {
       // Log del error usando el nuevo sistema
       logAuthFailure(error, 'google_signin')
-      
+
       setMessage(error.message || "Error al iniciar sesión con Google")
       setIsLoading(false)
     }
@@ -328,7 +328,7 @@ export default function LoginForm() {
   // Mostrar formulario de recuperación de contraseña si está activo
   if (showForgotPassword) {
     return (
-      <ForgotPasswordForm 
+      <ForgotPasswordForm
         onBack={() => setShowForgotPassword(false)}
       />
     )
@@ -353,10 +353,10 @@ export default function LoginForm() {
 
         <CardContent className="space-y-4">
           {/* Botón de Google mejorado con colores del logo */}
-          <Button 
-            variant="outline" 
-            className="w-full bg-gradient-to-r from-blue-500 to-indigo-600 hover:from-blue-600 hover:to-indigo-700 text-white border-0 shadow-lg hover:shadow-xl transition-all duration-200 font-medium" 
-            onClick={handleGoogleAuth} 
+          <Button
+            variant="outline"
+            className="w-full bg-gradient-to-r from-blue-500 to-indigo-600 hover:from-blue-600 hover:to-indigo-700 text-white border-0 shadow-lg hover:shadow-xl transition-all duration-200 font-medium"
+            onClick={handleGoogleAuth}
             disabled={isLoading}
           >
             <Mail className="mr-2 h-4 w-4" />
