@@ -41,7 +41,7 @@ export function SubscriptionCard({ userPlan }: SubscriptionCardProps) {
   }, [userId]);
   const handleClickSubsButton = async () => {
     const url = await subscribestripe({ userId, email });
-    
+
     if (url) {
       window.location.href = url;
     }
@@ -53,7 +53,7 @@ export function SubscriptionCard({ userPlan }: SubscriptionCardProps) {
 
   const confirmCancelSubscription = async () => {
     setShowCancelModal(false);
-    
+
     startTransition(async () => {
       try {
         const response = await fetch('/api/stripe/cancel-subscription', {
@@ -63,28 +63,28 @@ export function SubscriptionCard({ userPlan }: SubscriptionCardProps) {
           },
           body: JSON.stringify({ userId }),
         });
-        
-            if (!response.ok) {
-              const errorData = await response.json();
-              throw new Error(errorData.error || 'Error al cancelar la suscripción');
-            }
-        
+
+        if (!response.ok) {
+          const errorData = await response.json();
+          throw new Error(errorData.error || 'Error al cancelar la suscripción');
+        }
+
         success('Suscripción cancelada', {
           title: '¡Listo!',
           description: 'Tu suscripción ha sido cancelada. Seguirás teniendo acceso a las funciones premium hasta el final del período de facturación.'
         });
-        
+
         // Refrescar el perfil para mostrar el nuevo estado
         if (profile) {
           // Aquí podrías llamar a refreshProfile si está disponible
           window.location.reload(); // Por ahora recargamos la página
         }
-          } catch (error: any) {
-            showError('Error al cancelar suscripción', {
-              title: 'Error',
-              description: error.message || 'No se pudo cancelar la suscripción. Por favor, intenta de nuevo más tarde.'
-            });
-          }
+      } catch (error: any) {
+        showError('Error al cancelar suscripción', {
+          title: 'Error',
+          description: error.message || 'No se pudo cancelar la suscripción. Por favor, intenta de nuevo más tarde.'
+        });
+      }
     });
   };
 
@@ -92,7 +92,7 @@ export function SubscriptionCard({ userPlan }: SubscriptionCardProps) {
   // Características de los planes
 
   const freeFeatures = [
-    { name: "5 planeaciones por mes", included: true },
+    { name: "3 planeaciones por mes", included: true },
     { name: "2 exámenes", included: true },
     { name: "Mensajes ilimitados", included: true },
     { name: "1 grupo", included: true },
@@ -150,9 +150,9 @@ export function SubscriptionCard({ userPlan }: SubscriptionCardProps) {
                     {subscriptionInfo.cancelAtPeriodEnd ? 'Finaliza el' : 'Próxima facturación'}
                   </p>
                   <p className="font-medium">
-                    {subscriptionInfo.cancelAtPeriodEnd && subscriptionInfo.endDate ? 
+                    {subscriptionInfo.cancelAtPeriodEnd && subscriptionInfo.endDate ?
                       subscriptionInfo.endDate.toLocaleDateString('es-ES', { year: 'numeric', month: 'long', day: 'numeric' })
-                      : subscriptionInfo.renewDate ? 
+                      : subscriptionInfo.renewDate ?
                         subscriptionInfo.renewDate.toLocaleDateString('es-ES', { year: 'numeric', month: 'long', day: 'numeric' })
                         : 'No disponible'
                     }
@@ -187,7 +187,7 @@ export function SubscriptionCard({ userPlan }: SubscriptionCardProps) {
                   {subscriptionInfo.status === 'cancelling' || subscriptionInfo.cancelAtPeriodEnd ? (
                     <div className="text-sm text-amber-600 p-2 bg-amber-50 rounded-md mb-2 text-center">
                       <AlertTriangle className="inline-block mr-1 h-4 w-4" />
-                      Tu suscripción finalizará el {subscriptionInfo.endDate ? 
+                      Tu suscripción finalizará el {subscriptionInfo.endDate ?
                         subscriptionInfo.endDate.toLocaleDateString('es-ES', { year: 'numeric', month: 'long', day: 'numeric' })
                         : 'N/A'
                       }.
@@ -318,11 +318,11 @@ export function SubscriptionCard({ userPlan }: SubscriptionCardProps) {
                 </h3>
               </div>
             </div>
-            
+
             <p className="text-gray-600 dark:text-gray-300 mb-6">
               ¿Estás seguro de que deseas cancelar tu suscripción? Perderás acceso a las funciones premium al final del período de facturación.
             </p>
-            
+
             <div className="flex gap-3 justify-end">
               <Button
                 variant="outline"

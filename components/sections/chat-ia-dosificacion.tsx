@@ -95,7 +95,7 @@ export function ChatIADosificacion({ onBack, onSaveSuccess, initialMessage, cont
   } = usePlaneaciones()
 
   const isPro = profile ? isUserPro(profile) : false
-  const hasReachedLimit = !planeacionesLoading && !profileLoading && !isPro && monthlyCount >= 5
+  const hasReachedLimit = !planeacionesLoading && !profileLoading && !isPro && monthlyCount >= 3
 
   const { messages, input, handleInputChange, handleSubmit: originalHandleSubmit, isLoading, error, append } = useChat({
     api: "/api/chat",
@@ -163,7 +163,7 @@ ${(contenidosSeleccionados || []).map((c, i) => `${i + 1}. ${c.contenido}`).join
         icon: 'warning',
         title: 'Límite mensual alcanzado',
         html: `
-          <p>Has creado <strong>${monthlyCount}/5</strong> planeaciones este mes con tu plan gratuito.</p>
+          <p>Has creado <strong>${monthlyCount}/3</strong> planeaciones este mes con tu plan gratuito.</p>
           <p class="mt-2">Actualiza a <strong>PRO</strong> para crear planeaciones ilimitadas.</p>
         `,
         confirmButtonText: 'Entendido',
@@ -313,7 +313,7 @@ ${(contenidosSeleccionados || []).map((c, i) => `${i + 1}. ${c.contenido}`).join
                   Límite mensual de planeaciones alcanzado
                 </h3>
                 <p className="text-sm text-orange-700 dark:text-orange-300">
-                  Has creado {monthlyCount} de 5 planeaciones permitidas este mes con tu plan gratuito.
+                  Has creado {monthlyCount} de 3 planeaciones permitidas este mes con tu plan gratuito.
                 </p>
                 <div className="flex items-center gap-2 pt-2">
                   <Button size="sm" className="bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700">

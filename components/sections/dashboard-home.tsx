@@ -83,7 +83,7 @@ export function DashboardHome({ onSectionChange, onOpenPlaneacion }: DashboardHo
 
   // Determinar si el usuario es pro y los límites
   const isPro = profile ? isUserPro(profile) : false
-  const planeacionesLimit = isPro ? -1 : 5 // -1 significa ilimitado
+  const planeacionesLimit = isPro ? -1 : 3 // -1 significa ilimitado
   const examenesLimit = isPro ? -1 : -1 // Los exámenes son ilimitados para todos por ahora
 
   const loadDashboardData = async () => {
@@ -707,7 +707,7 @@ export function DashboardHome({ onSectionChange, onOpenPlaneacion }: DashboardHo
                 <span>Planeaciones creadas este mes</span>
                 <span>
                   <span className="notranslate">{monthlyPlaneaciones}</span>
-                  {isPro ? " (Ilimitadas)" : `/5`}
+                  {isPro ? " (Ilimitadas)" : `/3`}
                 </span>
               </div>
               {isPro ? (
@@ -717,8 +717,8 @@ export function DashboardHome({ onSectionChange, onOpenPlaneacion }: DashboardHo
                 </div>
               ) : (
                 <>
-                  <Progress value={(monthlyPlaneaciones / 5) * 100} className="h-2" />
-                  {monthlyPlaneaciones >= 5 && (
+                  <Progress value={(monthlyPlaneaciones / 3) * 100} className="h-2" />
+                  {monthlyPlaneaciones >= 3 && (
                     <div className="text-sm text-amber-600 mt-1">
                       ⚠️ Has alcanzado el límite mensual. Actualiza a PRO para planeaciones ilimitadas.
                     </div>

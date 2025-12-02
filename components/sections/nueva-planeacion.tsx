@@ -55,7 +55,7 @@ export function NuevaPlaneacion({ onCreateClass, onNavigateToChatWithMessage, on
   const getMesCompleto = (mesAbreviado: string) => {
     const meses: { [key: string]: string } = {
       'ENE': 'Enero',
-      'FEB': 'Febrero', 
+      'FEB': 'Febrero',
       'MAR': 'Marzo',
       'ABR': 'Abril',
       'MAY': 'Mayo',
@@ -69,9 +69,9 @@ export function NuevaPlaneacion({ onCreateClass, onNavigateToChatWithMessage, on
     }
     return meses[mesAbreviado] || mesAbreviado
   }
-  const hasReachedLimit = !planeacionesLoading && !profileLoading && !isPro && monthlyCount >= 5
+  const hasReachedLimit = !planeacionesLoading && !profileLoading && !isPro && monthlyCount >= 3
   const [vistaActual, setVistaActual] = useState<"principal" | "dosificacion">("principal")
-  
+
   // Estados para la funcionalidad de dosificación
   const [contexto, setContexto] = useState<ContextoTrabajo | null>(null)
   const [contenidosMesActual, setContenidosMesActual] = useState<ContenidoDosificado[]>([])
@@ -270,15 +270,15 @@ export function NuevaPlaneacion({ onCreateClass, onNavigateToChatWithMessage, on
       alert('Por favor selecciona al menos un contenido para generar la planeación')
       return
     }
-    
+
     // Obtener los contenidos seleccionados
-    const contenidosSeleccionadosData = contenidosMesActual.filter(contenido => 
+    const contenidosSeleccionadosData = contenidosMesActual.filter(contenido =>
       contenidosSeleccionados.has(contenido.contenido_id)
     )
-    
+
     // Crear el mensaje prellenado con la información de los contenidos
     const mensajePrellenado = crearMensajePrellenado(contenidosSeleccionadosData)
-    
+
     // Navegar al chat específico de dosificación con todos los datos
     onNavigateToChatDosificacion({
       contenidos: contenidosSeleccionadosData,
@@ -291,20 +291,20 @@ export function NuevaPlaneacion({ onCreateClass, onNavigateToChatWithMessage, on
   // Función para crear el mensaje prellenado basado en los contenidos seleccionados
   const crearMensajePrellenado = (contenidos: ContenidoDosificado[]) => {
     if (contenidos.length === 0) return ""
-    
+
     const primerContenido = contenidos[0]
     const camposFormativos = [...new Set(contenidos.map(c => c.campo_formativo))]
-    
+
     let mensaje = `Necesito una planeación didáctica para ${contexto ? getGradoTexto(contexto.grado) : 'el grado especificado'}. `
-    
+
     if (camposFormativos.length === 1) {
       mensaje += `La materia es ${camposFormativos[0]}. `
     } else {
       mensaje += `Las materias son: ${camposFormativos.join(', ')}. `
     }
-    
+
     mensaje += `Los contenidos específicos que debo desarrollar son:\n\n`
-    
+
     contenidos.forEach((contenido, index) => {
       mensaje += `${index + 1}. **${contenido.contenido}**\n`
       mensaje += `   - PDA: ${contenido.pda}\n`
@@ -313,9 +313,9 @@ export function NuevaPlaneacion({ onCreateClass, onNavigateToChatWithMessage, on
       }
       mensaje += `\n`
     })
-    
+
     mensaje += `Por favor, crea una planeación didáctica completa que integre estos contenidos de manera coherente y siguiendo los lineamientos del Nuevo Marco Curricular Mexicano. La duración estimada es de 50 minutos.`
-    
+
     return mensaje
   }
 
@@ -420,11 +420,11 @@ export function NuevaPlaneacion({ onCreateClass, onNavigateToChatWithMessage, on
                       ))}
                     </div>
                   </div>
-                  
+
                   {/* Botón para generar planeación */}
                   {contenidosSeleccionados.size > 0 && (
                     <div className="flex justify-end">
-                      <Button 
+                      <Button
                         onClick={generarPlaneacion}
                         className="bg-orange-600 hover:bg-orange-700"
                       >
@@ -472,68 +472,66 @@ export function NuevaPlaneacion({ onCreateClass, onNavigateToChatWithMessage, on
               <div className="space-y-4">
                 <div className="grid gap-4">
                   {obtenerContenidosPaginados().map((contenido) => {
-                  const isSelected = contenidosSeleccionados.has(contenido.contenido_id)
-                  
-                  return (
-                    <Card 
-                      key={contenido.contenido_id}
-                      className={`cursor-pointer transition-all duration-200 ${
-                        isSelected 
-                          ? 'border-orange-500 bg-orange-50 dark:bg-orange-950/20' 
-                          : 'hover:border-orange-300 hover:shadow-md'
-                      }`}
-                      onClick={() => handleSeleccionarContenido(contenido.contenido_id)}
-                    >
-                      <CardContent className="pt-6">
-                        <div className="flex items-start gap-4">
-                          <div className={`w-6 h-6 rounded border-2 flex items-center justify-center mt-1 ${
-                            isSelected 
-                              ? 'bg-orange-500 border-orange-500' 
-                              : 'border-gray-300'
-                          }`}>
-                            {isSelected && <Check className="w-4 h-4 text-white" />}
-                          </div>
-                          <div className="flex-1">
-                            <div className="flex items-center gap-2 mb-2">
-                              <Badge variant="outline" className="text-xs">
-                                {contenido.campo_formativo}
-                              </Badge>
+                    const isSelected = contenidosSeleccionados.has(contenido.contenido_id)
+
+                    return (
+                      <Card
+                        key={contenido.contenido_id}
+                        className={`cursor-pointer transition-all duration-200 ${isSelected
+                            ? 'border-orange-500 bg-orange-50 dark:bg-orange-950/20'
+                            : 'hover:border-orange-300 hover:shadow-md'
+                          }`}
+                        onClick={() => handleSeleccionarContenido(contenido.contenido_id)}
+                      >
+                        <CardContent className="pt-6">
+                          <div className="flex items-start gap-4">
+                            <div className={`w-6 h-6 rounded border-2 flex items-center justify-center mt-1 ${isSelected
+                                ? 'bg-orange-500 border-orange-500'
+                                : 'border-gray-300'
+                              }`}>
+                              {isSelected && <Check className="w-4 h-4 text-white" />}
                             </div>
-                            <h4 className="font-medium text-gray-900 dark:text-gray-100 mb-2">
-                              {contenido.contenido}
-                            </h4>
-                            <p className="text-sm text-gray-600 dark:text-gray-400 mb-2">
-                              <strong>PDA:</strong> {contenido.pda}
-                            </p>
-                            {contenido.ejes_articuladores && (
-                              <p className="text-xs text-gray-500 dark:text-gray-500">
-                                <strong>Ejes articuladores:</strong> {contenido.ejes_articuladores}
+                            <div className="flex-1">
+                              <div className="flex items-center gap-2 mb-2">
+                                <Badge variant="outline" className="text-xs">
+                                  {contenido.campo_formativo}
+                                </Badge>
+                              </div>
+                              <h4 className="font-medium text-gray-900 dark:text-gray-100 mb-2">
+                                {contenido.contenido}
+                              </h4>
+                              <p className="text-sm text-gray-600 dark:text-gray-400 mb-2">
+                                <strong>PDA:</strong> {contenido.pda}
                               </p>
-                            )}
+                              {contenido.ejes_articuladores && (
+                                <p className="text-xs text-gray-500 dark:text-gray-500">
+                                  <strong>Ejes articuladores:</strong> {contenido.ejes_articuladores}
+                                </p>
+                              )}
+                            </div>
                           </div>
-                        </div>
-                      </CardContent>
-                    </Card>
-                  )
-                })}
+                        </CardContent>
+                      </Card>
+                    )
+                  })}
                 </div>
-                
+
                 {/* Información de paginación y controles */}
                 {obtenerTotalPaginas() > 1 && (
                   <div className="flex items-center justify-between pt-4">
                     <div className="text-sm text-gray-600 dark:text-gray-400">
                       Mostrando {((paginaActual - 1) * tamañoPagina) + 1} - {Math.min(paginaActual * tamañoPagina, obtenerContenidosFiltrados().length)} de {obtenerContenidosFiltrados().length} contenidos
                     </div>
-                    
+
                     <Pagination>
                       <PaginationContent>
                         <PaginationItem>
-                          <PaginationPrevious 
+                          <PaginationPrevious
                             onClick={() => cambiarPagina(paginaActual - 1)}
                             className={paginaActual === 1 ? "pointer-events-none opacity-50" : "cursor-pointer"}
                           />
                         </PaginationItem>
-                        
+
                         {Array.from({ length: obtenerTotalPaginas() }, (_, i) => i + 1).map((pagina) => (
                           <PaginationItem key={pagina}>
                             <PaginationLink
@@ -545,9 +543,9 @@ export function NuevaPlaneacion({ onCreateClass, onNavigateToChatWithMessage, on
                             </PaginationLink>
                           </PaginationItem>
                         ))}
-                        
+
                         <PaginationItem>
-                          <PaginationNext 
+                          <PaginationNext
                             onClick={() => cambiarPagina(paginaActual + 1)}
                             className={paginaActual === obtenerTotalPaginas() ? "pointer-events-none opacity-50" : "cursor-pointer"}
                           />
@@ -573,7 +571,7 @@ export function NuevaPlaneacion({ onCreateClass, onNavigateToChatWithMessage, on
             <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100">Nueva Planeación</h1>
             <p className="text-gray-600 mt-2">Crea una nueva planeación didáctica para tus clases de primaria</p>
           </div>
-          
+
           <div className="flex items-center justify-center py-12">
             <div className="flex items-center gap-3">
               <Loader2 className="w-6 h-6 animate-spin text-blue-600" />
@@ -591,7 +589,7 @@ export function NuevaPlaneacion({ onCreateClass, onNavigateToChatWithMessage, on
         <div>
           <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100">Nueva Planeación</h1>
           <p className="text-gray-600 mt-2">Crea una nueva planeación didáctica para tus clases de primaria</p>
-          
+
           {hasReachedLimit && (
             <Card className="mt-4 border-orange-200 bg-orange-50 dark:bg-orange-950/20">
               <CardContent className="pt-6">
@@ -602,7 +600,7 @@ export function NuevaPlaneacion({ onCreateClass, onNavigateToChatWithMessage, on
                       Límite mensual de planeaciones alcanzado
                     </h3>
                     <p className="text-sm text-orange-700 dark:text-orange-300">
-                      Has creado {monthlyCount} de 5 planeaciones permitidas este mes con tu plan gratuito.
+                      Has creado {monthlyCount} de 3 planeaciones permitidas este mes con tu plan gratuito.
                     </p>
                     <div className="flex items-center gap-2 pt-2">
                       <Button size="sm" className="bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700">
@@ -626,12 +624,12 @@ export function NuevaPlaneacion({ onCreateClass, onNavigateToChatWithMessage, on
 
             if (planType.enabled) {
               // Tarjeta habilitada
-              const handleClick = planType.id === "dosificacion" 
-                ? handlePlaneacionDesdeDosificacion 
+              const handleClick = planType.id === "dosificacion"
+                ? handlePlaneacionDesdeDosificacion
                 : planType.id === "cime"
-                ? onNavigateToCime
-                : onCreateClass
-              
+                  ? onNavigateToCime
+                  : onCreateClass
+
               return (
                 <Card
                   key={planType.id}
@@ -657,7 +655,7 @@ export function NuevaPlaneacion({ onCreateClass, onNavigateToChatWithMessage, on
               // Tarjeta deshabilitada con tooltip
               const isLimitReached = planType.id === "individual" && hasReachedLimit
               const requiresPro = planType.requiresPro && !isPro
-              
+
               return (
                 <Tooltip key={planType.id}>
                   <TooltipTrigger asChild>
@@ -696,7 +694,7 @@ export function NuevaPlaneacion({ onCreateClass, onNavigateToChatWithMessage, on
                           <AlertTriangle className="w-4 h-4" />
                           Límite mensual alcanzado
                         </p>
-                        <p className="text-sm">Has creado {monthlyCount}/5 planeaciones este mes</p>
+                        <p className="text-sm">Has creado {monthlyCount}/3 planeaciones este mes</p>
                         <p className="text-sm flex items-center gap-1">
                           <Crown className="w-3 h-3" />
                           Actualiza a PRO para crear ilimitadas

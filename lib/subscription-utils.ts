@@ -2,15 +2,15 @@ import { Profile } from './profile';
 import { supabase } from './supabase';
 
 // Tipos para los estados de suscripción
-export type SubscriptionStatus = 
-  | 'active' 
-  | 'cancelled' 
-  | 'cancelling' 
-  | 'past_due' 
-  | 'unpaid' 
-  | 'incomplete' 
-  | 'incomplete_expired' 
-  | 'trialing' 
+export type SubscriptionStatus =
+  | 'active'
+  | 'cancelled'
+  | 'cancelling'
+  | 'past_due'
+  | 'unpaid'
+  | 'incomplete'
+  | 'incomplete_expired'
+  | 'trialing'
   | 'paused';
 
 export type SubscriptionPlan = 'free' | 'pro';
@@ -54,7 +54,7 @@ export function isSubscriptionActive(status: SubscriptionStatus | null): boolean
  */
 export function getUserLimits(profile: Profile): UserLimits {
   const isPro = isUserPro(profile);
-  
+
   if (isPro) {
     return {
       planeaciones_limit: -1, // Ilimitado
@@ -63,10 +63,10 @@ export function getUserLimits(profile: Profile): UserLimits {
       proyectos_limit: -1 // Ilimitado
     };
   }
-  
+
   return {
-    planeaciones_limit: 5,
-    examenes_limit: 2,
+    planeaciones_limit: 3,
+    examenes_limit: -1, // Ilimitado
     mensajes_limit: 10,
     proyectos_limit: 1
   };
@@ -83,9 +83,9 @@ export function getSubscriptionInfo(profile: Profile): SubscriptionInfo {
   const endDate = profile.subscription_end_date ? new Date(profile.subscription_end_date) : null;
   const renewDate = profile.subscription_renew_date ? new Date(profile.subscription_renew_date) : null;
   const cancelAtPeriodEnd = profile.cancel_at_period_end;
-  
+
   let displayStatus: string;
-  
+
   if (plan === 'pro' && status === 'active') {
     displayStatus = 'Suscripción Pro Activa';
   } else if (plan === 'pro' && status === 'cancelled') {
@@ -99,7 +99,7 @@ export function getSubscriptionInfo(profile: Profile): SubscriptionInfo {
   } else {
     displayStatus = 'Plan Gratuito';
   }
-  
+
   return {
     plan,
     status,
@@ -116,7 +116,7 @@ export function getSubscriptionInfo(profile: Profile): SubscriptionInfo {
  * Verifica si un usuario puede crear más elementos basado en sus límites
  */
 export async function canUserCreate(
-  userId: string, 
+  userId: string,
   type: 'planeaciones' | 'examenes' | 'mensajes' | 'proyectos'
 ): Promise<{ canCreate: boolean; currentCount: number; limit: number; message?: string }> {
   try {
@@ -126,16 +126,16 @@ export async function canUserCreate(
       .select('*')
       .eq('id', userId)
       .single();
-    
+
     if (profileError || !profile) {
       throw new Error('No se pudo obtener el perfil del usuario');
     }
-    
+
     const limits = getUserLimits(profile as Profile);
-    
+
     let currentCount = 0;
     let limit = 0;
-    
+
     // Obtener el límite específico
     switch (type) {
       case 'planeaciones':
@@ -144,7 +144,7 @@ export async function canUserCreate(
         const currentDate = new Date();
         const startOfMonth = new Date(currentDate.getFullYear(), currentDate.getMonth(), 1).toISOString();
         const endOfMonth = new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 0, 23, 59, 59, 999).toISOString();
-        
+
         const { count: planeacionesCount } = await supabase
           .from('planeacion_creations')
           .select('*', { count: 'exact', head: true })
@@ -153,7 +153,7 @@ export async function canUserCreate(
           .lte('created_at', endOfMonth);
         currentCount = planeacionesCount || 0;
         break;
-        
+
       case 'examenes':
         limit = limits.examenes_limit;
         // Contar exámenes creados lifetime desde exam_creations
@@ -163,7 +163,7 @@ export async function canUserCreate(
           .eq('user_id', userId);
         currentCount = examenesCount || 0;
         break;
-        
+
       case 'mensajes':
         limit = limits.mensajes_limit;
         // Contar mensajes actuales del día
@@ -171,7 +171,7 @@ export async function canUserCreate(
         today.setHours(0, 0, 0, 0);
         const tomorrow = new Date(today);
         tomorrow.setDate(tomorrow.getDate() + 1);
-        
+
         const { count: mensajesCount } = await supabase
           .from('messages')
           .select('*', { count: 'exact', head: true })
@@ -180,33 +180,33 @@ export async function canUserCreate(
           .lt('created_at', tomorrow.toISOString());
         currentCount = mensajesCount || 0;
         break;
-        
+
       case 'proyectos':
         limit = limits.proyectos_limit;
-        
+
         const { data: proyectosData, error: proyectosError } = await supabase
           .from('project_creations')
           .select('*')
           .eq('user_id', userId);
-        
+
         if (proyectosError) {
           // Log error but continue
         }
-        
+
         currentCount = proyectosData?.length || 0;
         break;
     }
-    
+
     // Si el límite es -1, es ilimitado
     const canCreate = limit === -1 || currentCount < limit;
-    
+
     return {
       canCreate,
       currentCount,
       limit,
       message: canCreate ? undefined : `Has alcanzado el límite de ${limit} ${type} para el plan gratuito`
     };
-    
+
   } catch (error) {
     return {
       canCreate: false,
@@ -241,12 +241,12 @@ export async function updateUserSubscription(
         updated_at: new Date().toISOString()
       })
       .eq('id', userId);
-    
+
     if (error) {
       console.error('Error actualizando suscripción:', error);
       return false;
     }
-    
+
     return true;
   } catch (error) {
     console.error('Error actualizando suscripción:', error);
@@ -303,14 +303,14 @@ export async function canUserCreateGroup(userId: string): Promise<{
 
     // Verificar si es usuario Pro
     const isPro = isUserPro(profile);
-    
+
     // Si es Pro, puede crear grupos ilimitados
     if (isPro) {
       const { count } = await supabase
         .from('group_creations')
         .select('*', { count: 'exact', head: true })
         .eq('user_id', userId);
-      
+
       return {
         canCreate: true,
         currentCount: count || 0,
@@ -361,7 +361,7 @@ export async function getUserUsageStats(userId: string): Promise<{
     canUserCreate(userId, 'mensajes'),
     canUserCreateGroup(userId)
   ]);
-  
+
   return {
     planeaciones: { count: planeaciones.currentCount, limit: planeaciones.limit },
     examenes: { count: examenes.currentCount, limit: examenes.limit },

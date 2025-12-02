@@ -110,7 +110,7 @@ export function ChatIA({ onBack, onSaveSuccess, initialMessage }: ChatIAProps) {
   } = usePlaneaciones()
 
   const isPro = profile ? isUserPro(profile) : false
-  const hasReachedLimit = !planeacionesLoading && !profileLoading && !isPro && monthlyCount >= 5
+  const hasReachedLimit = !planeacionesLoading && !profileLoading && !isPro && monthlyCount >= 3
 
   const { messages, input, handleInputChange, handleSubmit: originalHandleSubmit, isLoading, error } = useChat({
     api: "/api/chat",
@@ -177,7 +177,7 @@ Puedes contarme:
         icon: 'warning',
         title: 'Límite mensual alcanzado',
         html: `
-          <p>Has creado <strong>${monthlyCount}/5</strong> planeaciones este mes con tu plan gratuito.</p>
+          <p>Has creado <strong>${monthlyCount}/3</strong> planeaciones este mes con tu plan gratuito.</p>
           <p class="mt-2">Actualiza a <strong>PRO</strong> para crear planeaciones ilimitadas.</p>
         `,
         confirmButtonText: 'Entendido',
@@ -364,7 +364,7 @@ Puedes contarme:
                   Límite mensual de planeaciones alcanzado
                 </h3>
                 <p className="text-sm text-orange-700 dark:text-orange-300">
-                  Has creado {monthlyCount} de 5 planeaciones permitidas este mes con tu plan gratuito.
+                  Has creado {monthlyCount} de 3 planeaciones permitidas este mes con tu plan gratuito.
                   No puedes generar nuevas planeaciones hasta el próximo mes.
                 </p>
                 <div className="flex items-center gap-2 pt-2">
