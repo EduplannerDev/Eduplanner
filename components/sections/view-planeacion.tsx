@@ -7,6 +7,7 @@ import { ArrowLeft, Calendar, Clock, Target, BookOpen, Loader2 } from "lucide-re
 import { usePlaneaciones } from "@/hooks/use-planeaciones"
 import { useState, useEffect } from "react"
 import type { Planeacion } from "@/lib/planeaciones"
+import { useToast } from "@/hooks/use-toast"
 
 interface ViewPlaneacionProps {
   planeacionId: string
@@ -21,12 +22,21 @@ function cleanMarkdown(text: string): string {
 
 export function ViewPlaneacion({ planeacionId, onBack }: ViewPlaneacionProps) {
   const { getPlaneacion } = usePlaneaciones()
+  const { toast } = useToast()
   const [planeacion, setPlaneacion] = useState<Planeacion | null>(null)
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
     loadPlaneacion()
   }, [planeacionId])
+
+  const showCopyWarning = () => {
+    toast({
+      title: "Acción no permitida",
+      description: "No es posible seleccionar ni copiar texto. Debes guardar la planeación para poder descargarla en PDF.",
+      variant: "destructive",
+    })
+  }
 
   // Proteger contra atajos de teclado para copiar
   useEffect(() => {
@@ -41,12 +51,14 @@ export function ViewPlaneacion({ planeacionId, onBack }: ViewPlaneacionProps) {
       ) {
         e.preventDefault()
         e.stopPropagation()
+        showCopyWarning()
         return false
       }
     }
 
     const handleContextMenu = (e: Event) => {
       e.preventDefault()
+      showCopyWarning()
       return false
     }
 
@@ -100,17 +112,20 @@ export function ViewPlaneacion({ planeacionId, onBack }: ViewPlaneacionProps) {
   }
 
   return (
-    <div 
-      className="space-y-6 max-w-4xl mx-auto select-none w-full overflow-hidden px-2 sm:px-0" 
-      style={{ 
-        userSelect: 'none', 
-        WebkitUserSelect: 'none', 
-        MozUserSelect: 'none', 
+    <div
+      className="space-y-6 max-w-4xl mx-auto select-none w-full overflow-hidden px-2 sm:px-0"
+      style={{
+        userSelect: 'none',
+        WebkitUserSelect: 'none',
+        MozUserSelect: 'none',
         msUserSelect: 'none',
         WebkitTouchCallout: 'none',
         WebkitTapHighlightColor: 'transparent'
       }}
-      onContextMenu={(e) => e.preventDefault()}
+      onContextMenu={(e) => {
+        e.preventDefault()
+        showCopyWarning()
+      }}
       onDragStart={(e) => e.preventDefault()}
     >
       {/* Header */}
@@ -129,10 +144,10 @@ export function ViewPlaneacion({ planeacionId, onBack }: ViewPlaneacionProps) {
       </div>
 
       {/* Botón flotante Volver - Solo visible en móviles */}
-      <Button 
-        variant="default" 
-        size="icon" 
-        onClick={onBack} 
+      <Button
+        variant="default"
+        size="icon"
+        onClick={onBack}
         className="fixed bottom-20 left-4 z-50 bg-primary hover:bg-primary/90 text-primary-foreground shadow-lg rounded-full w-12 h-12 sm:hidden"
         aria-label="Volver"
       >
@@ -186,11 +201,12 @@ export function ViewPlaneacion({ planeacionId, onBack }: ViewPlaneacionProps) {
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <p 
+            <p
               className="text-gray-900 dark:text-gray-100 leading-relaxed select-none"
               style={{ userSelect: 'none', WebkitUserSelect: 'none', MozUserSelect: 'none', msUserSelect: 'none' }}
               onContextMenu={(e) => e.preventDefault()}
               onDragStart={(e) => e.preventDefault()}
+              onClick={showCopyWarning}
             >
               {planeacion.objetivo ? cleanMarkdown(planeacion.objetivo) : ""}
             </p>
@@ -205,15 +221,22 @@ export function ViewPlaneacion({ planeacionId, onBack }: ViewPlaneacionProps) {
           <CardDescription>Desarrollo completo de la clase</CardDescription>
         </CardHeader>
         <CardContent>
-          <div 
+          <div
             className="bg-gray-50 dark:bg-gray-800 p-6 rounded-lg border dark:border-gray-700 select-none"
             style={{ userSelect: 'none', WebkitUserSelect: 'none', MozUserSelect: 'none', msUserSelect: 'none' }}
             onContextMenu={(e) => e.preventDefault()}
             onDragStart={(e) => e.preventDefault()}
-            onCopy={(e) => e.preventDefault()}
-            onCut={(e) => e.preventDefault()}
+            onCopy={(e) => {
+              e.preventDefault()
+              showCopyWarning()
+            }}
+            onCut={(e) => {
+              e.preventDefault()
+              showCopyWarning()
+            }}
+            onClick={showCopyWarning}
           >
-            <div 
+            <div
               className="prose prose-sm max-w-none dark:prose-invert text-gray-900 dark:text-gray-100 leading-relaxed select-none"
               style={{ userSelect: 'none', WebkitUserSelect: 'none', MozUserSelect: 'none', msUserSelect: 'none' }}
               dangerouslySetInnerHTML={{ __html: planeacion.contenido || "" }}

@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -14,6 +14,7 @@ import { useProfile } from "@/hooks/use-profile"
 import { isUserPro } from "@/lib/subscription-utils"
 import { usePlaneaciones } from "@/hooks/use-planeaciones"
 import { getCleanContentForSaving } from "@/lib/planeaciones"
+import { useToast } from "@/hooks/use-toast"
 
 interface PlaneacionCimeProps {
   onBack: () => void
@@ -61,6 +62,7 @@ export function PlaneacionCime({ onBack, onSuccess }: PlaneacionCimeProps) {
   const { user } = useAuth()
   const { profile, loading: profileLoading } = useProfile()
   const { createPlaneacion, creating, canCreateMore } = usePlaneaciones()
+  const { toast } = useToast()
   const [formData, setFormData] = useState<CimeFormData>({
     grado: "",
     temaEspecifico: "",
@@ -72,6 +74,49 @@ export function PlaneacionCime({ onBack, onSuccess }: PlaneacionCimeProps) {
   const [generatedContent, setGeneratedContent] = useState<string>("")
 
   const isPro = profile ? isUserPro(profile) : false
+
+  const showCopyWarning = () => {
+    toast({
+      title: "Acción no permitida",
+      description: "No es posible seleccionar ni copiar texto. Debes guardar la planeación para poder descargarla en PDF.",
+      variant: "destructive",
+    })
+  }
+
+  // Proteger contra atajos de teclado para copiar cuando hay contenido generado
+  useEffect(() => {
+    if (!generatedContent) return
+
+    const handleKeyDown = (e: KeyboardEvent) => {
+      // Bloquear Ctrl+C, Ctrl+A, Ctrl+V, Ctrl+X, F12
+      if (
+        (e.ctrlKey && (e.key === 'c' || e.key === 'a' || e.key === 'v' || e.key === 'x')) ||
+        e.key === 'F12' ||
+        (e.ctrlKey && e.shiftKey && e.key === 'I') || // DevTools
+        (e.ctrlKey && e.shiftKey && e.key === 'J') || // Console
+        (e.ctrlKey && e.key === 'u') // View Source
+      ) {
+        e.preventDefault()
+        e.stopPropagation()
+        showCopyWarning()
+        return false
+      }
+    }
+
+    const handleContextMenu = (e: Event) => {
+      e.preventDefault()
+      showCopyWarning()
+      return false
+    }
+
+    document.addEventListener('keydown', handleKeyDown)
+    document.addEventListener('contextmenu', handleContextMenu)
+
+    return () => {
+      document.removeEventListener('keydown', handleKeyDown)
+      document.removeEventListener('contextmenu', handleContextMenu)
+    }
+  }, [generatedContent])
 
   const handleInputChange = (field: keyof CimeFormData, value: string) => {
     setFormData(prev => ({
@@ -349,8 +394,8 @@ Por favor, crea una planeación siguiendo las 3 etapas del método CIME: Concret
                       key={material.value}
                       onClick={() => handleMaterialSelect(material.value)}
                       className={`p-4 border-2 rounded-lg text-left transition-all hover:shadow-md ${formData.material === material.value
-                          ? "border-blue-500 bg-blue-50 dark:bg-blue-900/20"
-                          : "border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600"
+                        ? "border-blue-500 bg-blue-50 dark:bg-blue-900/20"
+                        : "border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600"
                         }`}
                     >
                       <div className="space-y-2">
@@ -494,10 +539,30 @@ Por favor, crea una planeación siguiendo las 3 etapas del método CIME: Concret
                 </CardDescription>
               </CardHeader>
               <CardContent>
-                <div className="bg-gray-50 dark:bg-gray-800 p-6 rounded-lg border">
+                <div
+                  className="bg-gray-50 dark:bg-gray-800 p-6 rounded-lg border select-none"
+                  style={{ userSelect: 'none', WebkitUserSelect: 'none', MozUserSelect: 'none', msUserSelect: 'none' }}
+                  onContextMenu={(e) => {
+                    e.preventDefault()
+                    showCopyWarning()
+                  }}
+                  onDragStart={(e) => e.preventDefault()}
+                  onCopy={(e) => {
+                    e.preventDefault()
+                    showCopyWarning()
+                  }}
+                  onCut={(e) => {
+                    e.preventDefault()
+                    showCopyWarning()
+                  }}
+                  onClick={showCopyWarning}
+                >
                   <div
-                    className="prose prose-sm max-w-none dark:prose-invert text-gray-900 dark:text-gray-100 leading-relaxed"
+                    className="prose prose-sm max-w-none dark:prose-invert text-gray-900 dark:text-gray-100 leading-relaxed select-none"
+                    style={{ userSelect: 'none', WebkitUserSelect: 'none', MozUserSelect: 'none', msUserSelect: 'none' }}
                     dangerouslySetInnerHTML={{ __html: generatedContent }}
+                    onContextMenu={(e) => e.preventDefault()}
+                    onDragStart={(e) => e.preventDefault()}
                   />
                 </div>
               </CardContent>

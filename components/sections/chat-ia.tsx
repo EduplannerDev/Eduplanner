@@ -61,6 +61,7 @@ import { isUserPro } from "@/lib/subscription-utils"
 import { extractPlaneacionInfo, getCleanContentForSaving } from "@/lib/planeaciones"
 import { WelcomeMessage } from "@/components/ui/welcome-message"
 import Swal from 'sweetalert2'
+import { useToast } from "@/hooks/use-toast"
 
 interface ChatIAProps {
   onBack: () => void
@@ -74,6 +75,15 @@ export function ChatIA({ onBack, onSaveSuccess, initialMessage }: ChatIAProps) {
   const [lastPlaneacionContent, setLastPlaneacionContent] = useState<string>("")
   const [showSaveButton, setShowSaveButton] = useState(false)
   const [savedPlaneacionId, setSavedPlaneacionId] = useState<string | null>(null)
+  const { toast } = useToast()
+
+  const showCopyWarning = () => {
+    toast({
+      title: "Acción no permitida",
+      description: "No es posible seleccionar ni copiar texto. Debes guardar la planeación para poder descargarla en PDF.",
+      variant: "destructive",
+    })
+  }
 
   // Estados para el sistema de feedback de calidad
   const [showQualityFeedback, setShowQualityFeedback] = useState(false)
@@ -439,7 +449,18 @@ Puedes contarme:
                         {message.role === "assistant" ? (
                           <div
                             className="text-sm text-gray-900 dark:text-gray-100 leading-relaxed select-none notranslate"
+                            style={{ userSelect: 'none', WebkitUserSelect: 'none', MozUserSelect: 'none', msUserSelect: 'none' }}
                             dangerouslySetInnerHTML={{ __html: convertChatMarkdownToHtml(message.content) }}
+                            onContextMenu={(e) => {
+                              e.preventDefault()
+                              showCopyWarning()
+                            }}
+                            onDragStart={(e) => e.preventDefault()}
+                            onCopy={(e) => {
+                              e.preventDefault()
+                              showCopyWarning()
+                            }}
+                            onClick={showCopyWarning}
                           />
                         ) : (
                           <div className="whitespace-pre-wrap text-sm leading-relaxed select-none dark:bg-gray-900 dark:border-gray-500 notranslate">{message.content}</div>

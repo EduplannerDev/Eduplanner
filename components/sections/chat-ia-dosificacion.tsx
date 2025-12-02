@@ -24,6 +24,7 @@ import { isUserPro } from "@/lib/subscription-utils"
 import { extractPlaneacionInfo, getCleanContentForSaving } from "@/lib/planeaciones"
 import { WelcomeMessage } from "@/components/ui/welcome-message"
 import Swal from 'sweetalert2'
+import { useToast } from "@/hooks/use-toast"
 
 interface ChatIADosificacionProps {
   onBack: () => void
@@ -40,6 +41,15 @@ export function ChatIADosificacion({ onBack, onSaveSuccess, initialMessage, cont
   const [showSaveButton, setShowSaveButton] = useState(false)
   const [savedPlaneacionId, setSavedPlaneacionId] = useState<string | null>(null)
   const [autoSendTriggered, setAutoSendTriggered] = useState(false)
+  const { toast } = useToast()
+
+  const showCopyWarning = () => {
+    toast({
+      title: "Acción no permitida",
+      description: "No es posible seleccionar ni copiar texto. Debes guardar la planeación para poder descargarla en PDF.",
+      variant: "destructive",
+    })
+  }
 
   // Estados para el sistema de feedback de calidad
   const [showQualityFeedback, setShowQualityFeedback] = useState(false)
@@ -358,7 +368,20 @@ ${(contenidosSeleccionados || []).map((c, i) => `${i + 1}. ${c.contenido}`).join
                           }`}
                       >
                         {message.role === "assistant" ? (
-                          <div className="text-sm text-gray-900 dark:text-gray-100 leading-relaxed select-none">
+                          <div
+                            className="text-sm text-gray-900 dark:text-gray-100 leading-relaxed select-none"
+                            style={{ userSelect: 'none', WebkitUserSelect: 'none', MozUserSelect: 'none', msUserSelect: 'none' }}
+                            onContextMenu={(e) => {
+                              e.preventDefault()
+                              showCopyWarning()
+                            }}
+                            onDragStart={(e) => e.preventDefault()}
+                            onCopy={(e) => {
+                              e.preventDefault()
+                              showCopyWarning()
+                            }}
+                            onClick={showCopyWarning}
+                          >
                             <ReactMarkdown
                               components={{
                                 h1: ({ node, ...props }) => <h1 className="text-2xl font-bold mb-4" {...props} />,
