@@ -81,7 +81,6 @@ const menuStructure = {
         url: "#presentaciones-ia",
         description: "Crea presentaciones PowerPoint con IA (Solo PRO)",
       },
-      // Proyectos solo para beta testers - se maneja condicionalmente más abajo
     ],
   },
   gestionAula: {
