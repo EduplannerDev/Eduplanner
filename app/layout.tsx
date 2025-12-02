@@ -9,6 +9,7 @@ import { ErrorLoggerProvider } from '@/components/error-logger-provider'
 import { Analytics } from '@vercel/analytics/react'
 import { SpeedInsights } from '@vercel/speed-insights/next'
 import ClarityAnalytics from '@/components/clarity-analytics'
+import { MobileWarning } from '@/components/mobile-warning'
 
 export const metadata: Metadata = {
   title: "Eduplanner",
@@ -65,6 +66,7 @@ export default function RootLayout({
           <Analytics />
           <SpeedInsights />
           <ClarityAnalytics />
+          <MobileWarning />
         </ThemeProvider>
       </body>
     </html>
