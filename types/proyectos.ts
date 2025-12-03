@@ -40,12 +40,15 @@ export interface ProyectoWizardData {
   producto_final: string
   grupo_id: string
   metodologia_nem: string
-  
+
   // Paso 2: Selecciona PDAs (se agregará después)
   pdas_seleccionados: string[]
-  
+
   // Paso 3: Generar Contenido (se agregará después)
   fases_generadas: ProyectoFase[]
+
+  // Integración Plan Analítico
+  plan_analitico_problematica_id?: string
 }
 
 export interface ProyectoWizardStep {
@@ -63,6 +66,7 @@ export interface ProyectoFormData {
   producto_final: string
   grupo_id: string
   metodologia_nem: string
+  plan_analitico_problematica_id?: string
 }
 
 // Tipos para las opciones de metodología

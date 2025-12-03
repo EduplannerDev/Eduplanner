@@ -1,7 +1,7 @@
 "use client"
 
 import { useEffect, useState } from 'react'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Plus, BookOpen, Calendar, Users, Eye, Trash2 } from 'lucide-react'
 import { usePlanAnalitico } from '@/hooks/use-plan-analitico'
@@ -18,6 +18,8 @@ import {
     AlertDialogTrigger,
 } from '@/components/ui/alert-dialog'
 import { useToast } from '@/hooks/use-toast'
+import { useProfile } from '@/hooks/use-profile'
+import { isUserPro } from '@/lib/subscription-utils'
 
 import { VerPlanAnalitico } from './ver-plan-analitico'
 
@@ -26,14 +28,17 @@ interface ListaPlanesAnaliticosProps {
 }
 
 export function ListaPlanesAnaliticos({ onCreateNew }: ListaPlanesAnaliticosProps) {
+    const { profile, loading: loadingProfile } = useProfile()
     const { obtenerPlanesAnaliticos, eliminarPlanAnalitico, loading } = usePlanAnalitico()
     const [planes, setPlanes] = useState<any[]>([])
     const [selectedPlanId, setSelectedPlanId] = useState<string | null>(null)
     const { toast } = useToast()
 
     useEffect(() => {
-        loadPlanes()
-    }, [])
+        if (profile?.id && !loadingProfile && isUserPro(profile)) {
+            loadPlanes()
+        }
+    }, [profile?.id, loadingProfile])
 
     const loadPlanes = async () => {
         const data = await obtenerPlanesAnaliticos()
@@ -55,6 +60,83 @@ export function ListaPlanesAnaliticos({ onCreateNew }: ListaPlanesAnaliticosProp
                 variant: "destructive"
             })
         }
+    }
+
+    if (loadingProfile) {
+        return (
+            <div className="flex items-center justify-center min-h-[400px]">
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+            </div>
+        )
+    }
+
+    // Restricción para usuarios NO PRO
+    if (!profile || !isUserPro(profile)) {
+        return (
+            <div className="space-y-6">
+                <div>
+                    <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100">Plan Analítico</h1>
+                    <p className="text-gray-600 dark:text-gray-400 mt-2">
+                        Gestiona tus diagnósticos y contextualizaciones con IA
+                    </p>
+                </div>
+
+                <Card className="border-2 border-purple-200 dark:border-purple-800">
+                    <CardHeader className="text-center">
+                        <div className="mx-auto w-12 h-12 bg-purple-100 dark:bg-purple-900 rounded-full flex items-center justify-center mb-4">
+                            <BookOpen className="h-6 w-6 text-purple-600 dark:text-purple-400" />
+                        </div>
+                        <CardTitle className="text-2xl">Funcionalidad PRO</CardTitle>
+                        <CardDescription className="text-base">
+                            El Módulo de Plan Analítico está disponible exclusivamente para usuarios PRO
+                        </CardDescription>
+                    </CardHeader>
+                    <CardContent className="space-y-6">
+                        <div className="space-y-2 max-w-md mx-auto">
+                            <h4 className="font-semibold flex items-center gap-2 justify-center">
+                                <span className="text-purple-600">✨</span>
+                                ¿Qué incluye el Plan Analítico PRO?
+                            </h4>
+                            <ul className="space-y-3 text-sm text-gray-600 dark:text-gray-400 pt-2">
+                                <li className="flex items-start gap-2">
+                                    <span className="text-green-500 mt-0.5">✓</span>
+                                    <span>Diagnóstico integral generado por IA</span>
+                                </li>
+                                <li className="flex items-start gap-2">
+                                    <span className="text-green-500 mt-0.5">✓</span>
+                                    <span>Contextualización automática de problemáticas</span>
+                                </li>
+                                <li className="flex items-start gap-2">
+                                    <span className="text-green-500 mt-0.5">✓</span>
+                                    <span>Vinculación inteligente con PDAs del currículo</span>
+                                </li>
+                                <li className="flex items-start gap-2">
+                                    <span className="text-green-500 mt-0.5">✓</span>
+                                    <span>Sugerencias de proyectos personalizados</span>
+                                </li>
+                                <li className="flex items-start gap-2">
+                                    <span className="text-green-500 mt-0.5">✓</span>
+                                    <span>Gestión ilimitada de planes analíticos</span>
+                                </li>
+                            </ul>
+                        </div>
+
+                        <div className="flex justify-center pt-2">
+                            <Button
+                                onClick={() => window.open('/pricing', '_blank')}
+                                className="bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white px-8 py-6 text-lg shadow-lg transform hover:scale-105 transition-all duration-200"
+                            >
+                                Actualizar a PRO
+                            </Button>
+                        </div>
+
+                        <div className="bg-blue-50 dark:bg-blue-900/20 p-4 rounded-lg text-sm text-center text-blue-800 dark:text-blue-200 max-w-2xl mx-auto">
+                            Desbloquea todo el potencial de EduPlanner y ahorra horas de trabajo administrativo con nuestras herramientas de IA avanzadas.
+                        </div>
+                    </CardContent>
+                </Card>
+            </div>
+        )
     }
 
     if (selectedPlanId) {

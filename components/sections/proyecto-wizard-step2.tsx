@@ -60,6 +60,7 @@ interface ProyectoWizardStep2Props {
   onNext: () => void
   onPrevious: () => void
   loading?: boolean
+  planAnaliticoProblematicaId?: string
 }
 
 export function ProyectoWizardStep2({
@@ -69,7 +70,8 @@ export function ProyectoWizardStep2({
   onPdasChange,
   onNext,
   onPrevious,
-  loading = false
+  loading = false,
+  planAnaliticoProblematicaId
 }: ProyectoWizardStep2Props) {
   const { user } = useAuth()
   const [aiSuggestions, setAiSuggestions] = useState<AISuggestion[]>([])
@@ -110,10 +112,74 @@ export function ProyectoWizardStep2({
     loadGrupoInfo()
   }, [grupoId])
 
-  // Obtener sugerencias de IA basadas en la problemática
+  // Obtener sugerencias de IA o cargar PDAs del Plan Analítico
   useEffect(() => {
-    async function getAISuggestions() {
-      if (!problematica || !grupoInfo?.grado) return
+    async function loadPdas() {
+      if (!grupoInfo?.grado) return
+
+      // Si viene del Plan Analítico, cargar los PDAs guardados
+      if (planAnaliticoProblematicaId) {
+        setLoadingSuggestions(true)
+        try {
+          const { data: contenidos, error } = await supabase
+            .from('problematica_contenidos')
+            .select(`
+              *,
+              curriculo_sep (
+                id,
+                pda,
+                contenido,
+                campo_formativo,
+                grado,
+                ejes_articuladores
+              )
+            `)
+            .eq('problematica_id', planAnaliticoProblematicaId)
+
+          if (error) throw error
+
+          if (contenidos && contenidos.length > 0) {
+            // Transformar a formato AISuggestion para compatibilidad visual
+            const pdasDelPlan: AISuggestion[] = contenidos.map((item: any) => {
+              const c = item.curriculo_sep
+              return {
+                id: c.id, // Usamos el ID del contenido del currículo
+                contenido: c.contenido,
+                campo_formativo: c.campo_formativo,
+                grado: c.grado,
+                pda: c.pda,
+                ejes_articuladores: c.ejes_articuladores,
+                similarity: 1, // Relevancia máxima
+                relevanceScore: 100,
+                displayText: c.pda
+              }
+            })
+
+            setAiSuggestions(pdasDelPlan)
+
+            // Pre-seleccionar los PDAs automáticamente
+            // Si viene del Plan Analítico, queremos que estos sean los seleccionados por defecto
+            const newSelectedIds = pdasDelPlan.map(p => p.id)
+
+            // Solo actualizamos si hay diferencias para evitar loops infinitos
+            const areDifferent = newSelectedIds.length !== selectedPdas.length ||
+              !newSelectedIds.every(id => selectedPdas.includes(id))
+
+            if (areDifferent) {
+              onPdasChange(newSelectedIds)
+            }
+          }
+        } catch (error) {
+          console.error('Error cargando PDAs del plan:', error)
+          setSuggestionsError('Error al cargar los PDAs del Plan Analítico')
+        } finally {
+          setLoadingSuggestions(false)
+        }
+        return
+      }
+
+      // Si es proyecto libre, usar IA
+      if (!problematica) return
 
       setLoadingSuggestions(true)
       setSuggestionsError(null)
@@ -147,8 +213,8 @@ export function ProyectoWizardStep2({
       }
     }
 
-    getAISuggestions()
-  }, [problematica, grupoInfo?.grado])
+    loadPdas()
+  }, [problematica, grupoInfo?.grado, planAnaliticoProblematicaId])
 
   // Cargar currículo SEP (solo cuando se necesite búsqueda manual)
   useEffect(() => {
@@ -324,8 +390,8 @@ export function ProyectoWizardStep2({
                           <div
                             key={suggestion.id}
                             className={`p-4 rounded-lg border cursor-pointer transition-all hover:shadow-md w-full max-w-full ${isSelected
-                                ? 'border-purple-500 dark:border-purple-400 bg-purple-50 dark:bg-purple-900/20'
-                                : 'border-gray-200 dark:border-gray-700 hover:border-purple-300 dark:hover:border-purple-600'
+                              ? 'border-purple-500 dark:border-purple-400 bg-purple-50 dark:bg-purple-900/20'
+                              : 'border-gray-200 dark:border-gray-700 hover:border-purple-300 dark:hover:border-purple-600'
                               }`}
                             onClick={() => togglePdaSelection(suggestion.id)}
                           >
@@ -434,8 +500,8 @@ export function ProyectoWizardStep2({
                           <div
                             key={item.id}
                             className={`p-3 rounded-lg border cursor-pointer transition-all hover:shadow-md w-full max-w-full ${isSelected
-                                ? 'border-blue-500 dark:border-blue-400 bg-blue-50 dark:bg-blue-900/20'
-                                : 'border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600'
+                              ? 'border-blue-500 dark:border-blue-400 bg-blue-50 dark:bg-blue-900/20'
+                              : 'border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600'
                               }`}
                             onClick={() => togglePdaSelection(item.id)}
                           >

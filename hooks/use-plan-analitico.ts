@@ -235,6 +235,26 @@ export function usePlanAnalitico() {
         }
     }
 
+    const actualizarProblematica = async (problematicaId: string, titulo: string, descripcion: string) => {
+        setLoading(true)
+        setError(null)
+        try {
+            const { error } = await supabase
+                .from('plan_analitico_problematicas')
+                .update({ titulo, descripcion })
+                .eq('id', problematicaId)
+
+            if (error) throw error
+            return true
+        } catch (err) {
+            console.error('Error actualizando problemática:', err)
+            setError('Error al actualizar la problemática')
+            return false
+        } finally {
+            setLoading(false)
+        }
+    }
+
     const eliminarPlanAnalitico = async (planId: string) => {
         setLoading(true)
         setError(null)
@@ -263,6 +283,7 @@ export function usePlanAnalitico() {
         actualizarDiagnostico,
         eliminarProblematica,
         agregarProblematica,
+        actualizarProblematica,
         eliminarPlanAnalitico,
         loading,
         error

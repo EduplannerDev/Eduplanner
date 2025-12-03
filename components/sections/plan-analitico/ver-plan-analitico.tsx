@@ -1,4 +1,5 @@
 "use client"
+// Fix hooks order
 
 import { useEffect, useState } from 'react'
 import { Button } from '@/components/ui/button'
@@ -37,7 +38,7 @@ interface VerPlanAnaliticoProps {
 }
 
 export function VerPlanAnalitico({ planId, onBack }: VerPlanAnaliticoProps) {
-    const { obtenerDetallePlanAnalitico, actualizarDiagnostico, eliminarProblematica, agregarProblematica, loading } = usePlanAnalitico()
+    const { obtenerDetallePlanAnalitico, actualizarDiagnostico, eliminarProblematica, agregarProblematica, actualizarProblematica, loading } = usePlanAnalitico()
     const { toast } = useToast()
     const [plan, setPlan] = useState<any>(null)
     const [isEditingDiagnosis, setIsEditingDiagnosis] = useState(false)
@@ -56,6 +57,12 @@ export function VerPlanAnalitico({ planId, onBack }: VerPlanAnaliticoProps) {
     const [newProbDescripcion, setNewProbDescripcion] = useState('')
     const [newProbPdas, setNewProbPdas] = useState<string[]>([])
     const [debouncedTitulo, setDebouncedTitulo] = useState('')
+
+    // Estado para editar problemática
+    const [isEditModalOpen, setIsEditModalOpen] = useState(false)
+    const [editingProbId, setEditingProbId] = useState<string | null>(null)
+    const [editProbTitulo, setEditProbTitulo] = useState('')
+    const [editProbDescripcion, setEditProbDescripcion] = useState('')
 
     useEffect(() => {
         loadPlan()
@@ -203,6 +210,39 @@ export function VerPlanAnalitico({ planId, onBack }: VerPlanAnaliticoProps) {
         )
     }
 
+
+
+    const handleEditProblematica = (prob: any) => {
+        setEditingProbId(prob.id)
+        setEditProbTitulo(prob.titulo)
+        setEditProbDescripcion(prob.descripcion || '')
+        setIsEditModalOpen(true)
+    }
+
+    const handleSaveEditedProblematica = async () => {
+        if (!editingProbId || !editProbTitulo) return
+
+        const success = await actualizarProblematica(editingProbId, editProbTitulo, editProbDescripcion)
+
+        if (success) {
+            toast({
+                title: "Problemática actualizada",
+                description: "Los cambios se han guardado correctamente.",
+            })
+            setIsEditModalOpen(false)
+            setEditingProbId(null)
+            setEditProbTitulo('')
+            setEditProbDescripcion('')
+            loadPlan()
+        } else {
+            toast({
+                title: "Error",
+                description: "No se pudo actualizar la problemática.",
+                variant: "destructive"
+            })
+        }
+    }
+
     return (
         <div className="max-w-5xl mx-auto space-y-6">
             {/* Header */}
@@ -227,10 +267,6 @@ export function VerPlanAnalitico({ planId, onBack }: VerPlanAnaliticoProps) {
                         </div>
                     </div>
                 </div>
-                {/* <Button variant="outline">
-                    <Download className="mr-2 h-4 w-4" />
-                    Descargar PDF
-                </Button> */}
             </div>
 
             {/* Diagnóstico */}
@@ -384,38 +420,51 @@ export function VerPlanAnalitico({ planId, onBack }: VerPlanAnaliticoProps) {
                                         )}
                                     </div>
                                 </AccordionTrigger>
-                                <AlertDialog>
-                                    <AlertDialogTrigger asChild>
-                                        <Button
-                                            variant="ghost"
-                                            size="sm"
-                                            className="text-red-500 hover:text-red-700 hover:bg-red-50 ml-2"
-                                            onClick={(e) => e.stopPropagation()}
-                                        >
-                                            <Trash2 className="h-4 w-4" />
-                                        </Button>
-                                    </AlertDialogTrigger>
-                                    <AlertDialogContent>
-                                        <AlertDialogHeader>
-                                            <AlertDialogTitle>¿Eliminar problemática?</AlertDialogTitle>
-                                            <AlertDialogDescription>
-                                                Esta acción eliminará la problemática y su vinculación con los PDAs.
-                                            </AlertDialogDescription>
-                                        </AlertDialogHeader>
-                                        <AlertDialogFooter>
-                                            <AlertDialogCancel onClick={(e) => e.stopPropagation()}>Cancelar</AlertDialogCancel>
-                                            <AlertDialogAction
-                                                onClick={(e) => {
-                                                    e.stopPropagation()
-                                                    handleDeleteProblematica(prob.id)
-                                                }}
-                                                className="bg-red-600 hover:bg-red-700"
+                                <div className="flex items-center">
+                                    <Button
+                                        variant="ghost"
+                                        size="sm"
+                                        className="text-blue-500 hover:text-blue-700 hover:bg-blue-50 ml-2"
+                                        onClick={(e) => {
+                                            e.stopPropagation()
+                                            handleEditProblematica(prob)
+                                        }}
+                                    >
+                                        <Pencil className="h-4 w-4" />
+                                    </Button>
+                                    <AlertDialog>
+                                        <AlertDialogTrigger asChild>
+                                            <Button
+                                                variant="ghost"
+                                                size="sm"
+                                                className="text-red-500 hover:text-red-700 hover:bg-red-50 ml-2"
+                                                onClick={(e) => e.stopPropagation()}
                                             >
-                                                Eliminar
-                                            </AlertDialogAction>
-                                        </AlertDialogFooter>
-                                    </AlertDialogContent>
-                                </AlertDialog>
+                                                <Trash2 className="h-4 w-4" />
+                                            </Button>
+                                        </AlertDialogTrigger>
+                                        <AlertDialogContent>
+                                            <AlertDialogHeader>
+                                                <AlertDialogTitle>¿Eliminar problemática?</AlertDialogTitle>
+                                                <AlertDialogDescription>
+                                                    Esta acción eliminará la problemática y su vinculación con los PDAs.
+                                                </AlertDialogDescription>
+                                            </AlertDialogHeader>
+                                            <AlertDialogFooter>
+                                                <AlertDialogCancel onClick={(e) => e.stopPropagation()}>Cancelar</AlertDialogCancel>
+                                                <AlertDialogAction
+                                                    onClick={(e) => {
+                                                        e.stopPropagation()
+                                                        handleDeleteProblematica(prob.id)
+                                                    }}
+                                                    className="bg-red-600 hover:bg-red-700"
+                                                >
+                                                    Eliminar
+                                                </AlertDialogAction>
+                                            </AlertDialogFooter>
+                                        </AlertDialogContent>
+                                    </AlertDialog>
+                                </div>
                             </div>
                             <AccordionContent className="pt-2 pb-4 border-t">
                                 {prob.descripcion && (
@@ -506,6 +555,42 @@ export function VerPlanAnalitico({ planId, onBack }: VerPlanAnaliticoProps) {
                         <Button variant="outline" onClick={() => setIsAddModalOpen(false)}>Cancelar</Button>
                         <Button onClick={handleSaveNewProblematica} disabled={!newProbTitulo || newProbPdas.length === 0}>
                             Guardar Problemática
+                        </Button>
+                    </DialogFooter>
+                </DialogContent>
+            </Dialog>
+
+            {/* Modal Editar Problemática */}
+            <Dialog open={isEditModalOpen} onOpenChange={setIsEditModalOpen}>
+                <DialogContent className="max-w-lg">
+                    <DialogHeader>
+                        <DialogTitle>Editar Problemática</DialogTitle>
+                    </DialogHeader>
+
+                    <div className="space-y-4 py-4">
+                        <div className="space-y-2">
+                            <Label>Título de la Problemática *</Label>
+                            <Input
+                                placeholder="Ej. Baja comprensión lectora"
+                                value={editProbTitulo}
+                                onChange={(e) => setEditProbTitulo(e.target.value)}
+                            />
+                        </div>
+                        <div className="space-y-2">
+                            <Label>Descripción (Opcional)</Label>
+                            <Textarea
+                                placeholder="Detalles sobre esta problemática..."
+                                value={editProbDescripcion}
+                                onChange={(e) => setEditProbDescripcion(e.target.value)}
+                                className="min-h-[120px]"
+                            />
+                        </div>
+                    </div>
+
+                    <DialogFooter className="gap-2">
+                        <Button variant="outline" onClick={() => setIsEditModalOpen(false)}>Cancelar</Button>
+                        <Button onClick={handleSaveEditedProblematica} disabled={!editProbTitulo}>
+                            Guardar Cambios
                         </Button>
                     </DialogFooter>
                 </DialogContent>

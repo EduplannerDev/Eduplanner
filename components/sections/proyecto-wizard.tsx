@@ -59,7 +59,7 @@ export function ProyectoWizard({ onComplete, onSectionChange }: ProyectoWizardPr
   useEffect(() => {
     const cargarLimitesProyectos = async () => {
       if (!user) return
-      
+
       try {
         const limits = await canUserCreate(user.id, 'proyectos')
         setProjectLimits(limits)
@@ -88,7 +88,7 @@ export function ProyectoWizard({ onComplete, onSectionChange }: ProyectoWizardPr
         variant: "default",
         duration: 8000, // Mostrar por más tiempo
         action: (
-          <button 
+          <button
             onClick={() => {
               window.open('/pricing', '_blank')
             }}
@@ -102,11 +102,11 @@ export function ProyectoWizard({ onComplete, onSectionChange }: ProyectoWizardPr
     }
 
     setIsSaving(true)
-    
+
     try {
       // Validar que tenemos todos los datos necesarios
-      if (!wizardData.nombre || !wizardData.problematica || !wizardData.producto_final || 
-          !wizardData.grupo_id || !wizardData.metodologia_nem) {
+      if (!wizardData.nombre || !wizardData.problematica || !wizardData.producto_final ||
+        !wizardData.grupo_id || !wizardData.metodologia_nem) {
         throw new Error('Faltan datos obligatorios del proyecto')
       }
 
@@ -127,7 +127,7 @@ export function ProyectoWizard({ onComplete, onSectionChange }: ProyectoWizardPr
       if (!resultado) {
         throw new Error(projectError || 'Error al crear el proyecto')
       }
-      
+
       // Mostrar mensaje de éxito
       toast({
         title: "¡Proyecto creado exitosamente!",
@@ -137,12 +137,12 @@ export function ProyectoWizard({ onComplete, onSectionChange }: ProyectoWizardPr
 
       // Resetear el asistente
       resetWizard()
-      
+
       // Llamar a onComplete si está disponible
       if (onComplete) {
         onComplete()
       }
-      
+
     } catch (error) {
       toast({
         title: "Error al crear el proyecto",
@@ -174,7 +174,7 @@ export function ProyectoWizard({ onComplete, onSectionChange }: ProyectoWizardPr
                   Has creado exitosamente <strong>{projectLimits.currentCount} proyectos</strong> en el plan gratuito.
                 </p>
               </div>
-              
+
               <div className="bg-gradient-to-r from-blue-50 to-purple-50 dark:from-blue-900/20 dark:to-purple-900/20 p-6 rounded-lg border border-blue-200 dark:border-blue-800">
                 <h3 className="text-xl font-semibold text-gray-900 dark:text-gray-100 mb-3">
                   💫 Desbloquea tu potencial educativo con PRO
@@ -245,6 +245,7 @@ export function ProyectoWizard({ onComplete, onSectionChange }: ProyectoWizardPr
             onNext={goToNextStep}
             onPrevious={goToPreviousStep}
             loading={loading || isSaving}
+            planAnaliticoProblematicaId={wizardData.plan_analitico_problematica_id}
           />
         )
       case 3:
@@ -269,7 +270,7 @@ export function ProyectoWizard({ onComplete, onSectionChange }: ProyectoWizardPr
                 La IA está generando las fases y momentos de tu proyecto
               </p>
             </div>
-            
+
             <Card>
               <CardHeader>
                 <CardTitle>Paso 3: Generación con IA</CardTitle>
@@ -287,7 +288,7 @@ export function ProyectoWizard({ onComplete, onSectionChange }: ProyectoWizardPr
                       Generando fases y momentos personalizados para: <strong>{wizardData.nombre}</strong>
                     </p>
                   </div>
-                  
+
                   <div className="bg-blue-50 dark:bg-blue-900/20 p-4 rounded-lg">
                     <p className="text-sm text-blue-800 dark:text-blue-200">
                       <strong>Procesando:</strong> {wizardData.pdas_seleccionados.length} PDAs seleccionados
@@ -299,7 +300,7 @@ export function ProyectoWizard({ onComplete, onSectionChange }: ProyectoWizardPr
                       💡 Este proceso puede tomar entre 30-60 segundos dependiendo de la complejidad
                     </p>
                   </div>
-                  
+
                   {/* Indicador de progreso más detallado */}
                   <div className="bg-gray-50 dark:bg-gray-800/50 p-3 rounded-lg">
                     <div className="flex items-center justify-center space-x-2 text-sm text-gray-600 dark:text-gray-400">
@@ -310,7 +311,7 @@ export function ProyectoWizard({ onComplete, onSectionChange }: ProyectoWizardPr
                 </div>
               </CardContent>
             </Card>
-            
+
           </div>
         )
       default:
@@ -321,71 +322,70 @@ export function ProyectoWizard({ onComplete, onSectionChange }: ProyectoWizardPr
 
   return (
     <div className="max-w-6xl mx-auto space-y-6 w-full max-w-full overflow-hidden px-2 sm:px-0">
-        {/* Header con progreso - Solo mostrar si no ha alcanzado el límite */}
-        {(!projectLimits || projectLimits.canCreate) && (
-          <div className="space-y-4 w-full max-w-full overflow-hidden">
-            <div className="text-center space-y-2">
-              <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold text-gray-900 dark:text-gray-100 break-words leading-tight">Asistente de Proyectos</h1>
-              <p className="text-sm sm:text-base lg:text-lg text-gray-600 dark:text-gray-400 break-words">
-                Crea tu proyecto educativo paso a paso
-              </p>
-            </div>
-            
-            {/* Barra de progreso */}
-            <div className="space-y-2">
-              <div className="flex justify-between text-sm text-gray-600 dark:text-gray-400">
-                <span>Progreso</span>
-                <span>{Math.round(progress)}%</span>
-              </div>
-              <Progress value={progress} className="h-2" />
-            </div>
+      {/* Header con progreso - Solo mostrar si no ha alcanzado el límite */}
+      {(!projectLimits || projectLimits.canCreate) && (
+        <div className="space-y-4 w-full max-w-full overflow-hidden">
+          <div className="text-center space-y-2">
+            <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold text-gray-900 dark:text-gray-100 break-words leading-tight">Asistente de Proyectos</h1>
+            <p className="text-sm sm:text-base lg:text-lg text-gray-600 dark:text-gray-400 break-words">
+              Crea tu proyecto educativo paso a paso
+            </p>
           </div>
-        )}
 
-        {/* Navegación de pasos - Solo mostrar si no ha alcanzado el límite */}
-        {(!projectLimits || projectLimits.canCreate) && (
-          <Card className="w-full max-w-full overflow-hidden">
-            <CardContent className="p-3 sm:p-6 w-full max-w-full overflow-hidden">
-              <div className="flex flex-col sm:flex-row items-center justify-between gap-4 sm:gap-0 w-full max-w-full overflow-hidden">
-                {steps.map((step, index) => (
-                  <div key={step.id} className="flex items-center w-full sm:w-auto">
-                    <button
-                      onClick={() => goToStep(step.id)}
-                      disabled={!isStepCompleted(step.id - 1) && step.id > 1}
-                      className={`flex items-center space-x-2 p-2 rounded-lg transition-colors w-full sm:w-auto ${
-                        step.current 
-                          ? 'bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300' 
-                          : isStepCompleted(step.id)
+          {/* Barra de progreso */}
+          <div className="space-y-2">
+            <div className="flex justify-between text-sm text-gray-600 dark:text-gray-400">
+              <span>Progreso</span>
+              <span>{Math.round(progress)}%</span>
+            </div>
+            <Progress value={progress} className="h-2" />
+          </div>
+        </div>
+      )}
+
+      {/* Navegación de pasos - Solo mostrar si no ha alcanzado el límite */}
+      {(!projectLimits || projectLimits.canCreate) && (
+        <Card className="w-full max-w-full overflow-hidden">
+          <CardContent className="p-3 sm:p-6 w-full max-w-full overflow-hidden">
+            <div className="flex flex-col sm:flex-row items-center justify-between gap-4 sm:gap-0 w-full max-w-full overflow-hidden">
+              {steps.map((step, index) => (
+                <div key={step.id} className="flex items-center w-full sm:w-auto">
+                  <button
+                    onClick={() => goToStep(step.id)}
+                    disabled={!isStepCompleted(step.id - 1) && step.id > 1}
+                    className={`flex items-center space-x-2 p-2 rounded-lg transition-colors w-full sm:w-auto ${step.current
+                        ? 'bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300'
+                        : isStepCompleted(step.id)
                           ? 'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300 hover:bg-green-200 dark:hover:bg-green-900/50'
                           : 'text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-400'
                       } ${!isStepCompleted(step.id - 1) && step.id > 1 ? 'cursor-not-allowed' : 'cursor-pointer'}`}
-                    >
-                      {isStepCompleted(step.id) ? (
-                        <CheckCircle2 className="h-4 w-4 sm:h-5 sm:w-5 flex-shrink-0" />
-                      ) : (
-                        <Circle className="h-4 w-4 sm:h-5 sm:w-5 flex-shrink-0" />
-                      )}
-                      <div className="text-left min-w-0 flex-1">
-                        <div className="font-medium text-sm sm:text-base break-words">{step.title}</div>
-                        <div className="text-xs opacity-75 break-words hidden sm:block">{step.description}</div>
-                      </div>
-                    </button>
-                    
-                    {index < steps.length - 1 && (
-                      <div className="hidden sm:block w-8 h-px bg-gray-300 dark:bg-gray-600 mx-4"></div>
+                  >
+                    {isStepCompleted(step.id) ? (
+                      <CheckCircle2 className="h-4 w-4 sm:h-5 sm:w-5 flex-shrink-0" />
+                    ) : (
+                      <Circle className="h-4 w-4 sm:h-5 sm:w-5 flex-shrink-0" />
                     )}
-                  </div>
-                ))}
-              </div>
-            </CardContent>
-          </Card>
-        )}
+                    <div className="text-left min-w-0 flex-1">
+                      <div className="font-medium text-sm sm:text-base break-words">{step.title}</div>
+                      <div className="text-xs opacity-75 break-words hidden sm:block">{step.description}</div>
+                    </div>
+                  </button>
 
-        {/* Contenido del paso actual */}
-        <div className="min-h-[400px] sm:min-h-[600px] w-full max-w-full overflow-hidden">
-          {renderStepContent()}
-        </div>
+                  {index < steps.length - 1 && (
+                    <div className="hidden sm:block w-8 h-px bg-gray-300 dark:bg-gray-600 mx-4"></div>
+                  )}
+                </div>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+      )}
 
+      {/* Contenido del paso actual */}
+      <div className="min-h-[400px] sm:min-h-[600px] w-full max-w-full overflow-hidden">
+        {renderStepContent()}
       </div>
+
+    </div>
   )
 }

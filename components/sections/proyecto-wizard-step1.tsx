@@ -8,7 +8,7 @@ import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { AlertCircle, CheckCircle2, BookOpen, Users, Target, Lightbulb } from 'lucide-react'
-import { Alert, AlertDescription } from '@/components/ui/alert'
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
 import { ProyectoFormData, GrupoOption, MetodologiaOption } from '@/types/proyectos'
 import { supabase } from '@/lib/supabase'
 import { useAuth } from '@/hooks/use-auth'
@@ -62,6 +62,12 @@ export function ProyectoWizardStep1({ data, onDataChange, onNext, loading = fals
   const [gruposError, setGruposError] = useState<string | null>(null)
   const [errors, setErrors] = useState<Partial<ProyectoFormData>>({})
 
+  // Estados para integración con Plan Analítico
+  const [origenProyecto, setOrigenProyecto] = useState<'libre' | 'plan_analitico'>('libre')
+  const [problematicasPlan, setProblematicasPlan] = useState<any[]>([])
+  const [loadingProblematicas, setLoadingProblematicas] = useState(false)
+  const [showEnrichmentTip, setShowEnrichmentTip] = useState(false)
+
   // Cargar grupos del profesor
   useEffect(() => {
     async function loadGrupos() {
@@ -84,22 +90,14 @@ export function ProyectoWizardStep1({ data, onDataChange, onNext, loading = fals
           .order('grado', { ascending: true })
 
         if (error) {
-          console.error('Error cargando grupos:', {
-            message: error.message,
-            details: error.details,
-            hint: error.hint,
-            code: error.code
-          })
+          console.error('Error cargando grupos:', error)
           setGruposError(`Error al cargar grupos: ${error.message}`)
           return
         }
 
         setGrupos(gruposData || [])
       } catch (error) {
-        console.error('Error cargando grupos:', {
-          message: error instanceof Error ? error.message : 'Error desconocido',
-          error: error
-        })
+        console.error('Error cargando grupos:', error)
         setGruposError('Error inesperado al cargar grupos')
       } finally {
         setLoadingGrupos(false)
@@ -108,6 +106,51 @@ export function ProyectoWizardStep1({ data, onDataChange, onNext, loading = fals
 
     loadGrupos()
   }, [user?.id])
+
+  // Cargar problemáticas del Plan Analítico cuando se selecciona un grupo y el origen es 'plan_analitico'
+  useEffect(() => {
+    async function loadProblematicasPlan() {
+      if (!data.grupo_id || origenProyecto !== 'plan_analitico') return
+
+      setLoadingProblematicas(true)
+      try {
+        // 1. Obtener el plan analítico del grupo (el más reciente)
+        const { data: plan, error: planError } = await supabase
+          .from('planes_analiticos')
+          .select('id')
+          .eq('grupo_id', data.grupo_id)
+          .order('created_at', { ascending: false })
+          .limit(1)
+          .single()
+
+        if (planError) {
+          if (planError.code !== 'PGRST116') { // Ignorar error si no hay plan
+            console.error('Error buscando plan analítico:', planError)
+          }
+          setProblematicasPlan([])
+          return
+        }
+
+        if (plan) {
+          // 2. Obtener las problemáticas del plan
+          const { data: problematicas, error: probError } = await supabase
+            .from('plan_analitico_problematicas')
+            .select('id, titulo, descripcion')
+            .eq('plan_id', plan.id)
+
+          if (probError) throw probError
+          setProblematicasPlan(problematicas || [])
+        }
+      } catch (error) {
+        console.error('Error cargando problemáticas:', error)
+        setProblematicasPlan([])
+      } finally {
+        setLoadingProblematicas(false)
+      }
+    }
+
+    loadProblematicasPlan()
+  }, [data.grupo_id, origenProyecto])
 
   // Validar formulario
   const validateForm = (): boolean => {
@@ -151,6 +194,26 @@ export function ProyectoWizardStep1({ data, onDataChange, onNext, loading = fals
     // Limpiar error del campo cuando el usuario empiece a escribir
     if (errors[field]) {
       setErrors(prev => ({ ...prev, [field]: undefined }))
+    }
+  }
+
+  // Manejar selección de problemática del plan
+  const handleProblematicaSelect = (problematicaId: string) => {
+    const selectedProb = problematicasPlan.find(p => p.id === problematicaId)
+    if (selectedProb) {
+      const hasDescription = selectedProb.descripcion && selectedProb.descripcion.trim().length > 0
+      const newData = {
+        ...data,
+        problematica: hasDescription ? selectedProb.descripcion : selectedProb.titulo,
+        plan_analitico_problematica_id: problematicaId
+      }
+      onDataChange(newData)
+      setShowEnrichmentTip(!hasDescription)
+
+      // Limpiar error si existía
+      if (errors.problematica) {
+        setErrors(prev => ({ ...prev, problematica: undefined }))
+      }
     }
   }
 
@@ -214,6 +277,39 @@ export function ProyectoWizardStep1({ data, onDataChange, onNext, loading = fals
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-6 w-full max-w-full overflow-hidden">
+
+          {/* Selector de Origen */}
+          <div className="bg-gray-50 dark:bg-gray-800/50 p-4 rounded-lg border border-gray-200 dark:border-gray-700">
+            <Label className="text-base font-semibold mb-3 block">¿Cómo quieres iniciar este proyecto?</Label>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div
+                className={`cursor-pointer border rounded-lg p-4 flex items-center space-x-3 transition-all ${origenProyecto === 'libre' ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/20 ring-1 ring-blue-500' : 'hover:border-gray-400'}`}
+                onClick={() => setOrigenProyecto('libre')}
+              >
+                <div className={`w-4 h-4 rounded-full border flex items-center justify-center ${origenProyecto === 'libre' ? 'border-blue-500' : 'border-gray-400'}`}>
+                  {origenProyecto === 'libre' && <div className="w-2 h-2 rounded-full bg-blue-500" />}
+                </div>
+                <div>
+                  <p className="font-medium">Proyecto Libre</p>
+                  <p className="text-xs text-gray-500">Escribe tu propia problemática desde cero</p>
+                </div>
+              </div>
+
+              <div
+                className={`cursor-pointer border rounded-lg p-4 flex items-center space-x-3 transition-all ${origenProyecto === 'plan_analitico' ? 'border-purple-500 bg-purple-50 dark:bg-purple-900/20 ring-1 ring-purple-500' : 'hover:border-gray-400'}`}
+                onClick={() => setOrigenProyecto('plan_analitico')}
+              >
+                <div className={`w-4 h-4 rounded-full border flex items-center justify-center ${origenProyecto === 'plan_analitico' ? 'border-purple-500' : 'border-gray-400'}`}>
+                  {origenProyecto === 'plan_analitico' && <div className="w-2 h-2 rounded-full bg-purple-500" />}
+                </div>
+                <div>
+                  <p className="font-medium">Desde mi Plan Analítico</p>
+                  <p className="text-xs text-gray-500">Usa una problemática ya diagnosticada</p>
+                </div>
+              </div>
+            </div>
+          </div>
+
           {/* Nombre del Proyecto */}
           <div className="space-y-2 w-full max-w-full overflow-hidden">
             <Label htmlFor="nombre" className="text-sm font-medium break-words">
@@ -230,55 +326,6 @@ export function ProyectoWizardStep1({ data, onDataChange, onNext, loading = fals
               <p className="text-sm text-red-600 dark:text-red-400 flex items-center space-x-1">
                 <AlertCircle className="h-4 w-4" />
                 <span>{errors.nombre}</span>
-              </p>
-            )}
-          </div>
-
-          {/* Problemática */}
-          <div className="space-y-2">
-            <Label htmlFor="problematica" className="text-sm font-medium">
-              Problemática o Tema Central *
-            </Label>
-            <Textarea
-              id="problematica"
-              placeholder="Describe la problemática o tema que abordará el proyecto. Ej: La falta de conciencia ambiental en la comunidad escolar ha generado un aumento en la generación de residuos..."
-              value={data.problematica}
-              onChange={(e) => handleDataChange('problematica', e.target.value)}
-              className={`min-h-[120px] ${errors.problematica ? 'border-red-500' : ''}`}
-            />
-            <div className="flex justify-between items-center">
-              {errors.problematica ? (
-                <p className="text-sm text-red-600 flex items-center space-x-1">
-                  <AlertCircle className="h-4 w-4" />
-                  <span>{errors.problematica}</span>
-                </p>
-              ) : (
-                <p className="text-sm text-gray-500">
-                  Mínimo 20 caracteres
-                </p>
-              )}
-              <p className="text-sm text-gray-500">
-                {data.problematica.length} caracteres
-              </p>
-            </div>
-          </div>
-
-          {/* Producto Final */}
-          <div className="space-y-2">
-            <Label htmlFor="producto_final" className="text-sm font-medium">
-              Producto Final *
-            </Label>
-            <Input
-              id="producto_final"
-              placeholder="Ej: Una campaña de concientización con carteles y folletos"
-              value={data.producto_final}
-              onChange={(e) => handleDataChange('producto_final', e.target.value)}
-              className={errors.producto_final ? 'border-red-500' : ''}
-            />
-            {errors.producto_final && (
-              <p className="text-sm text-red-600 dark:text-red-400 flex items-center space-x-1">
-                <AlertCircle className="h-4 w-4" />
-                <span>{errors.producto_final}</span>
               </p>
             )}
           </div>
@@ -348,6 +395,104 @@ export function ProyectoWizardStep1({ data, onDataChange, onNext, loading = fals
               </Alert>
             )}
 
+          </div>
+
+          {/* Selector de Problemática del Plan (Condicional) */}
+          {origenProyecto === 'plan_analitico' && data.grupo_id && (
+            <div className="space-y-2 animate-in fade-in slide-in-from-top-4 duration-500">
+              <Label htmlFor="problematica_plan" className="text-sm font-medium text-purple-700 dark:text-purple-300">
+                Selecciona una Problemática del Plan *
+              </Label>
+              <Select
+                value={data.plan_analitico_problematica_id || ''}
+                onValueChange={handleProblematicaSelect}
+                disabled={loadingProblematicas}
+              >
+                <SelectTrigger className="border-purple-200 ring-purple-200 focus:ring-purple-500">
+                  <SelectValue placeholder={loadingProblematicas ? "Cargando problemáticas..." : "Selecciona una problemática..."} />
+                </SelectTrigger>
+                <SelectContent>
+                  {problematicasPlan.length > 0 ? (
+                    problematicasPlan.map((prob) => (
+                      <SelectItem key={prob.id} value={prob.id}>
+                        {prob.titulo}
+                      </SelectItem>
+                    ))
+                  ) : (
+                    <div className="p-2 text-sm text-gray-500 text-center">
+                      {loadingProblematicas ? "Cargando..." : "No hay problemáticas en el plan de este grupo"}
+                    </div>
+                  )}
+                </SelectContent>
+              </Select>
+              {problematicasPlan.length === 0 && !loadingProblematicas && (
+                <p className="text-xs text-amber-600">Este grupo no tiene un Plan Analítico con problemáticas registradas.</p>
+              )}
+            </div>
+          )}
+
+          {/* Problemática */}
+          <div className="space-y-2">
+            <Label htmlFor="problematica" className="text-sm font-medium">
+              Problemática o Tema Central *
+            </Label>
+            <Textarea
+              id="problematica"
+              placeholder="Describe la problemática o tema que abordará el proyecto. Ej: La falta de conciencia ambiental en la comunidad escolar ha generado un aumento en la generación de residuos..."
+              value={data.problematica}
+              onChange={(e) => handleDataChange('problematica', e.target.value)}
+              className={`min-h-[120px] ${errors.problematica ? 'border-red-500' : ''} ${origenProyecto === 'plan_analitico' ? 'bg-purple-50/30' : ''}`}
+            />
+
+            {/* Tip de enriquecimiento (Alta visibilidad) */}
+            {showEnrichmentTip && origenProyecto === 'plan_analitico' && (
+              <Alert className="bg-amber-100 border-amber-300 text-amber-900 dark:bg-amber-900/40 dark:border-amber-700 dark:text-amber-100 animate-in fade-in slide-in-from-top-2 shadow-sm">
+                <Lightbulb className="h-5 w-5 text-amber-600 dark:text-amber-400" />
+                <AlertTitle className="text-amber-800 dark:text-amber-200 font-bold">¡Importante para la IA!</AlertTitle>
+                <AlertDescription className="font-medium">
+                  Enriquece esta descripción con detalles específicos de tu grupo.
+                  <span className="block mt-1 font-normal opacity-90">
+                    Entre más contexto agregues aquí, la IA generará un proyecto mucho más preciso y útil para ti.
+                  </span>
+                </AlertDescription>
+              </Alert>
+            )}
+
+            <div className="flex justify-between items-center">
+              {errors.problematica ? (
+                <p className="text-sm text-red-600 flex items-center space-x-1">
+                  <AlertCircle className="h-4 w-4" />
+                  <span>{errors.problematica}</span>
+                </p>
+              ) : (
+                <p className="text-sm text-gray-500">
+                  Mínimo 20 caracteres
+                </p>
+              )}
+              <p className="text-sm text-gray-500">
+                {data.problematica.length} caracteres
+              </p>
+            </div>
+          </div>
+
+          {/* Producto Final */}
+          <div className="space-y-2">
+            <Label htmlFor="producto_final" className="text-sm font-medium">
+              Producto Final *
+            </Label>
+            <Input
+              id="producto_final"
+              placeholder="Ej: Una campaña de concientización con carteles y folletos"
+              value={data.producto_final}
+              onChange={(e) => handleDataChange('producto_final', e.target.value)}
+              className={errors.producto_final ? 'border-red-500' : ''}
+            />
+            {errors.producto_final && (
+              <p className="text-sm text-red-600 dark:text-red-400 flex items-center space-x-1">
+                <AlertCircle className="h-4 w-4" />
+                <span>{errors.producto_final}</span>
+              </p>
+            )}
           </div>
 
           {/* Metodología NEM */}

@@ -12,7 +12,8 @@ export function useProyectoWizard() {
     grupo_id: '',
     metodologia_nem: '',
     pdas_seleccionados: [],
-    fases_generadas: []
+    fases_generadas: [],
+    plan_analitico_problematica_id: undefined
   })
   const [loading, setLoading] = useState(false)
 
@@ -49,7 +50,8 @@ export function useProyectoWizard() {
       problematica: data.problematica,
       producto_final: data.producto_final,
       grupo_id: data.grupo_id,
-      metodologia_nem: data.metodologia_nem
+      metodologia_nem: data.metodologia_nem,
+      plan_analitico_problematica_id: data.plan_analitico_problematica_id
     }))
   }, [])
 
@@ -97,7 +99,8 @@ export function useProyectoWizard() {
       grupo_id: '',
       metodologia_nem: '',
       pdas_seleccionados: [],
-      fases_generadas: []
+      fases_generadas: [],
+      plan_analitico_problematica_id: undefined
     })
     setLoading(false)
   }, [])
@@ -106,9 +109,9 @@ export function useProyectoWizard() {
   const isStepCompleted = useCallback((step: number): boolean => {
     switch (step) {
       case 1:
-        return !!(wizardData.nombre && wizardData.problematica && 
-                 wizardData.producto_final && wizardData.grupo_id && 
-                 wizardData.metodologia_nem)
+        return !!(wizardData.nombre && wizardData.problematica &&
+          wizardData.producto_final && wizardData.grupo_id &&
+          wizardData.metodologia_nem)
       case 2:
         return wizardData.pdas_seleccionados.length > 0
       case 3:
@@ -125,7 +128,8 @@ export function useProyectoWizard() {
       problematica: wizardData.problematica,
       producto_final: wizardData.producto_final,
       grupo_id: wizardData.grupo_id,
-      metodologia_nem: wizardData.metodologia_nem
+      metodologia_nem: wizardData.metodologia_nem,
+      plan_analitico_problematica_id: wizardData.plan_analitico_problematica_id
     }
   }, [wizardData])
 
@@ -135,7 +139,7 @@ export function useProyectoWizard() {
     wizardData,
     loading,
     steps,
-    
+
     // Acciones
     updateStep1Data,
     updateSelectedPdas,
@@ -144,11 +148,11 @@ export function useProyectoWizard() {
     goToStep,
     resetWizard,
     setLoading,
-    
+
     // Utilidades
     isStepCompleted,
     getStep1FormData,
-    
+
     // Estado computado
     canGoNext: currentStep < 3,
     canGoPrevious: currentStep > 1,
