@@ -2,11 +2,11 @@
 
 import { Suspense, useState, useEffect } from "react"
 import { useAuth } from "@/hooks/use-auth"
-import { useIsMobile } from "@/hooks/use-mobile"
+
 import { useContextoTrabajo } from "@/hooks/use-contexto-trabajo"
 import LoginForm from "@/components/login-form"
 import Dashboard from "@/components/dashboard"
-import { MobileLanding } from "@/components/mobile-landing"
+
 import { ContextoTrabajoModal } from "@/components/contexto-trabajo-modal"
 import { Loader2 } from "lucide-react"
 
@@ -20,8 +20,8 @@ function LoadingFallback() {
 
 export default function Home() {
   const { user, loading } = useAuth()
-  const isMobile = useIsMobile()
-  const [showMobileLanding, setShowMobileLanding] = useState(true)
+
+
   const { hasContexto, loading: loadingContexto, actualizarContexto } = useContextoTrabajo()
   const [showContextoModal, setShowContextoModal] = useState(false)
 
@@ -43,14 +43,7 @@ export default function Home() {
     return <LoadingFallback />
   }
 
-  // Mostrar landing móvil si estamos en móvil y no se ha elegido continuar
-  if (isMobile && showMobileLanding && !user) {
-    return (
-      <MobileLanding
-        onContinueToDesktop={() => setShowMobileLanding(false)}
-      />
-    )
-  }
+
 
   const handleContextoSuccess = () => {
     actualizarContexto()
