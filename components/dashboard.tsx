@@ -29,6 +29,8 @@ import { ListaProyectos } from "./sections/lista-proyectos"
 import { ProyectoWizard } from "./sections/proyecto-wizard"
 import { PlaneacionCime } from "./sections/planeacion-cime"
 import { PresentacionesIA } from "./sections/presentaciones-ia"
+import { PlanAnaliticoWizard } from "./sections/plan-analitico/plan-analitico-wizard"
+import { ListaPlanesAnaliticos } from "./sections/plan-analitico/lista-planes-analiticos"
 import { WelcomeMessage } from "./ui/welcome-message"
 import { ClientOnly } from "./client-only"
 import { SidebarInset, SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar"
@@ -309,6 +311,10 @@ export default function Dashboard({ children, customContent = false }: Dashboard
           onBack={() => setActiveSection("nueva-planeacion")}
           onSuccess={() => setActiveSection("mis-planeaciones")}
         />
+      case "plan-analitico":
+        return <ListaPlanesAnaliticos onCreateNew={() => setActiveSection("nuevo-plan-analitico")} />
+      case "nuevo-plan-analitico":
+        return <PlanAnaliticoWizard onComplete={() => setActiveSection("plan-analitico")} />
       default:
         return <DashboardHome onSectionChange={setActiveSection} />
     }
