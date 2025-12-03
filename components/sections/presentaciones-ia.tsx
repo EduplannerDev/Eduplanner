@@ -38,7 +38,11 @@ interface PresentacionIA {
     updated_at: string
 }
 
-export function PresentacionesIA() {
+interface PresentacionesIAProps {
+    onNavigateToProfile?: () => void
+}
+
+export function PresentacionesIA({ onNavigateToProfile }: PresentacionesIAProps) {
     const { profile, loading: loadingProfile } = useProfile()
     const { toast } = useToast()
     const [presentaciones, setPresentaciones] = useState<PresentacionIA[]>([])
@@ -187,8 +191,8 @@ export function PresentacionesIA() {
         )
     }
 
-    // Verificar si el usuario es Beta Tester
-    if (!isBetaTester) {
+    // Restricción para usuarios NO PRO
+    if (!profile || !isUserPro(profile)) {
         return (
             <div className="space-y-6">
                 <div>
@@ -201,42 +205,52 @@ export function PresentacionesIA() {
                         <div className="mx-auto w-12 h-12 bg-purple-100 dark:bg-purple-900 rounded-full flex items-center justify-center mb-4">
                             <Presentation className="h-6 w-6 text-purple-600 dark:text-purple-400" />
                         </div>
-                        <CardTitle className="text-2xl">Funcionalidad Beta</CardTitle>
+                        <CardTitle className="text-2xl">Funcionalidad PRO</CardTitle>
                         <CardDescription className="text-base">
-                            Esta funcionalidad está disponible exclusivamente para Beta Testers
+                            El generador de presentaciones con IA está disponible exclusivamente para usuarios PRO
                         </CardDescription>
                     </CardHeader>
-                    <CardContent className="space-y-4">
-                        <div className="space-y-2">
-                            <h4 className="font-semibold flex items-center gap-2">
+                    <CardContent className="space-y-6">
+                        <div className="space-y-2 max-w-md mx-auto">
+                            <h4 className="font-semibold flex items-center gap-2 justify-center">
                                 <span className="text-purple-600">✨</span>
-                                ¿Qué incluye?
+                                ¿Qué incluye Presentaciones IA?
                             </h4>
-                            <ul className="space-y-2 text-sm text-gray-600 dark:text-gray-400">
+                            <ul className="space-y-3 text-sm text-gray-600 dark:text-gray-400 pt-2">
                                 <li className="flex items-start gap-2">
-                                    <span className="text-green-500 mt-1">✓</span>
-                                    <span>Generación automática de presentaciones con IA</span>
+                                    <span className="text-green-500 mt-0.5">✓</span>
+                                    <span>Generación automática de diapositivas con IA</span>
                                 </li>
                                 <li className="flex items-start gap-2">
-                                    <span className="text-green-500 mt-1">✓</span>
-                                    <span>5 temas visuales profesionales</span>
+                                    <span className="text-green-500 mt-0.5">✓</span>
+                                    <span>Múltiples temas visuales profesionales</span>
                                 </li>
                                 <li className="flex items-start gap-2">
-                                    <span className="text-green-500 mt-1">✓</span>
-                                    <span>Preview antes de descargar</span>
+                                    <span className="text-green-500 mt-0.5">✓</span>
+                                    <span>Edición avanzada de contenido y diseño</span>
                                 </li>
                                 <li className="flex items-start gap-2">
-                                    <span className="text-green-500 mt-1">✓</span>
-                                    <span>Historial de presentaciones guardadas</span>
+                                    <span className="text-green-500 mt-0.5">✓</span>
+                                    <span>Exportación a PowerPoint (.pptx) editable</span>
                                 </li>
                                 <li className="flex items-start gap-2">
-                                    <span className="text-green-500 mt-1">✓</span>
-                                    <span>Exportación a PowerPoint (.pptx)</span>
+                                    <span className="text-green-500 mt-0.5">✓</span>
+                                    <span>Creación desde planeaciones o proyectos</span>
                                 </li>
                             </ul>
                         </div>
-                        <div className="bg-blue-50 dark:bg-blue-900/20 p-4 rounded-lg text-sm text-blue-800 dark:text-blue-200">
-                            Si te interesa ser parte del programa de Beta Testers, por favor contacta al administrador.
+
+                        <div className="flex justify-center pt-2">
+                            <Button
+                                onClick={() => onNavigateToProfile ? onNavigateToProfile() : window.open('/pricing', '_blank')}
+                                className="bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white px-8 py-6 text-lg shadow-lg transform hover:scale-105 transition-all duration-200"
+                            >
+                                Actualizar a PRO
+                            </Button>
+                        </div>
+
+                        <div className="bg-blue-50 dark:bg-blue-900/20 p-4 rounded-lg text-sm text-center text-blue-800 dark:text-blue-200 max-w-2xl mx-auto">
+                            Ahorra horas de diseño y contenido. Crea presentaciones impactantes en segundos con nuestra IA educativa.
                         </div>
                     </CardContent>
                 </Card>

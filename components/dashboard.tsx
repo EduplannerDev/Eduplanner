@@ -301,7 +301,7 @@ export default function Dashboard({ children, customContent = false }: Dashboard
           onNavigateToChatDosificacion={handleNavigateToChatDosificacion}
         />
       case "presentaciones-ia":
-        return <PresentacionesIA />
+        return <PresentacionesIA onNavigateToProfile={() => setActiveSection("perfil")} />
       case "proyectos":
         return <ListaProyectos />
       case "crear-proyecto":
