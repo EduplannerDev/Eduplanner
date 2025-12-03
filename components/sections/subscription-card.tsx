@@ -112,6 +112,8 @@ export function SubscriptionCard({ userPlan }: SubscriptionCardProps) {
     { name: "Exámenes ilimitados", included: true },
     { name: "Grupos ilimitados", included: true },
     { name: "Proyectos ilimitados", included: true },
+    { name: "Planeaciones con IA", included: true },
+    { name: "Plan Analítico", included: true },
     { name: "Descarga en formato Word (.docx) editable", included: true },
     { name: "Soporte prioritario", included: true },
   ]

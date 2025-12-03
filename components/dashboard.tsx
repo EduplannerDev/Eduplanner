@@ -312,7 +312,10 @@ export default function Dashboard({ children, customContent = false }: Dashboard
           onSuccess={() => setActiveSection("mis-planeaciones")}
         />
       case "plan-analitico":
-        return <ListaPlanesAnaliticos onCreateNew={() => setActiveSection("nuevo-plan-analitico")} />
+        return <ListaPlanesAnaliticos
+          onCreateNew={() => setActiveSection("nuevo-plan-analitico")}
+          onNavigateToProfile={() => setActiveSection("perfil")}
+        />
       case "nuevo-plan-analitico":
         return <PlanAnaliticoWizard onComplete={() => setActiveSection("plan-analitico")} />
       default:
