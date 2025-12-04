@@ -3,7 +3,6 @@
 import { useState, useEffect } from "react"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
-import { TourGuide } from "@/components/ui/tour-guide"
 import { Badge } from "@/components/ui/badge"
 import { Progress } from "@/components/ui/progress"
 import {
@@ -21,7 +20,8 @@ import {
   GraduationCap,
   ClipboardCheck,
   Play,
-  X
+  X,
+  HelpCircle
 } from "lucide-react"
 import { useAuth } from "@/hooks/use-auth"
 import { useUserData } from "@/hooks/use-user-data"
@@ -33,6 +33,7 @@ import { format } from "date-fns"
 import { es } from "date-fns/locale"
 import WelcomeModal from "@/components/welcome-modal"
 import { useWelcomeModal } from "@/hooks/use-welcome-modal"
+import { useTourGuide } from "@/components/ui/tour-guide"
 
 interface DashboardHomeProps {
   onSectionChange: (section: string) => void
@@ -72,6 +73,7 @@ export function DashboardHome({ onSectionChange, onOpenPlaneacion }: DashboardHo
   })
   const [cargandoEstadisticasCiclo, setCargandoEstadisticasCiclo] = useState(false)
   const { showModal, setShowModal, closeModal, hasSeen, isLoading: loadingWelcome } = useWelcomeModal({ autoShow: false })
+  const { startTour } = useTourGuide()
 
   const displayName = user?.user_metadata?.full_name || userData?.full_name || "Profesor"
   const firstName = displayName.split(' ')[0]
@@ -82,6 +84,17 @@ export function DashboardHome({ onSectionChange, onOpenPlaneacion }: DashboardHo
       cargarEstadisticasCicloEscolar()
     }
   }, [user?.id])
+
+  useEffect(() => {
+    // Iniciar tour automáticamente si no se ha visto
+    const tourSeen = localStorage.getItem('tour_seen_v1')
+    if (!tourSeen && !loading) {
+      const timer = setTimeout(() => {
+        startTour()
+      }, 1500)
+      return () => clearTimeout(timer)
+    }
+  }, [loading])
 
   // Determinar si el usuario es pro y los límites
   const isPro = profile ? isUserPro(profile) : false
@@ -349,7 +362,8 @@ export function DashboardHome({ onSectionChange, onOpenPlaneacion }: DashboardHo
       description: "Crear una planeación didáctica",
       icon: <Plus className="h-5 w-5" />,
       action: () => onSectionChange('nueva-planeacion'),
-      color: "bg-blue-500 hover:bg-blue-600"
+      color: "bg-blue-500 hover:bg-blue-600",
+      id: "new-plan-btn"
     },
     {
       title: "Generar Examen",
@@ -391,15 +405,25 @@ export function DashboardHome({ onSectionChange, onOpenPlaneacion }: DashboardHo
 
   return (
     <div className="space-y-4 md:space-y-6">
-      <TourGuide />
       {/* Saludo personalizado */}
-      <div className="mb-6 md:mb-8">
-        <h1 className="text-2xl md:text-3xl font-bold text-foreground mb-2">
-          <span className="notranslate">¡Hola, {firstName}! 👋</span>
-        </h1>
-        <p className="text-sm md:text-base text-muted-foreground">
-          Bienvenido a tu panel de control. Aquí tienes un resumen de tu actividad educativa.
-        </p>
+      <div className="mb-6 md:mb-8 flex flex-col md:flex-row md:items-center justify-between gap-4">
+        <div>
+          <h1 className="text-2xl md:text-3xl font-bold text-foreground mb-2">
+            <span className="notranslate">¡Hola, {firstName}! 👋</span>
+          </h1>
+          <p className="text-sm md:text-base text-muted-foreground">
+            Bienvenido a tu panel de control. Aquí tienes un resumen de tu actividad educativa.
+          </p>
+        </div>
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={startTour}
+          className="self-start md:self-center gap-2"
+        >
+          <HelpCircle className="h-4 w-4" />
+          Ver Tour
+        </Button>
       </div>
 
       {/* Tarjeta de Bienvenida (Onboarding) */}
@@ -445,7 +469,7 @@ export function DashboardHome({ onSectionChange, onOpenPlaneacion }: DashboardHo
       )}
 
       {/* Estadísticas principales */}
-      <div className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-4 gap-3 md:gap-4 mb-6 md:mb-8">
+      <div id="dashboard-metrics" className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-4 gap-3 md:gap-4 mb-6 md:mb-8">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 px-3 md:px-6 pt-3 md:pt-6">
             <CardTitle className="text-xs md:text-sm font-medium">Planeaciones</CardTitle>
@@ -492,7 +516,7 @@ export function DashboardHome({ onSectionChange, onOpenPlaneacion }: DashboardHo
       </div>
 
       {/* Tarjeta destacada de Tomar Asistencia */}
-      <Card className="bg-gradient-to-r from-emerald-500 to-emerald-600 border-0 text-white">
+      <Card id="attendance-card" className="bg-gradient-to-r from-emerald-500 to-emerald-600 border-0 text-white">
         <CardContent className="p-4 md:p-6">
           <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
             <div className="flex items-center gap-3 md:gap-4">
@@ -531,6 +555,7 @@ export function DashboardHome({ onSectionChange, onOpenPlaneacion }: DashboardHo
               {quickActions.map((action, index) => (
                 <Button
                   key={index}
+                  id={action.id}
                   variant="outline"
                   className={`h-auto p-3 md:p-4 flex flex-col items-center gap-2 ${action.color} text-white border-0`}
                   onClick={action.action}
@@ -598,7 +623,7 @@ export function DashboardHome({ onSectionChange, onOpenPlaneacion }: DashboardHo
         </Card>
 
         {/* Resumen General del Ciclo Escolar */}
-        <Card>
+        <Card id="school-year-summary">
           <CardHeader className="px-4 md:px-6 pt-4 md:pt-6">
             <CardTitle className="text-lg md:text-xl flex items-center gap-2">
               <TrendingUp className="h-5 w-5 text-blue-600" />

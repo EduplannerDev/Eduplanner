@@ -13,6 +13,7 @@ import { useAuth } from "@/hooks/use-auth"
 import { supabase } from "@/lib/supabase"
 import { Pagination, PaginationContent, PaginationItem, PaginationLink, PaginationNext, PaginationPrevious } from "@/components/ui/pagination"
 import { getGradoTexto } from "@/lib/grado-utils"
+import { TourGuidePlaneacion } from "@/components/ui/tour-guide-planeacion"
 
 interface NuevaPlaneacionProps {
   onCreateClass: () => void
@@ -478,16 +479,16 @@ export function NuevaPlaneacion({ onCreateClass, onNavigateToChatWithMessage, on
                       <Card
                         key={contenido.contenido_id}
                         className={`cursor-pointer transition-all duration-200 ${isSelected
-                            ? 'border-orange-500 bg-orange-50 dark:bg-orange-950/20'
-                            : 'hover:border-orange-300 hover:shadow-md'
+                          ? 'border-orange-500 bg-orange-50 dark:bg-orange-950/20'
+                          : 'hover:border-orange-300 hover:shadow-md'
                           }`}
                         onClick={() => handleSeleccionarContenido(contenido.contenido_id)}
                       >
                         <CardContent className="pt-6">
                           <div className="flex items-start gap-4">
                             <div className={`w-6 h-6 rounded border-2 flex items-center justify-center mt-1 ${isSelected
-                                ? 'bg-orange-500 border-orange-500'
-                                : 'border-gray-300'
+                              ? 'bg-orange-500 border-orange-500'
+                              : 'border-gray-300'
                               }`}>
                               {isSelected && <Check className="w-4 h-4 text-white" />}
                             </div>
@@ -618,7 +619,8 @@ export function NuevaPlaneacion({ onCreateClass, onNavigateToChatWithMessage, on
           )}
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <TourGuidePlaneacion />
+        <div id="plan-types-grid" className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {planTypes.map((planType) => {
             const IconComponent = planType.icon
 
@@ -633,6 +635,7 @@ export function NuevaPlaneacion({ onCreateClass, onNavigateToChatWithMessage, on
               return (
                 <Card
                   key={planType.id}
+                  id={planType.id === 'individual' ? 'individual-plan-card' : undefined}
                   className="hover:shadow-lg transition-shadow cursor-pointer border-2 hover:border-green-200"
                   onClick={handleClick}
                 >

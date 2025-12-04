@@ -1,27 +1,9 @@
 "use client"
 
-import { useEffect } from 'react'
 import { driver } from "driver.js"
 import "driver.js/dist/driver.css"
-import { useRoles } from '@/hooks/use-roles'
 
-export function TourGuide() {
-    const { role } = useRoles()
-
-    useEffect(() => {
-        // Solo mostrar el tour si no se ha visto antes
-        // const tourSeen = localStorage.getItem('tour_seen_v1')
-
-        // if (!tourSeen) {
-        // Pequeño retraso para asegurar que la UI esté lista
-        const timer = setTimeout(() => {
-            startTour()
-        }, 1500)
-
-        return () => clearTimeout(timer)
-        // }
-    }, [])
-
+export function useTourGuide() {
     const startTour = () => {
         const driverObj = driver({
             popoverClass: 'driverjs-theme',
@@ -52,6 +34,24 @@ export function TourGuide() {
                     }
                 },
                 {
+                    element: '#dashboard-metrics',
+                    popover: {
+                        title: 'Tus Estadísticas',
+                        description: 'Visualiza rápidamente tus planeaciones, exámenes, grupos y mensajes.',
+                        side: "bottom",
+                        align: 'center'
+                    }
+                },
+                {
+                    element: '#attendance-card',
+                    popover: {
+                        title: 'Toma de Asistencia',
+                        description: 'Registra la asistencia diaria de tus grupos de manera rápida y sencilla.',
+                        side: "top",
+                        align: 'center'
+                    }
+                },
+                {
                     element: '#quick-actions',
                     popover: {
                         title: 'Acciones Rápidas',
@@ -70,23 +70,33 @@ export function TourGuide() {
                     }
                 },
                 {
-                    element: '#help-section',
+                    element: '#school-year-summary',
                     popover: {
-                        title: '¿Necesitas Ayuda?',
-                        description: 'Si tienes dudas, visita la sección de Ayuda para encontrar tutoriales y soporte.',
+                        title: 'Resumen del Ciclo Escolar',
+                        description: 'Monitorea el progreso de tu dosificación curricular y el avance de tus alumnos.',
                         side: "top",
-                        align: 'start'
+                        align: 'center'
+                    }
+                },
+                {
+                    element: '#new-plan-btn',
+                    popover: {
+                        title: '¡Comencemos!',
+                        description: 'Haz clic aquí para crear tu primera planeación didáctica.',
+                        side: "bottom",
+                        align: 'center'
                     }
                 }
             ],
             onDestroyed: () => {
-                // Marcar el tour como visto cuando se cierra o termina
+                // Marcar el tour como visto y preparar la siguiente fase
                 localStorage.setItem('tour_seen_v1', 'true')
+                localStorage.setItem('tour_phase', 'planeacion')
             }
         })
 
         driverObj.drive()
     }
 
-    return null // Este componente no renderiza nada visualmente por sí mismo
+    return { startTour }
 }
