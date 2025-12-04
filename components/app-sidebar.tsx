@@ -466,7 +466,7 @@ export function AppSidebar({ activeSection, onSectionChange, ...props }: AppSide
                     isActive={activeSection === section.url?.replace("#", "")}
                     tooltip={section.description}
                   >
-                    <button onClick={() => handleNavigation(section.url?.replace("#", "") || "")} className="w-full">
+                    <button id="help-section" onClick={() => handleNavigation(section.url?.replace("#", "") || "")} className="w-full">
                       <section.icon className="h-4 w-4" />
                       <span className="notranslate">{section.title}</span>
                     </button>

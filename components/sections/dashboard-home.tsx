@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
+import { TourGuide } from "@/components/ui/tour-guide"
 import { Badge } from "@/components/ui/badge"
 import { Progress } from "@/components/ui/progress"
 import {
@@ -54,6 +55,7 @@ interface RecentActivity {
 }
 
 export function DashboardHome({ onSectionChange, onOpenPlaneacion }: DashboardHomeProps) {
+  console.log('Rendering DashboardHome')
   const { user } = useAuth()
   const { userData } = useUserData(user?.id)
   const { profile } = useProfile()
@@ -389,6 +391,7 @@ export function DashboardHome({ onSectionChange, onOpenPlaneacion }: DashboardHo
 
   return (
     <div className="space-y-4 md:space-y-6">
+      <TourGuide />
       {/* Saludo personalizado */}
       <div className="mb-6 md:mb-8">
         <h1 className="text-2xl md:text-3xl font-bold text-foreground mb-2">
@@ -524,7 +527,7 @@ export function DashboardHome({ onSectionChange, onOpenPlaneacion }: DashboardHo
             </CardDescription>
           </CardHeader>
           <CardContent className="px-4 md:px-6 pb-4 md:pb-6">
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <div id="quick-actions" className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               {quickActions.map((action, index) => (
                 <Button
                   key={index}
@@ -546,9 +549,9 @@ export function DashboardHome({ onSectionChange, onOpenPlaneacion }: DashboardHo
         </Card>
 
         {/* Actividad reciente */}
-        <Card>
-          <CardHeader className="px-4 md:px-6 pt-4 md:pt-6">
-            <CardTitle className="text-lg md:text-xl">Actividad Reciente</CardTitle>
+        <Card id="recent-activity">
+          <CardHeader>
+            <CardTitle>Actividad Reciente</CardTitle>
             <CardDescription className="text-sm">
               Tus últimas creaciones y modificaciones
             </CardDescription>

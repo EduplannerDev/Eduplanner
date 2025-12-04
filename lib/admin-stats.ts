@@ -502,3 +502,67 @@ export async function getContextoTrabajoData(): Promise<ContextoTrabajoData[]> {
     return [];
   }
 }
+
+export interface UserReport {
+  id: string;
+  full_name: string;
+  email: string;
+  role: string;
+  total_planeaciones: number;
+  total_examenes: number;
+  last_active: string;
+}
+
+/**
+ * Obtiene reporte detallado de actividad por usuario
+ */
+export async function getUserReports(): Promise<UserReport[]> {
+  try {
+    // 1. Obtener todos los perfiles
+    const { data: profiles, error: profilesError } = await supabase
+      .from('profiles')
+      .select('id, full_name, email, role, updated_at')
+      .order('created_at', { ascending: false });
+
+    if (profilesError) throw profilesError;
+
+    // 2. Obtener conteo de planeaciones por usuario
+    // Nota: Supabase no soporta group by directo fácilmente con el cliente JS sin RPC,
+    // así que obtenemos los datos y agregamos en memoria o usamos una vista si fuera necesario.
+    // Dado que es un panel administrativo, traeremos los datos necesarios.
+    const { data: planeaciones } = await supabase
+      .from('planeacion_creations')
+      .select('user_id');
+
+    // 3. Obtener conteo de exámenes por usuario
+    const { data: examenes } = await supabase
+      .from('examenes')
+      .select('user_id');
+
+    // Agrupar conteos
+    const planeacionesCount: Record<string, number> = {};
+    planeaciones?.forEach((p: any) => {
+      planeacionesCount[p.user_id] = (planeacionesCount[p.user_id] || 0) + 1;
+    });
+
+    const examenesCount: Record<string, number> = {};
+    examenes?.forEach((e: any) => {
+      examenesCount[e.user_id] = (examenesCount[e.user_id] || 0) + 1;
+    });
+
+    // Combinar datos
+    return (profiles || []).map(profile => ({
+      id: profile.id,
+      full_name: profile.full_name || 'Sin nombre',
+      email: profile.email || 'Sin email',
+      role: profile.role || 'user',
+      total_planeaciones: planeacionesCount[profile.id] || 0,
+      total_examenes: examenesCount[profile.id] || 0,
+      last_active: profile.updated_at
+    }));
+
+  } catch (error) {
+    console.error('Error obteniendo reportes de usuarios:', error);
+    return [];
+  }
+}

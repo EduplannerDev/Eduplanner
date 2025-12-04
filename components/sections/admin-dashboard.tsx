@@ -43,6 +43,7 @@ import {
   type FeedbackData
 } from '@/lib/admin-stats'
 import { LoggingMetricsWidget } from '@/components/admin/logging-widgets'
+import { AdminReports } from './admin-reports'
 
 export function AdminDashboard() {
   const { isAdmin, isDirector, plantel, role, loading } = useRoles()
@@ -161,6 +162,10 @@ export function AdminDashboard() {
           <TabsTrigger value="system" className="flex items-center gap-2">
             <Settings className="h-4 w-4" />
             Sistema
+          </TabsTrigger>
+          <TabsTrigger value="reports" className="flex items-center gap-2">
+            <FileText className="h-4 w-4" />
+            Reportes
           </TabsTrigger>
         </TabsList>
 
@@ -657,6 +662,21 @@ export function AdminDashboard() {
           )}
         </TabsContent>
 
+        <TabsContent value="reports" className="space-y-6">
+          {isAdmin ? (
+            <AdminReports />
+          ) : (
+            <Card>
+              <CardContent className="p-8 text-center">
+                <FileText className="mx-auto h-12 w-12 text-muted-foreground mb-4" />
+                <h3 className="text-lg font-semibold mb-2">Acceso Restringido</h3>
+                <p className="text-muted-foreground">
+                  Solo los administradores pueden ver los reportes.
+                </p>
+              </CardContent>
+            </Card>
+          )}
+        </TabsContent>
       </Tabs>
 
       <Dialog open={!!selectedFeedback} onOpenChange={(open) => !open && setSelectedFeedback(null)}>
