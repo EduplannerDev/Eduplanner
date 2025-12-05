@@ -17,19 +17,46 @@ export function ErrorLoggerProvider({ children }: { children: React.ReactNode })
 
     // Configurar logging adicional para desarrollo
     if (process.env.NODE_ENV === 'development') {
-      // Interceptar console.error para logging adicional
+      // Guardar referencia original
       const originalConsoleError = console.error
-      console.error = (...args) => {
-        // Log original
-        originalConsoleError.apply(console, args)
 
-        // Log adicional si es un error
-        if (args[0] instanceof Error) {
-          errorLogger.logError('javascript', args[0], {
-            module: 'console_error',
-            action: 'console_error_intercept'
-          })
+      // Interceptar console.error para logging adicional
+      console.error = (...args) => {
+        // Siempre llamar al console.error original primero
+        try {
+          originalConsoleError.apply(console, args)
+        } catch (e) {
+          // Si falla, intentar con console.log como fallback
+          console.log('Error en console.error:', e)
         }
+
+        // Log adicional si es un error válido
+        try {
+          if (args[0] instanceof Error) {
+            // Filtrar errores de librerías externas
+            const stack = args[0].stack || ''
+            const isExternalLibrary = stack.includes('node_modules') ||
+              stack.includes('driver.js') ||
+              stack.includes('webpack')
+
+            // Solo loggear errores de nuestra aplicación
+            if (!isExternalLibrary) {
+              errorLogger.logError('javascript', args[0], {
+                module: 'console_error',
+                action: 'console_error_intercept'
+              }).catch(() => {
+                // Silenciar errores de logging
+              })
+            }
+          }
+        } catch (e) {
+          // Silenciar cualquier error en el logging para no afectar la aplicación
+        }
+      }
+
+      // Cleanup function para restaurar console.error original
+      return () => {
+        console.error = originalConsoleError
       }
     }
   }, [])

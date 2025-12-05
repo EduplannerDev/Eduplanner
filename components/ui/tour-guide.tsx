@@ -2,11 +2,16 @@
 
 import { driver } from "driver.js"
 import "driver.js/dist/driver.css"
+import { markTourAsSeen } from "@/lib/tour-guide"
 
 export function useTourGuide() {
-    const startTour = () => {
-        // Marcar el tour como visto inmediatamente al iniciarlo
-        localStorage.setItem('tour_seen_v1', 'true')
+    const startTour = async () => {
+        // Marcar el tour como visto inmediatamente al iniciarlo en la base de datos
+        try {
+            await markTourAsSeen()
+        } catch (error) {
+            console.error('Error marcando tour como visto:', error)
+        }
 
         const driverObj = driver({
             popoverClass: 'driverjs-theme',
@@ -92,8 +97,8 @@ export function useTourGuide() {
                 }
             ],
             onDestroyed: () => {
-                // Preparar la siguiente fase del tour
-                localStorage.setItem('tour_phase', 'planeacion')
+                // Preparar la siguiente fase del tour (si se necesita en el futuro)
+                // localStorage.setItem('tour_phase', 'planeacion')
             }
         })
 

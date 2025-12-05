@@ -74,6 +74,8 @@ export function DashboardHome({ onSectionChange, onOpenPlaneacion }: DashboardHo
   const [cargandoEstadisticasCiclo, setCargandoEstadisticasCiclo] = useState(false)
   const { showModal, setShowModal, closeModal, hasSeen, isLoading: loadingWelcome } = useWelcomeModal({ autoShow: false })
   const { startTour } = useTourGuide()
+  const [tourSeen, setTourSeen] = useState(true) // Default true to avoid flash
+  const [loadingTour, setLoadingTour] = useState(true)
 
   const displayName = user?.user_metadata?.full_name || userData?.full_name || "Profesor"
   const firstName = displayName.split(' ')[0]
@@ -86,15 +88,32 @@ export function DashboardHome({ onSectionChange, onOpenPlaneacion }: DashboardHo
   }, [user?.id])
 
   useEffect(() => {
-    // Iniciar tour automáticamente si no se ha visto
-    const tourSeen = localStorage.getItem('tour_seen_v1')
-    if (!tourSeen && !loading) {
-      const timer = setTimeout(() => {
-        startTour()
-      }, 1500)
-      return () => clearTimeout(timer)
+    const checkTourStatus = async () => {
+      if (!user?.id || loading) {
+        setLoadingTour(false)
+        return
+      }
+
+      try {
+        const { hasUserSeenTour } = await import('@/lib/tour-guide')
+        const hasSeen = await hasUserSeenTour()
+        setTourSeen(hasSeen)
+
+        if (!hasSeen && !loading) {
+          const timer = setTimeout(() => {
+            startTour()
+          }, 1500)
+          return () => clearTimeout(timer)
+        }
+      } catch (error) {
+        console.error('Error checking tour status:', error)
+      } finally {
+        setLoadingTour(false)
+      }
     }
-  }, [loading])
+
+    checkTourStatus()
+  }, [user?.id, loading])
 
   // Determinar si el usuario es pro y los límites
   const isPro = profile ? isUserPro(profile) : false
