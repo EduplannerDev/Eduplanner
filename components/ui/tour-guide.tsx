@@ -5,6 +5,9 @@ import "driver.js/dist/driver.css"
 
 export function useTourGuide() {
     const startTour = () => {
+        // Marcar el tour como visto inmediatamente al iniciarlo
+        localStorage.setItem('tour_seen_v1', 'true')
+
         const driverObj = driver({
             popoverClass: 'driverjs-theme',
             showProgress: true,
@@ -89,8 +92,7 @@ export function useTourGuide() {
                 }
             ],
             onDestroyed: () => {
-                // Marcar el tour como visto y preparar la siguiente fase
-                localStorage.setItem('tour_seen_v1', 'true')
+                // Preparar la siguiente fase del tour
                 localStorage.setItem('tour_phase', 'planeacion')
             }
         })
