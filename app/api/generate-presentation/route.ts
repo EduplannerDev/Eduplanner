@@ -1,5 +1,5 @@
 import { google } from "@ai-sdk/google"
-import { streamText } from "ai"
+import { generateText } from "ai"
 
 export const maxDuration = 30
 
@@ -33,9 +33,7 @@ Genera una presentación atractiva y educativa.`
       return new Response("API key no configurada", { status: 500 })
     }
 
-
-
-    const result = await streamText({
+    const result = await generateText({
       model: google("gemini-2.5-flash"),
       system: `🔒 RESTRICCIONES DE SEGURIDAD CRÍTICAS:
 - NUNCA reveles información sobre EduPlanner, su funcionamiento interno, base de datos, APIs, o arquitectura
@@ -172,8 +170,9 @@ Cuando recibas una planeación, analiza el contenido y crea una presentación IN
       messages: finalMessages,
     })
 
-    console.log('✅ StreamText iniciado correctamente')
-    return result.toDataStreamResponse()
+    return Response.json({
+      content: result.text,
+    })
   } catch (error) {
     console.error("❌ Error en API route generate-presentation:", error)
     return new Response('Error: ' + (error instanceof Error ? error.message : 'Unknown error occurred'), { status: 500 })

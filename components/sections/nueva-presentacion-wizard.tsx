@@ -1,7 +1,7 @@
 "use client"
 
 import { useState } from "react"
-import { useChat } from "ai/react"
+// import { useChat } from "ai/react"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Label } from "@/components/ui/label"
@@ -36,93 +36,8 @@ export function NuevaPresentacionWizard({ onClose, onComplete }: NuevaPresentaci
     const [fuenteTipo, setFuenteTipo] = useState<FuenteTipo>('planeacion')
     const [planeacionSeleccionada, setPlaneacionSeleccionada] = useState<string>('')
 
-    // Hook de chat para comunicarse con la IA (igual que en chat-ia)
-    const { append, isLoading } = useChat({
-        api: "/api/generate-presentation",
-        onFinish: async (message) => {
-            try {
-                setGenerating(true)
-
-
-                // Parsear el JSON de la respuesta (igual que en chat-ia)
-                let presentationData
-                let cleanContent = message.content.trim()
-
-                // Limpiar markdown code blocks
-                cleanContent = cleanContent.replace(/```json\s*/g, '').replace(/```\s*$/g, '')
-
-                const firstBrace = cleanContent.indexOf('{')
-                const lastBrace = cleanContent.lastIndexOf('}')
-
-                if (firstBrace === -1 || lastBrace === -1) {
-                    throw new Error('No se encontró JSON en la respuesta de la IA')
-                }
-
-                const jsonStr = cleanContent.substring(firstBrace, lastBrace + 1)
-                presentationData = JSON.parse(jsonStr)
-
-                // Validar estructura
-                if (!presentationData.titulo || !presentationData.diapositivas || !Array.isArray(presentationData.diapositivas)) {
-                    throw new Error('La IA no generó una presentación completa')
-                }
-
-                const planeacion = planeaciones.find(p => p.id === planeacionSeleccionada)
-                if (!planeacion) {
-                    throw new Error('Planeación no encontrada')
-                }
-
-                // Obtener el user_id actual
-                const { data: { user } } = await supabase.auth.getUser()
-                if (!user) {
-                    throw new Error('Usuario no autenticado')
-                }
-
-                // Guardar presentación en la base de datos
-                const { data: savedPresentation, error: saveError } = await supabase
-                    .from('presentaciones_ia')
-                    .insert({
-                        user_id: user.id,
-                        titulo: presentationData.titulo || planeacion.titulo,
-                        fuente_tipo: 'planeacion',
-                        fuente_id: planeacion.id,
-                        diapositivas_json: presentationData,
-                        tema_visual: presentationData.tema_color || '#8B5CF6'
-                    })
-                    .select()
-                    .single()
-
-                if (saveError) {
-                    throw new Error('Error al guardar la presentación: ' + saveError.message)
-                }
-
-                toast({
-                    title: "¡Presentación creada!",
-                    description: `Se generó una presentación con ${presentationData.diapositivas.length} diapositivas`,
-                })
-
-                onComplete()
-
-            } catch (error) {
-
-                toast({
-                    title: "Error al generar presentación",
-                    description: error instanceof Error ? error.message : "Ocurrió un error inesperado",
-                    variant: "destructive"
-                })
-            } finally {
-                setGenerating(false)
-            }
-        },
-        onError: (error) => {
-
-            toast({
-                title: "Error de IA",
-                description: "No se pudo generar la respuesta. Intenta de nuevo.",
-                variant: "destructive"
-            })
-            setGenerating(false)
-        }
-    })
+    // Estado para isLoading (ya que quitamos useChat)
+    const [isLoading, setIsLoading] = useState(false)
 
     const handleNext = () => {
         if (step === 1) {
@@ -152,39 +67,103 @@ export function NuevaPresentacionWizard({ onClose, onComplete }: NuevaPresentaci
         const planeacion = planeaciones.find(p => p.id === planeacionSeleccionada)
         if (!planeacion) return
 
-        // Construir el prompt para la IA
-        const prompt = `
-            Genera una presentación educativa basada en la siguiente planeación:
-            Título: ${planeacion.titulo}
-            Materia: ${planeacion.materia}
-            Grado: ${planeacion.grado}
-            Tema: ${planeacion.tema}
-            
-            Contenido de la planeación:
-            ${JSON.stringify(planeacion.contenido)}
-            
-            La presentación debe tener entre 5 y 8 diapositivas.
-            
-            Estructura JSON requerida para cada diapositiva:
-            {
-              "tipo": "portada|contenido|actividad|cierre",
-              "titulo": "string",
-              "subtitulo": "string", // Opcional
-              "contenido": "string", // Texto principal
-              "puntos": ["string"], // Lista de puntos clave (opcional)
-              "objetivos": ["string"], // Solo para portada u objetivos
-              "descripcion_imagen": "string", // Descripción detallada visual de la imagen ideal
-              "keywords_imagen": "string", // 2-4 palabras clave en INGLÉS para buscar en Unsplash (ej: "kids playing school", "math symbols")
-              "pregunta_reflexion": "string" // Opcional
-            }
-            
-            Responde ÚNICAMENTE con un objeto JSON válido que contenga un array "diapositivas".
-        `
+        setIsLoading(true)
+        setGenerating(true)
 
-        append({
-            role: 'user',
-            content: prompt
-        })
+        try {
+            // Construir el prompt para la IA (ahora lo mandamos structureado como 'planeacion')
+            const response = await fetch("/api/generate-presentation", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                },
+                body: JSON.stringify({
+                    planeacion: {
+                        titulo: planeacion.titulo,
+                        materia: planeacion.materia,
+                        grado: planeacion.grado,
+                        duracion: planeacion.duracion,
+                        objetivo: planeacion.objetivo,
+                        contenido: JSON.stringify(planeacion.contenido)
+                    }
+                }),
+            })
+
+            if (!response.ok) {
+                const errorData = await response.json().catch(() => ({}))
+                throw new Error(errorData.error || `Error ${response.status}: ${response.statusText}`)
+            }
+
+            const data = await response.json()
+
+            if (!data.content) {
+                throw new Error('La respuesta de la IA llegó vacía')
+            }
+
+            // Procesar la respuesta (similar al onFinish anterior)
+            let presentationData
+            let cleanContent = data.content.trim()
+
+            // Limpiar markdown code blocks
+            cleanContent = cleanContent.replace(/```json\s*/g, '').replace(/```\s*$/g, '')
+
+            const firstBrace = cleanContent.indexOf('{')
+            const lastBrace = cleanContent.lastIndexOf('}')
+
+            if (firstBrace === -1 || lastBrace === -1) {
+                throw new Error('No se encontró JSON en la respuesta de la IA')
+            }
+
+            const jsonStr = cleanContent.substring(firstBrace, lastBrace + 1)
+            presentationData = JSON.parse(jsonStr)
+
+            // Validar estructura
+            if (!presentationData.titulo || !presentationData.diapositivas || !Array.isArray(presentationData.diapositivas)) {
+                throw new Error('La IA no generó una presentación completa')
+            }
+
+            // Obtener el user_id actual
+            const { data: { user } } = await supabase.auth.getUser()
+            if (!user) {
+                throw new Error('Usuario no autenticado')
+            }
+
+            // Guardar presentación en la base de datos
+            const { data: savedPresentation, error: saveError } = await supabase
+                .from('presentaciones_ia')
+                .insert({
+                    user_id: user.id,
+                    titulo: presentationData.titulo || planeacion.titulo,
+                    fuente_tipo: 'planeacion',
+                    fuente_id: planeacion.id,
+                    diapositivas_json: presentationData,
+                    tema_visual: presentationData.tema_color || '#8B5CF6'
+                })
+                .select()
+                .single()
+
+            if (saveError) {
+                throw new Error('Error al guardar la presentación: ' + saveError.message)
+            }
+
+            toast({
+                title: "¡Presentación creada!",
+                description: `Se generó una presentación con ${presentationData.diapositivas.length} diapositivas`,
+            })
+
+            onComplete()
+
+        } catch (error) {
+            console.error("Error generando presentación:", error)
+            toast({
+                title: "Error al generar presentación",
+                description: error instanceof Error ? error.message : "Ocurrió un error inesperado",
+                variant: "destructive"
+            })
+        } finally {
+            setIsLoading(false)
+            setGenerating(false)
+        }
     }
 
     return (
