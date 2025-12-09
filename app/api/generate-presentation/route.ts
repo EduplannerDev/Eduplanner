@@ -1,11 +1,13 @@
 import { google } from "@ai-sdk/google"
 import { generateText } from "ai"
 
-export const maxDuration = 30
+export const maxDuration = 60
 
 export async function POST(req: Request) {
   try {
     const { planeacion, messages } = await req.json()
+
+    console.log('📝 API generate-presentation: Iniciando generación...')
 
     // Soportar tanto el nuevo formato (planeacion) como el antiguo (messages)
     const finalMessages = planeacion ? [{
@@ -29,9 +31,11 @@ Genera una presentación atractiva y educativa.`
     }
 
     if (!process.env.GOOGLE_GENERATIVE_AI_API_KEY) {
-      console.error("GOOGLE_GENERATIVE_AI_API_KEY no está configurada")
+      console.error("❌ GOOGLE_GENERATIVE_AI_API_KEY no está configurada")
       return new Response("API key no configurada", { status: 500 })
     }
+
+    console.log('🤖 Llamando a Google Gemini...')
 
     const result = await generateText({
       model: google("gemini-2.5-flash"),
@@ -169,6 +173,21 @@ Tu misión es crear presentaciones PROFESIONALES, VISUALES y PEDAGÓGICAMENTE EF
 Cuando recibas una planeación, analiza el contenido y crea una presentación INCREÍBLE que WOW a los estudiantes.`,
       messages: finalMessages,
     })
+
+    console.log('✅ Generación finalizada. Finish reason:', result.finishReason)
+    console.log('📊 Usage:', JSON.stringify(result.usage))
+    console.log('📝 Longitud de respuesta:', result.text?.length || 0)
+
+    if (!result.text || result.text.length === 0) {
+      console.error('❌ La IA retornó texto vacío. Posible bloqueo de seguridad o error de modelo.')
+      return Response.json({
+        error: 'La IA no generó contenido. Intenta refrasear tu solicitud.',
+        details: {
+          finishReason: result.finishReason,
+          usage: result.usage
+        }
+      }, { status: 500 })
+    }
 
     return Response.json({
       content: result.text,
