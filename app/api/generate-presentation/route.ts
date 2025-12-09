@@ -177,6 +177,12 @@ Cuando recibas una planeación, analiza el contenido y crea una presentación IN
     console.log('✅ Generación finalizada. Finish reason:', result.finishReason)
     console.log('📊 Usage:', JSON.stringify(result.usage))
     console.log('📝 Longitud de respuesta:', result.text?.length || 0)
+    console.log('🔍 Objeto result completo:', JSON.stringify({
+      finishReason: result.finishReason,
+      usage: result.usage,
+      textLength: result.text?.length,
+      textPreview: result.text?.substring(0, 200)
+    }))
 
     if (!result.text || result.text.length === 0) {
       console.error('❌ La IA retornó texto vacío. Posible bloqueo de seguridad o error de modelo.')
