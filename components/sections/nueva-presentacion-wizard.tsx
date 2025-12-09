@@ -71,21 +71,28 @@ export function NuevaPresentacionWizard({ onClose, onComplete }: NuevaPresentaci
         setGenerating(true)
 
         try {
-            // Construir el prompt para la IA (ahora lo mandamos structureado como 'planeacion')
+            // Construir el mensaje en formato messages como los otros módulos
             const response = await fetch("/api/generate-presentation", {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json",
                 },
                 body: JSON.stringify({
-                    planeacion: {
-                        titulo: planeacion.titulo,
-                        materia: planeacion.materia,
-                        grado: planeacion.grado,
-                        duracion: planeacion.duracion,
-                        objetivo: planeacion.objetivo,
-                        contenido: JSON.stringify(planeacion.contenido)
-                    }
+                    messages: [{
+                        role: 'user',
+                        content: `Genera una presentación PowerPoint basada en esta planeación didáctica:
+
+Título: ${planeacion.titulo}
+Materia: ${planeacion.materia}
+Grado: ${planeacion.grado}
+Duración: ${planeacion.duracion}
+Objetivo: ${planeacion.objetivo}
+
+Contenido de la planeación:
+${JSON.stringify(planeacion.contenido)}
+
+Genera una presentación atractiva y educativa.`
+                    }]
                 }),
             })
 

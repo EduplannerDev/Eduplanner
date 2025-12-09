@@ -3,40 +3,13 @@ import { generateText } from "ai"
 
 export const maxDuration = 60
 
-export async function POST(req: Request) {
+export async function POST(request: Request) {
   try {
-    const { planeacion, messages } = await req.json()
+    const { messages } = await request.json()
 
-    console.log('📝 API generate-presentation: Iniciando generación...')
-
-    // Soportar tanto el nuevo formato (planeacion) como el antiguo (messages)
-    const finalMessages = planeacion ? [{
-      role: 'user' as const,
-      content: `Genera una presentación PowerPoint basada en esta planeación didáctica:
-
-Título: ${planeacion.titulo}
-Materia: ${planeacion.materia}
-Grado: ${planeacion.grado}
-Duración: ${planeacion.duracion}
-Objetivo: ${planeacion.objetivo}
-
-Contenido de la planeación:
-${planeacion.contenido}
-
-Genera una presentación atractiva y educativa.`
-    }] : messages
-
-    if (!finalMessages || finalMessages.length === 0) {
-      return new Response("No messages or planeacion provided", { status: 400 });
+    if (!messages || messages.length === 0) {
+      return Response.json({ error: 'Messages es requerido' }, { status: 400 })
     }
-
-    if (!process.env.GOOGLE_GENERATIVE_AI_API_KEY) {
-      console.error("❌ GOOGLE_GENERATIVE_AI_API_KEY no está configurada")
-      return new Response("API key no configurada", { status: 500 })
-    }
-
-    console.log('🤖 Llamando a Google Gemini...')
-    console.log('📤 Messages enviados:', JSON.stringify(finalMessages, null, 2))
 
     const result = await generateText({
       model: google("gemini-2.5-flash"),
@@ -172,7 +145,7 @@ Tu misión es crear presentaciones PROFESIONALES, VISUALES y PEDAGÓGICAMENTE EF
 - Secundaria: #2D3561, #E76F51, #F4A261 (profesionales)
 
 Cuando recibas una planeación, analiza el contenido y crea una presentación INCREÍBLE que WOW a los estudiantes.`,
-      messages: finalMessages,
+      messages: messages,
     })
 
     console.log('✅ Generación finalizada. Finish reason:', result.finishReason)
