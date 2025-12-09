@@ -179,3 +179,14 @@ Cuando recibas una planeación, analiza el contenido y crea una presentación IN
     return new Response('Error: ' + (error instanceof Error ? error.message : 'Unknown error occurred'), { status: 500 })
   }
 }
+
+export async function OPTIONS(req: Request) {
+  return new Response(null, {
+    status: 200,
+    headers: {
+      'Access-Control-Allow-Origin': '*',
+      'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
+      'Access-Control-Allow-Headers': 'Content-Type, Authorization, X-Requested-With',
+    },
+  })
+}
