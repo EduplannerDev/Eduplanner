@@ -36,6 +36,7 @@ Genera una presentación atractiva y educativa.`
     }
 
     console.log('🤖 Llamando a Google Gemini...')
+    console.log('📤 Messages enviados:', JSON.stringify(finalMessages, null, 2))
 
     const result = await generateText({
       model: google("gemini-2.5-flash"),
