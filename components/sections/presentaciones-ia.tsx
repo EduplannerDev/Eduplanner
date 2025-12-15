@@ -4,9 +4,10 @@ import { useState, useEffect } from "react"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
+import { Progress } from "@/components/ui/progress"
 import { Plus, Presentation, Loader2, Download, Trash2, Calendar, Eye, Edit } from "lucide-react"
 import { useProfile } from "@/hooks/use-profile"
-import { isUserPro } from "@/lib/subscription-utils"
+import { isUserPro, canUserCreate } from "@/lib/subscription-utils"
 import { supabase } from "@/lib/supabase"
 import { useToast } from "@/hooks/use-toast"
 import { useBetaTesterCheck } from "@/hooks/use-beta-features"
@@ -57,6 +58,20 @@ export function PresentacionesIA({ onNavigateToProfile }: PresentacionesIAProps)
     const [currentSlideIndex, setCurrentSlideIndex] = useState(0)
 
     const { isBetaTester, loading: loadingBeta } = useBetaTesterCheck()
+
+    const [usageStats, setUsageStats] = useState<{ count: number; limit: number } | null>(null)
+
+    useEffect(() => {
+        if (profile?.id) {
+            checkLimits()
+        }
+    }, [profile?.id, presentaciones]) // Re-check when presentations change
+
+    const checkLimits = async () => {
+        if (!profile?.id) return
+        const { currentCount, limit } = await canUserCreate(profile.id, 'presentaciones')
+        setUsageStats({ count: currentCount, limit })
+    }
 
     useEffect(() => {
         if (profile?.id && !loadingProfile) {
@@ -191,72 +206,7 @@ export function PresentacionesIA({ onNavigateToProfile }: PresentacionesIAProps)
         )
     }
 
-    // Restricción para usuarios NO PRO
-    if (!profile || !isUserPro(profile)) {
-        return (
-            <div className="space-y-6">
-                <div>
-                    <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100">Presentaciones IA</h1>
-                    <p className="text-gray-600 dark:text-gray-400 mt-2">Crea presentaciones profesionales con inteligencia artificial</p>
-                </div>
 
-                <Card className="border-2 border-purple-200 dark:border-purple-800">
-                    <CardHeader className="text-center">
-                        <div className="mx-auto w-12 h-12 bg-purple-100 dark:bg-purple-900 rounded-full flex items-center justify-center mb-4">
-                            <Presentation className="h-6 w-6 text-purple-600 dark:text-purple-400" />
-                        </div>
-                        <CardTitle className="text-2xl">Funcionalidad PRO</CardTitle>
-                        <CardDescription className="text-base">
-                            El generador de presentaciones con IA está disponible exclusivamente para usuarios PRO
-                        </CardDescription>
-                    </CardHeader>
-                    <CardContent className="space-y-6">
-                        <div className="space-y-2 max-w-md mx-auto">
-                            <h4 className="font-semibold flex items-center gap-2 justify-center">
-                                <span className="text-purple-600">✨</span>
-                                ¿Qué incluye Presentaciones IA?
-                            </h4>
-                            <ul className="space-y-3 text-sm text-gray-600 dark:text-gray-400 pt-2">
-                                <li className="flex items-start gap-2">
-                                    <span className="text-green-500 mt-0.5">✓</span>
-                                    <span>Generación automática de diapositivas con IA</span>
-                                </li>
-                                <li className="flex items-start gap-2">
-                                    <span className="text-green-500 mt-0.5">✓</span>
-                                    <span>Múltiples temas visuales profesionales</span>
-                                </li>
-                                <li className="flex items-start gap-2">
-                                    <span className="text-green-500 mt-0.5">✓</span>
-                                    <span>Edición avanzada de contenido y diseño</span>
-                                </li>
-                                <li className="flex items-start gap-2">
-                                    <span className="text-green-500 mt-0.5">✓</span>
-                                    <span>Exportación a PowerPoint (.pptx) editable</span>
-                                </li>
-                                <li className="flex items-start gap-2">
-                                    <span className="text-green-500 mt-0.5">✓</span>
-                                    <span>Creación desde planeaciones o proyectos</span>
-                                </li>
-                            </ul>
-                        </div>
-
-                        <div className="flex justify-center pt-2">
-                            <Button
-                                onClick={() => onNavigateToProfile ? onNavigateToProfile() : window.open('/pricing', '_blank')}
-                                className="bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white px-8 py-6 text-lg shadow-lg transform hover:scale-105 transition-all duration-200"
-                            >
-                                Actualizar a PRO
-                            </Button>
-                        </div>
-
-                        <div className="bg-blue-50 dark:bg-blue-900/20 p-4 rounded-lg text-sm text-center text-blue-800 dark:text-blue-200 max-w-2xl mx-auto">
-                            Ahorra horas de diseño y contenido. Crea presentaciones impactantes en segundos con nuestra IA educativa.
-                        </div>
-                    </CardContent>
-                </Card>
-            </div>
-        )
-    }
 
     // Mostrar loader mientras carga presentaciones (para usuarios PRO)
     if (loading) {
@@ -279,12 +229,115 @@ export function PresentacionesIA({ onNavigateToProfile }: PresentacionesIAProps)
                     <p className="text-gray-600 dark:text-gray-400 mt-2">
                         Crea presentaciones profesionales con inteligencia artificial
                     </p>
+                    {usageStats && usageStats.limit !== -1 && (
+                        <div className={`mt-4 max-w-xs p-3 rounded-lg border ${usageStats.count >= usageStats.limit
+                                ? 'bg-red-50 dark:bg-red-900/10 border-red-100 dark:border-red-800'
+                                : 'bg-purple-50 dark:bg-purple-900/10 border-purple-100 dark:border-purple-800'
+                            }`}>
+                            <div className="flex justify-between items-center mb-2">
+                                <span className={`text-sm font-medium ${usageStats.count >= usageStats.limit
+                                        ? 'text-red-900 dark:text-red-100'
+                                        : 'text-purple-900 dark:text-purple-100'
+                                    }`}>
+                                    Uso del plan gratuito
+                                </span>
+                                <span className={`text-xs font-semibold ${usageStats.count >= usageStats.limit
+                                        ? 'text-red-700 dark:text-red-300'
+                                        : 'text-purple-700 dark:text-purple-300'
+                                    }`}>
+                                    {usageStats.count} / {usageStats.limit}
+                                </span>
+                            </div>
+                            <Progress
+                                value={(usageStats.count / usageStats.limit) * 100}
+                                className={`h-2 ${usageStats.count >= usageStats.limit ? '[&>div]:bg-red-600' : ''}`}
+                            />
+                            {usageStats.count >= usageStats.limit && (
+                                <div className="text-xs text-red-600 dark:text-red-400 mt-2 font-bold flex items-center justify-center gap-1 uppercase tracking-wide">
+                                    <Badge variant="destructive" className="h-4 px-1 text-[10px]">!</Badge>
+                                    Límite alcanzado
+                                </div>
+                            )}
+                        </div>
+                    )}
                 </div>
-                <Button onClick={() => setShowWizard(true)} size="lg" className="bg-purple-600 hover:bg-purple-700">
+                <Button
+                    onClick={() => {
+                        if (usageStats && usageStats.limit !== -1 && usageStats.count >= usageStats.limit) {
+                            toast({
+                                title: "Límite alcanzado",
+                                description: "Has alcanzado el límite de 3 presentaciones gratuitas. Actualiza a PRO para crear ilimitadas.",
+                                variant: "destructive"
+                            })
+                            // Opcional: abrir modal de upgrade o redirigir
+                            return
+                        }
+                        setShowWizard(true)
+                    }}
+                    size="lg"
+                    className="bg-purple-600 hover:bg-purple-700"
+                    disabled={usageStats ? (usageStats.limit !== -1 && usageStats.count >= usageStats.limit) : false}
+                >
                     <Plus className="mr-2 h-5 w-5" />
                     Nueva Presentación
                 </Button>
             </div>
+
+            {/* Banner para usuarios Free */}
+            {usageStats && usageStats.limit !== -1 && (
+                usageStats.count >= usageStats.limit ? (
+                    <Card className="bg-gradient-to-r from-red-50 to-orange-50 dark:from-red-900/20 dark:to-orange-900/20 border-red-200 dark:border-red-800">
+                        <CardContent className="flex flex-col sm:flex-row items-center justify-between p-6 gap-4">
+                            <div className="flex items-center gap-4">
+                                <div className="p-3 bg-white dark:bg-gray-800 rounded-full shadow-md">
+                                    <Presentation className="h-6 w-6 text-red-600" />
+                                </div>
+                                <div>
+                                    <h3 className="text-lg font-bold text-red-900 dark:text-red-100">
+                                        ¡Se acabaron tus presentaciones gratuitas!
+                                    </h3>
+                                    <p className="text-sm text-red-700 dark:text-red-300 mt-1 max-w-xl">
+                                        Has utilizado tus 3 presentaciones de prueba. Actualiza a Eduplanner PRO para crear presentaciones ilimitadas y desbloquear todo el poder de la IA.
+                                    </p>
+                                </div>
+                            </div>
+                            <Button
+                                size="lg"
+                                className="bg-gradient-to-r from-red-600 to-orange-600 hover:from-red-700 hover:to-orange-700 text-white shadow-lg whitespace-nowrap w-full sm:w-auto transform hover:scale-105 transition-all"
+                                onClick={() => onNavigateToProfile ? onNavigateToProfile() : window.open('/pricing', '_blank')}
+                            >
+                                Actualizar a Ilimitado
+                            </Button>
+                        </CardContent>
+                    </Card>
+                ) : (
+                    <Card className="bg-gradient-to-r from-purple-50 to-blue-50 dark:from-purple-900/20 dark:to-blue-900/20 border-purple-100 dark:border-purple-800">
+                        <CardContent className="flex items-center justify-between p-4">
+                            <div className="flex items-center gap-3">
+                                <div className="p-2 bg-white dark:bg-gray-800 rounded-lg shadow-sm">
+                                    <Presentation className="h-5 w-5 text-purple-600" />
+                                </div>
+                                <div>
+                                    <p className="font-medium text-purple-900 dark:text-purple-100">
+                                        Plan Gratuito
+                                    </p>
+                                    <p className="text-sm text-purple-700 dark:text-purple-300">
+                                        Tienes {usageStats.limit} presentaciones de prueba. Actualiza a PRO para acceso ilimitado.
+                                    </p>
+                                </div>
+                            </div>
+                            <Button
+                                variant="default"
+                                size="sm"
+                                className="bg-purple-600 hover:bg-purple-700 text-white"
+                                onClick={() => onNavigateToProfile ? onNavigateToProfile() : window.open('/pricing', '_blank')}
+                            >
+                                Ver Planes
+                            </Button>
+                        </CardContent>
+                    </Card>
+                )
+            )}
 
             {/* Lista de Presentaciones */}
             {presentaciones.length === 0 ? (

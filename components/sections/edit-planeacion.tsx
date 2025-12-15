@@ -2,6 +2,8 @@
 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
+import { Input } from "@/components/ui/input"
+import { Label } from "@/components/ui/label"
 import { RichTextEditor, convertLegacyToHtml } from "@/components/ui/rich-text-editor"
 import { ArrowLeft, Save, Loader2 } from "lucide-react"
 import { usePlaneaciones } from "@/hooks/use-planeaciones"
@@ -16,6 +18,7 @@ interface EditPlaneacionProps {
 export function EditPlaneacion({ planeacionId, onBack }: EditPlaneacionProps) {
   const { getPlaneacion, updatePlaneacion } = usePlaneaciones()
   const [planeacion, setPlaneacion] = useState<Planeacion | null>(null)
+  const [titulo, setTitulo] = useState("")
   const [contenido, setContenido] = useState("")
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
@@ -30,6 +33,7 @@ export function EditPlaneacion({ planeacionId, onBack }: EditPlaneacionProps) {
     const data = await getPlaneacion(planeacionId)
     if (data) {
       setPlaneacion(data)
+      setTitulo(data.titulo)
       // Convertir contenido legacy a HTML si es necesario
       setContenido(convertLegacyToHtml(data.contenido))
     }
@@ -43,6 +47,7 @@ export function EditPlaneacion({ planeacionId, onBack }: EditPlaneacionProps) {
     setMessage("")
 
     const success = await updatePlaneacion(planeacionId, {
+      titulo: titulo,
       contenido: contenido,
     })
 
@@ -96,7 +101,7 @@ export function EditPlaneacion({ planeacionId, onBack }: EditPlaneacionProps) {
             Volver
           </Button>
           <div>
-            <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100">{planeacion.titulo}</h1>
+            <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100">{titulo || planeacion.titulo}</h1>
             <p className="text-gray-600 mt-1">Editar planeación</p>
           </div>
         </div>
@@ -118,24 +123,34 @@ export function EditPlaneacion({ planeacionId, onBack }: EditPlaneacionProps) {
       {/* Mensaje de estado */}
       {message && (
         <div
-          className={`text-center p-3 rounded-lg ${
-            message.includes("Error")
+          className={`text-center p-3 rounded-lg ${message.includes("Error")
               ? "bg-red-50 text-red-600 border border-red-200"
               : "bg-green-50 text-green-600 border border-green-200"
-          }`}
+            }`}
         >
           {message}
         </div>
       )}
 
-      {/* Información de solo lectura */}
+      {/* Información de solo lectura + Edición de Título */}
       <Card>
         <CardHeader>
           <CardTitle>Información de la Planeación</CardTitle>
-          <CardDescription>Esta información no se puede editar</CardDescription>
+          <CardDescription>Edita el título y consulta los detalles generales</CardDescription>
         </CardHeader>
-        <CardContent>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
+        <CardContent className="space-y-6">
+          <div className="space-y-2">
+            <Label htmlFor="titulo">Título de la planeación</Label>
+            <Input
+              id="titulo"
+              value={titulo}
+              onChange={(e) => setTitulo(e.target.value)}
+              placeholder="Ingresa un título para tu planeación"
+              className="text-lg font-medium"
+            />
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm pt-2 border-t text-gray-600 dark:text-gray-400">
             <div>
               <label className="font-medium text-gray-600">Materia</label>
               <p>{planeacion.materia || "No especificada"}</p>

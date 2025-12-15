@@ -153,6 +153,13 @@ Genera una presentación atractiva y educativa.`
                 throw new Error('Error al guardar la presentación: ' + saveError.message)
             }
 
+            // Registrar creación para conteo de límites
+            await supabase
+                .from('presentation_creations')
+                .insert({
+                    user_id: user.id
+                })
+
             toast({
                 title: "¡Presentación creada!",
                 description: `Se generó una presentación con ${presentationData.diapositivas.length} diapositivas`,

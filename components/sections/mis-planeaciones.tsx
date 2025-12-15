@@ -45,7 +45,7 @@ interface MisPlaneacionesProps {
 }
 
 export function MisPlaneaciones({ onCreateNew }: MisPlaneacionesProps) {
-  const { planeaciones, loading, deletePlaneacion, currentPage, totalPages, setPage } = usePlaneaciones()
+  const { planeaciones, loading, deletePlaneacion, currentPage, totalPages, setPage, refreshPlaneaciones } = usePlaneaciones()
   const { profile } = useProfile() // Obtener el perfil del usuario
   const { toast } = useToast()
   const [selectedPlaneacion, setSelectedPlaneacion] = useState<any>(null)
@@ -165,6 +165,7 @@ export function MisPlaneaciones({ onCreateNew }: MisPlaneacionesProps) {
   const handleBack = () => {
     setSelectedPlaneacion(null)
     setViewMode("list")
+    refreshPlaneaciones()
   }
 
   if (viewMode === "view" && selectedPlaneacion) {

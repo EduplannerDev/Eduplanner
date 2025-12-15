@@ -21,6 +21,7 @@ export interface UserLimits {
   examenes_limit: number; // -1 = ilimitado
   mensajes_limit: number; // -1 = ilimitado
   proyectos_limit: number; // -1 = ilimitado
+  presentaciones_limit: number; // -1 = ilimitado
 }
 
 // Interface para información de suscripción
@@ -60,7 +61,8 @@ export function getUserLimits(profile: Profile): UserLimits {
       planeaciones_limit: -1, // Ilimitado
       examenes_limit: -1, // Ilimitado
       mensajes_limit: -1, // Ilimitado
-      proyectos_limit: -1 // Ilimitado
+      proyectos_limit: -1, // Ilimitado
+      presentaciones_limit: -1 // Ilimitado
     };
   }
 
@@ -68,7 +70,8 @@ export function getUserLimits(profile: Profile): UserLimits {
     planeaciones_limit: 3,
     examenes_limit: -1, // Ilimitado
     mensajes_limit: 10,
-    proyectos_limit: 1
+    proyectos_limit: 1,
+    presentaciones_limit: 3
   };
 }
 
@@ -117,7 +120,7 @@ export function getSubscriptionInfo(profile: Profile): SubscriptionInfo {
  */
 export async function canUserCreate(
   userId: string,
-  type: 'planeaciones' | 'examenes' | 'mensajes' | 'proyectos'
+  type: 'planeaciones' | 'examenes' | 'mensajes' | 'proyectos' | 'presentaciones'
 ): Promise<{ canCreate: boolean; currentCount: number; limit: number; message?: string }> {
   try {
     // Obtener el perfil del usuario
@@ -194,6 +197,16 @@ export async function canUserCreate(
         }
 
         currentCount = proyectosData?.length || 0;
+        break;
+
+      case 'presentaciones':
+        limit = limits.presentaciones_limit;
+        // Contar presentaciones creadas lifetime desde presentation_creations
+        const { count: presentacionesCount } = await supabase
+          .from('presentation_creations')
+          .select('*', { count: 'exact', head: true })
+          .eq('user_id', userId);
+        currentCount = presentacionesCount || 0;
         break;
     }
 

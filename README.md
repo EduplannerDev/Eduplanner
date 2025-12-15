@@ -493,7 +493,10 @@ Sistema completo de onboarding para nuevos usuarios:
 - **Estilos Personalizados**: Diseño integrado con la identidad visual de EduPlanner
 
 ### Presentaciones IA Mejoradas
-
+- **Límites de uso freemium**: Implementación de límite de 3 presentaciones gratuitas para usuarios Free
+- **Indicador de Progreso**: Visualización clara del uso del plan gratuito con barra de progreso
+- **Banner de Actualización**: Notificaciones contextuales para upgrade a PRO al alcanzar el límite
+- **Edición de Títulos**: Capacidad de editar títulos de planeaciones directamente desde el editor
 - **5 Temas Visuales**: Selección aleatoria de diseños profesionales
 - **Editor Interactivo**: Personalización de diapositivas antes de exportar
 - **Biblioteca Completa**: Gestión de todas las presentaciones generadas
