@@ -9,6 +9,8 @@ export async function POST(request: Request) {
       return Response.json({ error: 'Messages es requerido' }, { status: 400 })
     }
 
+    console.log('📝 API generate-nem: Iniciando generación...')
+
     // Usar exactamente los mismos parámetros que /api/chat
     const result = await generateText({
       model: google("gemini-2.5-flash"),
@@ -123,12 +125,21 @@ Aquí tienes un borrador de tu planeación. Si quieres, puedes pedirme que **'mo
       messages: messages,
     })
 
+    console.log('✅ Geneación NEM finalizada. Finish reason:', result.finishReason)
+    console.log('📊 Usage:', JSON.stringify(result.usage))
+    console.log('📝 Longitud de respuesta:', result.text?.length || 0)
+
+    if (!result.text || result.text.length === 0) {
+      console.error('❌ La IA retornó texto vacío para NEM.')
+    }
+
     return Response.json({
       content: result.text,
     })
   } catch (error) {
+    console.error("❌ Error en API route generate-nem:", error)
     return Response.json(
-      { error: 'No se pudo generar la planeación NEM' },
+      { error: 'No se pudo generar la planeación NEM', details: error instanceof Error ? error.message : String(error) },
       { status: 500 }
     )
   }
