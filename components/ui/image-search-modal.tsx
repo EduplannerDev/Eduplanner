@@ -174,7 +174,7 @@ export function ImageSearchModal({ open, onClose, onSelectImage, initialQuery = 
                                                 {image.description || 'Sin descripción'}
                                             </p>
                                             <a
-                                                href={image.photographer_url}
+                                                href={`${image.photographer_url}?utm_source=Eduplanner&utm_medium=referral`}
                                                 target="_blank"
                                                 rel="noopener noreferrer"
                                                 onClick={(e) => e.stopPropagation()}
@@ -197,7 +197,7 @@ export function ImageSearchModal({ open, onClose, onSelectImage, initialQuery = 
 
                             <div className="flex justify-between items-center pt-4 border-t">
                                 <p className="text-sm text-gray-500">
-                                    Imágenes cortesía de <a href="https://unsplash.com" target="_blank" rel="noopener noreferrer" className="underline">Unsplash</a>
+                                    Imágenes cortesía de <a href="https://unsplash.com?utm_source=Eduplanner&utm_medium=referral" target="_blank" rel="noopener noreferrer" className="underline">Unsplash</a>
                                 </p>
                                 <div className="flex gap-2">
                                     <Button variant="outline" onClick={onClose}>
