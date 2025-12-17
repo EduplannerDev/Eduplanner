@@ -18,6 +18,12 @@ export interface Planeacion {
   created_at: string
   updated_at: string
   deleted_at: string | null
+  // Campos de envío a dirección
+  envio_estado?: "pendiente" | "aprobada" | "cambios_solicitados" | null
+  envio_id?: string | null
+  fecha_envio?: string | null
+  comentarios_director?: string | null
+  fecha_revision?: string | null
 }
 
 export interface PlaneacionCreate {
@@ -46,7 +52,16 @@ export async function getPlaneaciones(
 
     const { data, error, count } = await supabase
       .from("planeaciones")
-      .select("*", { count: "exact" })
+      .select(`
+        *,
+        planeaciones_enviadas!planeacion_id (
+          id,
+          estado,
+          fecha_envio,
+          comentarios_director,
+          fecha_revision
+        )
+      `, { count: "exact" })
       .eq("user_id", userId)
       .is("deleted_at", null)
       .order("created_at", { ascending: false })
@@ -57,7 +72,25 @@ export async function getPlaneaciones(
       return { data: [], count: 0 }
     }
 
-    return { data: data || [], count: count || 0 }
+    // Mapear los datos para incluir el estado de envío
+    const mappedData = (data || []).map(planeacion => {
+      // Supabase puede devolver planeaciones_enviadas como objeto o array dependiendo de la relación
+      const envio = Array.isArray(planeacion.planeaciones_enviadas)
+        ? planeacion.planeaciones_enviadas[0]
+        : planeacion.planeaciones_enviadas
+
+      const mapped = {
+        ...planeacion,
+        envio_estado: envio?.estado || null,
+        envio_id: envio?.id || null,
+        fecha_envio: envio?.fecha_envio || null,
+        comentarios_director: envio?.comentarios_director || null,
+        fecha_revision: envio?.fecha_revision || null,
+      }
+      return mapped
+    })
+
+    return { data: mappedData, count: count || 0 }
   } catch (error) {
     console.error("Error in getPlaneaciones:", error)
     return { data: [], count: 0 }
@@ -350,22 +383,22 @@ export function extractPlaneacionInfo(content: string): {
         const currentLine = lines[i].trim()
         // Stop if we hit the next known section header
         if (currentLine.toLowerCase().includes("aprendizajes esperados") ||
-            currentLine.toLowerCase().includes("procesos de desarrollo del aprendizaje") ||
-            currentLine.toLowerCase().includes("contenidos específicos") ||
-            currentLine.toLowerCase().includes("ejes articuladores") ||
-            currentLine.toLowerCase().includes("metodología") ||
-            currentLine.toLowerCase().includes("secuencia didáctica") ||
-            currentLine.toLowerCase().includes("actividades sugeridas") ||
-            currentLine.toLowerCase().includes("materiales y recursos") ||
-            currentLine.toLowerCase().includes("instrumento de evaluación") ||
-            currentLine.toLowerCase().includes("sugerencias de adecuación") ||
-            currentLine.toLowerCase().includes("propuestas de ampliación")
+          currentLine.toLowerCase().includes("procesos de desarrollo del aprendizaje") ||
+          currentLine.toLowerCase().includes("contenidos específicos") ||
+          currentLine.toLowerCase().includes("ejes articuladores") ||
+          currentLine.toLowerCase().includes("metodología") ||
+          currentLine.toLowerCase().includes("secuencia didáctica") ||
+          currentLine.toLowerCase().includes("actividades sugeridas") ||
+          currentLine.toLowerCase().includes("materiales y recursos") ||
+          currentLine.toLowerCase().includes("instrumento de evaluación") ||
+          currentLine.toLowerCase().includes("sugerencias de adecuación") ||
+          currentLine.toLowerCase().includes("propuestas de ampliación")
         ) {
           break // Se encontró el inicio de una nueva sección
         }
         // Only add non-empty lines
         if (currentLine) {
-           objContent.push(currentLine)
+          objContent.push(currentLine)
         }
       }
       // Unir las líneas y limpiar espacios extra
@@ -518,7 +551,7 @@ export async function migrateMarkdownPlaneaciones(): Promise<{ migrated: number;
   let errors = 0
   let page = 1
   const pageSize = 50
-  
+
   try {
     while (true) {
       // Obtener planeaciones en lotes
@@ -527,36 +560,36 @@ export async function migrateMarkdownPlaneaciones(): Promise<{ migrated: number;
         .select("id, contenido")
         .is("deleted_at", null)
         .range((page - 1) * pageSize, page * pageSize - 1)
-      
+
       if (error) {
         console.error("Error fetching planeaciones for migration:", error)
         break
       }
-      
+
       if (!data || data.length === 0) {
         break // No hay más planeaciones
       }
-      
+
       // Procesar cada planeación
       for (const planeacion of data) {
         try {
           // Verificar si el contenido parece ser markdown (no tiene tags HTML)
           const hasHtmlTags = planeacion.contenido.includes('<') && planeacion.contenido.includes('>')
-          
+
           if (!hasHtmlTags && planeacion.contenido.trim()) {
             // Convertir markdown a HTML
             const htmlContent = convertMarkdownToHtml(planeacion.contenido)
-            
+
             // Actualizar solo si el contenido cambió
             if (htmlContent !== planeacion.contenido) {
               const { error: updateError } = await supabase
                 .from("planeaciones")
-                .update({ 
+                .update({
                   contenido: htmlContent,
                   updated_at: new Date().toISOString()
                 })
                 .eq("id", planeacion.id)
-              
+
               if (updateError) {
                 console.error(`Error updating planeacion ${planeacion.id}:`, updateError)
                 errors++
@@ -570,14 +603,14 @@ export async function migrateMarkdownPlaneaciones(): Promise<{ migrated: number;
           errors++
         }
       }
-      
+
       page++
     }
   } catch (error) {
     console.error("Error in migration process:", error)
     errors++
   }
-  
+
   return { migrated, errors }
 }
 

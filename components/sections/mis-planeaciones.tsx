@@ -1,6 +1,8 @@
 "use client"
 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog"
+import { ScrollArea } from "@/components/ui/scroll-area"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import {
@@ -20,7 +22,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
-import { FileText, Calendar, Edit, Trash2, Eye, Download, Plus, Loader2 } from "lucide-react"
+import { Send, Plus, FileText, Eye, Download, Pencil, Trash2, Calendar, MessageSquare, CheckCircle, AlertCircle, Loader2, Edit, Clock } from "lucide-react"
 import { usePlaneaciones } from "@/hooks/use-planeaciones"
 import { useState } from "react"
 import { ViewPlaneacion } from "./view-planeacion"
@@ -54,6 +56,9 @@ export function MisPlaneaciones({ onCreateNew }: MisPlaneacionesProps) {
   const [generatingPDF, setGeneratingPDF] = useState<string | null>(null)
   const [generatingPPTX, setGeneratingPPTX] = useState<string | null>(null)
   const [error, setError] = useState<string | null>(null)
+  const [sending, setSending] = useState<string | null>(null)
+  const [selectedComments, setSelectedComments] = useState<{ titulo: string, comentarios: string, fechaRevision: string } | null>(null)
+  const [showCommentsModal, setShowCommentsModal] = useState(false)
 
 
   const getEstadoColor = (estado: string) => {
@@ -162,6 +167,88 @@ export function MisPlaneaciones({ onCreateNew }: MisPlaneacionesProps) {
 
 
 
+  const handleEnviarDireccion = async (planeacionId: string) => {
+    setSending(planeacionId)
+    try {
+      const response = await fetch('/api/planeaciones/enviar', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          planeacion_id: planeacionId,
+          user_id: profile?.id
+        })
+      })
+
+      const data = await response.json()
+
+      if (!response.ok) {
+        throw new Error(data.error || 'Error al enviar la planeación')
+      }
+
+      toast({
+        title: "Planeación enviada",
+        description: "Tu planeación ha sido enviada a dirección para revisión",
+      })
+
+      // Refrescar la lista para mostrar el nuevo estado
+      refreshPlaneaciones()
+    } catch (error) {
+      console.error('Error enviando planeación:', error)
+      toast({
+        title: "Error",
+        description: error instanceof Error ? error.message : 'Error al enviar la planeación a dirección',
+        variant: "destructive"
+      })
+    } finally {
+      setSending(null)
+    }
+  }
+
+  const handleVerComentarios = (planeacion: any) => {
+    setSelectedComments({
+      titulo: planeacion.titulo,
+      comentarios: planeacion.comentarios_director || 'Sin comentarios',
+      fechaRevision: planeacion.fecha_revision || ''
+    })
+    setShowCommentsModal(true)
+  }
+
+  const handleReenviar = async (planeacionId: string) => {
+    setSending(planeacionId)
+    try {
+      const response = await fetch('/api/planeaciones/reenviar', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          planeacion_id: planeacionId,
+          user_id: profile?.id
+        })
+      })
+
+      const data = await response.json()
+
+      if (!response.ok) {
+        throw new Error(data.error || 'Error al re-enviar la planeación')
+      }
+
+      toast({
+        title: "Planeación re-enviada",
+        description: "Tu planeación ha sido re-enviada a dirección para revisión",
+      })
+
+      refreshPlaneaciones()
+    } catch (error) {
+      console.error('Error re-enviando planeación:', error)
+      toast({
+        title: "Error",
+        description: error instanceof Error ? error.message : 'Error al re-enviar la planeación',
+        variant: "destructive"
+      })
+    } finally {
+      setSending(null)
+    }
+  }
+
   const handleBack = () => {
     setSelectedPlaneacion(null)
     setViewMode("list")
@@ -246,9 +333,30 @@ export function MisPlaneaciones({ onCreateNew }: MisPlaneacionesProps) {
                       )}
                     </CardDescription>
                   </div>
-                  <Badge className={`${getOrigenInfo(planeacion).className} self-start sm:self-auto flex-shrink-0`}>
-                    {getOrigenInfo(planeacion).text}
-                  </Badge>
+                  <div className="flex flex-col gap-2 self-start sm:self-auto flex-shrink-0">
+                    <Badge className={`${getOrigenInfo(planeacion).className}`}>
+                      {getOrigenInfo(planeacion).text}
+                    </Badge>
+                    {/* Badges de estado de envío */}
+                    {planeacion.envio_estado === 'pendiente' && (
+                      <Badge className="bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-300 border-blue-300 dark:border-blue-700 flex items-center gap-1">
+                        <Clock className="h-3 w-3" />
+                        Enviada a Dirección
+                      </Badge>
+                    )}
+                    {planeacion.envio_estado === 'aprobada' && (
+                      <Badge className="bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-300 border-green-300 dark:border-green-700 flex items-center gap-1">
+                        <CheckCircle className="h-3 w-3" />
+                        Aprobada
+                      </Badge>
+                    )}
+                    {planeacion.envio_estado === 'cambios_solicitados' && (
+                      <Badge className="bg-orange-100 dark:bg-orange-900/30 text-orange-800 dark:text-orange-300 border-orange-300 dark:border-orange-700 flex items-center gap-1">
+                        <AlertCircle className="h-3 w-3" />
+                        Cambios Solicitados
+                      </Badge>
+                    )}
+                  </div>
                 </div>
               </CardHeader>
               <CardContent className="pt-0">
@@ -272,6 +380,52 @@ export function MisPlaneaciones({ onCreateNew }: MisPlaneacionesProps) {
                       <Edit className="h-4 w-4 mr-2" />
                       Editar
                     </Button>
+                    {/* Mostrar botón "Enviar a Dirección" solo si el usuario tiene plantel_id Y la planeación no ha sido enviada */}
+                    {profile?.plantel_id && !planeacion.envio_id && (
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={() => handleEnviarDireccion(planeacion.id)}
+                        disabled={sending === planeacion.id}
+                        className="w-full sm:w-auto"
+                      >
+                        {sending === planeacion.id ? (
+                          <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                        ) : (
+                          <Send className="h-4 w-4 mr-2" />
+                        )}
+                        Enviar a Dirección
+                      </Button>
+                    )}
+                    {/* Botón "Ver Comentarios" - visible si tiene comentarios (aprobada o cambios_solicitados) y tiene plantel */}
+                    {profile?.plantel_id && (planeacion.envio_estado === 'aprobada' || planeacion.envio_estado === 'cambios_solicitados') && planeacion.comentarios_director && (
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={() => handleVerComentarios(planeacion)}
+                        className="w-full sm:w-auto"
+                      >
+                        <MessageSquare className="h-4 w-4 mr-2" />
+                        Ver Comentarios
+                      </Button>
+                    )}
+                    {/* Botón "Re-enviar a Dirección" - solo visible si tiene cambios solicitados y tiene plantel */}
+                    {profile?.plantel_id && planeacion.envio_estado === 'cambios_solicitados' && (
+                      <Button
+                        size="sm"
+                        variant="default"
+                        onClick={() => handleReenviar(planeacion.id)}
+                        disabled={sending === planeacion.id}
+                        className="w-full sm:w-auto"
+                      >
+                        {sending === planeacion.id ? (
+                          <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                        ) : (
+                          <Send className="h-4 w-4 mr-2" />
+                        )}
+                        Re-enviar a Dirección
+                      </Button>
+                    )}
                     <DropdownMenu>
                       <DropdownMenuTrigger asChild>
                         <Button size="sm" variant="outline" disabled={generatingPDF === planeacion.id || generatingPPTX === planeacion.id} className="w-full sm:w-auto">
@@ -403,6 +557,38 @@ export function MisPlaneaciones({ onCreateNew }: MisPlaneacionesProps) {
         </Pagination>
       )}
 
+      {/* Modal para ver comentarios del director */}
+      <Dialog open={showCommentsModal} onOpenChange={setShowCommentsModal}>
+        <DialogContent className="max-w-2xl">
+          <DialogHeader>
+            <DialogTitle>Comentarios del Director</DialogTitle>
+            <DialogDescription>
+              {selectedComments?.titulo}
+            </DialogDescription>
+          </DialogHeader>
+          <ScrollArea className="max-h-[60vh] pr-4">
+            <div className="space-y-4">
+              {selectedComments?.fechaRevision && (
+                <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                  <Calendar className="h-4 w-4" />
+                  <span>
+                    Revisada el {new Date(selectedComments.fechaRevision).toLocaleDateString('es-MX', {
+                      year: 'numeric',
+                      month: 'long',
+                      day: 'numeric'
+                    })}
+                  </span>
+                </div>
+              )}
+              <div className="bg-muted/50 p-4 rounded-lg">
+                <p className="whitespace-pre-wrap text-sm">
+                  {selectedComments?.comentarios}
+                </p>
+              </div>
+            </div>
+          </ScrollArea>
+        </DialogContent>
+      </Dialog>
 
     </div>
   )

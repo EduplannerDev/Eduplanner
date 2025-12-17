@@ -27,6 +27,7 @@ import {
 } from "@/lib/director-stats"
 import { format } from "date-fns"
 import { es } from "date-fns/locale"
+import { PlaneacionesReviewSection } from "./planeaciones-review-section"
 
 interface DirectorDashboardProps {
   onSectionChange?: (section: string) => void
@@ -348,6 +349,9 @@ export function DirectorDashboard({ onSectionChange }: DirectorDashboardProps) {
           </div>
         </CardContent>
       </Card>
+
+      {/* Planeaciones Pendientes de Revisión */}
+      <PlaneacionesReviewSection />
     </div>
   )
 }
