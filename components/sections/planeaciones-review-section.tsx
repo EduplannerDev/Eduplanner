@@ -36,8 +36,12 @@ interface PlaneacionEnviada {
     }
 }
 
-export function PlaneacionesReviewSection() {
-    const { plantel } = useRoles()
+interface PlaneacionesReviewSectionProps {
+    plantelId: string
+}
+
+export function PlaneacionesReviewSection({ plantelId }: PlaneacionesReviewSectionProps) {
+    // const { plantel } = useRoles() -> Ya no lo necesitamos aquí porque viene por props
     const { profile } = useProfile()
     const { toast } = useToast()
     const [planeaciones, setPlaneaciones] = useState<PlaneacionEnviada[]>([])
@@ -48,17 +52,39 @@ export function PlaneacionesReviewSection() {
     const [comentarios, setComentarios] = useState("")
     const [reviewing, setReviewing] = useState(false)
 
-    console.log('🔍 PlaneacionesReviewSection: Renderizando', { plantelId: plantel?.id, loading })
+    console.log('🔍 PlaneacionesReviewSection: Renderizando', { plantelId, loading })
 
     useEffect(() => {
-        if (plantel?.id) {
+        if (plantelId) {
             loadPlaneaciones()
         }
-    }, [plantel?.id])
+    }, [plantelId])
 
     const loadPlaneaciones = async () => {
         try {
+            if (!plantelId) return
             setLoading(true)
+
+            // Obtener usuarios del plantel para filtrar (opcional si planeaciones_enviadas ya tiene plantel_id)
+            // Pero como la tabla 'planeaciones_enviadas' no tiene 'plantel_id' explícitamente en el esquema original...
+            // ESPERA: La migración original CREO planeaciones_enviadas.
+            // Voy a asumir que filtramos por los profesores del plantel.
+
+            // 1. Obtener perfiles de usuarios del mismo plantel
+            const { data: profiles, error: profilesError } = await supabase
+                .from('profiles')
+                .select('id, full_name, email') // Modified to select full_name and email
+                .eq('plantel_id', plantelId)
+
+            if (profilesError) throw profilesError
+
+            const teacherIds = profiles.map(p => p.id)
+
+            if (teacherIds.length === 0) {
+                setPlaneaciones([])
+                setLoading(false)
+                return
+            }
 
             const { data, error } = await supabase
                 .from("planeaciones_enviadas")
@@ -68,6 +94,7 @@ export function PlaneacionesReviewSection() {
           profesor_id,
           fecha_envio,
           estado,
+          comentarios_director, 
           planeaciones (
             id,
             titulo,
@@ -77,7 +104,7 @@ export function PlaneacionesReviewSection() {
             created_at
           )
         `)
-                .eq("plantel_id", plantel!.id)
+                .in("profesor_id", teacherIds) // Filtrar por profesores del plantel
                 .eq("estado", "pendiente")
                 .order("fecha_envio", { ascending: false })
 
@@ -91,22 +118,9 @@ export function PlaneacionesReviewSection() {
                 return
             }
 
-            // Obtener los IDs de profesores únicos
-            const profesorIds = [...new Set(data.map(p => p.profesor_id))]
-
-            // Obtener datos de los profesores
-            const { data: profilesData, error: profilesError } = await supabase
-                .from("profiles")
-                .select("id, full_name, email")
-                .in("id", profesorIds)
-
-            if (profilesError) {
-                console.error("Error loading profiles:", profilesError)
-            }
-
-            // Crear un mapa de profiles para fácil acceso
+            // Crear un mapa de profiles para fácil acceso usando los datos obtenidos inicialmente
             const profilesMap = new Map(
-                (profilesData || []).map(p => [p.id, p])
+                (profiles || []).map(p => [p.id, p])
             )
 
             // Combinar los datos
