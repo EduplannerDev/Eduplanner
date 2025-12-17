@@ -15,6 +15,8 @@ import { isUserPro } from "@/lib/subscription-utils"
 import { usePlaneaciones } from "@/hooks/use-planeaciones"
 import { getCleanContentForSaving } from "@/lib/planeaciones"
 import { useToast } from "@/hooks/use-toast"
+import { useContextoTrabajo } from "@/hooks/use-contexto-trabajo"
+import { getGradoTexto } from "@/lib/grado-utils"
 
 interface PlaneacionCimeProps {
   onBack: () => void
@@ -63,6 +65,8 @@ export function PlaneacionCime({ onBack, onSuccess }: PlaneacionCimeProps) {
   const { profile, loading: profileLoading } = useProfile()
   const { createPlaneacion, creating, canCreateMore } = usePlaneaciones()
   const { toast } = useToast()
+  const { contexto } = useContextoTrabajo()
+
   const [formData, setFormData] = useState<CimeFormData>({
     grado: "",
     temaEspecifico: "",
@@ -118,6 +122,16 @@ export function PlaneacionCime({ onBack, onSuccess }: PlaneacionCimeProps) {
     }
   }, [generatedContent])
 
+  // Actualizar grado desde contexto
+  useEffect(() => {
+    if (contexto) {
+      setFormData(prev => ({
+        ...prev,
+        grado: contexto.grado.toString()
+      }))
+    }
+  }, [contexto])
+
   const handleInputChange = (field: keyof CimeFormData, value: string) => {
     setFormData(prev => ({
       ...prev,
@@ -163,7 +177,9 @@ export function PlaneacionCime({ onBack, onSuccess }: PlaneacionCimeProps) {
     setError(null)
 
     try {
-      const prompt = `Necesito una planeación didáctica completa para ${formData.grado}° grado sobre el tema "${formData.temaEspecifico}" usando la metodología CIME.
+      const gradoTexto = contexto ? getGradoTexto(contexto.grado) : `${formData.grado}° grado`
+
+      const prompt = `Necesito una planeación didáctica completa para ${gradoTexto} sobre el tema "${formData.temaEspecifico}" usando la metodología CIME.
 
 Material principal: ${formData.material === 'regletas' ? 'Regletas Cuisenaire' : formData.material === 'geoplano' ? 'Geoplano' : 'Regletas Cuisenaire y Geoplano'}
 
@@ -201,7 +217,7 @@ Por favor, crea una planeación siguiendo las 3 etapas del método CIME: Concret
       const newPlaneacion = await createPlaneacion({
         titulo: `Planeación CIME - ${formData.temaEspecifico}`,
         materia: "Matemáticas",
-        grado: `${formData.grado}° grado`,
+        grado: contexto ? getGradoTexto(contexto.grado) : `${formData.grado}° grado`,
         duracion: "50 minutos",
         objetivo: `Desarrollar comprensión del concepto ${formData.temaEspecifico} mediante metodología CIME`,
         contenido: cleanContent,
@@ -356,19 +372,10 @@ Por favor, crea una planeación siguiendo las 3 etapas del método CIME: Concret
             <CardContent className="space-y-6">
               {/* Grado */}
               <div className="space-y-2">
-                <Label htmlFor="grado">Grado Escolar *</Label>
-                <Select value={formData.grado} onValueChange={(value) => handleInputChange("grado", value)}>
-                  <SelectTrigger>
-                    <SelectValue placeholder={<span className="notranslate">Selecciona el grado</span>} />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {GRADOS.map((grado) => (
-                      <SelectItem key={grado.value} value={grado.value}>
-                        {grado.label}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                <Label htmlFor="grado">Grado Escolar</Label>
+                <div className="p-3 bg-muted rounded-md border border-input text-sm text-foreground">
+                  {contexto ? getGradoTexto(contexto.grado) : "Cargando grado..."}
+                </div>
               </div>
 
               {/* Tema Específico */}
