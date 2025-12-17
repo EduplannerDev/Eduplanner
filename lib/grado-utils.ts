@@ -9,8 +9,8 @@
  */
 export function getGradoTexto(grado: number): string {
   if (grado >= -3 && grado <= -1) {
-    const gradoPreescolar = Math.abs(grado) - 2
-    return `Preescolar ${gradoPreescolar}°`
+    const gradoPreescolar = 4 + grado
+    return `${gradoPreescolar}° de Preescolar`
   } else if (grado >= 1 && grado <= 6) {
     return `${grado}° de Primaria`
   } else if (grado >= 7 && grado <= 9) {
@@ -30,16 +30,16 @@ export function getGradoTexto(grado: number): string {
  */
 export function getGradoCorto(grado: number): string {
   if (grado >= -3 && grado <= -1) {
-    const gradoPreescolar = Math.abs(grado) - 2
+    const gradoPreescolar = 4 + grado
     return `Pre ${gradoPreescolar}°`
   } else if (grado >= 1 && grado <= 6) {
-    return `${grado}° Primaria`
+    return `${grado}° Prim`
   } else if (grado >= 7 && grado <= 9) {
     const gradoSecundaria = grado - 6
-    return `${gradoSecundaria}° Secundaria`
+    return `${gradoSecundaria}° Sec`
   } else if (grado >= 10 && grado <= 12) {
     const gradoBachillerato = grado - 9
-    return `${gradoBachillerato}° Bachillerato`
+    return `${gradoBachillerato}° Bach`
   }
-  return `${grado}° Grado`
+  return `${grado}°`
 }

@@ -19,9 +19,10 @@ interface ContextoTrabajoModalProps {
   isOpen: boolean
   onClose: () => void
   onSuccess: () => void
+  mode?: 'onboarding' | 'edit'
 }
 
-export function ContextoTrabajoModal({ isOpen, onClose, onSuccess }: ContextoTrabajoModalProps) {
+export function ContextoTrabajoModal({ isOpen, onClose, onSuccess, mode = 'onboarding' }: ContextoTrabajoModalProps) {
   const { user } = useAuth()
   const [gradoSeleccionado, setGradoSeleccionado] = useState<string>("")
   const [loading, setLoading] = useState(false)
@@ -67,12 +68,14 @@ export function ContextoTrabajoModal({ isOpen, onClose, onSuccess }: ContextoTra
       }
 
       // Cerrar modal y notificar éxito
-      toast.success('¡Configuración guardada correctamente!')
+      toast.success(mode === 'edit' ? 'Contexto actualizado correctamente' : '¡Configuración guardada correctamente!')
       onSuccess()
       onClose()
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error:', error)
-      toast.error('Ocurrió un error inesperado.')
+      // Mostrar el mensaje específico del error si viene de la base de datos
+      const errorMessage = error.message || 'Error al guardar la configuración'
+      toast.error(errorMessage)
     } finally {
       setLoading(false)
     }
@@ -92,10 +95,12 @@ export function ContextoTrabajoModal({ isOpen, onClose, onSuccess }: ContextoTra
             <GraduationCap className="h-6 w-6 text-blue-600" />
           </div>
           <DialogTitle className="text-xl font-bold text-center">
-            ¡EduPlanner se actualiza!
+            {mode === 'onboarding' ? '¡EduPlanner se actualiza!' : 'Actualizar Grado y Nivel'}
           </DialogTitle>
           <DialogDescription className="text-center">
-            Ahora somos compatibles con Preescolar, Primaria y Secundaria. Para personalizar tu experiencia, ¿en qué nivel impartes clases?
+            {mode === 'onboarding'
+              ? 'Ahora somos compatibles con Preescolar, Primaria y Secundaria. Para personalizar tu experiencia, ¿en qué nivel impartes clases?'
+              : 'Selecciona el nuevo grado y nivel educativo para actualizar tu contexto de trabajo actual.'}
           </DialogDescription>
         </DialogHeader>
         <div className="space-y-6 pt-6">

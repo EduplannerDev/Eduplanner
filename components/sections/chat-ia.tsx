@@ -1,5 +1,6 @@
 "use client"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import type React from "react"
 
 import { Button } from "@/components/ui/button"
@@ -62,6 +63,8 @@ import { extractPlaneacionInfo, getCleanContentForSaving } from "@/lib/planeacio
 import { WelcomeMessage } from "@/components/ui/welcome-message"
 import Swal from 'sweetalert2'
 import { useToast } from "@/hooks/use-toast"
+import { useContextoTrabajo } from "@/hooks/use-contexto-trabajo"
+import { getGradoTexto } from "@/lib/grado-utils"
 
 interface ChatIAProps {
   onBack: () => void
@@ -92,9 +95,14 @@ export function ChatIA({ onBack, onSaveSuccess, initialMessage }: ChatIAProps) {
   const [feedbackText, setFeedbackText] = useState('')
   const [submittingFeedback, setSubmittingFeedback] = useState(false)
 
+  // Estado para el modal de confirmación de sugerencia
+  const [suggestionModalOpen, setSuggestionModalOpen] = useState(false)
+  const [pendingSuggestion, setPendingSuggestion] = useState("")
+
   const { user } = useAuth()
   const { userData } = useUserData(user?.id)
   const { profile, loading: profileLoading } = useProfile()
+  const { contexto } = useContextoTrabajo()
 
   const getInitials = (email: string) => {
     return email.charAt(0).toUpperCase()
@@ -112,8 +120,11 @@ export function ChatIA({ onBack, onSaveSuccess, initialMessage }: ChatIAProps) {
   const isPro = profile ? isUserPro(profile) : false
   const hasReachedLimit = !planeacionesLoading && !profileLoading && !isPro && monthlyCount >= 3
 
-  const { messages, input, handleInputChange, handleSubmit: originalHandleSubmit, isLoading, error } = useChat({
+  const { messages, input, handleInputChange, handleSubmit: originalHandleSubmit, isLoading, error, setMessages } = useChat({
     api: "/api/chat",
+    body: {
+      contexto: contexto
+    },
     onError: (error) => {
       console.error("Error en el chat:", error)
     },
@@ -136,11 +147,10 @@ export function ChatIA({ onBack, onSaveSuccess, initialMessage }: ChatIAProps) {
         role: "assistant",
         content: `¡Hola! 👋 Soy tu asistente de IA para crear planeaciones didácticas. 
 
-Estoy aquí para ayudarte a diseñar una clase individual perfecta para tus estudiantes de primaria. 
+Estoy aquí para ayudarte a diseñar una clase individual perfecta para tus estudiantes. 
 
 Puedes contarme:
 • ¿Qué materia quieres enseñar?
-• ¿Para qué grado es la clase?
 • ¿Cuál es el tema específico?
 • ¿Cuánto tiempo durará la clase?
 • ¿Hay algún objetivo particular que quieras lograr?
@@ -156,6 +166,29 @@ Puedes contarme:
       }] : []),
     ],
   })
+
+  // Actualizar el mensaje de bienvenida con el contexto
+  useEffect(() => {
+    if (contexto && messages.length > 0 && messages[0].id === 'welcome') {
+      const gradoTexto = getGradoTexto(contexto.grado)
+      const welcomeMessage = messages[0]
+
+      // Solo actualizar si el contenido no incluye ya el grado específico
+      if (!welcomeMessage.content.includes(gradoTexto)) {
+        const newContent = welcomeMessage.content.replace(
+          "tus estudiantes.",
+          `tus estudiantes de ${gradoTexto}.`
+        )
+
+        const newMessages = [...messages]
+        newMessages[0] = {
+          ...welcomeMessage,
+          content: newContent
+        }
+        setMessages(newMessages)
+      }
+    }
+  }, [contexto, messages, setMessages])
 
   // Auto-scroll al final cuando hay nuevos mensajes
   useEffect(() => {
@@ -194,11 +227,17 @@ Puedes contarme:
   }
 
   const handleQuickSuggestion = (suggestion: string) => {
+    setPendingSuggestion(suggestion)
+    setSuggestionModalOpen(true)
+  }
+
+  const confirmSuggestion = () => {
     const event = {
-      target: { value: suggestion },
+      target: { value: pendingSuggestion },
     } as React.ChangeEvent<HTMLInputElement>
 
     handleInputChange(event)
+    setSuggestionModalOpen(false)
 
     setTimeout(() => {
       const form = document.querySelector("form") as HTMLFormElement
@@ -349,6 +388,41 @@ Puedes contarme:
           </p>
         </div>
       </div>
+
+      {/* Modal de Confirmación de Sugerencia */}
+      <Dialog open={suggestionModalOpen} onOpenChange={setSuggestionModalOpen}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Confirmar Sugerencia</DialogTitle>
+            <DialogDescription>
+              Puedes editar el mensaje antes de enviarlo al asistente.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="py-4">
+            <Textarea
+              value={pendingSuggestion}
+              onChange={(e) => setPendingSuggestion(e.target.value)}
+              className="min-h-[100px]"
+              placeholder="Escribe tu mensaje..."
+            />
+          </div>
+          <DialogFooter className="flex gap-2 sm:justify-end">
+            <Button
+              variant="outline"
+              onClick={() => setSuggestionModalOpen(false)}
+            >
+              Cancelar
+            </Button>
+            <Button
+              onClick={confirmSuggestion}
+              className="bg-purple-600 hover:bg-purple-700 text-white"
+            >
+              <Sparkles className="mr-2 h-4 w-4" />
+              Generar con IA
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
       {/* Welcome Message */}
       <WelcomeMessage />
@@ -689,25 +763,54 @@ Puedes contarme:
             <CardContent className="flex-1 overflow-hidden">
               <div className="space-y-3">
                 {[
-                  "Crear una clase de matemáticas sobre fracciones para 4° grado",
-                  "Diseñar una lección de ciencias sobre el sistema solar para 5° grado",
-                  "Planificar una clase de español sobre comprensión lectora para 3° grado",
-                  "Crear una actividad de historia sobre la Revolución Mexicana para 6° grado",
-                  "Clase de educación física con juegos cooperativos para 2° grado",
-                  "Taller de arte sobre colores primarios para 1° grado",
-                  "Clase de geografía sobre los estados de México para 5° grado",
-                  "Actividad de valores sobre la amistad para 3° grado",
-                ].map((suggestion, index) => (
-                  <Button
-                    key={index}
-                    variant="outline"
-                    className="w-full text-left h-auto p-3 justify-start whitespace-normal dark:bg-gray-700 dark:hover:bg-gray-600 dark:text-gray-100"
-                    onClick={() => handleQuickSuggestion(suggestion)}
-                    disabled={isLoading || hasReachedLimit}
-                  >
-                    <div className="text-sm leading-relaxed notranslate">{suggestion}</div>
-                  </Button>
-                ))}
+                  {
+                    label: "Clase Completa (50 min)",
+                    desc: "Matemáticas sobre Geometría",
+                    prompt: "Crear una clase de Matemáticas de 50 minutos sobre Figuras Geométricas"
+                  },
+                  {
+                    label: "Enfoque en Objetivo",
+                    desc: "Español: Mejorar Ortografía",
+                    prompt: "Crear una clase de Español con el objetivo principal de mejorar la ortografía y el uso de acentos"
+                  },
+                  {
+                    label: "Con Adecuaciones",
+                    desc: "Ciencias para alumnos con TDAH",
+                    prompt: "Crear una actividad de Ciencias Naturales sobre el Cuidado del Agua con adecuaciones para alumnos con TDAH"
+                  },
+                  {
+                    label: "Clase de Repaso",
+                    desc: "Reforzar aprendizajes previos",
+                    prompt: "Crear una planeación de repaso de 50 minutos para reforzar el tema de las Tablas de Multiplicar"
+                  },
+                  {
+                    label: "Taller Práctico",
+                    desc: "Actividad experimental",
+                    prompt: "Diseñar una planeación tipo taller práctico para experimentar con la mezcla de colores en Arte"
+                  },
+                ].map((item, index) => {
+                  const gradoTexto = contexto ? getGradoTexto(contexto.grado) : "mi grado"
+                  const fullPrompt = `${item.prompt} para ${gradoTexto}`
+
+                  return (
+                    <Button
+                      key={index}
+                      variant="outline"
+                      className="w-full text-left h-auto p-3 justify-start whitespace-normal dark:bg-gray-700 dark:hover:bg-gray-600 dark:text-gray-100 group hover:border-purple-300 transition-all"
+                      onClick={() => handleQuickSuggestion(fullPrompt)}
+                      disabled={isLoading || hasReachedLimit}
+                    >
+                      <div className="flex flex-col gap-1 w-full">
+                        <span className="font-medium text-sm text-purple-700 dark:text-purple-300 group-hover:text-purple-600 notranslate">
+                          {item.label}
+                        </span>
+                        <span className="text-xs text-gray-500 dark:text-gray-400 notranslate">
+                          {item.desc}
+                        </span>
+                      </div>
+                    </Button>
+                  )
+                })}
               </div>
             </CardContent>
           </Card>

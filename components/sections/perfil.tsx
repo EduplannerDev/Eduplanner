@@ -12,11 +12,15 @@ import { useState, useEffect, useRef } from "react" // Importa useRef
 import { SubscriptionCard } from "./subscription-card"
 import { uploadAvatar } from "@/lib/profile" // Importa uploadAvatar
 import { toast } from "@/components/ui/use-toast"
+import { ContextoTrabajoModal } from "@/components/contexto-trabajo-modal"
+import { useContextoTrabajo } from "@/hooks/use-contexto-trabajo"
 
 export function Perfil() {
   const { user } = useAuth()
   const { profile, loading, updating, updateProfile, refreshProfile } = useProfile() // Añade refreshProfile
+  const { contexto, actualizarContexto } = useContextoTrabajo()
   const [isEditing, setIsEditing] = useState(false)
+  const [isShowContextoModal, setIsShowContextoModal] = useState(false)
   const [formData, setFormData] = useState({
     full_name: "",
     school: "",
@@ -33,16 +37,29 @@ export function Perfil() {
     if (profile) {
       setFormData({
         full_name: profile.full_name || "",
-        school: profile.school || "",
-        grade: profile.grade || "",
-        city: profile.city || "",
-        state: profile.state || "",
+        school: (profile as any).school || "",
+        grade: (profile as any).grade || "",
+        city: (profile as any).city || "",
+        state: (profile as any).state || "",
       })
     }
   }, [profile])
 
   const getInitials = (email: string) => {
     return email.charAt(0).toUpperCase()
+  }
+
+  const formatGrado = (grado: number) => {
+    if (grado < 0) {
+      // Preescolar: -3 -> 1, -2 -> 2, -1 -> 3
+      const gradoPreescolar = 4 + grado
+      return `${gradoPreescolar}° Preescolar`
+    } else if (grado <= 6) {
+      return `${grado}° Primaria`
+    } else {
+      // Secundaria: 7 -> 1, 8 -> 2, 9 -> 3
+      return `${grado - 6}° Secundaria`
+    }
   }
 
   const handleInputChange = (field: string, value: string) => {
@@ -70,10 +87,10 @@ export function Perfil() {
     if (profile) {
       setFormData({
         full_name: profile.full_name || "",
-        school: profile.school || "",
-        grade: profile.grade || "",
-        city: profile.city || "",
-        state: profile.state || "",
+        school: (profile as any).school || "",
+        grade: (profile as any).grade || "",
+        city: (profile as any).city || "",
+        state: (profile as any).state || "",
       })
     }
     setIsEditing(false)
@@ -142,11 +159,10 @@ export function Perfil() {
       {/* Mensaje de estado */}
       {message && (
         <div
-          className={`text-center p-3 rounded-lg ${
-            message.includes("Error")
-              ? "bg-red-50 text-red-600 border border-red-200"
-              : "bg-green-50 text-green-600 border border-green-200"
-          }`}
+          className={`text-center p-3 rounded-lg ${message.includes("Error")
+            ? "bg-red-50 text-red-600 border border-red-200"
+            : "bg-green-50 text-green-600 border border-green-200"
+            }`}
         >
           {message}
         </div>
@@ -220,14 +236,30 @@ export function Perfil() {
                   />
                 </div>
                 <div>
-                  <Label htmlFor="grado">Grado que Impartes</Label>
-                  <Input
-                    id="grado"
-                    value={formData.grade}
-                    onChange={(e) => handleInputChange("grade", e.target.value)}
-                    disabled={!isEditing || updating} // Deshabilita durante la carga del avatar
-                    placeholder="ej. 3° Primaria"
-                  />
+                  <Label htmlFor="grado">Grado y Nivel Educativo</Label>
+                  <div className="flex gap-2">
+                    <Input
+                      id="grado"
+                      value={contexto ? formatGrado(contexto.grado) : "No configurado"}
+                      readOnly
+                      className="bg-muted"
+                      placeholder="Nivel actual (ej. 3° Primaria)"
+                    />
+                    {isEditing && (
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="icon"
+                        onClick={() => setIsShowContextoModal(true)}
+                        title="Cambiar Grado/Nivel"
+                      >
+                        <School className="h-4 w-4" />
+                      </Button>
+                    )}
+                  </div>
+                  <p className="text-xs text-muted-foreground mt-1">
+                    Contexto usado para generar planeaciones con IA
+                  </p>
                 </div>
                 <div>
                   <Label htmlFor="ciudad">Ciudad</Label>
@@ -311,6 +343,17 @@ export function Perfil() {
           </div>
         </CardContent>
       </Card> */}
-    </div>
+      {/* Modal para actualizar contexto */}
+      <ContextoTrabajoModal
+        isOpen={isShowContextoModal}
+        onClose={() => setIsShowContextoModal(false)}
+        onSuccess={() => {
+          setIsShowContextoModal(false)
+          refreshProfile()
+          actualizarContexto()
+        }}
+        mode="edit"
+      />
+    </div >
   )
 }
