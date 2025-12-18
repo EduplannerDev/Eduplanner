@@ -1,7 +1,7 @@
 "use client"
 
 import { useState } from "react"
-import { Bell, Check, CheckCheck, Info, AlertTriangle, AlertCircle, X } from "lucide-react"
+import { Bell, Check, CheckCheck, Info, AlertTriangle, AlertCircle, X, Trash2 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import {
     Popover,
@@ -22,7 +22,7 @@ export interface NotificationsPopoverProps {
 
 export function NotificationsPopover({ onNavigate }: NotificationsPopoverProps) {
     const [open, setOpen] = useState(false)
-    const { notifications, unreadCount, markAsRead, markAllAsRead } = useInAppNotifications()
+    const { notifications, unreadCount, markAsRead, markAllAsRead, deleteNotification, deleteAllRead } = useInAppNotifications()
     const router = useRouter()
 
     const getIcon = (type: AppNotification['type']) => {
@@ -96,6 +96,17 @@ export function NotificationsPopover({ onNavigate }: NotificationsPopoverProps) 
                             Marcar leídas
                         </Button>
                     )}
+                    {notifications.some(n => n.read) && (
+                        <Button
+                            variant="ghost"
+                            size="sm"
+                            className="h-auto px-2 text-xs text-muted-foreground hover:text-destructive"
+                            onClick={() => deleteAllRead()}
+                        >
+                            <Trash2 className="mr-1 h-3 w-3" />
+                            Limpiar leídas
+                        </Button>
+                    )}
                 </div>
                 <ScrollArea className="h-[300px]">
                     {notifications.length === 0 ? (
@@ -135,12 +146,23 @@ export function NotificationsPopover({ onNavigate }: NotificationsPopoverProps) 
                                             </div>
                                         )}
                                     </div>
+                                    <Button
+                                        variant="ghost"
+                                        size="icon"
+                                        className="h-6 w-6 opacity-0 group-hover:opacity-100 transition-opacity absolute right-2 top-2"
+                                        onClick={(e) => {
+                                            e.stopPropagation()
+                                            deleteNotification(notification.id)
+                                        }}
+                                    >
+                                        <Trash2 className="h-4 w-4 text-muted-foreground hover:text-destructive" />
+                                    </Button>
                                 </div>
                             ))}
                         </div>
                     )}
                 </ScrollArea>
             </PopoverContent>
-        </Popover>
+        </Popover >
     )
 }

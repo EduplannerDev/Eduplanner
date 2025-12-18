@@ -107,12 +107,55 @@ export function useInAppNotifications() {
         }
     }
 
+    const deleteNotification = async (notificationId: string) => {
+        try {
+            // Optimistic update
+            const notificationToDelete = notifications.find(n => n.id === notificationId)
+            setNotifications(prev => prev.filter(n => n.id !== notificationId))
+
+            if (notificationToDelete && !notificationToDelete.read) {
+                setUnreadCount(prev => Math.max(0, prev - 1))
+            }
+
+            const { error } = await supabase
+                .from('app_notifications')
+                .delete()
+                .eq('id', notificationId)
+
+            if (error) throw error
+        } catch (error) {
+            console.error('Error deleting notification:', error)
+            fetchNotifications() // Revert on error
+        }
+    }
+
+    const deleteAllRead = async () => {
+        try {
+            // Optimistic update
+            setNotifications(prev => prev.filter(n => !n.read))
+            // Unread count doesn't change because we only delete read ones
+
+            const { error } = await supabase
+                .from('app_notifications')
+                .delete()
+                .eq('user_id', user!.id)
+                .eq('read', true)
+
+            if (error) throw error
+        } catch (error) {
+            console.error('Error deleting read notifications:', error)
+            fetchNotifications() // Revert on error
+        }
+    }
+
     return {
         notifications,
         unreadCount,
         loading,
         markAsRead,
         markAllAsRead,
+        deleteNotification,
+        deleteAllRead,
         refresh: fetchNotifications
     }
 }
