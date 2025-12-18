@@ -1,6 +1,7 @@
 "use client"
 
 import { useState, useEffect, useMemo } from "react"
+import { useSearchParams } from "next/navigation"
 import { AppSidebar } from "./app-sidebar"
 import { DashboardHome } from "./sections/dashboard-home"
 import { NuevaPlaneacion } from "./sections/nueva-planeacion"
@@ -33,6 +34,7 @@ import { PlanAnaliticoWizard } from "./sections/plan-analitico/plan-analitico-wi
 import { ListaPlanesAnaliticos } from "./sections/plan-analitico/lista-planes-analiticos"
 import { WelcomeMessage } from "./ui/welcome-message"
 import { ClientOnly } from "./client-only"
+import { NotificationsPopover } from "./ui/notifications-popover"
 import { SidebarInset, SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar"
 import { Separator } from "@/components/ui/separator"
 import {
@@ -52,15 +54,41 @@ interface DashboardProps {
 
 export default function Dashboard({ children, customContent = false }: DashboardProps = {}) {
   const [activeSection, setActiveSection] = useState("dashboard")
+  // ... existing state definitions ...
 
-  // Leer parámetro de sección de la URL para proyectos (mantener compatibilidad)
+  const searchParams = useSearchParams()
+
+  // Leer parámetros de la URL para navegación profunda (deep linking)
+  // Ahora reactivo a cambios en la URL (spa navigation)
   useEffect(() => {
-    const urlParams = new URLSearchParams(window.location.search)
-    const section = urlParams.get('section')
-    if (section === 'proyectos' || section === 'crear-proyecto') {
+    const section = searchParams.get('section')
+    const tab = searchParams.get('tab')
+    const id = searchParams.get('id')
+
+    // Lista de secciones válidas para evitar navegación a rutas inexistentes
+    const allSections = [
+      'dashboard', 'nueva-planeacion', 'mis-planeaciones', 'perfil', 'chat-ia',
+      'chat-ia-dosificacion', 'examenes', 'generar-examenes', 'generar-mensajes',
+      'generar-mensajes-padres', 'mensajes-padres-alumno', 'mis-mensajes', 'ayuda',
+      'grupos', 'agenda', 'tomar-asistencia', 'bitacora', 'admin-dashboard',
+      'administracion-plantel', 'beta-testers', 'beta-features', 'dosificacion',
+      'presentaciones-ia', 'proyectos', 'crear-proyecto', 'planeacion-cime', 'plan-analitico'
+    ]
+
+    if (section && allSections.includes(section)) {
       setActiveSection(section)
+
+      // Pasar info adicional al componente si es necesario via window state o similar
+      // (Por ahora simplificado, los componentes leen params si lo necesitan)
+      if (id && section === 'mis-planeaciones') {
+        setSelectedPlaneacionFromHome(id)
+      }
+      // Limpiar la URL después de un breve delay para que no se vea "fea" pero permita bookmarking si el usuario quisiera (aquí priorizamos limpieza)
+      // Usamos history.replaceState para no recargar la página
+      const newUrl = window.location.protocol + "//" + window.location.host + window.location.pathname;
+      window.history.replaceState({ path: newUrl }, "", newUrl);
     }
-  }, [])
+  }, [searchParams])
   const [preselectedStudent, setPreselectedStudent] = useState<any>(null)
   const [selectedStudentForMessages, setSelectedStudentForMessages] = useState<any>(null)
   const [initialChatMessage, setInitialChatMessage] = useState<string>("")
@@ -79,6 +107,9 @@ export default function Dashboard({ children, customContent = false }: Dashboard
     setActiveSection("generar-mensajes-padres")
   }
 
+  // Estado para tab inicial (para deep linking en dashboards con tabs)
+  const [initialTab, setInitialTab] = useState<string | undefined>(undefined)
+
   const handleNavigateToMensajesPadresAlumno = (studentData: any) => {
     setSelectedStudentForMessages(studentData)
     setActiveSection("mensajes-padres-alumno")
@@ -88,6 +119,19 @@ export default function Dashboard({ children, customContent = false }: Dashboard
     clearChatStates() // Limpiar estados previos
     setInitialChatMessage(message)
     setActiveSection("chat-ia")
+  }
+
+  // Manejador para navegación desde notificaciones (sin usar URL)
+  const handleNotificationNavigate = (section: string, params?: Record<string, string>) => {
+    setActiveSection(section)
+
+    // Manejar parámetros adicionales según la sección
+    if (params) {
+      if (section === 'mis-planeaciones' && params.id) {
+        setSelectedPlaneacionFromHome(params.id)
+      }
+      // Aquí se pueden agregar más casos según se necesiten (ej. tabs)
+    }
   }
 
   const handleNavigateToChatDosificacion = (data: {
@@ -282,7 +326,7 @@ export default function Dashboard({ children, customContent = false }: Dashboard
           setActiveSection("dashboard")
           return <DashboardHome onSectionChange={setActiveSection} />
         }
-        return <DirectorDashboard onSectionChange={setActiveSection} />
+        return <DirectorDashboard onSectionChange={setActiveSection} initialTab={initialTab} />
       case "administracion-plantel":
         // Validar que solo los directores puedan acceder
         if (!isDirector) {
@@ -321,7 +365,7 @@ export default function Dashboard({ children, customContent = false }: Dashboard
       default:
         return <DashboardHome onSectionChange={setActiveSection} />
     }
-  }, [activeSection, initialChatMessage, dosificacionData, previousSection, preselectedStudent, selectedStudentForMessages, isDirector, selectedPlaneacionFromHome])
+  }, [activeSection, initialChatMessage, dosificacionData, previousSection, preselectedStudent, selectedStudentForMessages, isDirector, selectedPlaneacionFromHome, initialTab])
 
   // Usar padding diferente para el chat y mensajes
   const isChat = activeSection === "generar-mensajes-padres"
@@ -335,21 +379,27 @@ export default function Dashboard({ children, customContent = false }: Dashboard
       <SidebarProvider>
         <AppSidebar activeSection={activeSection} onSectionChange={setActiveSection} />
         <SidebarInset>
-          <header className="flex h-16 shrink-0 items-center gap-2 border-b px-4">
-            <SidebarTrigger className="-ml-1" />
-            <Separator orientation="vertical" className="mr-2 h-4" />
-            <Breadcrumb>
-              <BreadcrumbList>
-                <BreadcrumbItem className="hidden md:block">
-                  <BreadcrumbLink href="#">EduPlanner</BreadcrumbLink>
-                </BreadcrumbItem>
-                <BreadcrumbSeparator className="hidden md:block" />
-                <BreadcrumbItem>
-                  <BreadcrumbPage>{getSectionTitle(activeSection)}</BreadcrumbPage>
-                </BreadcrumbItem>
-              </BreadcrumbList>
-            </Breadcrumb>
+          <header className="flex h-16 shrink-0 items-center justify-between border-b px-4 transition-[width,height] ease-linear group-has-[[data-collapsible=icon]]/sidebar-wrapper:h-12">
+            <div className="flex items-center gap-2">
+              <SidebarTrigger className="-ml-1" />
+              <Separator orientation="vertical" className="mr-2 h-4" />
+              <Breadcrumb>
+                <BreadcrumbList>
+                  <BreadcrumbItem className="hidden md:block">
+                    <BreadcrumbLink href="#">EduPlanner</BreadcrumbLink>
+                  </BreadcrumbItem>
+                  <BreadcrumbSeparator className="hidden md:block" />
+                  <BreadcrumbItem>
+                    <BreadcrumbPage>{getSectionTitle(activeSection)}</BreadcrumbPage>
+                  </BreadcrumbItem>
+                </BreadcrumbList>
+              </Breadcrumb>
+            </div>
+            <div className="flex items-center gap-2">
+              <NotificationsPopover onNavigate={handleNotificationNavigate} />
+            </div>
           </header>
+
           <div className={`flex flex-1 flex-col ${isChat ? "h-[calc(100vh-4rem)]" : "gap-4 p-2 sm:p-4 pt-4"}`}>
             <div
               className={isChat ? "flex-1 h-full p-4" : "min-h-[100vh] flex-1 rounded-xl bg-muted/50 md:min-h-min p-3 sm:p-6"}

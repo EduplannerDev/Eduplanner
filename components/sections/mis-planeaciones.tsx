@@ -44,9 +44,10 @@ function cleanMarkdown(text: string): string {
 
 interface MisPlaneacionesProps {
   onCreateNew?: () => void
+  initialPlaneacionId?: string
 }
 
-export function MisPlaneaciones({ onCreateNew }: MisPlaneacionesProps) {
+export function MisPlaneaciones({ onCreateNew, initialPlaneacionId }: MisPlaneacionesProps) {
   const { planeaciones, loading, deletePlaneacion, currentPage, totalPages, setPage, refreshPlaneaciones } = usePlaneaciones()
   const { profile } = useProfile() // Obtener el perfil del usuario
   const { toast } = useToast()
@@ -58,7 +59,16 @@ export function MisPlaneaciones({ onCreateNew }: MisPlaneacionesProps) {
   const [error, setError] = useState<string | null>(null)
   const [sending, setSending] = useState<string | null>(null)
   const [selectedComments, setSelectedComments] = useState<{ titulo: string, comentarios: string, fechaRevision: string } | null>(null)
+
   const [showCommentsModal, setShowCommentsModal] = useState(false)
+
+  // Efecto para manejar deep linking
+  useState(() => {
+    if (initialPlaneacionId) {
+      setSelectedPlaneacion(initialPlaneacionId)
+      setViewMode("view")
+    }
+  })
 
 
   const getEstadoColor = (estado: string) => {

@@ -34,13 +34,22 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 
 interface DirectorDashboardProps {
   onSectionChange?: (section: string) => void
+  initialTab?: string
 }
 
-export function DirectorDashboard({ onSectionChange }: DirectorDashboardProps) {
+export function DirectorDashboard({ onSectionChange, initialTab = "pulso" }: DirectorDashboardProps) {
   const { plantel, loading: rolesLoading } = useRoles()
   const [platformData, setPlatformData] = useState<PlatformPulse | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+  const [activeTab, setActiveTab] = useState(initialTab)
+
+  // Sincronizar tab activo cuando cambia la prop initialTab (navegación externa)
+  useEffect(() => {
+    if (initialTab) {
+      setActiveTab(initialTab)
+    }
+  }, [initialTab])
 
   useEffect(() => {
     if (!rolesLoading && plantel?.id) {
@@ -135,7 +144,7 @@ export function DirectorDashboard({ onSectionChange }: DirectorDashboardProps) {
       </div>
 
       {/* Main Tabs Structure */}
-      <Tabs defaultValue="pulso" className="w-full space-y-6">
+      <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full space-y-6">
         <TabsList className="grid w-full grid-cols-2 lg:w-[400px]">
           <TabsTrigger value="pulso" className="flex items-center gap-2">
             <Activity className="h-4 w-4" />
