@@ -102,7 +102,16 @@ export async function getPlaneacion(planeacionId: string): Promise<Planeacion | 
   try {
     const { data, error } = await supabase
       .from("planeaciones")
-      .select("*")
+      .select(`
+        *,
+        planeaciones_enviadas!planeacion_id (
+          id,
+          estado,
+          fecha_envio,
+          comentarios_director,
+          fecha_revision
+        )
+      `)
       .eq("id", planeacionId)
       .is("deleted_at", null)
       .single()
@@ -112,7 +121,20 @@ export async function getPlaneacion(planeacionId: string): Promise<Planeacion | 
       return null
     }
 
-    return data
+    // Mapear los datos para incluir el estado de envío
+    const envio = Array.isArray(data.planeaciones_enviadas)
+      ? data.planeaciones_enviadas[0]
+      : data.planeaciones_enviadas
+
+    return {
+      ...data,
+      envio_estado: envio?.estado || null,
+      envio_id: envio?.id || null,
+      envio_fecha: envio?.fecha_envio || null, // Nota: interfaz dice fecha_envio
+      fecha_envio: envio?.fecha_envio || null,
+      comentarios_director: envio?.comentarios_director || null,
+      fecha_revision: envio?.fecha_revision || null,
+    }
   } catch (error) {
     console.error("Error in getPlaneacion:", error)
     return null

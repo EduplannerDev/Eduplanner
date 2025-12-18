@@ -35,6 +35,7 @@ interface PlaneacionEnviada {
         email: string
     }
 }
+import { PlanningVersionHistory } from "./planning-version-history"
 
 interface PlaneacionesReviewSectionProps {
     plantelId: string
@@ -286,6 +287,10 @@ export function PlaneacionesReviewSection({ plantelId }: PlaneacionesReviewSecti
                                                     <Eye className="h-4 w-4 mr-1" />
                                                     Ver
                                                 </Button>
+                                                <PlanningVersionHistory
+                                                    planeacionId={planeacion.planeacion_id}
+                                                    currentTitle={planeacion.planeaciones.titulo}
+                                                />
                                                 <Button
                                                     size="sm"
                                                     onClick={() => handleReview(planeacion)}

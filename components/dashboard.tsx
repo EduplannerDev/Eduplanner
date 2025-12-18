@@ -89,6 +89,13 @@ export default function Dashboard({ children, customContent = false }: Dashboard
       window.history.replaceState({ path: newUrl }, "", newUrl);
     }
   }, [searchParams])
+
+  // Limpiar selección de planeación al salir de la sección
+  useEffect(() => {
+    if (activeSection !== 'mis-planeaciones') {
+      setSelectedPlaneacionFromHome(null)
+    }
+  }, [activeSection])
   const [preselectedStudent, setPreselectedStudent] = useState<any>(null)
   const [selectedStudentForMessages, setSelectedStudentForMessages] = useState<any>(null)
   const [initialChatMessage, setInitialChatMessage] = useState<string>("")

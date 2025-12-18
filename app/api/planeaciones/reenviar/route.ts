@@ -46,6 +46,39 @@ export async function POST(request: NextRequest) {
             );
         }
 
+        // Obtener datos actuales de la planeación para guardar versión
+        const { data: planeacionToVersion } = await supabase
+            .from('planeaciones')
+            .select('titulo, contenido')
+            .eq('id', planeacion_id)
+            .single();
+
+        if (planeacionToVersion) {
+            // Calcular siguiente número de versión
+            const { count } = await supabase
+                .from('planeacion_versiones')
+                .select('*', { count: 'exact', head: true })
+                .eq('planeacion_id', planeacion_id);
+
+            const nextVersion = (count || 0) + 1;
+
+            // Guardar nueva versión
+            const { error: versionError } = await supabase
+                .from('planeacion_versiones')
+                .insert({
+                    planeacion_id,
+                    version_number: nextVersion,
+                    titulo: planeacionToVersion.titulo,
+                    contenido: planeacionToVersion.contenido,
+                    created_by: user_id,
+                    motivo: 'correccion'
+                });
+
+            if (versionError) {
+                console.error('Error al guardar nueva versión:', versionError);
+            }
+        }
+
         return NextResponse.json({
             success: true,
             message: 'Planeación re-enviada correctamente',

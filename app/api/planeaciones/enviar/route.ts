@@ -43,7 +43,7 @@ export async function POST(request: NextRequest) {
         // Verificar que la planeación pertenece al usuario
         const { data: planeacion, error: planeacionError } = await supabase
             .from('planeaciones')
-            .select('id, user_id')
+            .select('id, user_id, titulo, contenido')
             .eq('id', planeacion_id)
             .eq('user_id', user_id)
             .single();
@@ -87,6 +87,23 @@ export async function POST(request: NextRequest) {
                 { error: 'Error al enviar la planeación a dirección' },
                 { status: 500 }
             );
+        }
+
+        // Crear versión inicial (versión 1)
+        const { error: versionError } = await supabase
+            .from('planeacion_versiones')
+            .insert({
+                planeacion_id,
+                version_number: 1,
+                titulo: planeacion.titulo,
+                contenido: planeacion.contenido,
+                created_by: user_id,
+                motivo: 'envio_inicial'
+            });
+
+        if (versionError) {
+            console.error('Error al guardar versión inicial:', versionError);
+            // No fallamos el request principal, pero logueamos el error
         }
 
         return NextResponse.json({

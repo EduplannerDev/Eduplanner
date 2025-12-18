@@ -8,6 +8,8 @@ import { RichTextEditor, convertLegacyToHtml } from "@/components/ui/rich-text-e
 import { ArrowLeft, Save, Loader2 } from "lucide-react"
 import { usePlaneaciones } from "@/hooks/use-planeaciones"
 import { useState, useEffect } from "react"
+import { useProfile } from "@/hooks/use-profile"
+import { useToast } from "@/hooks/use-toast"
 import type { Planeacion } from "@/lib/planeaciones"
 
 interface EditPlaneacionProps {
@@ -16,7 +18,9 @@ interface EditPlaneacionProps {
 }
 
 export function EditPlaneacion({ planeacionId, onBack }: EditPlaneacionProps) {
+  const { toast } = useToast()
   const { getPlaneacion, updatePlaneacion } = usePlaneaciones()
+  const { profile } = useProfile() // Obtener perfil para verificar plantel
   const [planeacion, setPlaneacion] = useState<Planeacion | null>(null)
   const [titulo, setTitulo] = useState("")
   const [contenido, setContenido] = useState("")
@@ -52,6 +56,46 @@ export function EditPlaneacion({ planeacionId, onBack }: EditPlaneacionProps) {
     })
 
     if (success) {
+
+      // Lógica de auto-crar/actualizar envío si pertenece a un plantel
+      if (profile?.plantel_id) {
+        try {
+          // Intentamos determinar el endpoint correcto, pero si falla 'enviar' (409), intentaremos 'reenviar'
+          const initialEndpoint = planeacion?.envio_id ? '/api/planeaciones/reenviar' : '/api/planeaciones/enviar'
+
+          let response = await fetch(initialEndpoint, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              planeacion_id: planeacionId,
+              user_id: profile.id
+            })
+          })
+
+          // Si intentamos enviar y ya existe (409), intentamos reenviar
+          if (!response.ok && response.status === 409 && initialEndpoint === '/api/planeaciones/enviar') {
+            console.log("Planeación ya enviada, intentando reenviar/actualizar...")
+            response = await fetch('/api/planeaciones/reenviar', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                planeacion_id: planeacionId,
+                user_id: profile.id
+              })
+            })
+          }
+
+          if (response.ok) {
+            toast({
+              title: "Planeación actualizada",
+              description: "Se ha notificado automáticamente a dirección.",
+            })
+          }
+        } catch (e) {
+          console.error("Error en auto-envío:", e)
+        }
+      }
+
       setMessage("Planeación actualizada correctamente")
       setTimeout(() => {
         setMessage("")
@@ -124,8 +168,8 @@ export function EditPlaneacion({ planeacionId, onBack }: EditPlaneacionProps) {
       {message && (
         <div
           className={`text-center p-3 rounded-lg ${message.includes("Error")
-              ? "bg-red-50 text-red-600 border border-red-200"
-              : "bg-green-50 text-green-600 border border-green-200"
+            ? "bg-red-50 text-red-600 border border-red-200"
+            : "bg-green-50 text-green-600 border border-green-200"
             }`}
         >
           {message}
