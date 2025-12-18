@@ -34,6 +34,7 @@ export interface SubscriptionInfo {
   renewDate: Date | null;
   cancelAtPeriodEnd: boolean;
   displayStatus: string;
+  stripeSubscriptionId?: string | null;
 }
 
 /**
@@ -85,7 +86,9 @@ export function getSubscriptionInfo(profile: Profile): SubscriptionInfo {
   const isPro = isUserPro(profile);
   const endDate = profile.subscription_end_date ? new Date(profile.subscription_end_date) : null;
   const renewDate = profile.subscription_renew_date ? new Date(profile.subscription_renew_date) : null;
+
   const cancelAtPeriodEnd = profile.cancel_at_period_end;
+  const stripeSubscriptionId = profile.stripe_subscription_id;
 
   let displayStatus: string;
 
@@ -111,7 +114,8 @@ export function getSubscriptionInfo(profile: Profile): SubscriptionInfo {
     endDate,
     renewDate,
     cancelAtPeriodEnd,
-    displayStatus
+    displayStatus,
+    stripeSubscriptionId
   };
 }
 

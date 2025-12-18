@@ -204,7 +204,7 @@ export function SubscriptionCard({ userPlan }: SubscriptionCardProps) {
                       <AlertTriangle className="inline-block mr-1 h-4 w-4" />
                       Tu suscripción tiene pagos pendientes.
                     </div>
-                  ) : subscriptionInfo.isActive && !subscriptionInfo.cancelAtPeriodEnd ? (
+                  ) : subscriptionInfo.isActive && !subscriptionInfo.cancelAtPeriodEnd && subscriptionInfo.stripeSubscriptionId ? (
                     <Button
                       variant="destructive"
                       className="w-full"

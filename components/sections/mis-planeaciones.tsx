@@ -29,7 +29,7 @@ import { ViewPlaneacion } from "./view-planeacion"
 import { EditPlaneacion } from "./edit-planeacion"
 // import { generatePDF } from "@/lib/pdf-generator" // Importación dinámica para evitar errores SSR
 import { generateDocx } from "@/lib/docx-generator"
-import { generatePptx } from "@/lib/pptx-generator"
+
 import { useProfile } from "@/hooks/use-profile"
 import { isUserPro } from "@/lib/subscription-utils"
 import { Pagination, PaginationContent, PaginationItem, PaginationPrevious, PaginationLink, PaginationNext } from "@/components/ui/pagination"
@@ -55,7 +55,7 @@ export function MisPlaneaciones({ onCreateNew, initialPlaneacionId }: MisPlaneac
   const [viewMode, setViewMode] = useState<"list" | "view" | "edit">("list")
   const [deleting, setDeleting] = useState<string | null>(null)
   const [generatingPDF, setGeneratingPDF] = useState<string | null>(null)
-  const [generatingPPTX, setGeneratingPPTX] = useState<string | null>(null)
+
   const [error, setError] = useState<string | null>(null)
   const [sending, setSending] = useState<string | null>(null)
   const [selectedComments, setSelectedComments] = useState<{ titulo: string, comentarios: string, fechaRevision: string } | null>(null)
@@ -130,7 +130,7 @@ export function MisPlaneaciones({ onCreateNew, initialPlaneacionId }: MisPlaneac
     }
   }
 
-  const handleDownload = async (planeacion: any, format: "pdf" | "Word" | "PowerPoint") => {
+  const handleDownload = async (planeacion: any, format: "pdf" | "Word") => {
     if (format === "pdf") {
       setGeneratingPDF(planeacion.id)
       try {
@@ -139,39 +139,9 @@ export function MisPlaneaciones({ onCreateNew, initialPlaneacionId }: MisPlaneac
       } catch (error) {
         console.error('Error generando PDF:', error)
         setError('Error al generar el PDF')
-      } finally {
-        setGeneratingPDF(null)
       }
     } else if (format === "Word") {
       generateDocx(planeacion)
-    } else if (format === "PowerPoint") {
-      setGeneratingPPTX(planeacion.id)
-      try {
-        toast({
-          title: "Generando presentación",
-          description: "Por favor espera, esto puede tomar un momento...",
-        })
-
-        const result = await generatePptx(planeacion)
-
-        if (result.success) {
-          toast({
-            title: "¡Presentación generada!",
-            description: result.message || "La presentación PowerPoint se ha generado correctamente",
-          })
-        } else {
-          throw new Error(result.message || 'Error al generar la presentación')
-        }
-      } catch (error) {
-        console.error('Error generando PowerPoint:', error)
-        toast({
-          title: "Error",
-          description: error instanceof Error ? error.message : 'Error al generar la presentación PowerPoint',
-          variant: "destructive"
-        })
-      } finally {
-        setGeneratingPPTX(null)
-      }
     }
   }
 
@@ -438,13 +408,13 @@ export function MisPlaneaciones({ onCreateNew, initialPlaneacionId }: MisPlaneac
                     )}
                     <DropdownMenu>
                       <DropdownMenuTrigger asChild>
-                        <Button size="sm" variant="outline" disabled={generatingPDF === planeacion.id || generatingPPTX === planeacion.id} className="w-full sm:w-auto">
-                          {(generatingPDF === planeacion.id || generatingPPTX === planeacion.id) ? (
+                        <Button size="sm" variant="outline" disabled={generatingPDF === planeacion.id} className="w-full sm:w-auto">
+                          {generatingPDF === planeacion.id ? (
                             <Loader2 className="h-4 w-4 animate-spin mr-2" />
                           ) : (
                             <Download className="h-4 w-4 mr-2" />
                           )}
-                          {generatingPDF === planeacion.id ? "Generando PDF..." : generatingPPTX === planeacion.id ? "Generando PPTX..." : "Descargar"}
+                          {generatingPDF === planeacion.id ? "Generando PDF..." : "Descargar"}
                         </Button>
                       </DropdownMenuTrigger>
                       <DropdownMenuContent>
@@ -473,27 +443,7 @@ export function MisPlaneaciones({ onCreateNew, initialPlaneacionId }: MisPlaneac
                           </DropdownMenuItem>
                         )}
 
-                        {profile && isUserPro(profile) && (
-                          <DropdownMenuItem
-                            onClick={() => handleDownload(planeacion, "PowerPoint")}
-                            disabled={generatingPPTX === planeacion.id}
-                          >
-                            {generatingPPTX === planeacion.id ? (
-                              <>
-                                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                                Generando PowerPoint...
-                              </>
-                            ) : (
-                              "Descargar PowerPoint"
-                            )}
-                          </DropdownMenuItem>
-                        )}
 
-                        {(!profile || !isUserPro(profile)) && (
-                          <DropdownMenuItem disabled className="text-gray-500 dark:text-gray-400">
-                            PowerPoint (Solo Pro)
-                          </DropdownMenuItem>
-                        )}
                       </DropdownMenuContent>
                     </DropdownMenu>
                     <AlertDialog>
