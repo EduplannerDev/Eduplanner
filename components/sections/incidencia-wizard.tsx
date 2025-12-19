@@ -459,29 +459,34 @@ export function IncidenciaWizard({ plantelId, onCancel, onComplete }: Incidencia
                 )}
             </CardContent>
 
-            <CardFooter className="flex justify-between pt-6 border-t">
-                {step === 1 && (
-                    <>
-                        <Button variant="ghost" onClick={onCancel}>Cancelar</Button>
-                        <Button onClick={handleAnalyze} disabled={!isStep1Valid()} className="gap-2">
-                            Siguiente: Análisis IA <ArrowRight className="h-4 w-4" />
+            <CardFooter className="flex flex-col gap-4 pt-6 border-t">
+                <div className="flex justify-between w-full items-center">
+                    {step === 1 && (
+                        <>
+                            <Button variant="ghost" onClick={onCancel}>Cancelar</Button>
+                            <Button onClick={handleAnalyze} disabled={!isStep1Valid()} className="gap-2">
+                                Siguiente: Análisis IA <ArrowRight className="h-4 w-4" />
+                            </Button>
+                        </>
+                    )}
+                    {step === 2 && (
+                        <Button variant="ghost" disabled className="w-full">
+                            Procesando...
                         </Button>
-                    </>
-                )}
-                {step === 2 && (
-                    <Button variant="ghost" disabled className="w-full">
-                        Procesando...
-                    </Button>
-                )}
-                {step === 3 && (
-                    <>
-                        <Button variant="outline" onClick={() => setStep(1)}>Atrás (Editar)</Button>
-                        <Button onClick={handleSave} className="gap-2 bg-green-600 hover:bg-green-700">
-                            <Save className="h-4 w-4" />
-                            Confirmar y Guardar Incidencia
-                        </Button>
-                    </>
-                )}
+                    )}
+                    {step === 3 && (
+                        <>
+                            <Button variant="outline" onClick={() => setStep(1)}>Atrás (Editar)</Button>
+                            <Button onClick={handleSave} className="gap-2 bg-green-600 hover:bg-green-700">
+                                <Save className="h-4 w-4" />
+                                Confirmar y Guardar Incidencia
+                            </Button>
+                        </>
+                    )}
+                </div>
+                <p className="text-xs text-muted-foreground text-center px-4">
+                    Nota: Este asistente genera recomendaciones basadas en la normativa vigente de la SEP. La clasificación final y las medidas aplicadas son responsabilidad exclusiva de la autoridad escolar. En caso de emergencia médica o delictiva, priorice siempre el llamado al 911.
+                </p>
             </CardFooter>
         </Card>
     )
