@@ -1,0 +1,24 @@
+TITULO: Protocolo de Actuación - Situaciones de Riesgo en las Cercanías (Balaceras, Operativos)
+FUENTE: Entornos Escolares Seguros - SEP Federal - Sección 3.4
+CATEGORIA: seguridad
+
+[PROTOCOLO DE EMERGENCIA - PASOS CRÍTICOS]
+Si se escuchan detonaciones o hay disturbios violentos cerca de la escuela:
+1. ALARMA CODIFICADA: Activar timbre distintivo para "Resguardo" (no usar alarma de incendio para evitar salir).
+2. POSICIÓN "PECHO A TIERRA": Todos (alumnos y docentes) deben tirarse al piso, boca abajo, lejos de puertas y ventanas.
+3. CALMA Y SILENCIO: El docente debe mantener la calma, hablar en voz baja o cantar para distraer.
+4. BLOQUEO VISUAL: Cerrar cortinas si es seguro hacerlo, apagar luces.
+5. NADIE SALE: Prohibida la salida de alumnos hasta que la autoridad declare "Zona Segura".
+
+[ACCIONES DIRECTIVAS]
+1. Asegurar perímetro: Cerrar portones inmediatamente (sin exponerse).
+2. Llamar al 911: Reportar lo que se escucha/ve.
+3. Comunicación: Informar a padres por chat oficial: "Estamos en resguardo preventivo. Por seguridad, no vengan a recoger a sus hijos hasta nuevo aviso".
+4. Ingreso de padres: Si hay padres afuera durante el evento, permitirles entrar para resguardarse (previa identificación visual rápida).
+
+[ACTA DE HECHOS]
+Elementos obligatorios:
+- Hora de inicio de la alerta y hora de término ("Todo despejado").
+- Descripción de los sonidos/eventos externos.
+- Incidencias de salud (crisis nerviosas de alumnos/docentes).
+- Confirmación de que se aplicó el protocolo de resguardo.

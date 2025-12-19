@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Progress } from "@/components/ui/progress"
 import { Separator } from "@/components/ui/separator"
@@ -17,7 +18,8 @@ import {
   Star,
   Award,
   Target,
-  History
+  History,
+  AlertTriangle
 } from "lucide-react"
 import { useRoles } from "@/hooks/use-roles"
 import {
@@ -30,6 +32,7 @@ import { format } from "date-fns"
 import { es } from "date-fns/locale"
 import { PlaneacionesReviewSection } from "./planeaciones-review-section"
 import { PlaneacionesHistorySection } from "./planeaciones-history-section"
+import { IncidenciasSection } from "./incidencias-section"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 
 interface DirectorDashboardProps {
@@ -43,6 +46,7 @@ export function DirectorDashboard({ onSectionChange, initialTab = "pulso" }: Dir
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [activeTab, setActiveTab] = useState(initialTab)
+  const [autoCreateIncidencia, setAutoCreateIncidencia] = useState(false)
 
   // Sincronizar tab activo cuando cambia la prop initialTab (navegación externa)
   useEffect(() => {
@@ -145,7 +149,7 @@ export function DirectorDashboard({ onSectionChange, initialTab = "pulso" }: Dir
 
       {/* Main Tabs Structure */}
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full space-y-6">
-        <TabsList className="grid w-full grid-cols-2 lg:w-[400px]">
+        <TabsList className="grid w-full grid-cols-3 lg:w-[600px]">
           <TabsTrigger value="pulso" className="flex items-center gap-2">
             <Activity className="h-4 w-4" />
             Pulso
@@ -154,19 +158,35 @@ export function DirectorDashboard({ onSectionChange, initialTab = "pulso" }: Dir
             <FileText className="h-4 w-4" />
             Planeaciones
           </TabsTrigger>
+          <TabsTrigger value="incidencias" className="flex items-center gap-2">
+            <AlertTriangle className="h-4 w-4" />
+            Incidencias
+          </TabsTrigger>
         </TabsList>
 
         {/* --- TAB: PULSO DE LA PLATAFORMA --- */}
         <TabsContent value="pulso" className="space-y-6">
           <Card className="border-2 border-primary/20">
-            <CardHeader>
-              <div className="flex items-center gap-2">
-                <Activity className="h-5 w-5 text-primary" />
-                <CardTitle className="text-xl">Pulso de la Plataforma</CardTitle>
+            <CardHeader className="flex flex-row items-start justify-between space-y-0 pb-6">
+              <div className="space-y-1">
+                <div className="flex items-center gap-2">
+                  <Activity className="h-5 w-5 text-primary" />
+                  <CardTitle className="text-xl">Pulso de la Plataforma</CardTitle>
+                </div>
+                <CardDescription>
+                  Adopción y actividad general • {periodInfo.mesActual}
+                </CardDescription>
               </div>
-              <CardDescription>
-                Adopción y actividad general • {periodInfo.mesActual}
-              </CardDescription>
+              <Button
+                variant="destructive"
+                className="shadow-md hover:shadow-lg transition-all transform hover:scale-105 font-bold"
+                onClick={() => {
+                  setAutoCreateIncidencia(true)
+                  setActiveTab("incidencias")
+                }}
+              >
+                🚨 Reportar Incidente
+              </Button>
             </CardHeader>
             <CardContent className="space-y-6">
               {/* KPIs Principales */}
@@ -403,6 +423,15 @@ export function DirectorDashboard({ onSectionChange, initialTab = "pulso" }: Dir
               <PlaneacionesHistorySection plantelId={plantel?.id || ''} />
             </TabsContent>
           </Tabs>
+        </TabsContent>
+
+        {/* --- TAB: INCIDENCIAS --- */}
+        <TabsContent value="incidencias">
+          <IncidenciasSection
+            plantelId={plantel?.id || ''}
+            autoStart={autoCreateIncidencia}
+            onAutoStartResult={() => setAutoCreateIncidencia(false)}
+          />
         </TabsContent>
       </Tabs>
     </div>
