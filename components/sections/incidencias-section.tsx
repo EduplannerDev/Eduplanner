@@ -11,7 +11,7 @@ import { Badge } from "@/components/ui/badge"
 import { IncidenciaWizard } from "./incidencia-wizard"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog"
 import { Textarea } from "@/components/ui/textarea"
-import { AlertCircle, FileWarning, Plus, Search, Printer, Pencil, Save, X } from "lucide-react"
+import { AlertCircle, FileWarning, Plus, Search, Printer, Pencil, Save, X, Upload, CheckCircle, Download } from "lucide-react"
 import { useToast } from "@/components/ui/use-toast"
 import { ScrollArea } from "@/components/ui/scroll-area"
 
@@ -29,6 +29,7 @@ interface Incidencia {
     estado: string
     descripcion_hechos?: string
     acta_hechos_content?: string
+    acta_firmada_url?: string
     protocolo_check?: any
     alumno: {
         nombre_completo: string
@@ -46,6 +47,7 @@ export function IncidenciasSection({ plantelId, autoStart = false, onAutoStartRe
     const [loading, setLoading] = useState(true)
     const [selectedIncident, setSelectedIncident] = useState<Incidencia | null>(null)
     const [isEditingActa, setIsEditingActa] = useState(false)
+    const [isUploading, setIsUploading] = useState(false)
     const { toast } = useToast()
 
     // Efecto para auto-iniciar si viene desde el botón de pánico
@@ -99,7 +101,7 @@ export function IncidenciasSection({ plantelId, autoStart = false, onAutoStartRe
                 .from('incidencias')
                 .select(`
                     id, created_at, tipo, nivel_riesgo, estado, 
-                    descripcion_hechos, acta_hechos_content, protocolo_check,
+                    descripcion_hechos, acta_hechos_content, acta_firmada_url, protocolo_check,
                     alumno:alumnos!inner(nombre_completo, grupo:grupos(grado, nombre))
                 `)
                 .eq('plantel_id', plantelId)
@@ -119,13 +121,21 @@ export function IncidenciasSection({ plantelId, autoStart = false, onAutoStartRe
         inc.tipo.toLowerCase().includes(searchQuery.toLowerCase())
     )
 
-    const handlePrint = () => {
+    const handlePrint = async () => {
+        if (!selectedIncident) return
+
+        // Generate suggested filename
+        const folio = selectedIncident.id.slice(0, 8).toUpperCase()
+        const alumnoName = selectedIncident.alumno.nombre_completo.replace(/\s+/g, '_')
+        const fecha = format(new Date(selectedIncident.created_at), 'yyyy-MM-dd')
+        const suggestedFilename = `Acta_${folio}_${alumnoName}_${fecha}`
+
         const windowPrint = window.open('', '', 'width=900,height=650')
-        if (windowPrint && selectedIncident) {
+        if (windowPrint) {
             windowPrint.document.write(`
                 <html>
                 <head>
-                    <title>Acta de Hechos - ${selectedIncident.tipo}</title>
+                    <title>${suggestedFilename}</title>
                     <style>
                         body { font-family: 'Times New Roman', serif; padding: 40px; line-height: 1.6; color: #000; }
                         h1 { text-align: center; margin-bottom: 20px; font-size: 18px; text-transform: uppercase; }
@@ -163,6 +173,140 @@ export function IncidenciasSection({ plantelId, autoStart = false, onAutoStartRe
                 </html>
             `)
             windowPrint.document.close()
+
+            // Update status to 'abierta' after printing (only if currently 'generado')
+            if (selectedIncident.estado === 'generado') {
+                try {
+                    const { error } = await supabase
+                        .from('incidencias')
+                        .update({ estado: 'abierta' })
+                        .eq('id', selectedIncident.id)
+
+                    if (error) {
+                        console.error('Supabase error details:', {
+                            message: error.message,
+                            details: error.details,
+                            hint: error.hint,
+                            code: error.code
+                        })
+                        throw error
+                    }
+
+                    toast({
+                        title: "Estado actualizado",
+                        description: "La incidencia ahora está en estado ABIERTA",
+                    })
+                    fetchIncidencias() // Refresh to show new status
+                } catch (error) {
+                    console.error('Error updating status:', error)
+                    toast({
+                        variant: "destructive",
+                        title: "Error al actualizar estado",
+                        description: error instanceof Error ? error.message : "No se pudo cambiar el estado",
+                    })
+                }
+            }
+        }
+    }
+
+    const handleUploadPDF = async (event: React.ChangeEvent<HTMLInputElement>) => {
+        const file = event.target.files?.[0]
+        if (!file || !selectedIncident) return
+
+        // Validate file type
+        if (file.type !== 'application/pdf') {
+            toast({
+                variant: "destructive",
+                title: "Archivo inválido",
+                description: "Solo se permiten archivos PDF",
+            })
+            return
+        }
+
+        // Validate file size (max 10MB)
+        if (file.size > 10 * 1024 * 1024) {
+            toast({
+                variant: "destructive",
+                title: "Archivo muy grande",
+                description: "El archivo no debe superar 10MB",
+            })
+            return
+        }
+
+        setIsUploading(true)
+        try {
+            const formData = new FormData()
+            formData.append('file', file)
+            formData.append('incidentId', selectedIncident.id)
+            formData.append('plantelId', plantelId)
+
+            const response = await fetch('/api/incidencias/upload-signed', {
+                method: 'POST',
+                body: formData
+            })
+
+            if (!response.ok) {
+                const error = await response.json()
+                throw new Error(error.error || 'Error al subir archivo')
+            }
+
+            const data = await response.json()
+
+            toast({
+                title: "✅ Acta firmada subida",
+                description: "El documento se ha guardado correctamente",
+            })
+
+            // Update local state
+            setSelectedIncident(prev => prev ? ({
+                ...prev,
+                estado: 'firmado',
+                acta_firmada_url: data.url
+            }) : null)
+
+            fetchIncidencias() // Refresh list
+        } catch (error) {
+            console.error('Error uploading PDF:', error)
+            toast({
+                variant: "destructive",
+                title: "Error al subir",
+                description: error instanceof Error ? error.message : "No se pudo subir el archivo",
+            })
+        } finally {
+            setIsUploading(false)
+            // Reset file input
+            event.target.value = ''
+        }
+    }
+
+    const handleCloseCase = async () => {
+        if (!selectedIncident) return
+
+        setLoading(true)
+        try {
+            const { error } = await supabase
+                .from('incidencias')
+                .update({ estado: 'cerrado' })
+                .eq('id', selectedIncident.id)
+
+            if (error) throw error
+
+            toast({
+                title: "Caso cerrado",
+                description: "La incidencia ha sido marcada como cerrada",
+            })
+
+            setSelectedIncident(prev => prev ? ({ ...prev, estado: 'cerrado' }) : null)
+            fetchIncidencias()
+        } catch (error) {
+            console.error('Error closing case:', error)
+            toast({
+                variant: "destructive",
+                title: "Error",
+                description: "No se pudo cerrar el caso",
+            })
+        } finally {
+            setLoading(false)
         }
     }
 
@@ -236,7 +380,15 @@ export function IncidenciasSection({ plantelId, autoStart = false, onAutoStartRe
                                     <Badge className={selectedIncident?.nivel_riesgo === 'alto' ? 'bg-red-100 text-red-800 hover:bg-red-200' : 'bg-yellow-100 text-yellow-800 hover:bg-yellow-200'}>
                                         Riesgo {selectedIncident?.nivel_riesgo?.toUpperCase()}
                                     </Badge>
-                                    <Badge variant="outline" className={selectedIncident?.estado === 'generado' ? 'border-primary text-primary' : ''}>
+                                    <Badge
+                                        variant="outline"
+                                        className={
+                                            selectedIncident?.estado === 'generado' ? 'border-blue-500 text-blue-700 bg-blue-50' :
+                                                selectedIncident?.estado === 'abierta' ? 'border-yellow-500 text-yellow-700 bg-yellow-50' :
+                                                    selectedIncident?.estado === 'firmado' ? 'border-green-500 text-green-700 bg-green-50' :
+                                                        selectedIncident?.estado === 'cerrado' ? 'border-gray-500 text-gray-700 bg-gray-50' : ''
+                                        }
+                                    >
                                         {selectedIncident?.estado?.toUpperCase()}
                                     </Badge>
                                 </div>
@@ -304,6 +456,83 @@ export function IncidenciasSection({ plantelId, autoStart = false, onAutoStartRe
                                 <p className="text-xs text-muted-foreground mt-2">
                                     💡 Edita el texto para corregir nombres o detalles antes de imprimir. Recuerda guardar.
                                 </p>
+                            )}
+
+                            {/* Upload PDF Section - Show when estado is 'abierta' */}
+                            {selectedIncident?.estado === 'abierta' && !isEditingActa && (
+                                <div className="mt-4 p-4 border border-dashed border-yellow-300 bg-yellow-50 rounded-md">
+                                    <h4 className="font-semibold text-sm mb-2 flex items-center gap-2">
+                                        <Upload className="h-4 w-4" />
+                                        Subir Acta Firmada
+                                    </h4>
+                                    <p className="text-xs text-muted-foreground mb-3">
+                                        Una vez firmada el acta física, escanéala y súbela aquí como PDF.
+                                    </p>
+                                    <label htmlFor="pdf-upload" className="cursor-pointer">
+                                        <Button size="sm" asChild disabled={isUploading}>
+                                            <span>
+                                                {isUploading ? (
+                                                    <><Save className="h-4 w-4 mr-2 animate-spin" /> Subiendo...</>
+                                                ) : (
+                                                    <><Upload className="h-4 w-4 mr-2" /> Seleccionar PDF</>
+                                                )}
+                                            </span>
+                                        </Button>
+                                    </label>
+                                    <input
+                                        id="pdf-upload"
+                                        type="file"
+                                        accept="application/pdf"
+                                        className="hidden"
+                                        onChange={handleUploadPDF}
+                                        disabled={isUploading}
+                                    />
+                                </div>
+                            )}
+
+                            {/* Show signed PDF download - When estado is 'firmado' or 'cerrado' */}
+                            {(selectedIncident?.estado === 'firmado' || selectedIncident?.estado === 'cerrado') && selectedIncident?.acta_firmada_url && !isEditingActa && (
+                                <div className="mt-4 p-4 border border-green-300 bg-green-50 rounded-md">
+                                    <h4 className="font-semibold text-sm mb-2 flex items-center gap-2">
+                                        <CheckCircle className="h-4 w-4 text-green-600" />
+                                        Acta Firmada Disponible
+                                    </h4>
+                                    <Button size="sm" variant="outline" asChild>
+                                        <a href={selectedIncident.acta_firmada_url} download target="_blank" rel="noopener noreferrer">
+                                            <Download className="h-4 w-4 mr-2" />
+                                            Descargar PDF Firmado
+                                        </a>
+                                    </Button>
+                                </div>
+                            )}
+
+                            {/* Close Case Button - Show when estado is 'firmado' */}
+                            {selectedIncident?.estado === 'firmado' && !isEditingActa && (
+                                <div className="mt-4">
+                                    <Button
+                                        onClick={handleCloseCase}
+                                        disabled={loading}
+                                        className="w-full"
+                                        variant="default"
+                                    >
+                                        <CheckCircle className="h-4 w-4 mr-2" />
+                                        Cerrar Caso
+                                    </Button>
+                                    <p className="text-xs text-muted-foreground mt-2 text-center">
+                                        Al cerrar el caso, se marcará como concluido y archivado
+                                    </p>
+                                </div>
+                            )}
+
+                            {/* Closed Case Indicator */}
+                            {selectedIncident?.estado === 'cerrado' && !isEditingActa && (
+                                <div className="mt-4 p-4 border border-gray-300 bg-gray-50 rounded-md text-center">
+                                    <CheckCircle className="h-6 w-6 text-gray-600 mx-auto mb-2" />
+                                    <p className="font-semibold text-sm text-gray-700">Caso Cerrado</p>
+                                    <p className="text-xs text-muted-foreground">
+                                        Este caso ha sido concluido y archivado
+                                    </p>
+                                </div>
                             )}
                         </div>
                     </div>
