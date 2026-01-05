@@ -11,7 +11,7 @@ import { Badge } from "@/components/ui/badge"
 import { IncidenciaWizard } from "./incidencia-wizard"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog"
 import { Textarea } from "@/components/ui/textarea"
-import { AlertCircle, FileWarning, Plus, Search, Printer, Pencil, Save, X, Upload, CheckCircle, Download } from "lucide-react"
+import { AlertCircle, FileWarning, Plus, Search, Printer, Pencil, Save, X, Upload, CheckCircle, Download, MessageSquare } from "lucide-react"
 import { useToast } from "@/components/ui/use-toast"
 import { ScrollArea } from "@/components/ui/scroll-area"
 
@@ -33,11 +33,22 @@ interface Incidencia {
     acta_firmada_url?: string
     protocolo_check?: any
     alumno: {
+        id: string
         nombre_completo: string
         grupo: {
             grado: string
             nombre: string
         }
+    }
+}
+
+interface CommunicationLog {
+    id: string
+    created_at: string
+    tipo: string
+    nota: string
+    director: {
+        full_name: string
     }
 }
 
@@ -49,6 +60,8 @@ export function IncidenciasSection({ plantelId, autoStart = false, onAutoStartRe
     const [selectedIncident, setSelectedIncident] = useState<Incidencia | null>(null)
     const [isEditingActa, setIsEditingActa] = useState(false)
     const [isUploading, setIsUploading] = useState(false)
+    const [communications, setCommunications] = useState<CommunicationLog[]>([])
+    const [loadingComms, setLoadingComms] = useState(false)
     const { toast } = useToast()
 
     // Efecto para auto-iniciar si viene desde el botón de pánico
@@ -64,6 +77,14 @@ export function IncidenciasSection({ plantelId, autoStart = false, onAutoStartRe
             fetchIncidencias()
         }
     }, [plantelId, isCreating])
+
+    useEffect(() => {
+        if (selectedIncident?.alumno?.id) {
+            fetchCommunications(selectedIncident.alumno.id)
+        } else {
+            setCommunications([])
+        }
+    }, [selectedIncident])
 
     const handleSaveActa = async () => {
         if (!selectedIncident) return
@@ -103,7 +124,7 @@ export function IncidenciasSection({ plantelId, autoStart = false, onAutoStartRe
                 .select(`
                     id, created_at, tipo, nivel_riesgo, estado, plantel_id,
                     descripcion_hechos, acta_hechos_content, acta_firmada_url, protocolo_check,
-                    alumno:alumnos!inner(nombre_completo, grupo:grupos(grado, nombre))
+                    alumno:alumnos!inner(id, nombre_completo, grupo:grupos(grado, nombre))
                 `)
                 .eq('plantel_id', plantelId)
                 .order('created_at', { ascending: false })
@@ -114,6 +135,29 @@ export function IncidenciasSection({ plantelId, autoStart = false, onAutoStartRe
             console.error('Error fetching incidencias:', error)
         } finally {
             setLoading(false)
+        }
+    }
+
+    const fetchCommunications = async (alumnoId: string) => {
+        setLoadingComms(true)
+        try {
+            const { data, error } = await supabase
+                .from('seguimiento_diario')
+                .select(`
+                    id, created_at, tipo, nota,
+                    director:profiles(full_name)
+                `)
+                .eq('alumno_id', alumnoId)
+                .eq('tipo', 'contacto_familia')
+                .order('created_at', { ascending: false })
+
+            if (error) throw error
+            setCommunications(data as any)
+        } catch (error) {
+            console.error('Error fetching communications:', error)
+            setCommunications([])
+        } finally {
+            setLoadingComms(false)
         }
     }
 
@@ -419,6 +463,29 @@ export function IncidenciasSection({ plantelId, autoStart = false, onAutoStartRe
                                             <li key={i}>{accion}</li>
                                         ))}
                                     </ul>
+                                </div>
+                            )}
+
+                            {/* Communication History */}
+                            {communications.length > 0 && (
+                                <div className="space-y-2 mt-4 pt-4 border-t">
+                                    <h4 className="font-semibold text-xs text-muted-foreground uppercase tracking-wider flex items-center gap-2">
+                                        <MessageSquare className="h-3 w-3" />
+                                        Comunicaciones con Familia
+                                    </h4>
+                                    <ScrollArea className="h-40">
+                                        <div className="space-y-2 pr-4">
+                                            {communications.map((comm) => (
+                                                <div key={comm.id} className="text-xs p-2 bg-blue-50 dark:bg-blue-950 rounded border border-blue-200 dark:border-blue-800">
+                                                    <div className="flex items-center justify-between mb-1">
+                                                        <span className="font-semibold text-blue-900 dark:text-blue-100">{comm.director.full_name}</span>
+                                                        <span className="text-blue-600 dark:text-blue-400">{format(new Date(comm.created_at), "d MMM HH:mm", { locale: es })}</span>
+                                                    </div>
+                                                    <p className="text-blue-800 dark:text-blue-200 text-xs">{comm.nota}</p>
+                                                </div>
+                                            ))}
+                                        </div>
+                                    </ScrollArea>
                                 </div>
                             )}
                         </div>

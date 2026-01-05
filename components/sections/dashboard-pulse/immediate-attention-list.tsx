@@ -1,8 +1,10 @@
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Avatar, AvatarFallback } from "@/components/ui/avatar"
-import { AlertCircle, ChevronRight } from "lucide-react"
+import { AlertCircle, ChevronRight, MessageCircle } from "lucide-react"
 import { HighRiskStudentData } from "@/lib/dashboard-pulse"
+import { Button } from "@/components/ui/button"
+import { ContactFamilyDialog } from "./contact-family-dialog"
 
 interface ImmediateAttentionListProps {
     students: HighRiskStudentData[]
@@ -46,17 +48,26 @@ export function ImmediateAttentionList({ students }: ImmediateAttentionListProps
                             <div className="flex-1 min-w-0">
                                 <div className="flex items-center justify-between mb-1">
                                     <p className="text-sm font-medium leading-none truncate">{student.nombre_completo}</p>
-                                    <Badge variant={student.nivel_riesgo === 'Crítico' ? "destructive" : "secondary"} className="text-[10px] px-1 py-0 h-5">
+                                    <Badge className={`${student.nivel_riesgo.toLowerCase().includes('cr') ? 'bg-red-100 text-red-800 hover:bg-red-200' :
+                                            student.nivel_riesgo.toLowerCase() === 'alto' ? 'bg-orange-100 text-orange-800 hover:bg-orange-200' :
+                                                student.nivel_riesgo.toLowerCase() === 'medio' ? 'bg-yellow-100 text-yellow-800 hover:bg-yellow-200' :
+                                                    'bg-green-100 text-green-800 hover:bg-green-200'
+                                        }`}>
                                         {student.nivel_riesgo}
                                     </Badge>
                                 </div>
                                 <div className="flex items-center text-xs text-muted-foreground">
                                     <span className="font-semibold text-foreground/80 mr-2">{student.grupo}</span>
                                     <span>•</span>
-                                    <span className="ml-2 truncate max-w-[150px]">{student.motivo}</span>
+                                    <span className="ml-2 truncate">{student.motivo}</span>
                                 </div>
                             </div>
-                            <ChevronRight className="h-4 w-4 text-muted-foreground" />
+                            <ContactFamilyDialog student={student}>
+                                <Button size="sm" variant="outline" className="h-8 gap-2">
+                                    <MessageCircle className="h-4 w-4" />
+                                    <span className="text-xs font-medium">Contactar</span>
+                                </Button>
+                            </ContactFamilyDialog>
                         </div>
                     ))}
                 </div>
