@@ -21,6 +21,9 @@ export interface Plantel {
   // Campos de límites de usuarios
   max_profesores?: number;
   max_directores?: number;
+  // Campos de recursos
+  logo_url?: string;
+  hoja_membretada_url?: string;
 }
 
 // Interface actualizada para perfiles
@@ -180,7 +183,7 @@ export async function createProfile(userId: string, data: Partial<Omit<Profile, 
   } catch (error) {
     // Si no es un error de Supabase, igual lo capturamos y relanzamos
     if (!(error as any)?.message.includes('permission denied') && !(error as any)?.message.includes('duplicate key')) { // Ejemplo
-        console.error("Excepción en createProfile:", (error as Error).message);
+      console.error("Excepción en createProfile:", (error as Error).message);
     }
     throw error; // Asegurarse de que el error se propague a getOrCreateProfile
   }
@@ -266,14 +269,14 @@ export async function uploadAvatar(userId: string, file: File): Promise<string |
       throw new Error("Error al subir archivo: " + uploadError.message);
     }
 
-;
+    ;
 
     const { data: publicUrlData } = supabase.storage.from('avatars').getPublicUrl(filePath);
     const publicUrl = publicUrlData.publicUrl;
-;
+    ;
 
     // Actualizar la URL del avatar en el perfil del usuario
-;
+    ;
     const success = await updateProfile(userId, { avatar_url: publicUrl });
 
     if (!success) {
@@ -281,7 +284,7 @@ export async function uploadAvatar(userId: string, file: File): Promise<string |
       throw new Error("Error al actualizar perfil con nueva URL del avatar");
     }
 
-;
+    ;
     return publicUrl;
   } catch (error) {
     console.error("uploadAvatar: Excepción capturada:", error);

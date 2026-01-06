@@ -63,6 +63,21 @@ export function IncidenciasSection({ plantelId, autoStart = false, onAutoStartRe
     const [communications, setCommunications] = useState<CommunicationLog[]>([])
     const [loadingComms, setLoadingComms] = useState(false)
     const { toast } = useToast()
+    const [plantelInfo, setPlantelInfo] = useState<{ nombre: string, logo_url?: string, hoja_membretada_url?: string } | null>(null)
+
+    useEffect(() => {
+        if (plantelId) {
+            const fetchPlantelInfo = async () => {
+                const { data } = await supabase
+                    .from('planteles')
+                    .select('nombre, logo_url, hoja_membretada_url')
+                    .eq('id', plantelId)
+                    .single()
+                if (data) setPlantelInfo(data)
+            }
+            fetchPlantelInfo()
+        }
+    }, [plantelId])
 
     // Efecto para auto-iniciar si viene desde el botón de pánico
     useEffect(() => {
@@ -191,9 +206,27 @@ export function IncidenciasSection({ plantelId, autoStart = false, onAutoStartRe
                         .content { white-space: pre-wrap; text-align: justify; margin-bottom: 50px; }
                         .signatures { margin-top: 100px; display: flex; justify-content: space-between; page-break-inside: avoid; }
                         .sig-block { border-top: 1px solid #000; padding-top: 10px; width: 40%; text-align: center; font-size: 0.9em; }
+                        ${plantelInfo?.hoja_membretada_url ? `
+                            @page { margin: 0; size: auto; }
+                            body {
+                                margin: 0;
+                                padding: 2.5cm !important; /* Margen interno para el contenido */
+                                background-image: url('${plantelInfo.hoja_membretada_url}');
+                                background-size: 100% 100%; /* Ajustar al tamaño de la hoja A4/Carta */
+                                background-repeat: no-repeat;
+                                background-position: center;
+                                -webkit-print-color-adjust: exact !important;
+                                print-color-adjust: exact !important;
+                            }
+                        ` : ''}
                     </style>
                 </head>
                 <body>
+                    ${plantelInfo?.logo_url && !plantelInfo?.hoja_membretada_url ? `
+                        <div style="text-align: center; margin-bottom: 20px;">
+                            <img src="${plantelInfo.logo_url}" style="height: 80px; width: auto;" />
+                        </div>
+                    ` : ''}
                     <h1>Acta Circunstanciada de Hechos</h1>
                     <div class="meta">
                         <strong>Folio:</strong> ${selectedIncident.id.slice(0, 8).toUpperCase()}<br/>
@@ -204,15 +237,8 @@ export function IncidenciasSection({ plantelId, autoStart = false, onAutoStartRe
                     <div class="content">
                         ${selectedIncident.acta_hechos_content || selectedIncident.descripcion_hechos}
                     </div>
-                    <div class="signatures">
-                         <div class="sig-block">
-                            Firma del Director(a)<br/>
-                            Responsable del Plantel
-                         </div>
-                         <div class="sig-block">
-                            Firma del Padre, Madre o Tutor<br/>
-                            Enterado del Hecho
-                         </div>
+                    <div class="signatures" style="display: none;">
+                         <!-- Firmas eliminadas para evitar duplicidad -->
                     </div>
                     <script>
                         window.onload = function() { 

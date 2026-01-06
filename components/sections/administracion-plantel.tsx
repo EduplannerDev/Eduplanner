@@ -15,7 +15,7 @@ import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/component
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Users, UserPlus, Settings, Shield, Edit, Save, X, RefreshCw, ChevronDown, Trash2, Mail } from "lucide-react"
+import { Users, UserPlus, Settings, Shield, Edit, Save, X, RefreshCw, ChevronDown, Trash2, Mail, Image as ImageIcon, Upload, FileImage, ExternalLink } from "lucide-react"
 import { useRoles } from "@/hooks/use-roles"
 import { useNotification } from "@/hooks/use-notification"
 import { supabase } from "@/lib/supabase"
@@ -59,6 +59,13 @@ export function AdministracionPlantel({ isOpen, onClose }: AdministracionPlantel
   const [saving, setSaving] = useState(false)
   const [profesores, setProfesores] = useState<ProfesorPlantel[]>([])
   const [loadingProfesores, setLoadingProfesores] = useState(false)
+
+  // Estados para assets
+  const [uploadingAsset, setUploadingAsset] = useState<string | null>(null)
+  const [assets, setAssets] = useState({
+    logo_url: '',
+    hoja_membretada_url: ''
+  })
 
   // Estados para gestión de profesores
   const [isInviteDialogOpen, setIsInviteDialogOpen] = useState(false)
@@ -130,6 +137,10 @@ export function AdministracionPlantel({ isOpen, onClose }: AdministracionPlantel
         ciudad: plantel.ciudad || "",
         estado: plantel.estado || "",
         codigo_postal: plantel.codigo_postal || ""
+      })
+      setAssets({
+        logo_url: plantel.logo_url || '',
+        hoja_membretada_url: plantel.hoja_membretada_url || ''
       })
     }
   }, [plantel])
@@ -381,6 +392,97 @@ export function AdministracionPlantel({ isOpen, onClose }: AdministracionPlantel
     } catch (err) {
 
       error("Error al asignar el profesor al plantel", { title: "Error" })
+    }
+  }
+
+  // Funciones para gestión de assets
+  const handleUploadAsset = async (event: React.ChangeEvent<HTMLInputElement>, type: 'logo' | 'hoja_membretada') => {
+    const file = event.target.files?.[0]
+    if (!file || !plantel) return
+
+    // Validar tipo de archivo
+    if (!file.type.startsWith('image/') && file.type !== 'application/pdf') {
+      error("Solo se permiten imágenes (JPG, PNG) o PDF", { title: "Archivo inválido" })
+      return
+    }
+
+    // Validar tamaño (5MB)
+    if (file.size > 5 * 1024 * 1024) {
+      error("El archivo no debe superar 5MB", { title: "Archivo muy grande" })
+      return
+    }
+
+    setUploadingAsset(type)
+    try {
+      const fileExt = file.name.split('.').pop()
+      const fileName = `${plantel.id}/${type}-${Date.now()}.${fileExt}`
+
+      // Subir archivo
+      const { error: uploadError } = await supabase.storage
+        .from('plantel-assets')
+        .upload(fileName, file, { upsert: true })
+
+      if (uploadError) throw uploadError
+
+      // Obtener URL pública
+      const { data: { publicUrl } } = supabase.storage
+        .from('plantel-assets')
+        .getPublicUrl(fileName)
+
+      // Actualizar base de datos
+      const updateData = type === 'logo'
+        ? { logo_url: publicUrl }
+        : { hoja_membretada_url: publicUrl }
+
+      const { error: dbError } = await supabase
+        .from('planteles')
+        .update(updateData)
+        .eq('id', plantel.id)
+
+      if (dbError) throw dbError
+
+      // Actualizar estado local
+      setAssets(prev => ({
+        ...prev,
+        [type === 'logo' ? 'logo_url' : 'hoja_membretada_url']: publicUrl
+      }))
+
+      success(`${type === 'logo' ? 'Logo' : 'Hoja membretada'} actualizado correctamente`, { title: "Éxito" })
+    } catch (err) {
+      console.error('Error uploading asset:', err)
+      error("No se pudo subir el archivo", { title: "Error" })
+    } finally {
+      setUploadingAsset(null)
+      // Limpiar input
+      event.target.value = ''
+    }
+  }
+
+  const handleDeleteAsset = async (type: 'logo' | 'hoja_membretada') => {
+    if (!plantel) return
+
+    if (!confirm('¿Estás seguro de que quieres eliminar este archivo?')) return
+
+    try {
+      const updateData = type === 'logo'
+        ? { logo_url: null }
+        : { hoja_membretada_url: null }
+
+      const { error: dbError } = await supabase
+        .from('planteles')
+        .update(updateData)
+        .eq('id', plantel.id)
+
+      if (dbError) throw dbError
+
+      setAssets(prev => ({
+        ...prev,
+        [type === 'logo' ? 'logo_url' : 'hoja_membretada_url']: ''
+      }))
+
+      success("Archivo eliminado correctamente", { title: "Éxito" })
+    } catch (err) {
+      error("Error al eliminar el archivo", { title: "Error" })
     }
   }
 
@@ -649,6 +751,10 @@ export function AdministracionPlantel({ isOpen, onClose }: AdministracionPlantel
             <Users className="h-4 w-4" />
             Profesores
           </TabsTrigger>
+          <TabsTrigger value="recursos" className="flex items-center gap-2">
+            <ImageIcon className="h-4 w-4" />
+            Recursos Institucionales
+          </TabsTrigger>
         </TabsList>
 
         <TabsContent value="profesores" className="space-y-4">
@@ -826,6 +932,145 @@ export function AdministracionPlantel({ isOpen, onClose }: AdministracionPlantel
               )}
             </CardContent>
           </Card>
+        </TabsContent>
+
+        <TabsContent value="recursos" className="space-y-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            {/* Logo del Plantel */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <ImageIcon className="h-5 w-5" />
+                  Logo Institucional
+                </CardTitle>
+                <CardDescription>
+                  Sube el logo de tu institución. Se usará en los reportes y credenciales.
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="border-2 border-dashed rounded-lg p-6 flex flex-col items-center justify-center min-h-[200px] bg-muted/20">
+                  {assets.logo_url ? (
+                    <div className="relative group w-full flex justify-center">
+                      <img
+                        src={assets.logo_url}
+                        alt="Logo plantel"
+                        className="max-h-[180px] object-contain"
+                      />
+                      <div className="absolute inset-0 bg-black/50 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity rounded-lg">
+                        <Button variant="destructive" size="sm" onClick={() => handleDeleteAsset('logo')}>
+                          <Trash2 className="h-4 w-4 mr-2" />
+                          Eliminar
+                        </Button>
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="text-center text-muted-foreground">
+                      <FileImage className="h-12 w-12 mx-auto mb-2 opacity-50" />
+                      <p>No hay logo cargado</p>
+                    </div>
+                  )}
+                </div>
+                <div className="flex justify-end">
+                  <div className="relative">
+                    <input
+                      type="file"
+                      id="logo-upload"
+                      className="hidden"
+                      accept="image/*"
+                      onChange={(e) => handleUploadAsset(e, 'logo')}
+                      disabled={!!uploadingAsset}
+                    />
+                    <Button variant="outline" asChild disabled={!!uploadingAsset}>
+                      <label htmlFor="logo-upload" className="cursor-pointer">
+                        {uploadingAsset === 'logo' ? (
+                          <>
+                            <RefreshCw className="h-4 w-4 mr-2 animate-spin" />
+                            Subiendo...
+                          </>
+                        ) : (
+                          <>
+                            <Upload className="h-4 w-4 mr-2" />
+                            Subir Logo
+                          </>
+                        )}
+                      </label>
+                    </Button>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Hoja Membretada */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <FileImage className="h-5 w-5" />
+                  Hoja Membretada
+                </CardTitle>
+                <CardDescription>
+                  Imagen de fondo para los reportes PDF (A4). Debe incluir encabezado y pie de página.
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="border-2 border-dashed rounded-lg p-6 flex flex-col items-center justify-center min-h-[200px] bg-muted/20">
+                  {assets.hoja_membretada_url ? (
+                    <div className="relative group w-full flex justify-center">
+                      <img
+                        src={assets.hoja_membretada_url}
+                        alt="Hoja membretada"
+                        className="max-h-[180px] object-contain border shadow-sm"
+                      />
+                      <div className="absolute inset-0 bg-black/50 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity rounded-lg">
+                        <div className="flex gap-2">
+                          <Button variant="secondary" size="sm" asChild>
+                            <a href={assets.hoja_membretada_url} target="_blank" rel="noopener noreferrer">
+                              <ExternalLink className="h-4 w-4 mr-2" />
+                              Ver
+                            </a>
+                          </Button>
+                          <Button variant="destructive" size="sm" onClick={() => handleDeleteAsset('hoja_membretada')}>
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
+                        </div>
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="text-center text-muted-foreground">
+                      <FileImage className="h-12 w-12 mx-auto mb-2 opacity-50" />
+                      <p>No hay hoja membretada</p>
+                    </div>
+                  )}
+                </div>
+                <div className="flex justify-end">
+                  <div className="relative">
+                    <input
+                      type="file"
+                      id="hoja-upload"
+                      className="hidden"
+                      accept="image/*"
+                      onChange={(e) => handleUploadAsset(e, 'hoja_membretada')}
+                      disabled={!!uploadingAsset}
+                    />
+                    <Button variant="outline" asChild disabled={!!uploadingAsset}>
+                      <label htmlFor="hoja-upload" className="cursor-pointer">
+                        {uploadingAsset === 'hoja_membretada' ? (
+                          <>
+                            <RefreshCw className="h-4 w-4 mr-2 animate-spin" />
+                            Subiendo...
+                          </>
+                        ) : (
+                          <>
+                            <Upload className="h-4 w-4 mr-2" />
+                            Subir Hoja
+                          </>
+                        )}
+                      </label>
+                    </Button>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
         </TabsContent>
 
 
