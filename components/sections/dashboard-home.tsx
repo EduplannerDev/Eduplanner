@@ -21,7 +21,8 @@ import {
   ClipboardCheck,
   Play,
   X,
-  HelpCircle
+  HelpCircle,
+  Presentation
 } from "lucide-react"
 import { useAuth } from "@/hooks/use-auth"
 import { useUserData } from "@/hooks/use-user-data"
@@ -399,10 +400,10 @@ export function DashboardHome({ onSectionChange, onOpenPlaneacion }: DashboardHo
       color: "bg-purple-500 hover:bg-purple-600"
     },
     {
-      title: "Mi Agenda",
-      description: "Ver calendario",
-      icon: <Calendar className="h-5 w-5" />,
-      action: () => onSectionChange('agenda'),
+      title: "Crear Presentación (PPT)",
+      description: "Generar diapositivas IA",
+      icon: <Presentation className="h-5 w-5" />,
+      action: () => onSectionChange('presentaciones-ia'),
       color: "bg-orange-500 hover:bg-orange-600"
     }
   ]
@@ -459,11 +460,9 @@ export function DashboardHome({ onSectionChange, onOpenPlaneacion }: DashboardHo
               </div>
               <div className="space-y-1">
                 <h3 className="text-lg font-bold text-white flex items-center gap-2">
-                  ¿Nuevo en EduPlanner? <span className="text-2xl animate-bounce">🎓</span>
+                  ¿Sin tiempo para planear? Deja que la IA lo haga por ti.
+                  <span className="text-2xl animate-bounce">🎓</span>
                 </h3>
-                <p className="text-sm text-indigo-100 max-w-xl font-medium leading-relaxed">
-                  Descubre en 5 minutos cómo crear planeaciones con IA y domina la plataforma como un experto.
-                </p>
               </div>
             </div>
             <div className="flex items-center gap-3 w-full sm:w-auto">
@@ -535,59 +534,74 @@ export function DashboardHome({ onSectionChange, onOpenPlaneacion }: DashboardHo
       </div>
 
       {/* Tarjeta destacada de Tomar Asistencia */}
-      <Card id="attendance-card" className="bg-gradient-to-r from-emerald-500 to-emerald-600 border-0 text-white">
-        <CardContent className="p-4 md:p-6">
-          <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-            <div className="flex items-center gap-3 md:gap-4">
-              <div className="p-2 md:p-3 bg-white/20 rounded-full">
-                <ClipboardCheck className="h-6 w-6 md:h-8 md:w-8 text-white" />
-              </div>
-              <div>
-                <h3 className="text-lg md:text-xl font-bold text-white mb-1">Tomar Asistencia Hoy</h3>
-                <p className="text-emerald-100 text-xs md:text-sm">
-                  Registra la asistencia de tus <span className="notranslate">{stats.grupos}</span> grupos • <span className="notranslate">{format(new Date(), "EEEE, d 'de' MMMM", { locale: es })}</span>
-                </p>
-              </div>
-            </div>
-            <Button
-              onClick={() => onSectionChange('tomar-asistencia')}
-              className="bg-white text-emerald-600 hover:bg-emerald-50 font-semibold px-4 md:px-6 py-2 md:py-3 h-auto w-full md:w-auto"
-            >
-              <ClipboardCheck className="h-4 w-4 md:h-5 md:w-5 mr-2" />
-              Comenzar
-            </Button>
+      {/* Acciones Rápidas (Reubicado) */}
+      <Card className="mb-6 md:mb-8">
+        <CardHeader className="px-4 md:px-6 pt-4 md:pt-6">
+          <CardTitle className="text-lg md:text-xl">Acciones Rápidas</CardTitle>
+          <CardDescription className="text-sm">
+            Accede rápidamente a las funciones más utilizadas
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="px-4 md:px-6 pb-4 md:pb-6">
+          <div id="quick-actions" className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 md:gap-4">
+            {quickActions.map((action, index) => (
+              <Button
+                key={index}
+                id={action.id}
+                className={`h-auto py-4 md:py-6 flex flex-row items-center justify-center gap-3 shadow-sm hover:shadow-md transition-all hover:scale-[1.02] border-0 text-white ${action.color}`}
+                onClick={action.action}
+              >
+                <div className="bg-white/20 p-1.5 rounded-lg backdrop-blur-sm">
+                  {action.icon}
+                </div>
+                <span className="font-bold text-sm md:text-base tracking-wide">
+                  {action.title}
+                </span>
+              </Button>
+            ))}
           </div>
         </CardContent>
       </Card>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 md:gap-6">
         {/* Acciones rápidas */}
-        <Card>
-          <CardHeader className="px-4 md:px-6 pt-4 md:pt-6">
-            <CardTitle className="text-lg md:text-xl">Acciones Rápidas</CardTitle>
-            <CardDescription className="text-sm">
-              Accede rápidamente a las funciones más utilizadas
+        {/* Tarjeta de Tomar Asistencia (Reubicada) */}
+        <Card id="attendance-card" className="bg-gradient-to-br from-emerald-500 to-emerald-700 border-0 text-white overflow-hidden relative">
+          {/* Decoración de fondo */}
+          <div className="absolute top-0 right-0 -mt-4 -mr-4 w-24 h-24 bg-white/10 rounded-full blur-xl"></div>
+
+          <CardHeader className="px-4 md:px-6 pt-4 md:pt-6 relative z-10">
+            <CardTitle className="text-lg md:text-xl flex items-center gap-2 text-white">
+              <ClipboardCheck className="h-5 w-5" />
+              Asistencia
+            </CardTitle>
+            <CardDescription className="text-emerald-100 text-sm">
+              Registra la asistencia de hoy
             </CardDescription>
           </CardHeader>
-          <CardContent className="px-4 md:px-6 pb-4 md:pb-6">
-            <div id="quick-actions" className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-              {quickActions.map((action, index) => (
-                <Button
-                  key={index}
-                  id={action.id}
-                  variant="outline"
-                  className={`h-auto p-3 md:p-4 flex flex-col items-center gap-2 ${action.color} text-white border-0`}
-                  onClick={action.action}
-                >
-                  <div className="h-4 w-4 md:h-5 md:w-5">
-                    {action.icon}
-                  </div>
-                  <div className="text-center">
-                    <div className="font-medium text-xs md:text-sm">{action.title}</div>
-                    <div className="text-xs opacity-90 hidden sm:block">{action.description}</div>
-                  </div>
-                </Button>
-              ))}
+
+          <CardContent className="px-4 md:px-6 pb-4 md:pb-6 relative z-10">
+            <div className="flex flex-col gap-4">
+              <div className="flex items-center gap-3">
+                <div className="p-2 bg-white/20 rounded-lg">
+                  <Clock className="h-5 w-5 text-white" />
+                </div>
+                <div>
+                  <p className="text-white font-bold text-sm">
+                    <span className="notranslate">{format(new Date(), "d 'de' MMMM", { locale: es })}</span>
+                  </p>
+                  <p className="text-emerald-100 text-xs">
+                    <span className="notranslate">{stats.grupos}</span> grupos activos
+                  </p>
+                </div>
+              </div>
+
+              <Button
+                onClick={() => onSectionChange('tomar-asistencia')}
+                className="bg-white text-emerald-600 hover:bg-emerald-50 font-bold w-full shadow-lg"
+              >
+                Comenzar Asistencia
+              </Button>
             </div>
           </CardContent>
         </Card>

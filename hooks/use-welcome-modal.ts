@@ -75,8 +75,10 @@ export function useWelcomeModal(options: { autoShow?: boolean } = { autoShow: tr
       } else {
         console.error('No se pudo resetear el modal')
       }
+      return success
     } catch (error) {
       console.error('Error reseteando modal:', error)
+      return false
     }
   }
 

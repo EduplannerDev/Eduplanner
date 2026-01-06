@@ -4,14 +4,14 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion"
 import { Badge } from "@/components/ui/badge"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { 
-  HelpCircle, 
-  BookOpen, 
-  FileText, 
-  Presentation, 
-  MessageSquare, 
-  Users, 
-  Settings, 
+import {
+  HelpCircle,
+  BookOpen,
+  FileText,
+  Presentation,
+  MessageSquare,
+  Users,
+  Settings,
   CreditCard,
   Play,
   ExternalLink,
@@ -162,6 +162,14 @@ const videoData: VideoItem[] = [
     youtubeId: "HZAgfXq0YSs",
     duration: "10:30",
     category: "Bitácora"
+  },
+  {
+    id: "5",
+    title: "Cómo generar presentaciones con IA",
+    description: "Aprende a crear presentaciones completas en segundos utilizando la inteligencia artificial de EduPlanner.",
+    youtubeId: "aDReElnXSE0",
+    duration: "05:00",
+    category: "Presentaciones"
   }
 ]
 
@@ -300,7 +308,7 @@ export function Ayuda() {
                       </p>
                     </div>
                   </div>
-                  
+
                   <div className="grid gap-8">
                     {videos.map((video) => (
                       <Card key={video.id} className="overflow-hidden shadow-lg">
@@ -317,7 +325,7 @@ export function Ayuda() {
                               />
                             </div>
                           </div>
-                          
+
                           {/* Información del video - ocupa 1/3 del espacio */}
                           <div className="lg:col-span-1 p-6">
                             <div className="space-y-4">
@@ -331,11 +339,11 @@ export function Ayuda() {
                                   <span>YouTube</span>
                                 </div>
                               </div>
-                              
+
                               <p className="text-gray-600 dark:text-gray-300 leading-relaxed">
                                 {video.description}
                               </p>
-                              
+
                               <div className="space-y-3">
                                 <Button
                                   onClick={() => window.open(`https://www.youtube.com/watch?v=${video.youtubeId}`, '_blank')}
@@ -344,7 +352,7 @@ export function Ayuda() {
                                   <ExternalLink className="h-4 w-4 mr-2" />
                                   Ver en YouTube
                                 </Button>
-                                
+
                                 <Button
                                   variant="outline"
                                   size="sm"
@@ -357,7 +365,7 @@ export function Ayuda() {
                                 >
                                   Copiar Enlace
                                 </Button>
-                                
+
                                 {/* Botón especial para el video de introducción */}
                                 {video.id === "1" && (
                                   <Button
@@ -424,14 +432,14 @@ export function Ayuda() {
                       <p className="text-sm text-gray-600 dark:text-gray-400">Lunes a Viernes, 9:00 - 18:00</p>
                     </div>
                   </div>
-                  
+
                   <div className="pt-4 border-t">
                     <p className="text-xs text-gray-500 dark:text-gray-400 mb-3">
                       ¿Prefieres usar tu cliente de email?
                     </p>
-                    <Button 
-                      variant="outline" 
-                      className="w-full" 
+                    <Button
+                      variant="outline"
+                      className="w-full"
                       onClick={() => window.open('mailto:soporte@eduplanner.mx', '_blank')}
                     >
                       <Mail className="h-4 w-4 mr-2" />
