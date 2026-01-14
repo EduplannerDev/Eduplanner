@@ -30,6 +30,7 @@ import { useUserData } from "@/hooks/use-user-data"
 import { useRoles } from "@/hooks/use-roles"
 import { useIsMobile } from "@/hooks/use-mobile"
 import { useBetaTesterCheck } from "@/hooks/use-beta-features"
+import { GradeSwitcher } from "@/components/grade-switcher"
 
 // Estructura del menú con secciones desplegables
 const menuStructure = {
@@ -207,7 +208,7 @@ export function AppSidebar({ activeSection, onSectionChange, ...props }: AppSide
     <Sidebar collapsible="icon" {...props}>
       <SidebarHeader className={`border-b border-sidebar-border ${state === "expanded" ? "p-4" : "p-2"}`}>
         {/* --- Logo y Texto Alineados Horizontalmente --- */}
-        <div className="flex flex-row items-center justify-center gap-3">
+        <div className="flex flex-row items-center justify-center gap-3 mb-2">
           {/* Logo siempre visible */}
           <img
             src="/images/Logo.png"
@@ -222,6 +223,11 @@ export function AppSidebar({ activeSection, onSectionChange, ...props }: AppSide
             </div>
           )}
         </div>
+
+        {/* Grade Switcher - Solo visible expandido para evitar clutter en collapsed */}
+        {state === "expanded" && (
+          <GradeSwitcher />
+        )}
       </SidebarHeader>
 
       <SidebarContent>
