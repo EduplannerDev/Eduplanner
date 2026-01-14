@@ -22,9 +22,13 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
-import { Send, Plus, FileText, Eye, Download, Pencil, Trash2, Calendar, MessageSquare, CheckCircle, AlertCircle, Loader2, Edit, Clock } from "lucide-react"
+import { Send, Plus, FileText, Eye, Download, Pencil, Trash2, Calendar, MessageSquare, CheckCircle, AlertCircle, Loader2, Edit, Clock, Search, Filter, GraduationCap } from "lucide-react"
+import { Input } from "@/components/ui/input"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { usePlaneaciones } from "@/hooks/use-planeaciones"
-import { useState } from "react"
+import { useContextoTrabajo } from "@/hooks/use-contexto-trabajo"
+import { useDebounce } from "@/hooks/use-debounce"
+import { useState, useEffect } from "react"
 import { ViewPlaneacion } from "./view-planeacion"
 import { EditPlaneacion } from "./edit-planeacion"
 // import { generatePDF } from "@/lib/pdf-generator" // Importación dinámica para evitar errores SSR
@@ -47,10 +51,26 @@ interface MisPlaneacionesProps {
   initialPlaneacionId?: string
 }
 
+
+
 export function MisPlaneaciones({ onCreateNew, initialPlaneacionId }: MisPlaneacionesProps) {
-  const { planeaciones, loading, deletePlaneacion, currentPage, totalPages, setPage, refreshPlaneaciones } = usePlaneaciones()
+  const { planeaciones, loading, deletePlaneacion, currentPage, totalPages, setPage, refreshPlaneaciones, filters, setFilters } = usePlaneaciones()
+  const { availableContexts } = useContextoTrabajo()
   const { profile } = useProfile() // Obtener el perfil del usuario
   const { toast } = useToast()
+
+  // Local state for search input to allow immediate typing
+  const [searchTerm, setSearchTerm] = useState(filters.search || '')
+  const debouncedSearch = useDebounce(searchTerm, 500)
+
+  // Sync debounced search with filters
+  useEffect(() => {
+    if (debouncedSearch !== filters.search) {
+      setFilters({ ...filters, search: debouncedSearch })
+      setPage(1)
+    }
+  }, [debouncedSearch, filters.search, setFilters, setPage])
+
   const [selectedPlaneacion, setSelectedPlaneacion] = useState<any>(null)
   const [viewMode, setViewMode] = useState<"list" | "view" | "edit">("list")
   const [deleting, setDeleting] = useState<string | null>(null)
@@ -62,13 +82,20 @@ export function MisPlaneaciones({ onCreateNew, initialPlaneacionId }: MisPlaneac
 
   const [showCommentsModal, setShowCommentsModal] = useState(false)
 
+  // Helper to format grade name
+  const formatGrado = (grado: number) => {
+    if (grado < 0) return `${grado + 4}° Preescolar`
+    if (grado <= 6) return `${grado}° Primaria`
+    return `${grado - 6}° Secundaria`
+  }
+
   // Efecto para manejar deep linking
-  useState(() => {
+  useEffect(() => {
     if (initialPlaneacionId) {
       setSelectedPlaneacion(initialPlaneacionId)
       setViewMode("view")
     }
-  })
+  }, [initialPlaneacionId])
 
 
   const getEstadoColor = (estado: string) => {
@@ -256,6 +283,22 @@ export function MisPlaneaciones({ onCreateNew, initialPlaneacionId }: MisPlaneac
     )
   }
 
+
+
+  // Handlers for filters
+  const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setFilters({ ...filters, search: e.target.value })
+    setPage(1) // Reset to first page on filter change
+  }
+
+
+
+  // Handlers for filters
+  const handleFilterChange = (key: string, value: string) => {
+    setFilters({ ...filters, [key]: value })
+    setPage(1)
+  }
+
   return (
     <div className="space-y-6 w-full max-w-full overflow-hidden">
       {error && (
@@ -263,6 +306,8 @@ export function MisPlaneaciones({ onCreateNew, initialPlaneacionId }: MisPlaneac
           {error}
         </div>
       )}
+
+      {/* Header and Create Button */}
       <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4">
         <div className="flex-1">
           <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-gray-100">Mis Planeaciones</h1>
@@ -272,6 +317,102 @@ export function MisPlaneaciones({ onCreateNew, initialPlaneacionId }: MisPlaneac
           <Plus className="mr-2 h-4 w-4" />
           Nueva Planeación
         </Button>
+      </div>
+
+      {/* Filters Section */}
+      <div className="bg-white dark:bg-sidebar-primary/10 p-4 md:p-6 rounded-xl border shadow-sm space-y-4">
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+          <div className="flex items-center gap-2">
+            <div className="p-2 bg-blue-100 dark:bg-blue-900/30 rounded-lg">
+              <Filter className="h-5 w-5 text-blue-600 dark:text-blue-400" />
+            </div>
+            <div>
+              <h3 className="text-base font-semibold text-gray-900 dark:text-gray-100">Filtros de Búsqueda</h3>
+              <p className="text-xs text-muted-foreground">Refina tu búsqueda</p>
+            </div>
+          </div>
+
+          {/* Search - Pushed to right on desktop or full width on mobile */}
+          <div className="relative w-full md:w-72">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+            <Input
+              placeholder="Buscar por título..."
+              className="pl-9 bg-gray-50 dark:bg-gray-900/50 border-gray-200 dark:border-gray-800"
+              value={filters.search || ''}
+              onChange={handleSearchChange}
+            />
+          </div>
+        </div>
+
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 pt-2">
+          {/* Grado Filter */}
+          {availableContexts.length > 0 && (
+            <div className="space-y-1.5">
+              <label className="text-xs font-medium text-muted-foreground ml-1">Grado</label>
+              <Select value={filters.grado || 'todos'} onValueChange={(val) => handleFilterChange('grado', val)}>
+                <SelectTrigger className="bg-gray-50 dark:bg-gray-900/50">
+                  <SelectValue placeholder="Grado" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="todos">Todos los grados</SelectItem>
+                  {availableContexts.map((ctx) => (
+                    <SelectItem key={ctx.id} value={formatGrado(ctx.grado)}>
+                      {formatGrado(ctx.grado)}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          )}
+
+          {/* Metodología Filter */}
+          <div className="space-y-1.5">
+            <label className="text-xs font-medium text-muted-foreground ml-1">Metodología</label>
+            <Select value={filters.metodologia || 'todos'} onValueChange={(val) => handleFilterChange('metodologia', val)}>
+              <SelectTrigger className="bg-gray-50 dark:bg-gray-900/50">
+                <SelectValue placeholder="Metodología" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="todos">Todas</SelectItem>
+                <SelectItem value="NEM">NEM (Nueva Escuela Mexicana)</SelectItem>
+                <SelectItem value="CIME">CIME</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+
+          {/* Order Filter */}
+          <div className="space-y-1.5">
+            <label className="text-xs font-medium text-muted-foreground ml-1">Orden</label>
+            <Select value={filters.sortOrder || 'desc'} onValueChange={(val) => handleFilterChange('sortOrder', val)}>
+              <SelectTrigger className="bg-gray-50 dark:bg-gray-900/50">
+                <SelectValue placeholder="Orden" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="desc">Más recientes primero</SelectItem>
+                <SelectItem value="asc">Más antiguas primero</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+
+          {/* Date Filters - Simple Inputs for now */}
+          <div className={`space-y-1.5 ${availableContexts.length > 0 ? '' : 'lg:col-span-1'}`}>
+            <label className="text-xs font-medium text-muted-foreground ml-1">Rango de Fechas</label>
+            <div className="flex gap-2">
+              <Input
+                type="date"
+                value={filters.startDate || ''}
+                onChange={(e) => handleFilterChange('startDate', e.target.value)}
+                className="bg-gray-50 dark:bg-gray-900/50 text-xs px-2 w-full"
+              />
+              <Input
+                type="date"
+                value={filters.endDate || ''}
+                onChange={(e) => handleFilterChange('endDate', e.target.value)}
+                className="bg-gray-50 dark:bg-gray-900/50 text-xs px-2 w-full"
+              />
+            </div>
+          </div>
+        </div>
       </div>
 
       {planeaciones.length === 0 ? (
@@ -300,17 +441,30 @@ export function MisPlaneaciones({ onCreateNew, initialPlaneacionId }: MisPlaneac
                     <CardTitle className="text-base sm:text-lg dark:text-gray-100 leading-tight overflow-hidden text-ellipsis whitespace-nowrap">
                       {cleanMarkdown(planeacion.titulo)}
                     </CardTitle>
-                    <CardDescription className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4 mt-2 dark:text-gray-300 overflow-hidden">
-                      <span className="flex items-center gap-1 text-sm flex-shrink-0">
-                        <Calendar className="h-4 w-4 flex-shrink-0" />
-                        {new Date(planeacion.created_at).toLocaleDateString("es-MX")}
-                      </span>
-                      {planeacion.grado && (
-                        <span className="dark:text-gray-300 text-sm flex-shrink-0">{cleanMarkdown(planeacion.grado)}</span>
-                      )}
-                      {planeacion.duracion && (
-                        <span className="dark:text-gray-300 text-sm flex-shrink-0">{cleanMarkdown(planeacion.duracion)}</span>
-                      )}
+                    <CardDescription className="mt-3 overflow-hidden">
+                      <div className="flex flex-wrap items-center gap-3 text-sm">
+                        {/* Date */}
+                        <span className="flex items-center gap-1.5 text-muted-foreground bg-gray-100 dark:bg-gray-800/50 px-2.5 py-1 rounded-md border border-gray-200 dark:border-gray-700">
+                          <Calendar className="h-3.5 w-3.5" />
+                          {new Date(planeacion.created_at).toLocaleDateString("es-MX")}
+                        </span>
+
+                        {/* Grade - Initial visual emphasis */}
+                        {planeacion.grado && (
+                          <span className="flex items-center gap-1.5 font-medium text-blue-700 dark:text-blue-300 bg-blue-50 dark:bg-blue-900/20 px-2.5 py-1 rounded-md border border-blue-100 dark:border-blue-800/50">
+                            <GraduationCap className="h-3.5 w-3.5" />
+                            {cleanMarkdown(planeacion.grado)}
+                          </span>
+                        )}
+
+                        {/* Duration */}
+                        {planeacion.duracion && (
+                          <span className="flex items-center gap-1.5 text-muted-foreground px-2 py-1">
+                            <Clock className="h-3.5 w-3.5" />
+                            {cleanMarkdown(planeacion.duracion)}
+                          </span>
+                        )}
+                      </div>
                     </CardDescription>
                   </div>
                   <div className="flex flex-col gap-2 self-start sm:self-auto flex-shrink-0">

@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import type { Planeacion, PlaneacionCreate } from "@/lib/planeaciones"
+import type { Planeacion, PlaneacionCreate, PlaneacionFilters } from "@/lib/planeaciones"
 import {
   getPlaneaciones,
   getPlaneacion,
@@ -30,7 +30,19 @@ export function usePlaneaciones() {
   const [totalPlaneaciones, setTotalPlaneaciones] = useState(0)
   const totalPages = Math.ceil(totalPlaneaciones / pageSize)
 
-  // Cargar planeaciones cuando el usuario cambie o la página/tamaño de página cambie
+  // Filtros
+  const [filters, setFilters] = useState<PlaneacionFilters>({
+    search: '',
+    materia: 'todas',
+    grado: 'todos',
+    estado: 'todos',
+    metodologia: 'todos',
+    startDate: null,
+    endDate: null,
+    sortOrder: 'desc'
+  })
+
+  // Cargar planeaciones cuando el usuario cambie o la página/tamaño de página/filtros cambie
   useEffect(() => {
     if (user?.id) {
       loadPlaneaciones()
@@ -40,7 +52,7 @@ export function usePlaneaciones() {
       setMonthlyCount(0)
       setLoading(false)
     }
-  }, [user?.id, currentPage, pageSize])
+  }, [user?.id, currentPage, pageSize, filters]) // Agregamos filters
 
   const loadPlaneaciones = async () => {
     if (!user?.id) return
@@ -48,7 +60,7 @@ export function usePlaneaciones() {
     setLoading(true)
     try {
       // Modificar getPlaneaciones para que acepte paginación y devuelva el total
-      const { data, count } = await getPlaneaciones(user.id, currentPage, pageSize)
+      const { data, count } = await getPlaneaciones(user.id, currentPage, pageSize, filters)
       setPlaneaciones(data)
       setTotalPlaneaciones(count)
     } catch (error) {
@@ -119,10 +131,10 @@ export function usePlaneaciones() {
           prev.map((p) =>
             p.id === planeacionId
               ? {
-                  ...p,
-                  ...updates,
-                  updated_at: new Date().toISOString(),
-                }
+                ...p,
+                ...updates,
+                updated_at: new Date().toISOString(),
+              }
               : p,
           ),
         )
@@ -212,5 +224,7 @@ export function usePlaneaciones() {
     totalPlaneaciones,
     totalPages,
     setPage,
+    filters,
+    setFilters
   }
 }

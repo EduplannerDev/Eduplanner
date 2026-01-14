@@ -40,17 +40,30 @@ export interface PlaneacionCreate {
   metodologia?: string
 }
 
-// Obtener planeaciones del usuario (excluye eliminadas) con paginación
+// Filtros para las planeaciones
+export interface PlaneacionFilters {
+  search?: string
+  materia?: string
+  grado?: string
+  estado?: string
+  metodologia?: string
+  startDate?: string | null
+  endDate?: string | null
+  sortOrder?: 'asc' | 'desc'
+}
+
+// Obtener planeaciones del usuario (excluye eliminadas) con paginación y filtros
 export async function getPlaneaciones(
   userId: string,
   page: number,
   pageSize: number,
+  filters?: PlaneacionFilters
 ): Promise<{ data: Planeacion[]; count: number }> {
   try {
     const start = (page - 1) * pageSize
     const end = start + pageSize - 1
 
-    const { data, error, count } = await supabase
+    let query = supabase
       .from("planeaciones")
       .select(`
         *,
@@ -64,7 +77,49 @@ export async function getPlaneaciones(
       `, { count: "exact" })
       .eq("user_id", userId)
       .is("deleted_at", null)
-      .order("created_at", { ascending: false })
+
+    // Aplicar filtros
+    if (filters) {
+      if (filters.search) {
+        query = query.ilike('titulo', `%${filters.search}%`)
+      }
+      if (filters.materia && filters.materia !== 'todas') {
+        query = query.eq('materia', filters.materia)
+      }
+      if (filters.grado && filters.grado !== 'todos') {
+        query = query.eq('grado', filters.grado)
+      }
+      if (filters.estado && filters.estado !== 'todos') {
+        query = query.eq('estado', filters.estado)
+      }
+      if (filters.metodologia && filters.metodologia !== 'todos') {
+        if (filters.metodologia === 'NEM') {
+          // Asumiendo que NEM es null o 'NEM' explícito, o 'null' para legacy?
+          // Mejor filtrar explícitamente si existe la columna
+          query = query.or('metodologia.eq.NEM,metodologia.is.null')
+        } else {
+          query = query.eq('metodologia', filters.metodologia)
+        }
+      }
+      // Filtros de fecha
+      if (filters.startDate) {
+        // Asegurar que comience al inicio del día
+        const start = new Date(filters.startDate)
+        start.setHours(0, 0, 0, 0)
+        query = query.gte('created_at', start.toISOString())
+      }
+      if (filters.endDate) {
+        // Asegurar que termine al final del día
+        const end = new Date(filters.endDate)
+        end.setHours(23, 59, 59, 999)
+        query = query.lte('created_at', end.toISOString())
+      }
+    }
+
+    // Sorting
+    const sortOrder = filters?.sortOrder === 'asc'
+    const { data, error, count } = await query
+      .order("created_at", { ascending: sortOrder })
       .range(start, end)
 
     if (error) {

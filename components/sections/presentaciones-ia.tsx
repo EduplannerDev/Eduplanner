@@ -27,6 +27,12 @@ import {
 } from "@/components/ui/alert-dialog"
 import { ChevronLeft, ChevronRight } from "lucide-react"
 
+import { useContextoTrabajo } from "@/hooks/use-contexto-trabajo"
+import { useDebounce } from "@/hooks/use-debounce"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { Input } from "@/components/ui/input"
+import { Search, Filter, GraduationCap, X } from "lucide-react"
+
 interface PresentacionIA {
     id: string
     user_id: string
@@ -37,17 +43,42 @@ interface PresentacionIA {
     tema_visual: string
     created_at: string
     updated_at: string
+    grado?: string // Propiedad inferida
+    materia?: string // Propiedad inferida
 }
 
 interface PresentacionesIAProps {
     onNavigateToProfile?: () => void
 }
 
+interface PresentationFilters {
+    search: string
+    grado: string
+    startDate: string | null
+    endDate: string | null
+    sortOrder: 'asc' | 'desc'
+}
+
 export function PresentacionesIA({ onNavigateToProfile }: PresentacionesIAProps) {
     const { profile, loading: loadingProfile } = useProfile()
     const { toast } = useToast()
+    const { availableContexts } = useContextoTrabajo()
+
     const [presentaciones, setPresentaciones] = useState<PresentacionIA[]>([])
+    const [filteredPresentaciones, setFilteredPresentaciones] = useState<PresentacionIA[]>([])
     const [loading, setLoading] = useState(true)
+
+    // Filters State
+    const [filters, setFilters] = useState<PresentationFilters>({
+        search: '',
+        grado: 'todos',
+        startDate: null,
+        endDate: null,
+        sortOrder: 'desc'
+    })
+
+    const debouncedSearch = useDebounce(filters.search, 500)
+
     const [showWizard, setShowWizard] = useState(false)
     const [editingId, setEditingId] = useState<string | null>(null)
     const [deletingId, setDeletingId] = useState<string | null>(null)
@@ -65,7 +96,7 @@ export function PresentacionesIA({ onNavigateToProfile }: PresentacionesIAProps)
         if (profile?.id) {
             checkLimits()
         }
-    }, [profile?.id, presentaciones]) // Re-check when presentations change
+    }, [profile?.id, presentaciones])
 
     const checkLimits = async () => {
         if (!profile?.id) return
@@ -79,17 +110,128 @@ export function PresentacionesIA({ onNavigateToProfile }: PresentacionesIAProps)
         }
     }, [profile?.id, loadingProfile])
 
+    // Helper para formatear grado (Definido antes del uso en useEffect)
+    const formatGrado = (grado: number | string) => {
+        if (!grado) return ''
+
+        const gStr = grado.toString()
+        const gLower = gStr.toLowerCase()
+
+        // Detección inteligente para textos como "2° de Secundaria"
+        if (gLower.includes('secundaria')) {
+            const num = parseInt(gStr.replace(/\D/g, ''))
+            if (!isNaN(num)) return `${num}° Secundaria`
+            return gStr
+        }
+        if (gLower.includes('preescolar')) {
+            const num = parseInt(gStr.replace(/\D/g, ''))
+            if (!isNaN(num)) return `${num}° Preescolar`
+            return gStr
+        }
+        if (gLower.includes('primaria')) {
+            const num = parseInt(gStr.replace(/\D/g, ''))
+            if (!isNaN(num)) return `${num}° Primaria`
+            return gStr
+        }
+
+        // Lógica numérica legacy (1-6 Primaria, <0 Preescolar, >6 Secundaria si viene como número puro)
+        const g = typeof grado === 'string' ? parseInt(grado) : grado
+        if (isNaN(g)) return grado.toString()
+
+        if (g < 0) return `${g + 4}° Preescolar`
+        if (g <= 6) return `${g}° Primaria`
+        return `${g - 6}° Secundaria`
+    }
+
+    // Filter Logic
+    useEffect(() => {
+        let result = [...presentaciones]
+
+        // 1. Search
+        if (debouncedSearch) {
+            const query = debouncedSearch.toLowerCase()
+            result = result.filter(p => p.titulo.toLowerCase().includes(query))
+        }
+
+        // 2. Grado with Smart Matching
+        if (filters.grado && filters.grado !== 'todos') {
+            result = result.filter(p => {
+                if (!p.grado) return false
+                // Normalizamos ambos lados para asegurar coincidencia
+                return formatGrado(p.grado) === filters.grado
+            })
+        }
+
+        // 3. Dates
+        if (filters.startDate) {
+            const start = new Date(filters.startDate)
+            start.setHours(0, 0, 0, 0)
+            result = result.filter(p => new Date(p.created_at) >= start)
+        }
+        if (filters.endDate) {
+            const end = new Date(filters.endDate)
+            end.setHours(23, 59, 59, 999)
+            result = result.filter(p => new Date(p.created_at) <= end)
+        }
+
+        // 4. Sort
+        result.sort((a, b) => {
+            const dateA = new Date(a.created_at).getTime()
+            const dateB = new Date(b.created_at).getTime()
+            return filters.sortOrder === 'asc' ? dateA - dateB : dateB - dateA
+        })
+
+        setFilteredPresentaciones(result)
+
+    }, [presentaciones, debouncedSearch, filters.grado, filters.startDate, filters.endDate, filters.sortOrder])
+
+
     const loadPresentaciones = async () => {
         try {
             setLoading(true)
-            const { data, error } = await supabase
+
+            // 1. Fetch Presentaciones
+            const { data: presData, error: presError } = await supabase
                 .from('presentaciones_ia')
                 .select('*')
                 .order('created_at', { ascending: false })
 
-            if (error) throw error
+            if (presError) throw presError
 
-            setPresentaciones(data || [])
+            if (!presData || presData.length === 0) {
+                setPresentaciones([])
+                return
+            }
+
+            // 2. Fetch Related Planeaciones (Grades)
+            // Get IDs of source planeaciones
+            const planeacionIds = presData
+                .filter(p => p.fuente_tipo === 'planeacion' && p.fuente_id)
+                .map(p => p.fuente_id)
+
+            let planeacionesMap: Record<string, any> = {}
+
+            if (planeacionIds.length > 0) {
+                const { data: planData } = await supabase
+                    .from('planeaciones')
+                    .select('id, grado, materia')
+                    .in('id', planeacionIds)
+
+                if (planData) {
+                    planData.forEach(p => {
+                        planeacionesMap[p.id] = p
+                    })
+                }
+            }
+
+            // 3. Merge Data
+            const mergedData: PresentacionIA[] = presData.map((p: any) => ({
+                ...p,
+                grado: p.fuente_tipo === 'planeacion' && p.fuente_id ? planeacionesMap[p.fuente_id]?.grado : undefined,
+                materia: p.fuente_tipo === 'planeacion' && p.fuente_id ? planeacionesMap[p.fuente_id]?.materia : undefined
+            }))
+
+            setPresentaciones(mergedData)
         } catch (error) {
             console.error('Error cargando presentaciones:', error)
             toast({
@@ -217,6 +359,10 @@ export function PresentacionesIA({ onNavigateToProfile }: PresentacionesIAProps)
         )
     }
 
+    const handleFilterChange = (key: keyof PresentationFilters, value: any) => {
+        setFilters(prev => ({ ...prev, [key]: value }))
+    }
+
     return (
         <div className="space-y-6">
             {/* Header */}
@@ -231,19 +377,19 @@ export function PresentacionesIA({ onNavigateToProfile }: PresentacionesIAProps)
                     </p>
                     {usageStats && usageStats.limit !== -1 && (
                         <div className={`mt-4 max-w-xs p-3 rounded-lg border ${usageStats.count >= usageStats.limit
-                                ? 'bg-red-50 dark:bg-red-900/10 border-red-100 dark:border-red-800'
-                                : 'bg-purple-50 dark:bg-purple-900/10 border-purple-100 dark:border-purple-800'
+                            ? 'bg-red-50 dark:bg-red-900/10 border-red-100 dark:border-red-800'
+                            : 'bg-purple-50 dark:bg-purple-900/10 border-purple-100 dark:border-purple-800'
                             }`}>
                             <div className="flex justify-between items-center mb-2">
                                 <span className={`text-sm font-medium ${usageStats.count >= usageStats.limit
-                                        ? 'text-red-900 dark:text-red-100'
-                                        : 'text-purple-900 dark:text-purple-100'
+                                    ? 'text-red-900 dark:text-red-100'
+                                    : 'text-purple-900 dark:text-purple-100'
                                     }`}>
                                     Uso del plan gratuito
                                 </span>
                                 <span className={`text-xs font-semibold ${usageStats.count >= usageStats.limit
-                                        ? 'text-red-700 dark:text-red-300'
-                                        : 'text-purple-700 dark:text-purple-300'
+                                    ? 'text-red-700 dark:text-red-300'
+                                    : 'text-purple-700 dark:text-purple-300'
                                     }`}>
                                     {usageStats.count} / {usageStats.limit}
                                 </span>
@@ -281,6 +427,87 @@ export function PresentacionesIA({ onNavigateToProfile }: PresentacionesIAProps)
                     <Plus className="mr-2 h-5 w-5" />
                     Nueva Presentación
                 </Button>
+            </div>
+
+            {/* Filters Section */}
+            <div className="bg-white dark:bg-sidebar-primary/10 p-4 md:p-6 rounded-xl border shadow-sm space-y-4">
+                <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+                    <div className="flex items-center gap-2">
+                        <div className="p-2 bg-purple-100 dark:bg-purple-900/30 rounded-lg">
+                            <Filter className="h-5 w-5 text-purple-600 dark:text-purple-400" />
+                        </div>
+                        <div>
+                            <h3 className="text-base font-semibold text-gray-900 dark:text-gray-100">Filtros de Búsqueda</h3>
+                            <p className="text-xs text-muted-foreground">Refina tu búsqueda</p>
+                        </div>
+                    </div>
+
+                    {/* Search */}
+                    <div className="relative w-full md:w-72">
+                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                        <Input
+                            placeholder="Buscar por título..."
+                            className="pl-9 bg-gray-50 dark:bg-gray-900/50 border-gray-200 dark:border-gray-800"
+                            value={filters.search}
+                            onChange={(e) => handleFilterChange('search', e.target.value)}
+                        />
+                    </div>
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 pt-2">
+                    {/* Grado Filter */}
+                    {availableContexts.length > 0 && (
+                        <div className="space-y-1.5">
+                            <label className="text-xs font-medium text-muted-foreground ml-1">Grado</label>
+                            <Select value={filters.grado} onValueChange={(val) => handleFilterChange('grado', val)}>
+                                <SelectTrigger className="bg-gray-50 dark:bg-gray-900/50">
+                                    <SelectValue placeholder="Grado" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    <SelectItem value="todos">Todos los grados</SelectItem>
+                                    {availableContexts.map((ctx) => (
+                                        <SelectItem key={ctx.id} value={formatGrado(ctx.grado)}>
+                                            {formatGrado(ctx.grado)}
+                                        </SelectItem>
+                                    ))}
+                                </SelectContent>
+                            </Select>
+                        </div>
+                    )}
+
+                    {/* Order Filter */}
+                    <div className="space-y-1.5">
+                        <label className="text-xs font-medium text-muted-foreground ml-1">Orden</label>
+                        <Select value={filters.sortOrder} onValueChange={(val) => handleFilterChange('sortOrder', val)}>
+                            <SelectTrigger className="bg-gray-50 dark:bg-gray-900/50">
+                                <SelectValue placeholder="Orden" />
+                            </SelectTrigger>
+                            <SelectContent>
+                                <SelectItem value="desc">Más recientes primero</SelectItem>
+                                <SelectItem value="asc">Más antiguas primero</SelectItem>
+                            </SelectContent>
+                        </Select>
+                    </div>
+
+                    {/* Date Filters */}
+                    <div className={`space-y-1.5 ${availableContexts.length > 0 ? 'col-span-1 sm:col-span-2' : 'col-span-1 sm:col-span-2 lg:col-span-3'}`}>
+                        <label className="text-xs font-medium text-muted-foreground ml-1">Rango de Fechas</label>
+                        <div className="flex gap-2">
+                            <Input
+                                type="date"
+                                value={filters.startDate || ''}
+                                onChange={(e) => handleFilterChange('startDate', e.target.value)}
+                                className="bg-gray-50 dark:bg-gray-900/50 text-xs px-2 w-full"
+                            />
+                            <Input
+                                type="date"
+                                value={filters.endDate || ''}
+                                onChange={(e) => handleFilterChange('endDate', e.target.value)}
+                                className="bg-gray-50 dark:bg-gray-900/50 text-xs px-2 w-full"
+                            />
+                        </div>
+                    </div>
+                </div>
             </div>
 
             {/* Banner para usuarios Free */}
@@ -340,36 +567,52 @@ export function PresentacionesIA({ onNavigateToProfile }: PresentacionesIAProps)
             )}
 
             {/* Lista de Presentaciones */}
-            {presentaciones.length === 0 ? (
+            {filteredPresentaciones.length === 0 ? (
                 <Card className="text-center py-12">
                     <CardContent>
                         <Presentation className="h-16 w-16 text-gray-400 mx-auto mb-4" />
                         <h3 className="text-lg font-medium text-gray-900 dark:text-gray-100 mb-2">
-                            No tienes presentaciones aún
+                            {presentaciones.length === 0 ? "No tienes presentaciones aún" : "No se encontraron presentaciones"}
                         </h3>
                         <p className="text-gray-600 dark:text-gray-400 mb-4">
-                            Comienza creando tu primera presentación con IA
+                            {presentaciones.length === 0 ? "Comienza creando tu primera presentación con IA" : "Intenta ajustar tus filtros"}
                         </p>
-                        <Button onClick={() => setShowWizard(true)} className="bg-purple-600 hover:bg-purple-700">
-                            <Plus className="mr-2 h-4 w-4" />
-                            Crear Primera Presentación
-                        </Button>
+                        {presentaciones.length === 0 && (
+                            <Button onClick={() => setShowWizard(true)} className="bg-purple-600 hover:bg-purple-700">
+                                <Plus className="mr-2 h-4 w-4" />
+                                Crear Primera Presentación
+                            </Button>
+                        )}
                     </CardContent>
                 </Card>
             ) : (
                 <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-                    {presentaciones.map((presentacion) => (
+                    {filteredPresentaciones.map((presentacion) => (
                         <Card key={presentacion.id} className="hover:shadow-lg transition-shadow">
                             <CardHeader>
                                 <div className="flex items-start justify-between">
                                     <div className="flex-1 min-w-0">
-                                        <CardTitle className="text-lg truncate">{presentacion.titulo}</CardTitle>
-                                        <CardDescription className="flex items-center gap-2 mt-2">
-                                            <Calendar className="h-4 w-4" />
-                                            {new Date(presentacion.created_at).toLocaleDateString('es-MX')}
+                                        <CardTitle className="text-lg truncate" title={presentacion.titulo}>{presentacion.titulo}</CardTitle>
+                                        <CardDescription className="flex flex-col gap-1 mt-2">
+
+                                            {/* Metadata Badges */}
+                                            <div className="flex flex-wrap items-center gap-2">
+                                                <span className="flex items-center gap-1 text-xs text-muted-foreground bg-gray-100 dark:bg-gray-800 px-2 py-0.5 rounded">
+                                                    <Calendar className="h-3 w-3" />
+                                                    {new Date(presentacion.created_at).toLocaleDateString('es-MX')}
+                                                </span>
+
+                                                {presentacion.grado && (
+                                                    <span className="flex items-center gap-1 text-xs font-medium text-purple-700 dark:text-purple-300 bg-purple-50 dark:bg-purple-900/20 px-2 py-0.5 rounded border border-purple-100 dark:border-purple-800/50">
+                                                        <GraduationCap className="h-3 w-3" />
+                                                        {formatGrado(presentacion.grado)}
+                                                    </span>
+                                                )}
+                                            </div>
+
                                         </CardDescription>
                                     </div>
-                                    <Badge variant="outline" className="ml-2">
+                                    <Badge variant="outline" className="ml-2 flex-shrink-0">
                                         {presentacion.fuente_tipo === 'planeacion' ? 'Planeación' :
                                             presentacion.fuente_tipo === 'proyecto' ? 'Proyecto' : 'Libre'}
                                     </Badge>
