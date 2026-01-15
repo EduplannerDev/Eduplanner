@@ -28,7 +28,8 @@ import {
   UserCheck,
   Settings,
   Monitor,
-  Briefcase
+  Briefcase,
+  Crown
 } from 'lucide-react'
 import {
   getPlatformStats,
@@ -44,6 +45,7 @@ import {
 } from '@/lib/admin-stats'
 import { LoggingMetricsWidget } from '@/components/admin/logging-widgets'
 import { AdminReports } from './admin-reports'
+import { AdminProUsers } from './admin-pro-users'
 
 export function AdminDashboard() {
   const { isAdmin, isDirector, plantel, role, loading } = useRoles()
@@ -138,7 +140,7 @@ export function AdminDashboard() {
 
       {/* Tabs de navegación */}
       <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-        <TabsList className="grid w-full grid-cols-6">
+        <TabsList className="grid w-full grid-cols-8">
           <TabsTrigger value="overview" className="flex items-center gap-2">
             <BarChart3 className="h-4 w-4" />
             Resumen
@@ -146,6 +148,10 @@ export function AdminDashboard() {
           <TabsTrigger value="planteles" className="flex items-center gap-2">
             <Building2 className="h-4 w-4" />
             Planteles
+          </TabsTrigger>
+          <TabsTrigger value="pro-users" className="flex items-center gap-2">
+            <Crown className="h-4 w-4" />
+            Usuarios PRO
           </TabsTrigger>
           <TabsTrigger value="contexto" className="flex items-center gap-2">
             <Briefcase className="h-4 w-4" />
@@ -414,6 +420,22 @@ export function AdminDashboard() {
                 <h3 className="text-lg font-semibold mb-2">Acceso Restringido</h3>
                 <p className="text-muted-foreground">
                   Solo los administradores pueden gestionar planteles.
+                </p>
+              </CardContent>
+            </Card>
+          )}
+        </TabsContent>
+
+        <TabsContent value="pro-users">
+          {isAdmin ? (
+            <AdminProUsers />
+          ) : (
+            <Card>
+              <CardContent className="p-8 text-center">
+                <Crown className="mx-auto h-12 w-12 text-muted-foreground mb-4" />
+                <h3 className="text-lg font-semibold mb-2">Acceso Restringido</h3>
+                <p className="text-muted-foreground">
+                  Solo los administradores pueden ver los usuarios PRO.
                 </p>
               </CardContent>
             </Card>

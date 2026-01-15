@@ -73,6 +73,17 @@ export interface FeedbackData {
   updated_at: string;
 }
 
+export interface ProUser {
+  id: string;
+  full_name: string;
+  email: string;
+  subscription_status: string;
+  subscription_end_date: string | null;
+  stripe_customer_id: string | null;
+  created_at: string;
+  last_active: string;
+}
+
 /**
  * Obtiene estadísticas generales de la plataforma
  */
@@ -511,6 +522,37 @@ export interface UserReport {
   total_planeaciones: number;
   total_examenes: number;
   last_active: string;
+}
+
+/**
+ * Obtiene lista de usuarios con suscripción PRO
+ */
+export async function getProUsers(): Promise<ProUser[]> {
+  try {
+    const { data: users, error } = await supabase
+      .from('profiles')
+      .select('id, full_name, email, subscription_status, subscription_end_date, stripe_customer_id, created_at, updated_at')
+      .eq('subscription_plan', 'pro')
+      .order('created_at', { ascending: false });
+
+    if (error) {
+      throw error;
+    }
+
+    return (users || []).map(user => ({
+      id: user.id,
+      full_name: user.full_name || 'Sin nombre',
+      email: user.email || 'Sin email',
+      subscription_status: user.subscription_status || 'unknown',
+      subscription_end_date: user.subscription_end_date,
+      stripe_customer_id: user.stripe_customer_id,
+      created_at: user.created_at,
+      last_active: user.updated_at
+    }));
+  } catch (error) {
+    console.error('Error obteniendo usuarios PRO:', error);
+    return [];
+  }
 }
 
 /**
