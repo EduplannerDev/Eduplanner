@@ -4,15 +4,16 @@
 
 DESCRIPCIÓN:
 Esta guía te explica paso a paso cómo crear una planeación didáctica en 
-Eduplanner, ya sea de forma manual o usando la inteligencia artificial.
+Eduplanner, ya sea de forma manual, usando la inteligencia artificial 
+o conectando con tu dosificación.
 
 ANTES DE EMPEZAR:
 ✓ Debes tener una cuenta activa en Eduplanner
 ✓ Debes estar logueado en la plataforma
-✓ Verifica que no hayas excedido tu límite mensual de planeaciones
+✓ Verifica que no hayas excedido tu límite mensual de planeaciones (Plan Free)
 
 ===============================================================================
-                         CÓMO CREAR UNA PLANEACIÓN
+                          CÓMO CREAR UNA PLANEACIÓN
 ===============================================================================
 
 PASO 1: ACCEDER AL CREADOR DE PLANEACIONES
@@ -21,10 +22,14 @@ PASO 1: ACCEDER AL CREADOR DE PLANEACIONES
 3. Se abrirá la página con 3 opciones de planeación
 
 PASO 2: ELEGIR EL TIPO DE PLANEACIÓN
-Verás 2 opciones disponibles, cada una con un flujo diferente:
+Verás 3 opciones disponibles, cada una con un flujo diferente:
+
+1. **Planeación Individual**: Diseña una planeación específica con objetivos y actividades. (Disponible para todos)
+2. **Planeación desde Dosificación**: Crea planeaciones basadas en tu dosificación curricular mensual. (Exclusivo PRO)
+3. **Planeación CIME**: Asistente especializado para Matemáticas con material concreto. (Exclusivo PRO)
 
 ===============================================================================
-                    FLUJO A: PLANEACIÓN INDIVIDUAL
+                     FLUJO A: PLANEACIÓN INDIVIDUAL
 ===============================================================================
 
 PASO 2A: SELECCIONAR PLANEACIÓN INDIVIDUAL
@@ -33,17 +38,11 @@ PASO 2A: SELECCIONAR PLANEACIÓN INDIVIDUAL
 
 PASO 3A: USAR EL CHAT DE IA
 1. Verás un chat con el asistente de IA
-2. En el lado derecho hay "Sugerencias Rápidas" que puedes usar:
-   - "Crear una clase de matemáticas sobre fracciones para 4° grado"
-   - "Diseñar una lección de ciencias sobre el sistema solar para 5° grado"
-   - "Planificar una clase de español sobre comprensión lectora para 3° grado"
-   - Etc.
-
-3. Puedes hacer clic en una sugerencia O escribir tu propia solicitud
+2. En el lado derecho hay "Sugerencias Rápidas" que puedes usar.
+3. Puedes hacer clic en una sugerencia O escribir tu propia solicitud.
 4. En el campo de texto escribe algo como:
    - "Necesito una clase de historia sobre la Revolución Mexicana para 6° grado"
    - "Crea una planeación de matemáticas sobre multiplicaciones para 3° grado"
-
 5. Haz clic en el botón de enviar
 6. La IA generará una planeación completa
 
@@ -53,148 +52,71 @@ PASO 4A: GUARDAR LA PLANEACIÓN INDIVIDUAL
 3. Cuando estés satisfecho, haz clic en "Guardar como Planeación"
 
 ===============================================================================
-                    FLUJO B: PLANEACIÓN DESDE DOSIFICACIÓN
+                     FLUJO B: PLANEACIÓN DESDE DOSIFICACIÓN (PRO)
 ===============================================================================
 
 PASO 2B: SELECCIONAR PLANEACIÓN DESDE DOSIFICACIÓN
 1. Haz clic en "Crear Planeación desde Dosificación"
 2. Se abrirá la interfaz de selección curricular
 
-PASO 3B: CONFIGURAR FILTROS
-1. Verás filtros en la parte superior:
-   - **Grado**: Ejemplo "2° Grado - 2025-2026"
-   - **Mes**: Ejemplo "Septiembre"
-2. Estos filtros ya estarán preconfigurados
+PASO 3B: SELECCIONAR CONTENIDOS
+1. Verás los contenidos dosificados para el mes actual.
+2. Filtra por "Campo Formativo" si lo deseas (Lenguajes, Saberes, Ética, De lo Humano).
+3. Selecciona los contenidos (PDAs) que quieres incluir marcando las casillas.
+4. Haz clic en "Generar Planeación".
 
-PASO 4B: FILTRAR POR CAMPO FORMATIVO
-1. Verás botones de campos formativos:
-   - "Todos"
-   - "DE LO HUMANO Y LO COMUNITARIO"
-   - "LENGUAJES"
-   - "SABERES Y PENSAMIENTO CIENTÍFICO"
-   - "ÉTICA NATURALEZA Y SOCIEDADES"
-2. Haz clic en el campo formativo que te interese
-
-PASO 5B: SELECCIONAR CONTENIDOS ESPECÍFICOS
-1. Aparecerá una lista de contenidos curriculares (PDAs)
-2. Cada contenido muestra:
-   - El campo formativo
-   - Descripción del contenido
-   - El PDA (Proceso de Desarrollo del Aprendizaje)
-3. Selecciona los contenidos que quieres incluir marcando las casillas
-4. Puedes seleccionar múltiples contenidos
-
-PASO 6B: GENERAR LA PLANEACIÓN
-1. Una vez seleccionados los contenidos, haz clic en "Generar Planeación"
-2. La IA creará una planeación basada en los contenidos curriculares seleccionados
-3. Espera mientras se procesa
-
-PASO 7B: GUARDAR LA PLANEACIÓN DESDE DOSIFICACIÓN
-1. Revisa la planeación generada
-2. Haz clic en "Guardar como Planeación"
+PASO 4B: GENERACIÓN Y GUARDADO
+1. La IA creará una planeación integrando los PDAs seleccionados.
+2. Revisa la planeación y guárdala.
 
 ===============================================================================
-                              VERIFICACIÓN FINAL
+                     FLUJO C: PLANEACIÓN CIME (PRO) - Matemáticas
 ===============================================================================
 
-PARA AMBOS TIPOS:
-1. Ve a "Mis Planeaciones" en el menú lateral
-2. Tu nueva planeación aparecerá en la lista
-3. Podrás identificar el origen (Individual o Dosificación)
-4. Podrás ver la fecha de creación
+PASO 2C: SELECCIONAR PLANEACIÓN CIME
+1. Haz clic en "Crear Planeación CIME"
+2. Se abrirá el asistente especializado para matemáticas.
+
+PASO 3C: CONFIGURAR LA CLASE
+1. **Grado**: Se carga automáticamente de tu perfil.
+2. **Tema Específico**: Escribe el concepto matemático (Ej: "Fracciones equivalentes").
+3. **Material Principal**: Elige entre Regletas, Geoplano o Ambos.
+4. **Conocimientos Previos**: Opcionalmente describe qué saben ya tus alumnos.
+
+PASO 4C: GENERAR CON METODOLOGÍA CIME
+1. Haz clic en "Generar Planeación CIME con IA".
+2. El sistema creará una lección siguiendo las etapas: Concreta, Gráfica/Registro y Simbólica/Formal.
+3. Revisa y guarda tu planeación.
 
 ===============================================================================
-                              ACCIONES ADICIONALES
+                               VERIFICACIÓN FINAL
 ===============================================================================
 
-CÓMO EDITAR UNA PLANEACIÓN EXISTENTE:
-1. Ve a "Mis Planeaciones" en el menú lateral
-2. Busca la planeación que quieres editar en la lista
-3. Haz clic en el ícono de "Editar" (lápiz) junto a la planeación
-4. Se abrirá el formulario con los datos actuales
-5. Modifica los campos que necesites cambiar
-6. Haz clic en "Guardar cambios"
-7. Verás una confirmación de que se actualizó correctamente
-
-CÓMO ELIMINAR UNA PLANEACIÓN:
-1. Ve a "Mis Planeaciones" en el menú lateral
-2. Busca la planeación que quieres eliminar
-3. Haz clic en el ícono de "Eliminar" (basurero) junto a la planeación
-4. Aparecerá un mensaje de confirmación
-5. Haz clic en "Confirmar" para eliminar definitivamente
-6. La planeación desaparecerá de tu lista
-
-CÓMO GENERAR PDF DE UNA PLANEACIÓN:
-1. Ve a "Mis Planeaciones" en el menú lateral
-2. Busca la planeación de la que quieres generar PDF
-3. Haz clic en el ícono de "Descargar PDF" junto a la planeación
-4. Espera unos segundos mientras se genera el archivo
-5. El PDF se descargará automáticamente a tu computadora
-6. Podrás imprimir o compartir el archivo PDF generado
+PARA LOS 3 TIPOS:
+1. Ve a "Mis Planeaciones" en el menú lateral.
+2. Tu nueva planeación aparecerá en la lista.
+3. Podrás identificar el tipo y fecha de creación.
+4. Desde ahí podrás Editar, Eliminar o Descargar PDF.
 
 ===============================================================================
-                              CONSEJOS Y BUENAS PRÁCTICAS
-===============================================================================
-
-PARA CREAR MEJORES PLANEACIONES:
-✓ Usa títulos descriptivos que incluyan materia, grado y tema
-✓ Especifica objetivos claros y medibles
-✓ Incluye materiales necesarios en el contenido
-✓ Agrega actividades variadas para diferentes estilos de aprendizaje
-✓ Define criterios de evaluación específicos
-
-PARA USAR LA IA EFECTIVAMENTE:
-✓ Sé específico en tus solicitudes (materia, grado, tema)
-✓ Menciona el tiempo disponible para la clase
-✓ Indica si necesitas adaptaciones especiales
-✓ Puedes pedir que incluya materiales específicos
-
-ORGANIZACIÓN DE PLANEACIONES:
-✓ Usa nombres consistentes para facilitar la búsqueda
-✓ Marca como "completada" las planeaciones ya implementadas
-✓ Archiva las planeaciones que ya no uses pero quieras conservar
-
-===============================================================================
-                              LÍMITES Y RESTRICCIONES
+                               LÍMITES Y RESTRICCIONES
 ===============================================================================
 
 PLAN GRATUITO:
-- Máximo 10 planeaciones por mes
-- Acceso completo a todas las funciones
-- Generación de PDFs incluida
+- Máximo 3 planeaciones por mes.
+- Acceso solo a Planeación Individual.
+- Generación de PDFs incluida.
 
 PLAN PRO:
-- Planeaciones ilimitadas
-- Funciones adicionales de análisis
-- Soporte prioritario
+- Planeaciones ILIMITADAS.
+- Acceso a Planeación desde Dosificación.
+- Acceso a Planeación CIME (Matemáticas especializadas).
+- Soporte prioritario.
 
 ===============================================================================
-                              PROBLEMAS COMUNES Y SOLUCIONES
-===============================================================================
-
-PROBLEMA: "No puedo crear más planeaciones"
-SOLUCIÓN: Has alcanzado tu límite mensual. Espera al próximo mes o 
-          actualiza a Plan Pro para planeaciones ilimitadas.
-
-PROBLEMA: "El botón Guardar no funciona"
-SOLUCIÓN: Verifica que el título esté completo y que tengas conexión a internet.
-          Intenta refrescar la página si persiste el problema.
-
-PROBLEMA: "No aparece mi planeación en la lista"
-SOLUCIÓN: Verifica que se haya guardado correctamente. Si el problema persiste,
-          cierra sesión y vuelve a entrar.
-
-PROBLEMA: "La IA no genera contenido"
-SOLUCIÓN: Verifica tu conexión a internet y que tu prompt sea claro y específico.
-          Intenta reformular tu solicitud con más detalles.
-
-===============================================================================
-                              CONTACTO Y SOPORTE
+                               CONTACTO Y SOPORTE
 ===============================================================================
 
 Si tienes problemas técnicos o necesitas ayuda adicional:
-- Usa la función de feedback dentro de la aplicación
-- Contacta al soporte técnico desde el menú de ayuda
-- Revisa la documentación adicional en la sección "Docs"
-
-===============================================================================
+- Usa el Chat de Ayuda en la esquina inferior derecha.
+- Contacta a soporte mediante el botón de feedback.

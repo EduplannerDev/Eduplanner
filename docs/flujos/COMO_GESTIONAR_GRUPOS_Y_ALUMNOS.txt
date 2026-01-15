@@ -1,0 +1,64 @@
+===============================================================================
+                        GUÍA: GESTIÓN DE GRUPOS Y ALUMNOS
+===============================================================================
+
+DESCRIPCIÓN:
+Aprende a crear grupos, agregar alumnos, editar sus datos y gestionar la 
+información de tu clase.
+
+===============================================================================
+                          GESTIÓN DE GRUPOS
+===============================================================================
+
+CÓMO CREAR UN GRUPO:
+1. En el menú lateral, ve a "Mis Grupos".
+2. Haz clic en el botón "Nuevo Grupo".
+3. Completa los datos:
+   - **Nombre**: Ej. 3° "A"
+   - **Grado**: Selecciona el nivel escolar.
+   - **Ciclo Escolar**: Ej. 2024-2025
+4. Haz clic en "Guardar".
+
+CÓMO EDITAR UN GRUPO:
+1. En "Mis Grupos", busca la tarjeta del grupo.
+2. Haz clic en el menú de opciones (tres puntos) o en "Editar".
+3. Modifica el nombre o grado.
+4. Guarda los cambios.
+
+CÓMO ELIMINAR UN GRUPO:
+1. En "Mis Grupos", usa el menú de opciones del grupo.
+2. Selecciona "Eliminar".
+3. **CUIDADO**: Se borrarán todos los alumnos, asistencias y calificaciones asociadas a este grupo.
+
+===============================================================================
+                          GESTIÓN DE ALUMNOS
+===============================================================================
+
+AGREGAR ALUMNOS:
+1. Entra al grupo deseado.
+2. Haz clic en "Agregar Alumno".
+3. Ingresa: Nombre(s) y Apellidos.
+4. (Opcional) Agrega fecha de nacimiento o CURP si lo tienes a la mano.
+
+EDITAR ALUMNO:
+1. En la lista de alumnos del grupo, busca al estudiante.
+2. Haz clic en el icono de lápiz (Editar).
+3. Corrige el nombre u otros datos personales.
+4. Haz clic en Guardar.
+
+ELIMINAR ALUMNO:
+1. En la lista, busca al estudiante.
+2. Haz clic en el icono de basurero (Eliminar).
+3. Confirma la acción. Se perderán sus asistencias individuales.
+
+===============================================================================
+                          PERFIL DEL ALUMNO
+===============================================================================
+
+Para ver el historial completo de un niño:
+1. Haz clic en el nombre del alumno.
+2. Verás su "Expediente Digital" con:
+   - Gráfica de asistencia
+   - Reportes de incidencias
+   - Evaluaciones
+   - Notas personales

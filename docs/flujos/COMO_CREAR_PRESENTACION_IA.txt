@@ -1,0 +1,75 @@
+===============================================================================
+                        GUÍA: CÓMO CREAR PRESENTACIONES IA
+===============================================================================
+
+DESCRIPCIÓN:
+Esta herramienta te permite generar presentaciones educativas (diapositivas) 
+automáticamente utilizando Inteligencia Artificial, listas para usar en clase. 
+Puedes exportarlas a PowerPoint o editarlas directamente.
+
+REQUISITOS PREVIOS:
+✓ Tener una cuenta Pro o créditos disponibles
+✓ (Opcional) Tener una planeación o proyecto base
+
+===============================================================================
+                          CREAR NUEVA PRESENTACIÓN
+===============================================================================
+
+PASO 1: ACCEDER AL MÓDULO
+1. En el menú lateral, selecciona "Presentaciones IA" o "Recursos"
+2. O desde el Dashboard, usa la tarjeta de acceso rápido "Crear PPT con IA"
+3. Haz clic en el botón "+ Nueva Presentación"
+
+PASO 2: CONFIGURACIÓN INICIAL
+1. TEMA: Escribe el tema de la clase (Ej: "El Ciclo del Agua", "Fracciones")
+2. GRADO: Selecciona el nivel educativo (Ej: 3° Primaria)
+3. CANTIDAD DE DIAPOSITIVAS: Elige la duración (Corto: 5-8 slides, Largo: 10-15)
+4. ESTILO VISUAL: Selecciona un tema (Minimalista, Colorido, Institucional, Infantil)
+
+PASO 3: GENERACIÓN DE CONTENIDO (IA)
+1. Clic en "Generar Estructura"
+2. La IA propondrá un esquema (Índice):
+   - Diapositiva 1: Título y Bienvenida
+   - Diapositiva 2: Introducción al tema
+   - Diapositiva 3: Concepto clave
+   - ...
+   - Diapositiva N: Actividad de cierre
+3. Puedes editar, arrastrar o eliminar temas del índice
+4. Clic en "Generar diapositivas completas"
+
+PASO 4: EDICIÓN VISUAL
+1. Verás el editor de presentaciones (similar a PowerPoint simplificado)
+2. Puedes:
+   - Cambiar textos e imágenes generadas
+   - Regenerar textos específicos con IA si no te gustan
+   - Cambiar colores o disposición de elementos
+
+PASO 5: EXPORTAR Y USAR
+1. Una vez listo, haz clic en "Descargar"
+2. Selecciona el formato:
+   - **PowerPoint (.pptx)**: Para editar en tu PC
+   - **PDF**: Para impresión o lectura rápida
+3. Guarda el archivo en tu dispositivo
+
+===============================================================================
+                       INTEGRACIÓN CON OTROS MÓDULOS
+===============================================================================
+
+GENERAR DESDE PLANEACIÓN:
+1. Ve a "Mis Planeaciones" y abre una planeación existente
+2. Busca el botón "Generar Materiales" o "Recursos IA"
+3. Selecciona "Crear Presentación de esta clase"
+4. La IA leerá tu planeación y creará diapositivas basadas en esas actividades específicas
+
+GENERAR DESDE PROYECTO:
+1. Ve a "Mis Proyectos"
+2. En la fase de "Socialización" o "Cierre", busca "Crear presentación final"
+3. Ideal para que los alumnos presenten sus resultados
+
+===============================================================================
+                           CONSEJOS DE DISEÑO
+===============================================================================
+- Usa estilo "Infantil" para Preescolar y Primaria baja (más imágenes, menos texto)
+- Usa estilo "Minimalista" para Secundaria (más esquema, puntos clave)
+- Puedes regenerar las imágenes de la IA si alguna sale extraña
+- Revisa siempre que el contenido se ajuste al nivel de tus alumnos

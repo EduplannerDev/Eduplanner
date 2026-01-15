@@ -1,0 +1,77 @@
+===============================================================================
+                        GUÍA: CÓMO CREAR UN PLAN ANALÍTICO
+===============================================================================
+
+DESCRIPCIÓN:
+El Plan Analítico es el documento donde contextualizas el currículo nacional a
+la realidad de tu escuela y grupo. Esta herramienta te guía en los 3 planos
+oficiales de la NEM: Diagnóstico, Contextualización y Codiseño.
+
+===============================================================================
+                          PASO 1: DIAGNÓSTICO (PRE-REQUISITO)
+===============================================================================
+
+ANTES DE EMPEZAR:
+El sistema cargará automáticamente:
+- **Datos de la Escuela**: Infraestructura, servicios, contexto externo.
+- **Datos del Grupo**: Estilos de aprendizaje, barreras, nivel académico.
+- **Problemáticas**: Situaciones detectadas en los diagnósticos previos.
+
+Si no has completado estos datos, el asistente te pedirá que primero vayas al 
+módulo de **"Contexto Socioeducativo"** para llenarlos, ya que son la base
+de tu Plan Analítico.
+
+===============================================================================
+                          PASOS PARA GENERAR EL PLAN
+===============================================================================
+
+PASO 1: INICIAR ASISTENTE
+1. En el menú lateral, selecciona "Plan Analítico"
+2. Haz clic en "Crear Nuevo Plan Analítico"
+3. Se abrirá el asistente con 3 pasos (Planos).
+
+PASO 2: PLANO 1 - LECTURA DE LA REALIDAD (DIAGNÓSTICO)
+1. El sistema recupera el diagnóstico de tu escuela y alumnos.
+2. Verás un resumen de:
+   - Condiciones académicas
+   - Contexto socioeconómico
+   - Infraestructura escolar
+3. Revisa y, si es necesario, agrega observaciones específicas para este Plan.
+4. Clic en "Siguiente: Contextualización".
+
+PASO 3: PLANO 2 - CONTEXTUALIZACIÓN
+1. **Selección de Problemas**: Elige las problemáticas prioritarias a atender (ej: "Dificultad en lectura", "Violencia escolar").
+2. **Selección de Estrategias Nacionales**: Vincula tu plan con estrategias como "Estrategia Nacional de Lectura" o "Inclusión".
+3. **Selección de Contenidos (PDAs)**: El asistente sugerirá Procesos de Desarrollo de Aprendizaje (PDAs) que ayuden a resolver las problemáticas elegidas.
+   - Puedes filtrar por Campo Formativo
+   - Selecciona los PDAs que abordarás en este periodo
+
+PASO 4: PLANO 3 - CODISEÑO (CONTENIDOS LOCALES)
+1. Si necesitas enseñar algo que NO está en el programa sintético oficial (currículo nacional):
+   - Agrega un "Contenido Local"
+   - Ejemplo: "Historia del barrio", "Artesanías locales", "Lengua indígena de la región".
+2. Justifica por qué es importante para tu comunidad.
+3. Si no necesitas agregar nada extra, puedes saltar este paso.
+
+PASO 5: GUARDAR Y FINALIZAR
+1. Revisa el resumen de tu Plan Analítico.
+2. Haz clic en "Guardar Plan".
+3. El documento se generará y guardará en tu historial.
+
+===============================================================================
+                          UTILIDAD DEL PLAN ANALÍTICO
+===============================================================================
+
+- **Base para Planeaciones**: Cuando crees una planeación didáctica, podrás importarla directamente de este Plan Analítico.
+- **Evidencia Oficial**: Cumples con el requisito normativo de la SEP.
+- **Coherencia**: Aseguras que tus clases respondan a las problemáticas reales de tu escuela.
+
+===============================================================================
+                          PREGUNTAS FRECUENTES
+===============================================================================
+
+P: ¿Puedo tener varios Planes Analíticos?
+R: Sí, puedes crear uno anual o dividirlo por periodos (trimestres).
+
+P: ¿Qué pasa si cambio de escuela?
+R: Deberás actualizar primero tu "Contexto de Trabajo" y luego crear un nuevo Plan Analítico adaptado a la nueva realidad.

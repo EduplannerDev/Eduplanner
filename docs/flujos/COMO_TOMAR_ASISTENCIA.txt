@@ -1,0 +1,61 @@
+===============================================================================
+                        GUÍA: CÓMO TOMAR ASISTENCIA
+===============================================================================
+
+DESCRIPCIÓN:
+Esta guía explica cómo registrar la asistencia diaria de tus grupos de manera
+rápida y eficiente desde el panel del profesor.
+
+REQUISITOS PREVIOS:
+✓ Tener al menos un grupo creado
+✓ Tener alumnos asignados al grupo
+
+===============================================================================
+                          PASOS PARA TOMAR ASISTENCIA
+===============================================================================
+
+PASO 1: ACCEDER AL MÓDULO
+1. En el menú principal, ubica la sección "Asistencia"
+2. O desde el Dashboard, busca la tarjeta de acceso rápido "Tomar Asistencia"
+3. Verás un resumen del día actual (Grupos pendientes y completados)
+
+PASO 2: SELECCIONAR GRUPO
+1. En la lista "Mis Grupos", verás todos tus grupos activos
+2. Los grupos tendrán un indicador de estado:
+   - 🟠 **Pendiente**: No se ha tomado lista hoy
+   - 🟢 **Completado**: Ya se registró la asistencia
+3. Haz clic en "Tomar Asistencia" en el grupo deseado
+
+PASO 3: REGISTRAR ESTADOS
+Se abrirá la lista de alumnos del grupo. Por defecto, todos inician con "Asistencia".
+
+Opciones de estado para cada alumno:
+- ✅ **Asistencia (A)**: Presente en clase (Verde)
+- ❌ **Falta (F)**: Ausente sin justificación (Rojo)
+- ⚠️ **Retardo (R)**: Llegó tarde a clase (Naranja)
+- 📝 **Justificado (J)**: Falta con justificación (Azul)
+
+Formas de marcar:
+a) **Individual**: Haz clic en el botón de estado de cada alumno para rotar entre las opciones.
+b) **Cambio masivo**: Si la mayoría vino, déjalos en ✅ y solo cambia a los que faltaron.
+
+PASO 4: GUARDAR
+1. Una vez revisada la lista, haz clic en el botón "Guardar Asistencia"
+2. Si es la primera vez en el día, se creará el registro.
+3. Si ya existía, se actualizarán los cambios.
+4. Verás una confirmación de éxito.
+
+===============================================================================
+                          REPORTES Y JUSTIFICANTES
+===============================================================================
+
+EDITAR ASISTENCIA PASADA:
+1. El sistema por defecto muestra el día "Hoy"
+2. Si necesitas corregir un día anterior, usa el selector de fecha arriba a la derecha
+3. Selecciona el día en el calendario
+4. Modifica los registros y vuelve a guardar
+
+NOTAS IMPORTANTES:
+- La asistencia alimenta las estadísticas automáticas del alumno
+- Los padres pueden ver (si está habilitado) la asistencia en tiempo real
+- Se recomienda tomar asistencia en los primeros 10 minutos de clase

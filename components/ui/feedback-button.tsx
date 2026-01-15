@@ -8,10 +8,13 @@ import { Input } from './input';
 import { useAuth } from '@/hooks/use-auth';
 
 interface FeedbackButtonProps {
-  // Puedes añadir props si es necesario, por ejemplo, para configurar el destino de la retroalimentación
+  className?: string;
+  variant?: "default" | "destructive" | "outline" | "secondary" | "ghost" | "link";
+  size?: "default" | "sm" | "lg" | "icon";
+  children?: React.ReactNode;
 }
 
-export function FeedbackButton({ }: FeedbackButtonProps) {
+export function FeedbackButton({ className, variant, size, children }: FeedbackButtonProps) {
   const { user } = useAuth();
   const [isOpen, setIsOpen] = useState(false);
   const [feedbackText, setFeedbackText] = useState('');
@@ -19,6 +22,8 @@ export function FeedbackButton({ }: FeedbackButtonProps) {
   const [feedbackType, setFeedbackType] = useState<string>('');
   const [showSuccessAlert, setShowSuccessAlert] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+
+  // ... (handleSubmit and handleFileChange are unchanged)
 
   const handleSubmit = async () => {
     if (!feedbackText.trim()) {
@@ -81,11 +86,17 @@ export function FeedbackButton({ }: FeedbackButtonProps) {
   return (
     <>
       <Button
-        className="fixed bottom-4 right-4 rounded-full p-3 sm:p-4 shadow-lg z-50 text-xs sm:text-sm max-w-[calc(100vw-2rem)] sm:max-w-none"
+        variant={variant || "default"}
+        size={size || "default"}
+        className={className || "fixed bottom-4 right-4 rounded-full p-3 sm:p-4 shadow-lg z-50 text-xs sm:text-sm max-w-[calc(100vw-2rem)] sm:max-w-none"}
         onClick={() => setIsOpen(true)}
       >
-        <span className="hidden sm:inline">💬 Envíanos tu feedback</span>
-        <span className="sm:hidden">💬</span>
+        {children || (
+          <>
+            <span className="hidden sm:inline">💬 Envíanos tu feedback</span>
+            <span className="sm:hidden">💬</span>
+          </>
+        )}
       </Button>
 
       <AlertDialog open={isOpen} onOpenChange={setIsOpen}>

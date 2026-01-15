@@ -1,0 +1,88 @@
+===============================================================================
+                        GUÍA: CÓMO USAR INCIDENCIAS
+===============================================================================
+
+DESCRIPCIÓN:
+Esta guía te explica cómo usar el módulo de reporte y seguimiento de incidencias 
+de seguridad escolar, incluyendo protocolos automáticos, actas circunstanciadas
+y firma de documentos.
+
+REQUISITOS PREVIOS:
+✓ Ser usuario con rol "Director" o "Administrador"
+✓ Tener configurado un Plantel
+
+===============================================================================
+                          CREAR UNA NUEVA INCIDENCIA
+===============================================================================
+
+PASO 1: ABRIR EL MÓDULO DE INCIDENCIAS
+1. Selecciona tu plantel en el dashboard
+2. Ve a la pestaña "Seguridad" o "Incidencias"
+3. Verás una tabla con el historial de reportes
+4. Haz clic en el botón "+ Nuevo Reporte"
+
+PASO 2: ASISTENTE DE CREACIÓN (WIZARD)
+Se abrirá un asistente paso a paso:
+
+1. **SELECCIÓN DEL ALUMNO**:
+   - Busca al alumno por nombre o grupo
+   - Selecciónalo de la lista
+   - Clic en "Continuar"
+
+2. **DESCRIPCIÓN DE HECHOS**:
+   - Escribe detalladamente qué ocurrió
+   - Incluye "qué, quién, cuándo, dónde y cómo"
+   - La IA analizará este texto automáticamente
+   - Clic en "Analizar Riesgo con IA"
+
+3. **ANÁLISIS DE IA Y VERIFICACIÓN**:
+   - El sistema clasificará automáticamente el riesgo (Bajo, Medio, Alto)
+   - Sugerirá el tipo de incidencia (ej: Acoso Escolar, Accidente)
+   - Mostrará las acciones urgentes según el protocolo oficial
+   - Puedes ajustar manualmente si la IA se equivocó
+
+4. **GENERACIÓN DE ACTA**:
+   - El sistema redacta automáticamente el "Acta Circunstanciada de Hechos"
+   - Revisa el borrador generado
+   - Clic en "Guardar y Finalizar"
+
+===============================================================================
+                       GESTIONAR Y CERRAR EL CASO
+===============================================================================
+
+PASO 3: IMPRIMIR EL ACTA
+1. En la lista de incidencias, haz clic sobre el reporte creado
+2. Se abrirá el expediente detallado
+3. En la sección derecha, haz clic en "Imprimir Oficial"
+4. Se abrirá una ventana de impresión con el formato oficial
+   - Si configureste papel membretado, aparecerá de fondo
+5. Imprime el documento para que sea firmado físicamente
+
+PASO 4: SUBIR EL ACTA FIRMADA
+1. Una vez que los padres y testigos hayan firmado el papel:
+2. Escanea el documento o tómale una foto clara (conviértela a PDF)
+3. En el expediente digital, busca el recuadro "Subir Acta Firmada"
+4. Clic en "Seleccionar PDF" y sube el archivo
+5. El estado cambiará automáticamente a "FIRMADO"
+
+PASO 5: CERRAR EL CASO
+1. Cuando el proceso esté completo y documentado
+2. En el expediente, haz clic en el botón verde "Cerrar Caso"
+3. La incidencia se archivará como concluida
+
+===============================================================================
+                          EXPLICACIÓN DE ESTADOS
+===============================================================================
+
+- **GENERADO**: El reporte se creó en sistema pero no se ha impreso el acta.
+- **ABIERTA**: Se imprimió el acta para recabar firmas (el proceso está activo).
+- **FIRMADO**: Se subió la evidencia del acta firmada por los involucrados.
+- **CERRADO**: El caso se ha dado por concluido oficialmente.
+
+===============================================================================
+                           CONSEJOS DE SEGURIDAD
+===============================================================================
+- Sé objetivo y neutral al describir los hechos
+- No uses apodos, siempre nombres completos
+- Sube el acta firmada lo antes posible para respaldo legal
+- El sistema bloquea la edición del acta una vez subida la firma para proteger la integridad legal

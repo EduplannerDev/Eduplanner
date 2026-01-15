@@ -17,155 +17,68 @@ FECHA DE ÚLTIMA ACTUALIZACIÓN: Enero 2025
    - Módulo: Planeaciones
    - Flujo: Crear
    - Descripción: Cómo crear planeaciones didácticas usando IA
-   - Incluye: Planeación Individual y Planeación desde Dosificación
-   - Pasos: 7 pasos principales con sub-flujos
+   - Incluye: Planeación Individual, Dosificación y CIME
 
-2. **COMO_GENERAR_EXAMEN.txt**
+2. **COMO_GESTIONAR_PLANEACIONES.txt**
+   - Módulo: Planeaciones
+   - Flujo: Gestionar
+   - Descripción: Cómo EDITAR, ELIMINAR y EXPORTAR (PDF) planeaciones
+
+3. **COMO_GENERAR_EXAMEN.txt**
    - Módulo: Exámenes
    - Flujo: Generar
-   - Descripción: Cómo generar exámenes basados en planeaciones existentes
-   - Incluye: Selección de planeaciones, instrucciones adicionales, generación con IA
-   - Pasos: 7 pasos principales
+   - Descripción: Cómo generar exámenes basados en planeaciones
 
-3. **COMO_CREAR_PROYECTO.txt**
+4. **COMO_CREAR_PROYECTO.txt**
    - Módulo: Proyectos
    - Flujo: Crear
-   - Descripción: Cómo crear proyectos educativos usando el asistente de IA
-   - Incluye: 3 fases (Define, Selecciona PDAs, Generar Contenido)
-   - Pasos: 13 pasos distribuidos en 3 fases
+   - Descripción: Cómo crear proyectos educativos con IA (Fases NEM)
 
-4. **COMO_GESTIONAR_MIS_PROYECTOS.txt**
+5. **COMO_GESTIONAR_MIS_PROYECTOS.txt**
    - Módulo: Proyectos
    - Flujo: Gestionar
-   - Descripción: Cómo ver, gestionar y crear instrumentos de evaluación
-   - Incluye: Visualización, instrumentos de evaluación, recursos
-   - Pasos: 9 pasos principales con múltiples sub-acciones
+   - Descripción: Gestión de proyectos e instrumentos de evaluación
 
-5. **COMO_USAR_DOSIFICACION.txt**
+6. **COMO_USAR_DOSIFICACION.txt**
    - Módulo: Dosificación
    - Flujo: Usar
-   - Descripción: Cómo gestionar dosificación curricular y seguimiento
-   - Incluye: Distribución Temporal, Seguimiento, Acciones Sugeridas
-   - Pasos: 5 pasos principales con múltiples funciones
+   - Descripción: Distribución temporal y seguimiento curricular
+
+7. **COMO_CREAR_PLAN_ANALITICO.txt**
+   - Módulo: Plan Analítico
+   - Flujo: Crear
+   - Descripción: Diagnóstico, Contextualización y Codiseño
+
+8. **COMO_CREAR_PRESENTACION_IA.txt**
+   - Módulo: Presentaciones IA
+   - Flujo: Crear
+   - Descripción: Generación de diapositivas y exportación PPT
+
+9. **COMO_USAR_INCIDENCIAS.txt**
+   - Módulo: Incidencias
+   - Flujo: Reportar
+   - Descripción: Protocolos de seguridad, actas y firmas
+
+10. **COMO_TOMAR_ASISTENCIA.txt**
+   - Módulo: Asistencia
+   - Flujo: Registrar
+   - Descripción: Toma de lista y reportes
+
+11. **COMO_GESTIONAR_GRUPOS_Y_ALUMNOS.txt**
+    - Módulo: Grupos y Alumnos
+    - Flujo: Gestionar
+    - Descripción: Agregar alumnos, editar datos, crear grupos
 
 ===============================================================================
-                              SISTEMA DE VECTORIZACIÓN
+                           SISTEMA DE VECTORIZACIÓN
 ===============================================================================
 
-**IMPLEMENTACIÓN TÉCNICA**:
-Se ha implementado un sistema de búsqueda semántica que permite:
+IMPLEMENTACIÓN TÉCNICA:
+Se ha implementado un sistema de búsqueda semántica (RAG) que permite al 
+Chat de Ayuda encontrar respuestas precisas en estos documentos.
 
 ARCHIVOS DEL SISTEMA:
-- **Migración**: 20250128000001_create_documentation_embeddings.sql
-- **Script de procesamiento**: generate-documentation-embeddings.ts
-- **Hook de búsqueda**: use-documentation-search.ts
-- **API endpoint**: /api/generate-embedding/route.ts
-- **Documentación técnica**: README_DOCUMENTACION_VECTORIZADA.txt
-
-FUNCIONALIDADES:
-✓ Búsqueda semántica inteligente
-✓ Búsqueda por texto tradicional
-✓ Filtrado por módulo específico
-✓ Extracción automática de palabras clave
-✓ Procesamiento de secciones individuales
-
-===============================================================================
-                              MÓDULOS DOCUMENTADOS
-===============================================================================
-
-**PLANEACIONES**:
-- Crear Nueva → Planeación Individual (Chat IA)
-- Crear Nueva → Planeación desde Dosificación (Selección curricular)
-- Mis Planeaciones → Ver, Editar, Eliminar, Generar PDF
-
-**EXÁMENES**:
-- Generar Examen → Selección de planeaciones base + IA
-- Mis Exámenes → Ver, Editar, Descargar PDF, Hoja de respuestas
-
-**PROYECTOS**:
-- Crear Proyecto → Asistente de 3 fases con IA
-- Mis Proyectos → Gestión completa, Instrumentos de evaluación
-
-**DOSIFICACIÓN**:
-- Distribución Temporal → Organización por trimestres
-- Seguimiento → Monitoreo de progreso académico
-
-===============================================================================
-                              ESTADÍSTICAS DE DOCUMENTACIÓN
-===============================================================================
-
-ARCHIVOS TOTALES: 6 archivos
-- 5 archivos de flujos de usuario
-- 1 archivo de documentación técnica
-
-MÓDULOS CUBIERTOS: 4 módulos principales
-- Planeaciones (2 flujos)
-- Exámenes (2 flujos) 
-- Proyectos (2 flujos)
-- Dosificación (1 flujo)
-
-PASOS DOCUMENTADOS: Aproximadamente 50+ pasos detallados
-ACCIONES ADICIONALES: 15+ acciones complementarias
-
-===============================================================================
-                              MÓDULOS PENDIENTES
-===============================================================================
-
-PRÓXIMOS FLUJOS A DOCUMENTAR:
-1. **Gestionar Mensajes a Padres**
-   - Crear mensajes personalizados
-   - Envío masivo de comunicaciones
-   - Gestión de respuestas
-
-2. **Usar la Agenda/Eventos**
-   - Crear eventos escolares
-   - Gestión de calendario
-   - Integración con planeaciones
-
-3. **Gestionar Perfil**
-   - Configuración de usuario
-   - Gestión de planteles
-   - Configuración de grupos
-
-4. **Generar Presentaciones**
-   - Crear presentaciones PowerPoint
-   - Personalización de contenido
-   - Exportación de materiales
-
-5. **Sistema de Roles y Planteles**
-   - Administración escolar
-   - Gestión de usuarios
-   - Permisos y accesos
-
-===============================================================================
-                              CÓMO CONTRIBUIR
-===============================================================================
-
-PARA AGREGAR NUEVA DOCUMENTACIÓN:
-1. Crea un archivo .txt en /docs/flujos/
-2. Sigue la convención de nombres: COMO_[ACCION]_[MODULO].txt
-3. Usa el formato estándar con secciones delimitadas por ===
-4. Ejecuta el script de embeddings para vectorizar el contenido
-
-PARA ACTUALIZAR DOCUMENTACIÓN EXISTENTE:
-1. Modifica el archivo .txt correspondiente
-2. Ejecuta nuevamente el script de embeddings
-3. Los embeddings se regenerarán automáticamente
-
-CONVENCIONES DE FORMATO:
-- Usar títulos descriptivos con ===
-- Numerar pasos claramente
-- Incluir ejemplos específicos
-- Agregar sección de problemas comunes
-- Incluir consejos y buenas prácticas
-
-===============================================================================
-                              CONTACTO Y SOPORTE
-===============================================================================
-
-Para dudas sobre la documentación o el sistema de vectorización:
-- Revisa la documentación técnica en README_DOCUMENTACION_VECTORIZADA.txt
-- Consulta los archivos de migración para detalles de base de datos
-- Revisa el código del hook para implementación de búsquedas
+- Script de procesamiento: generate-documentation-embeddings.ts
+- Tabla BD: documentation_embeddings (Vector Store)
 
 ===============================================================================

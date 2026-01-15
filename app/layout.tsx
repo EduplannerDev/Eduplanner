@@ -10,6 +10,7 @@ import { Analytics } from '@vercel/analytics/react'
 import { SpeedInsights } from '@vercel/speed-insights/next'
 import ClarityAnalytics from '@/components/clarity-analytics'
 import { MobileWarning } from '@/components/mobile-warning'
+import { HelpChatWidget } from '@/components/help-chat-widget'
 
 export const metadata: Metadata = {
   title: "Eduplanner",
@@ -62,7 +63,8 @@ export default function RootLayout({
           </ErrorLoggerProvider>
           <Toaster />
           <SonnerToaster />
-          <FeedbackClient />
+
+          <HelpChatWidget />
           <Analytics />
           <SpeedInsights />
           <ClarityAnalytics />

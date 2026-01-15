@@ -31,6 +31,7 @@ import { useRoles } from "@/hooks/use-roles"
 import { useIsMobile } from "@/hooks/use-mobile"
 import { useBetaTesterCheck } from "@/hooks/use-beta-features"
 import { GradeSwitcher } from "@/components/grade-switcher"
+import { FeedbackButton } from "@/components/ui/feedback-button"
 
 // Estructura del menú con secciones desplegables
 const menuStructure = {
@@ -560,6 +561,24 @@ export function AppSidebar({ activeSection, onSectionChange, ...props }: AppSide
 
       <SidebarFooter className="border-t border-sidebar-border">
         <SidebarMenu>
+          <SidebarMenuItem>
+            <div className={`w-full ${state === "collapsed" ? "flex justify-center py-2" : "px-2 py-2"}`}>
+              <FeedbackButton
+                variant="ghost"
+                size={state === "collapsed" ? "icon" : "default"}
+                className={`w-full border border-purple-200 bg-purple-50 text-purple-700 hover:bg-purple-100 hover:text-purple-900 dark:border-purple-800/50 dark:bg-purple-900/10 dark:text-purple-300 dark:hover:bg-purple-900/30 dark:hover:text-purple-100 transition-all duration-200 ${state === "collapsed" ? "h-8 w-8 rounded-md" : "justify-start"}`}
+              >
+                {state === "collapsed" ? (
+                  <span>💬</span>
+                ) : (
+                  <>
+                    <span className="mr-2">💬</span>
+                    <span>Feedback</span>
+                  </>
+                )}
+              </FeedbackButton>
+            </div>
+          </SidebarMenuItem>
           <SidebarMenuItem>
             <SidebarMenuButton asChild>
               <button onClick={() => handleNavigation("perfil")} className="w-full">

@@ -1,0 +1,69 @@
+===============================================================================
+                        GUÍA: CÓMO GESTIONAR MIS PLANEACIONES
+===============================================================================
+
+DESCRIPCIÓN:
+Esta guía explica cómo administrar las planeaciones ya creadas: cómo verlas,
+editarlas, eliminarlas y descargarlas en formato PDF y Word.
+
+===============================================================================
+                          ACCEDER A MIS PLANEACIONES
+===============================================================================
+
+1. En el menú lateral izquierdo, haz clic en "Mis Planeaciones".
+2. Verás una lista con todas las planeaciones que has creado.
+3. Para cada planeación verás:
+   - Título y Grado
+   - Materia
+   - Fecha de creación
+   - Icono tipo (IA, CIME, Dosificación)
+   - Botones de acción (Ver, Editar, PDF, Eliminar)
+
+===============================================================================
+                          CÓMO EDITAR UNA PLANEACIÓN
+===============================================================================
+
+Si necesitas modificar el contenido, objetivos o actividades de una clase:
+
+1. Ubica la planeación en la lista "Mis Planeaciones".
+2. Haz clic en el botón EDITAR (icono de lápiz ✏️).
+3. Se abrirá el editor de planeaciones.
+4. **Modificar Texto**: Puedes escribir directamente sobre cualquier campo (Objetivos, Inicio, Desarrollo, Cierre, Evaluación).
+5. **Guardar Cambios**:
+   - Al finalizar, haz clic en el botón "Guardar Cambios" (esquina superior derecha).
+   - Espera la confirmación "Planeación actualizada".
+
+NOTA: Si la planeación fue creada con IA, al editarla se convierte en una planeación manual. La IA no re-generará el contenido automáticamente tras tus ediciones manuales.
+
+===============================================================================
+                          CÓMO DESCARGAR (EXPORTAR)
+===============================================================================
+
+Para llevar tu planeación impresa o compartirla:
+
+1. En la lista de planeaciones, busca el icono de PDF (📄).
+2. O entra al modo "Ver" (icono de ojo 👁️) y busca el botón "Descargar PDF".
+3. **Formatos Disponibles**:
+   - **PDF**: Genera un documento con formato oficial, listo para imprimir. Incluye encabezado institucional si lo has configurado.
+   - **Formato SEP**: El diseño sigue los lineamientos de la Nueva Escuela Mexicana (NEM).
+
+===============================================================================
+                          CÓMO ELIMINAR UNA PLANEACIÓN
+===============================================================================
+
+Para borrar definitivamente una planeación:
+
+1. Ubica la planeación en la lista.
+2. Haz clic en el icono de ELIMINAR (basurero 🗑️).
+3. Aparecerá una ventana de confirmación: "¿Estás seguro?".
+4. Confirma la acción.
+5. **ADVERTENCIA**: Esta acción no se puede deshacer.
+
+===============================================================================
+                          BUSCAR Y FILTRAR
+===============================================================================
+
+Si tienes muchas planeaciones:
+- Usa la barra de búsqueda superior para encontrar por título o materia.
+- Usa los filtros de fecha para ver las de este mes o pasado.
+- Ordena por "Más recientes" para ver lo último que creaste.
