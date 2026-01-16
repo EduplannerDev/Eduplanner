@@ -18,6 +18,9 @@ export function HelpChatWidget() {
 
     const { messages, input, handleInputChange, handleSubmit, isLoading } = useChat({
         api: "/api/chat-help",
+        body: {
+            userId: user?.id
+        },
         initialMessages: [
             {
                 id: "welcome",
@@ -47,18 +50,30 @@ export function HelpChatWidget() {
             {/* Botón Flotante */}
             {!isOpen && (
                 <div className="relative group">
-                    <span className="absolute -top-10 right-0 bg-white dark:bg-gray-800 text-gray-800 dark:text-gray-200 text-xs px-2 py-1 rounded shadow-md opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap pointer-events-none mb-2">
-                        ¿Necesitas ayuda? ¡Pregúntale a Edu!
-                    </span>
+                    <div className="absolute -top-12 right-0 bg-white dark:bg-gray-800 text-gray-800 dark:text-gray-200 px-4 py-2 rounded-2xl shadow-xl border border-purple-100 dark:border-purple-800 transform transition-all duration-700 animate-float-intro bg-opacity-95 backdrop-blur-sm">
+                        <span className="text-sm font-semibold whitespace-nowrap flex items-center gap-2">
+                            👋 ¡Hola! ¿Necesitas ayuda?
+                        </span>
+                        <div className="absolute -bottom-2 right-6 w-4 h-4 bg-white dark:bg-gray-800 border-r border-b border-purple-100 dark:border-purple-800 transform rotate-45"></div>
+                    </div>
+
                     <Button
                         onClick={toggleChat}
-                        className="h-16 w-16 rounded-full shadow-xl bg-white hover:bg-gray-50 border-4 border-purple-200 p-0 overflow-hidden pointer-events-auto transition-all duration-300 hover:scale-110 hover:border-purple-300"
+                        className="h-16 pl-3 pr-4 rounded-full shadow-2xl bg-white hover:bg-purple-50 pointer-events-auto transition-all duration-300 hover:scale-105 group border-2 border-purple-100 dark:border-purple-800"
                     >
-                        <img
-                            src="/images/Edu.png"
-                            alt="Edu"
-                            className="w-full h-full object-cover"
-                        />
+                        <div className="w-12 h-12 rounded-full bg-gradient-to-br from-purple-600 via-indigo-500 to-blue-500 p-[2px] shadow-lg mr-3 animate-pulse-slow">
+                            <div className="w-full h-full rounded-full bg-white dark:bg-gray-900 overflow-hidden flex items-center justify-center">
+                                <img
+                                    src="/images/Edu.png"
+                                    alt="Edu"
+                                    className="w-full h-full object-cover"
+                                />
+                            </div>
+                        </div>
+                        <div className="flex flex-col items-start pr-2">
+                            <span className="text-sm font-bold text-gray-800 dark:text-white group-hover:text-purple-700 transition-colors">Ayuda IA</span>
+                            <span className="text-[10px] text-gray-500 dark:text-gray-400 font-medium">Pregúntale a Edu</span>
+                        </div>
                     </Button>
                 </div>
             )}

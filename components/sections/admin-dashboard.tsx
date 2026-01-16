@@ -46,6 +46,7 @@ import {
 import { LoggingMetricsWidget } from '@/components/admin/logging-widgets'
 import { AdminReports } from './admin-reports'
 import { AdminProUsers } from './admin-pro-users'
+import { AdminChatLogs } from './admin-chat-logs'
 
 export function AdminDashboard() {
   const { isAdmin, isDirector, plantel, role, loading } = useRoles()
@@ -172,6 +173,10 @@ export function AdminDashboard() {
           <TabsTrigger value="reports" className="flex items-center gap-2">
             <FileText className="h-4 w-4" />
             Reportes
+          </TabsTrigger>
+          <TabsTrigger value="edu-chat" className="flex items-center gap-2">
+            <MessageSquare className="h-4 w-4" />
+            Chats Edu
           </TabsTrigger>
         </TabsList>
 
@@ -694,6 +699,22 @@ export function AdminDashboard() {
                 <h3 className="text-lg font-semibold mb-2">Acceso Restringido</h3>
                 <p className="text-muted-foreground">
                   Solo los administradores pueden ver los reportes.
+                </p>
+              </CardContent>
+            </Card>
+          )}
+        </TabsContent>
+
+        <TabsContent value="edu-chat" className="space-y-6">
+          {isAdmin ? (
+            <AdminChatLogs />
+          ) : (
+            <Card>
+              <CardContent className="p-8 text-center">
+                <MessageSquare className="mx-auto h-12 w-12 text-muted-foreground mb-4" />
+                <h3 className="text-lg font-semibold mb-2">Acceso Restringido</h3>
+                <p className="text-muted-foreground">
+                  Solo los administradores pueden ver los registros de chat.
                 </p>
               </CardContent>
             </Card>

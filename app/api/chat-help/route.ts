@@ -1,34 +1,34 @@
 import { google } from "@ai-sdk/google"
 import { streamText, embed } from "ai"
-import { createClient } from "@supabase/supabase-js"
+import { createServiceClient } from "@/lib/supabase"
+import fs from "fs"
 
 export const maxDuration = 30
 
 export async function POST(req: Request) {
     try {
-        const { messages } = await req.json()
+        const { messages, userId } = await req.json()
 
         // Obtener el último mensaje del usuario
         const lastMessage = messages[messages.length - 1]
         const userQuery = lastMessage.content
 
-        // Inicializar Supabase
-        const supabase = createClient(
-            process.env.NEXT_PUBLIC_SUPABASE_URL!,
-            process.env.SUPABASE_SERVICE_ROLE_KEY!
-        )
+        // Inicializar Supabase con service role para saltar RLS
+        const supabase = createServiceClient()
 
         // 1. Generar embedding de la consulta
+        console.log("Generando embedding para:", userQuery);
         const { embedding } = await embed({
             model: google.textEmbeddingModel("text-embedding-004"),
             value: userQuery,
         })
 
         // 2. Buscar documentación relevante (RAG)
+        console.log("Buscando documentación...");
         const { data: documents, error } = await supabase.rpc('search_documentation_by_similarity', {
             query_embedding: embedding,
-            match_threshold: 0.5, // Subir umbral para calidad
-            match_count: 10 // Aumentar cantidad de fragmentos recuperados
+            match_threshold: 0.5,
+            match_count: 10
         })
 
         if (error) {
@@ -38,10 +38,12 @@ export async function POST(req: Request) {
         // 3. Preparar el contexto
         let contextText = ""
         if (documents && documents.length > 0) {
+            console.log(`Documentos encontrados: ${documents.length}`);
             contextText = documents.map((doc: any) =>
                 `-- DOCUMENTO: ${doc.title} (${doc.module_name}/${doc.flow_type}) --\n${doc.section_content || doc.content}`
             ).join('\n\n')
         } else {
+            console.log("No se encontraron documentos.");
             contextText = "No se encontró documentación específica para esta consulta."
         }
 
@@ -74,6 +76,21 @@ export async function POST(req: Request) {
       - No des información técnica interna (código, base de datos).
       `,
             messages,
+            onFinish: async ({ text }) => {
+                try {
+                    // Registrar la conversación en la base de datos
+                    await supabase.from('help_chat_logs').insert({
+                        user_id: userId || null, // Puede ser null si no vino el ID
+                        question: userQuery,
+                        answer: text,
+                        metadata: {
+                            context_docs: documents?.map((d: any) => d.title) || []
+                        }
+                    })
+                } catch (logError) {
+                    console.error("Error logging help chat:", logError)
+                }
+            },
         })
 
         return result.toDataStreamResponse()
