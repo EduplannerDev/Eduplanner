@@ -71,6 +71,11 @@ export async function POST(req: Request) {
       7. Usa emojis ocasionalmente para ser más amigable.
       8. Usa formato Markdown para listas, negritas y enlaces si es necesario.
       
+      INFORMACIÓN IMPORTANTE SOBRE EL PLAN PRO:
+      - El Plan Pro cuesta $200 MXN al mes.
+      - Incluye: Planeaciones, exámenes, grupos y proyectos ILIMITADOS. Además: IA para planeaciones, Plan Analítico, descargas en Word editable y soporte prioritario.
+      - Para contratar: El usuario debe ir a la sección "Suscripción" (o hacer clic en el botón de corona/trofeo si está visible en la interfaz) y seleccionar "Actualizar a PRO". El pago es seguro a través de Stripe.
+
       RESTRICCIONES:
       - No inventes funcionalidades que no aparecen en el contexto.
       - No des información técnica interna (código, base de datos).

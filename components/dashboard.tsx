@@ -46,6 +46,9 @@ import {
   BreadcrumbSeparator,
 } from "@/components/ui/breadcrumb"
 import { useRoles } from "@/hooks/use-roles"
+import { useProfile } from "@/hooks/use-profile"
+import { isUserPro } from "@/lib/subscription-utils"
+import { SubscriptionCard } from "@/components/sections/subscription-card"
 
 interface DashboardProps {
   children?: React.ReactNode
@@ -72,7 +75,7 @@ export default function Dashboard({ children, customContent = false }: Dashboard
       'generar-mensajes-padres', 'mensajes-padres-alumno', 'mis-mensajes', 'ayuda',
       'grupos', 'agenda', 'tomar-asistencia', 'bitacora', 'admin-dashboard',
       'administracion-plantel', 'beta-testers', 'beta-features', 'dosificacion',
-      'presentaciones-ia', 'proyectos', 'crear-proyecto', 'planeacion-cime', 'plan-analitico'
+      'presentaciones-ia', 'proyectos', 'crear-proyecto', 'planeacion-cime', 'plan-analitico', 'suscripcion'
     ]
 
     if (section && allSections.includes(section)) {
@@ -107,6 +110,7 @@ export default function Dashboard({ children, customContent = false }: Dashboard
   const [previousSection, setPreviousSection] = useState<string>("grupos")
   const [selectedPlaneacionFromHome, setSelectedPlaneacionFromHome] = useState<string | null>(null)
   const { isDirector } = useRoles()
+  const { profile } = useProfile()
 
   const handleNavigateToMensajesPadres = (studentData: any) => {
     setPreviousSection(activeSection) // Guardar la sección actual antes de navegar
@@ -216,6 +220,8 @@ export default function Dashboard({ children, customContent = false }: Dashboard
         return "Proyectos"
       case "planeacion-cime":
         return "Planeación CIME"
+      case "suscripcion":
+        return "Mi Suscripción"
       default:
         return "Dashboard"
     }
@@ -369,6 +375,8 @@ export default function Dashboard({ children, customContent = false }: Dashboard
         />
       case "nuevo-plan-analitico":
         return <PlanAnaliticoWizard onComplete={() => setActiveSection("plan-analitico")} />
+      case "suscripcion":
+        return <SubscriptionCard userPlan={profile && isUserPro(profile) ? "pro" : "free"} />
       default:
         return <DashboardHome onSectionChange={setActiveSection} />
     }
