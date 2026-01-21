@@ -29,17 +29,20 @@ import {
   Settings,
   Monitor,
   Briefcase,
-  Crown
+  Crown,
+  Presentation,
+  FolderKanban,
+  FileSpreadsheet,
+  File,
+  LineChart
 } from 'lucide-react'
 import {
   getPlatformStats,
   getRecentActivity,
-  getUsuariosSinPlantel,
   getContextoTrabajoData,
   getFeedbackData,
   type PlatformStats,
   type RecentActivity,
-  type UsuariosSinPlantel,
   type ContextoTrabajoData,
   type FeedbackData
 } from '@/lib/admin-stats'
@@ -47,6 +50,7 @@ import { LoggingMetricsWidget } from '@/components/admin/logging-widgets'
 import { AdminReports } from './admin-reports'
 import { AdminProUsers } from './admin-pro-users'
 import { AdminChatLogs } from './admin-chat-logs'
+import { AnalyticsCharts } from '@/components/admin/analytics-charts'
 
 export function AdminDashboard() {
   const { isAdmin, isDirector, plantel, role, loading } = useRoles()
@@ -55,7 +59,7 @@ export function AdminDashboard() {
   // Estados para las estadísticas
   const [platformStats, setPlatformStats] = useState<PlatformStats | null>(null)
   const [recentActivity, setRecentActivity] = useState<RecentActivity | null>(null)
-  const [usuariosSinPlantel, setUsuariosSinPlantel] = useState<UsuariosSinPlantel | null>(null)
+
   const [contextoTrabajo, setContextoTrabajo] = useState<ContextoTrabajoData[]>([])
   const [feedbackData, setFeedbackData] = useState<FeedbackData[]>([])
   const [selectedFeedback, setSelectedFeedback] = useState<FeedbackData | null>(null)
@@ -71,17 +75,15 @@ export function AdminDashboard() {
   const loadDashboardStats = async () => {
     try {
       setStatsLoading(true)
-      const [stats, activity, usuariosSinPlantelData, contextoTrabajoData, feedbackDataResponse] = await Promise.all([
+      const [stats, activity, contextoTrabajoData, feedbackDataResponse] = await Promise.all([
         getPlatformStats(),
         getRecentActivity(),
-        getUsuariosSinPlantel(),
         getContextoTrabajoData(),
         getFeedbackData()
       ])
 
       setPlatformStats(stats)
       setRecentActivity(activity)
-      setUsuariosSinPlantel(usuariosSinPlantelData)
       setContextoTrabajo(contextoTrabajoData)
       setFeedbackData(feedbackDataResponse)
     } catch (error) {
@@ -145,6 +147,10 @@ export function AdminDashboard() {
           <TabsTrigger value="overview" className="flex items-center gap-2">
             <BarChart3 className="h-4 w-4" />
             Resumen
+          </TabsTrigger>
+          <TabsTrigger value="analytics" className="flex items-center gap-2">
+            <LineChart className="h-4 w-4" />
+            Analíticas
           </TabsTrigger>
           <TabsTrigger value="planteles" className="flex items-center gap-2">
             <Building2 className="h-4 w-4" />
@@ -233,77 +239,6 @@ export function AdminDashboard() {
                 </Card>
               </div>
 
-              {/* Distribución de usuarios - Información del modelo SaaS */}
-              <div className="grid gap-6 md:grid-cols-2">
-                <Card>
-                  <CardHeader>
-                    <CardTitle className="flex items-center gap-2">
-                      <Building2 className="h-5 w-5 text-blue-600" />
-                      Usuarios en Planteles
-                    </CardTitle>
-                    <CardDescription>
-                      Usuarios asignados a instituciones educativas
-                    </CardDescription>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="text-3xl font-bold text-blue-600 mb-2">
-                      {platformStats?.usuariosConPlantel || 0}
-                    </div>
-                    <p className="text-sm text-muted-foreground mb-4">
-                      Usuarios trabajando en {platformStats?.totalPlanteles || 0} planteles activos
-                    </p>
-                    <div className="space-y-2">
-                      <div className="flex justify-between text-sm">
-                        <span>Profesores:</span>
-                        <span className="font-medium">{platformStats?.totalProfesores || 0}</span>
-                      </div>
-                      <div className="flex justify-between text-sm">
-                        <span>Directores:</span>
-                        <span className="font-medium">{platformStats?.totalDirectores || 0}</span>
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
-
-                <Card>
-                  <CardHeader>
-                    <CardTitle className="flex items-center gap-2">
-                      <Users className="h-5 w-5 text-green-600" />
-                      Usuarios Independientes
-                    </CardTitle>
-                    <CardDescription>
-                      Usuarios del SaaS sin asignación de plantel
-                    </CardDescription>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="text-3xl font-bold text-green-600 mb-2">
-                      {usuariosSinPlantel?.totalUsuariosSinPlantel || 0}
-                    </div>
-                    <p className="text-sm text-muted-foreground mb-4">
-                      Usuarios utilizando la plataforma de forma independiente
-                    </p>
-                    <div className="space-y-2">
-                      <div className="flex justify-between text-sm">
-                        <span>Profesores:</span>
-                        <span className="font-medium">{usuariosSinPlantel?.profesoresSinPlantel || 0}</span>
-                      </div>
-                      <div className="flex justify-between text-sm">
-                        <span>Directores:</span>
-                        <span className="font-medium">{usuariosSinPlantel?.directoresSinPlantel || 0}</span>
-                      </div>
-                      <div className="flex justify-between text-sm">
-                        <span>Nuevos (7 días):</span>
-                        <span className="font-medium text-green-600">{usuariosSinPlantel?.usuariosRecientesSinPlantel || 0}</span>
-                      </div>
-                      <div className="flex justify-between text-sm">
-                        <span>Sin contexto de trabajo:</span>
-                        <span className="font-medium text-orange-600">{usuariosSinPlantel?.usuariosSinContexto || 0}</span>
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
-              </div>
-
               {/* Actividad de contenido */}
               <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
                 <Card>
@@ -328,6 +263,58 @@ export function AdminDashboard() {
                     <div className="text-2xl font-bold">{platformStats?.totalExamenes || 0}</div>
                     <p className="text-xs text-muted-foreground">
                       +{recentActivity?.nuevosExamenes || 0} esta semana
+                    </p>
+                  </CardContent>
+                </Card>
+
+                <Card>
+                  <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                    <CardTitle className="text-sm font-medium">Presentaciones</CardTitle>
+                    <Presentation className="h-4 w-4 text-muted-foreground" />
+                  </CardHeader>
+                  <CardContent>
+                    <div className="text-2xl font-bold">{platformStats?.totalPresentaciones || 0}</div>
+                    <p className="text-xs text-muted-foreground">
+                      +{recentActivity?.nuevasPresentaciones || 0} esta semana
+                    </p>
+                  </CardContent>
+                </Card>
+
+                <Card>
+                  <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                    <CardTitle className="text-sm font-medium">Proyectos</CardTitle>
+                    <FolderKanban className="h-4 w-4 text-muted-foreground" />
+                  </CardHeader>
+                  <CardContent>
+                    <div className="text-2xl font-bold">{platformStats?.totalProyectos || 0}</div>
+                    <p className="text-xs text-muted-foreground">
+                      +{recentActivity?.nuevosProyectos || 0} esta semana
+                    </p>
+                  </CardContent>
+                </Card>
+
+                <Card>
+                  <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                    <CardTitle className="text-sm font-medium">Planes Analíticos</CardTitle>
+                    <FileSpreadsheet className="h-4 w-4 text-muted-foreground" />
+                  </CardHeader>
+                  <CardContent>
+                    <div className="text-2xl font-bold">{platformStats?.totalPlanesAnaliticos || 0}</div>
+                    <p className="text-xs text-muted-foreground">
+                      +{recentActivity?.nuevosPlanesAnaliticos || 0} esta semana
+                    </p>
+                  </CardContent>
+                </Card>
+
+                <Card>
+                  <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                    <CardTitle className="text-sm font-medium">Fichas Descriptivas</CardTitle>
+                    <File className="h-4 w-4 text-muted-foreground" />
+                  </CardHeader>
+                  <CardContent>
+                    <div className="text-2xl font-bold">{platformStats?.totalFichasDescriptivas || 0}</div>
+                    <p className="text-xs text-muted-foreground">
+                      +{recentActivity?.nuevasFichasDescriptivas || 0} esta semana
                     </p>
                   </CardContent>
                 </Card>
@@ -396,6 +383,34 @@ export function AdminDashboard() {
                       </div>
                       <div className="flex items-center justify-between">
                         <div className="flex items-center gap-2">
+                          <Presentation className="h-4 w-4 text-pink-500" />
+                          <span className="text-sm">Nuevas presentaciones</span>
+                        </div>
+                        <Badge variant="secondary">{recentActivity?.nuevasPresentaciones || 0}</Badge>
+                      </div>
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-2">
+                          <FolderKanban className="h-4 w-4 text-indigo-500" />
+                          <span className="text-sm">Nuevos proyectos</span>
+                        </div>
+                        <Badge variant="secondary">{recentActivity?.nuevosProyectos || 0}</Badge>
+                      </div>
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-2">
+                          <FileSpreadsheet className="h-4 w-4 text-teal-500" />
+                          <span className="text-sm">Nuevos planes anl.</span>
+                        </div>
+                        <Badge variant="secondary">{recentActivity?.nuevosPlanesAnaliticos || 0}</Badge>
+                      </div>
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-2">
+                          <File className="h-4 w-4 text-yellow-500" />
+                          <span className="text-sm">Nuevas fichas</span>
+                        </div>
+                        <Badge variant="secondary">{recentActivity?.nuevasFichasDescriptivas || 0}</Badge>
+                      </div>
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-2">
                           <GraduationCap className="h-4 w-4 text-orange-500" />
                           <span className="text-sm">Nuevos grupos</span>
                         </div>
@@ -412,6 +427,22 @@ export function AdminDashboard() {
 
 
             </>
+          )}
+        </TabsContent>
+
+        <TabsContent value="analytics" className="space-y-6">
+          {isAdmin ? (
+            <AnalyticsCharts />
+          ) : (
+            <Card>
+              <CardContent className="p-8 text-center">
+                <LineChart className="mx-auto h-12 w-12 text-muted-foreground mb-4" />
+                <h3 className="text-lg font-semibold mb-2">Acceso Restringido</h3>
+                <p className="text-muted-foreground">
+                  Solo los administradores pueden ver las analíticas.
+                </p>
+              </CardContent>
+            </Card>
           )}
         </TabsContent>
 

@@ -13,6 +13,10 @@ export interface PlatformStats {
     totalAlumnos: number;
     totalPlaneaciones: number;
     totalExamenes: number;
+    totalPresentaciones: number;
+    totalProyectos: number;
+    totalPlanesAnaliticos: number;
+    totalFichasDescriptivas: number;
     totalMensajes: number;
     totalMensajesPadres: number;
 }
@@ -21,6 +25,10 @@ export interface RecentActivity {
     nuevosUsuarios: number;
     nuevasPlaneaciones: number;
     nuevosExamenes: number;
+    nuevasPresentaciones: number;
+    nuevosProyectos: number;
+    nuevosPlanesAnaliticos: number;
+    nuevasFichasDescriptivas: number;
     nuevosGrupos: number;
 }
 
@@ -97,6 +105,10 @@ export async function getPlatformStats(): Promise<PlatformStats> {
             gruposResult,
             planeacionesResult,
             examenesResult,
+            presentacionesResult,
+            proyectosResult,
+            planesAnaliticosResult,
+            fichasResult,
             mensajesResult,
             mensajesPadresResult
         ] = await Promise.all([
@@ -131,6 +143,26 @@ export async function getPlatformStats(): Promise<PlatformStats> {
             // Total de exámenes
             supabase
                 .from('examenes')
+                .select('*', { count: 'exact', head: true }),
+
+            // Total de presentaciones
+            supabase
+                .from('presentaciones_ia')
+                .select('*', { count: 'exact', head: true }),
+
+            // Total de proyectos
+            supabase
+                .from('proyectos')
+                .select('*', { count: 'exact', head: true }),
+
+            // Total de planes analíticos
+            supabase
+                .from('planes_analiticos')
+                .select('*', { count: 'exact', head: true }),
+
+            // Total de fichas descriptivas
+            supabase
+                .from('fichas_descriptivas')
                 .select('*', { count: 'exact', head: true }),
 
             // Total de mensajes
@@ -172,6 +204,10 @@ export async function getPlatformStats(): Promise<PlatformStats> {
             totalAlumnos,
             totalPlaneaciones: planeacionesResult.count || 0,
             totalExamenes: examenesResult.count || 0,
+            totalPresentaciones: presentacionesResult.count || 0,
+            totalProyectos: proyectosResult.count || 0,
+            totalPlanesAnaliticos: planesAnaliticosResult.count || 0,
+            totalFichasDescriptivas: fichasResult.count || 0,
             totalMensajes: mensajesResult.count || 0,
             totalMensajesPadres: mensajesPadresResult.count || 0
         };
@@ -189,6 +225,10 @@ export async function getPlatformStats(): Promise<PlatformStats> {
             totalAlumnos: 0,
             totalPlaneaciones: 0,
             totalExamenes: 0,
+            totalPresentaciones: 0,
+            totalProyectos: 0,
+            totalPlanesAnaliticos: 0,
+            totalFichasDescriptivas: 0,
             totalMensajes: 0,
             totalMensajesPadres: 0
         };
@@ -208,6 +248,10 @@ export async function getRecentActivity(): Promise<RecentActivity> {
             nuevosUsuariosResult,
             nuevasPlaneacionesResult,
             nuevosExamenesResult,
+            nuevasPresentacionesResult,
+            nuevosProyectosResult,
+            nuevosPlanesAnaliticosResult,
+            nuevasFichasResult,
             nuevosGruposResult
         ] = await Promise.all([
             supabase
@@ -226,6 +270,26 @@ export async function getRecentActivity(): Promise<RecentActivity> {
                 .gte('created_at', fechaLimiteISO),
 
             supabase
+                .from('presentaciones_ia')
+                .select('*', { count: 'exact', head: true })
+                .gte('created_at', fechaLimiteISO),
+
+            supabase
+                .from('proyectos')
+                .select('*', { count: 'exact', head: true })
+                .gte('created_at', fechaLimiteISO),
+
+            supabase
+                .from('planes_analiticos')
+                .select('*', { count: 'exact', head: true })
+                .gte('created_at', fechaLimiteISO),
+
+            supabase
+                .from('fichas_descriptivas')
+                .select('*', { count: 'exact', head: true })
+                .gte('created_at', fechaLimiteISO),
+
+            supabase
                 .from('grupos')
                 .select('*', { count: 'exact', head: true })
                 .gte('created_at', fechaLimiteISO)
@@ -235,6 +299,10 @@ export async function getRecentActivity(): Promise<RecentActivity> {
             nuevosUsuarios: nuevosUsuariosResult.count || 0,
             nuevasPlaneaciones: nuevasPlaneacionesResult.count || 0,
             nuevosExamenes: nuevosExamenesResult.count || 0,
+            nuevasPresentaciones: nuevasPresentacionesResult.count || 0,
+            nuevosProyectos: nuevosProyectosResult.count || 0,
+            nuevosPlanesAnaliticos: nuevosPlanesAnaliticosResult.count || 0,
+            nuevasFichasDescriptivas: nuevasFichasResult.count || 0,
             nuevosGrupos: nuevosGruposResult.count || 0
         };
     } catch (error) {
@@ -243,6 +311,10 @@ export async function getRecentActivity(): Promise<RecentActivity> {
             nuevosUsuarios: 0,
             nuevasPlaneaciones: 0,
             nuevosExamenes: 0,
+            nuevasPresentaciones: 0,
+            nuevosProyectos: 0,
+            nuevosPlanesAnaliticos: 0,
+            nuevasFichasDescriptivas: 0,
             nuevosGrupos: 0
         };
     }
