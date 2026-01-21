@@ -43,3 +43,4 @@ scripts/verify-pdas-data.ts
 
 # Exports
 exports/
+downloads/

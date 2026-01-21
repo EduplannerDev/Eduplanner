@@ -409,6 +409,480 @@ paths:
         '500':
           description: Error del servidor
 
+  /chat-help:
+    post:
+      tags:
+        - Asistente Edu
+      summary: Chat con asistente de ayuda "Edu"
+      description: Endpoint para interactuar con el asistente de ayuda contextual con búsqueda semántica (RAG) en documentación
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                messages:
+                  type: array
+                  items:
+                    $ref: '#/components/schemas/ChatMessage'
+                userId:
+                  type: string
+                  description: ID del usuario para logging
+              required:
+                - messages
+      responses:
+        '200':
+          description: Respuesta exitosa del asistente
+          content:
+            text/event-stream:
+              schema:
+                type: string
+        '500':
+          description: Error del servidor
+
+  /log-communication:
+    post:
+      tags:
+        - Seguimiento
+      summary: Registrar comunicación con familia
+      description: Registra una comunicación con padres/tutores en el seguimiento diario del alumno
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                alumnoId:
+                  type: string
+                  description: ID del alumno
+                mensajeEnviado:
+                  type: string
+                  description: Mensaje enviado a la familia
+                tipoIncidencia:
+                  type: string
+                  description: Tipo de incidencia o motivo del contacto
+              required:
+                - alumnoId
+                - mensajeEnviado
+      responses:
+        '200':
+          description: Comunicación registrada exitosamente
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+        '400':
+          description: Datos incompletos
+        '401':
+          description: Usuario no autenticado
+        '500':
+          description: Error del servidor
+
+  /incidencias/upload-signed:
+    post:
+      tags:
+        - Incidencias
+      summary: Subir acta firmada
+      description: Sube el PDF del acta firmada y actualiza el estado de la incidencia
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                file:
+                  type: string
+                  format: binary
+                  description: Archivo PDF del acta firmada (max 10MB)
+                incidentId:
+                  type: string
+                  description: ID de la incidencia
+                plantelId:
+                  type: string
+                  description: ID del plantel
+              required:
+                - file
+                - incidentId
+                - plantelId
+      responses:
+        '200':
+          description: Acta firmada subida exitosamente
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  url:
+                    type: string
+                    description: URL pública del PDF subido
+                  message:
+                    type: string
+        '400':
+          description: Parámetros inválidos o archivo no permitido
+        '500':
+          description: Error del servidor
+
+  /plan-analitico/create:
+    post:
+      tags:
+        - Plan Analítico
+      summary: Crear plan analítico
+      description: Crea un nuevo plan analítico vinculado a un contexto de trabajo
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PlanAnaliticoCreate'
+      responses:
+        '200':
+          description: Plan analítico creado exitosamente
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id:
+                    type: s
+                  plan:
+                    $ref: '#/components/schemas/PlanAnalitico'
+        '400':
+          description: Datos inválidos
+        '401':
+          description: Usuario no autenticado
+        '500':
+          description: Error del servidor
+
+  /plan-analitico/generate-diagnostico:
+    post:
+      tags:
+        - Plan Analítico
+      summary: Generar diagnóstico con IA
+      description: Genera el diagnóstico del plan analítico usando IA basado en el contexto proporcionado
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                contexto:
+                  type: string
+                  description: Información del contexto del grupo
+                grado:
+                  type: string
+                cicloEscolar:
+                  type: string
+      responses:
+        '200':
+          description: Diagnóstico generado exitosamente
+          content:
+            text/event-stream:
+              schema:
+                type: string
+        '500':
+          description: Error del servidor
+
+  /proyectos/create:
+    post:
+      tags:
+        - Proyectos
+      summary: Crear proyecto educativo
+      description: Crea un nuevo proyecto educativo
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ProyectoCreate'
+      responses:
+        '200':
+          description: Proyecto creado exitosamente
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id:
+                    type: string
+                  proyecto:
+                    $ref: '#/components/schemas/Proyecto'
+        '400':
+          description: Datos inválidos
+        '401':
+          description: Usuario no autenticado
+        '500':
+          description: Error del servidor
+
+  /proyectos/{id}/pdas:
+    get:
+      tags:
+        - Proyectos
+      summary: Obtener PDAs del proyecto
+      description: Obtiene los Procesos de Desarrollo de Aprendizaje (PDAs) del proyecto
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+          description: ID del proyecto
+      responses:
+        '200':
+          description: PDAs obtenidos exitosamente
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/PDA'
+        '404':
+          description: Proyecto no encontrado
+        '500':
+          description: Error del servidor
+
+  /proyectos/suggest-pdas:
+    post:
+      tags:
+        - Proyectos
+      summary: Sugerir PDAs con IA
+      description: Genera sugerencias de PDAs usando IA basado en el proyecto
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                proyectoData:
+                  type: object
+                  description: Datos del proyecto
+                grado:
+                  type: string
+                campoFormativo:
+                  type: string
+      responses:
+        '200':
+          description: Sugerencias generadas exitosamente
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+        '500':
+          description: Error del servidor
+
+  /proyectos/delete:
+    delete:
+      tags:
+        - Proyectos
+      summary: Eliminar proyecto
+      description: Elimina un proyecto educativo
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                projectId:
+                  type: string
+              required:
+                - projectId
+      responses:
+        '200':
+          description: Proyecto eliminado exitosamente
+        '400':
+          description: ID del proyecto requerido
+        '404':
+          description: Proyecto no encontrado
+        '500':
+          description: Error del servidor
+
+  /instrumentos-evaluacion/generate-rubrica:
+    post:
+      tags:
+        - Evaluación
+      summary: Generar rúbrica con IA
+      description: Genera una rúbrica analítica personalizada usando IA
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                aprendizajeEsperado:
+                  type: string
+                criterios:
+                  type: array
+                  items:
+                    type: string
+                niveles:
+                  type: integer
+                  minimum: 3
+                  maximum: 5
+      responses:
+        '200':
+          description: Rúbrica generada exitosamente
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Rubrica'
+        '500':
+          description: Error del servidor
+
+  /admin/chat-logs:
+    get:
+      tags:
+        - Administración
+      summary: Obtener logs del asistente Edu
+      description: Obtiene todos los logs de interacciones con el asistente de ayuda
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          description: Logs obtenidos exitosamente
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/ChatLog'
+        '500':
+          description: Error del servidor
+
+  /generate-nem:
+    post:
+      tags:
+        - Planeaciones
+      summary: Generar planeación NEM
+      description: Genera una planeación didáctica con metodología de la Nueva Escuela Mexicana
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                messages:
+                  type: array
+                  items:
+                    $ref: '#/components/schemas/ChatMessage'
+      responses:
+        '200':
+          description: Planeación NEM generada exitosamente
+          content:
+            text/event-stream:
+              schema:
+                type: string
+        '500':
+          description: Error del servidor
+
+  /generate-cime:
+    post:
+      tags:
+        - Planeaciones
+      summary: Generar planeación CIME
+      description: Genera una planeación didáctica con metodología constructivista CIME (Solo PRO)
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                messages:
+                  type: array
+                  items:
+                    $ref: '#/components/schemas/ChatMessage'
+      responses:
+        '200':
+          description: Planeación CIME generada exitosamente
+          content:
+            text/event-stream:
+              schema:
+                type: string
+        '403':
+          description: Requiere suscripción PRO
+        '500':
+          description: Error del servidor
+
+  /invite-user:
+    post:
+      tags:
+        - Administración
+      summary: Invitar usuario
+      description: Envía invitación por email a un nuevo usuario con rol específico
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                email:
+                  type: string
+                  format: email
+                role:
+                  type: string
+                  enum: [admin, director, profesor]
+                plantelId:
+                  type: string
+                  description: ID del plantel (opcional para admin)
+              required:
+                - email
+                - role
+      responses:
+        '200':
+          description: Invitación enviada exitosamente
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  message:
+                    type: string
+        '400':
+          description: Datos inválidos
+        '401':
+          description: No autorizado
+        '500':
+          description: Error del servidor
+
 components:
   schemas:
     Message:
@@ -451,6 +925,151 @@ components:
           type: string
           description: Clave de respuestas en formato Markdown
 
+    PlanAnaliticoCreate:
+      type: object
+      properties:
+        nombre:
+          type: string
+        contexto_trabajo_id:
+          type: string
+        diagnostico:
+          type: object
+        contextualizacion:
+          type: object
+        codiseno:
+          type: object
+      required:
+        - nombre
+        - contexto_trabajo_id
+
+    PlanAnalitico:
+      type: object
+      properties:
+        id:
+          type: string
+        nombre:
+          type: string
+        user_id:
+          type: string
+        contexto_trabajo_id:
+          type: string
+        diagnostico:
+          type: object
+        contextualizacion:
+          type: object
+        codiseno:
+          type: object
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+
+    ProyectoCreate:
+      type: object
+      properties:
+        titulo:
+          type: string
+        descripcion:
+          type: string
+        grado:
+          type: string
+        campo_formativo:
+          type: string
+        contexto_trabajo_id:
+          type: string
+      required:
+        - titulo
+        - grado
+
+    Proyecto:
+      type: object
+      properties:
+        id:
+          type: string
+        titulo:
+          type: string
+        descripcion:
+          type: string
+        grado:
+          type: string
+        campo_formativo:
+          type: string
+        user_id:
+          type: string
+        contexto_trabajo_id:
+          type: string
+        fases:
+          type: array
+          items:
+            type: object
+        created_at:
+          type: string
+          format: date-time
+
+    PDA:
+      type: object
+      properties:
+        id:
+          type: string
+        nombre:
+          type: string
+        descripcion:
+          type: string
+        campo_formativo:
+          type: string
+
+    Rubrica:
+      type: object
+      properties:
+        titulo:
+          type: string
+        aprendizaje_esperado:
+          type: string
+        criterios:
+          type: array
+          items:
+            type: object
+            properties:
+              nombre:
+                type: string
+              niveles:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    nivel:
+                      type: string
+                    descripcion:
+                      type: string
+
+    ChatLog:
+      type: object
+      properties:
+        id:
+          type: string
+        user_id:
+          type: string
+        user_name:
+          type: string
+        user_email:
+          type: string
+        question:
+          type: string
+        answer:
+          type: string
+        created_at:
+          type: string
+          format: date-time
+        metadata:
+          type: object
+          properties:
+            context_docs:
+              type: array
+              items:
+                type: string
+
     Error:
       type: object
       properties:
@@ -484,3 +1103,19 @@ tags:
     description: Integraciones con servicios externos
   - name: Pagos
     description: Gestión de pagos y suscripciones
+  - name: Asistente Edu
+    description: Asistente de ayuda contextual con búsqueda semántica (RAG)
+  - name: Planeaciones
+    description: Generación de planeaciones didácticas (NEM y CIME)
+  - name: Seguimiento
+    description: Seguimiento de comunicaciones con familias
+  - name: Incidencias
+    description: Gestión de incidencias y protocolos de seguridad
+  - name: Plan Analítico
+    description: Creación y gestión de planes analíticos (NMCM 2023)
+  - name: Proyectos
+    description: Gestión de proyectos educativos y PDAs
+  - name: Evaluación
+    description: Generación de instrumentos de evaluación (rúbricas, listas de cotejo)
+  - name: Administración
+    description: Endpoints administrativos y reportes

@@ -10,7 +10,15 @@
     "docs": "node scripts/serve-docs.js",
     "docs:install": "npm install swagger-ui-express yamljs express",
     "docs:build": "echo 'Documentación generada en swagger.yaml'",
-    "import-calendar": "tsx scripts/import-school-calendar.ts"
+    "import-calendar": "tsx scripts/import-school-calendar.ts",
+    "sep:scrape": "tsx scripts/scrape-conaliteg-books.ts",
+    "sep:scrape:test": "tsx scripts/scrape-conaliteg-books.ts --test",
+    "sep:ocr": "tsx scripts/process-books-ocr.ts",
+    "sep:ocr:test": "tsx scripts/process-books-ocr.ts --test",
+    "sep:vectorize": "tsx scripts/vectorize-sep-books.ts",
+    "sep:process-all": "npm run sep:scrape && npm run sep:ocr && npm run sep:vectorize",
+    "sep:process-primero": "powershell -ExecutionPolicy Bypass -File scripts/process-libros.ps1",
+    "sep:process-2-6": "powershell -ExecutionPolicy Bypass -File scripts/process-grados-2-6.ps1"
   },
   "dependencies": {
     "@ai-sdk/google": "^1.2.18",

@@ -54,12 +54,18 @@ EduPlanner es una plataforma web moderna diseñada para ayudar a educadores mexi
 - **Historial**: Guarda y reutiliza mensajes anteriores
 - **Mensajes por Alumno**: Comunicación individual personalizada
 
-### 🤖 Chat con IA
+### 🤖 Chat con IA y Asistente "Edu"
 
 - **Asistente Educativo**: Chat interactivo para consultas pedagógicas
 - **Sugerencias Personalizadas**: Recomendaciones basadas en tu perfil
 - **Chat Especializado**: Conversaciones contextualizadas para dosificación curricular
 - **Búsqueda Semántica**: Sistema de embeddings para consulta de documentación
+- **Widget Flotante "Edu"**: Asistente de IA disponible en toda la plataforma
+- **Búsqueda Inteligente**: Sistema de búsqueda semántica en documentación con embeddings
+- **Contexto Adaptativo**: Respuestas contextualizadas según el módulo activo
+- **Logging de Consultas**: Registro de interacciones para análisis (visible en panel admin)
+- **Minimizable**: Control de visibilidad sin perder el historial de conversación
+- **Mascota del Sistema**: Personaje visual "Edu" con diseño amigable para mejor UX
 
 ### 🏢 Administración y Gestión de Planteles
 
@@ -89,6 +95,16 @@ EduPlanner es una plataforma web moderna diseñada para ayudar a educadores mexi
 - **Notas y Observaciones**: Registro de seguimiento académico y conductual
 - **Estadísticas de Grupo**: Métricas de asistencia y evaluación
 
+### 📞 Seguimiento de Comunicaciones con Familias
+
+- **Registro de Contactos**: Log detallado de llamadas, WhatsApp, reuniones presenciales y correos electrónicos
+- **Tipos de Comunicación**: Clasificación por canal de contacto
+- **Notas de Seguimiento**: Registro de acuerdos, compromisos y acciones tomadas
+- **Historial por Alumno**: Vista completa de comunicaciones en expediente del estudiante
+- **Integración con Incidencias**: Vinculación automática con reportes de seguridad
+- **Acceso Rápido**: Diálogo de contacto desde Dashboard Pulse
+- **Seguimiento Diario**: Sistema de registro para documentar cada interacción con padres/tutores
+
 ### 📋 Sistema de Asistencia
 
 - **Tomar Asistencia**: Registro diario de asistencia por grupo
@@ -96,6 +112,21 @@ EduPlanner es una plataforma web moderna diseñada para ayudar a educadores mexi
 - **Estadísticas de Asistencia**: Reportes y análisis de asistencia
 - **Historial de Asistencia**: Seguimiento temporal por alumno
 - **Exportación de Reportes**: Descarga listas de asistencia en Excel
+
+### 🚨 Gestión de Incidencias y Protocolos de Seguridad
+
+- **Reportes de Incidencias**: Wizard guiado para reportar violencia, acoso, accidentes, sustancias y violación de normas
+- **Clasificación de Riesgo**: Sistema de clasificación automática (alto/medio)
+- **Actas Circunstanciadas**: Generación automática de actas de hechos con formato oficial
+- **Edición Pre-Impresión**: Capacidad de editar y corregir actas antes de imprimir
+- **Impresión Oficial**: Generación de documentos con membrete del plantel
+- **Flujo de Trabajo**: Estados (generado → abierta → firmado → cerrado)
+- **Carga de Actas Firmadas**: Upload de PDFs escaneados con firmas
+- **Protocolos Automáticos**: Checklist de acciones urgentes según tipo de incidencia
+- **Seguimiento de Comunicaciones**: Historial de contactos con familia relacionados
+- **Botón de Pánico**: Acceso rápido desde dashboard para emergencias
+- **Gestión de Expedientes**: Visualización completa y archivo de casos cerrados
+- **Búsqueda Avanzada**: Filtrado por alumno, tipo, estado y nivel de riesgo
 
 ### 🎯 Proyectos Educativos
 
@@ -177,6 +208,21 @@ EduPlanner es una plataforma web moderna diseñada para ayudar a educadores mexi
 - **Reportes de Suscripciones**: Análisis de ventas y conversiones PRO
 - **Estadísticas de Uso**: Tracking de funcionalidades más usadas
 - **Analytics Integrado**: Microsoft Clarity y Vercel Analytics
+- **Logs de Chat del Asistente**: Vista completa de interacciones con el chatbot Edu
+- **Filtros Avanzados**: Por usuario, fecha, pregunta y documentos de contexto utilizados
+
+### 📊 Dashboard Pulse (Monitoreo en Tiempo Real)
+
+**Panel ejecutivo exclusivo para directores con métricas en tiempo real**
+
+- **Cumplimiento Semanal**: Widget de cumplimiento de planeaciones por profesor
+- **Asistencia en Vivo**: Promedio de asistencia diaria actualizado del plantel
+- **Semáforo de Seguridad**: Indicador visual de incidencias activas (verde/amarillo/rojo)
+- **Atención Inmediata**: Lista de alumnos de alto riesgo que requieren seguimiento urgente
+- **Contacto Rápido con Familias**: Diálogo para registrar comunicaciones desde el dashboard
+- **Métricas Actualizadas**: Datos en tiempo real del estado operativo del plantel
+- **Análisis de Tendencias**: Identificación de patrones de riesgo y necesidades de intervención
+- **Vista Ejecutiva**: Dashboard específico diseñado para la toma de decisiones directivas
 
 ## 🛠️ Tecnologías Utilizadas
 
@@ -212,11 +258,13 @@ EduPlanner es una plataforma web moderna diseñada para ayudar a educadores mexi
 ### 📄 Exportación y Documentación
 
 - **Formatos Múltiples**: Exportación de documentos en PDF, Word (DOCX), Excel (XLSX) y PowerPoint (PPTX)
-- **DOCX (9.5.0)**: Generación de documentos Word con formato profesional
+- **DOCX (9.5.0)**: Generación de documentos Word con formato profesional (planeaciones, plan analítico)
 - **jsPDF (3.0.1)**: Creación de archivos PDF
 - **PptxGenJS (4.0.0)**: Generación de presentaciones PowerPoint
-- **XLSX (0.18.5)**: Exportación de datos a Excel con fórmulas y formato
+- **XLSX (0.18.5)**: Exportación de datos a Excel con fórmulas y formato (asistencia, listas de cotejo)
 - **Puppeteer (24.22.0)**: Generación de PDFs avanzados desde HTML
+- **Actas de Incidencias**: Impresión oficial con membrete del plantel y upload de PDFs firmados
+- **Documentos Institucionales**: Integración de logo y hoja membretada en reportes oficiales
 
 ### Pagos y Comunicación
 
@@ -391,13 +439,17 @@ Eduplanner/
 ├── app/                    # App Router de Next.js
 │   ├── api/               # Rutas de API
 │   │   ├── chat/          # Chat con IA
+│   │   ├── chat-help/     # API del asistente Edu
 │   │   ├── generate-*/    # Generadores de contenido (CIME, NEM, exámenes)
 │   │   ├── proyectos/     # API de proyectos educativos
 │   │   ├── instrumentos-evaluacion/ # Instrumentos de evaluación
 │   │   ├── plan-analitico/ # API de Plan Analítico
+│   │   ├── incidencias/   # API de gestión de incidencias
+│   │   ├── log-communication/ # API de seguimiento de comunicaciones
 │   │   ├── stripe/        # Integración de pagos
 │   │   ├── invite-user/   # Sistema de invitaciones
 │   │   └── admin/         # Rutas de administración
+│   │       └── chat-logs/ # Logs del asistente Edu
 │   ├── admin/             # Páginas de administración
 │   │   └── pro-stats/     # Dashboard de estadísticas PRO
 │   ├── globals.css        # Estilos globales y tour
@@ -416,6 +468,15 @@ Eduplanner/
 │   │   │   ├── step-3-codiseno.tsx
 │   │   │   ├── lista-planes-analiticos.tsx
 │   │   │   └── ver-plan-analitico.tsx
+│   │   ├── dashboard-pulse/ # Dashboard de monitoreo directivo
+│   │   │   ├── dashboard-pulse.tsx
+│   │   │   ├── contact-family-dialog.tsx
+│   │   │   ├── immediate-attention-list.tsx
+│   │   │   ├── security-traffic-light-widget.tsx
+│   │   │   ├── daily-attendance-widget.tsx
+│   │   │   └── teachers-compliance-widget.tsx
+│   │   ├── incidencias-section.tsx # Gestión de incidencias
+│   │   ├── incidencia-wizard.tsx # Wizard de reportes de seguridad
 │   │   ├── agenda.tsx     # Calendario y eventos
 │   │   ├── presentaciones-ia.tsx # Generador de presentaciones
 │   │   ├── diario-profesional.tsx # Bitácora personal
@@ -425,7 +486,8 @@ Eduplanner/
 │   │   └── tour-guide-planeacion.tsx # Tour de planeaciones
 │   ├── app-sidebar.tsx   # Sidebar principal
 │   ├── dashboard.tsx     # Dashboard principal
-│   └── welcome-modal.tsx # Modal de bienvenida
+│   ├── welcome-modal.tsx # Modal de bienvenida
+│   └── help-chat-widget.tsx # Widget de asistente Edu
 ├── hooks/                # Custom hooks
 │   ├── use-auth.ts       # Autenticación
 │   ├── use-roles.ts      # Gestión de roles
@@ -448,6 +510,8 @@ Eduplanner/
 │   ├── planeaciones.ts   # Gestión de planeaciones
 │   ├── subscription-utils.ts # Utilidades de suscripciones
 │   ├── pro-subscription-stats.ts # Estadísticas de suscriptores PRO
+│   ├── dashboard-pulse.ts # Lógica de métricas en tiempo real
+│   ├── admin-stats.ts    # Estadísticas del panel de administración
 │   └── welcome-modal.ts  # Sistema de modal de bienvenida
 ├── docs/                 # Documentación del proyecto
 │   ├── flujos/           # Flujos de usuario documentados
@@ -472,6 +536,39 @@ Eduplanner/
 
 ## 🆕 Últimas Funcionalidades Añadidas
 
+### 🚨 Sistema de Gestión de Incidencias y Protocolos de Seguridad
+
+Sistema completo de gestión de incidencias escolares con protocolos de seguridad:
+
+- **Wizard de 3 Pasos**: Asistente guiado para reportar incidencias de forma estructurada
+- **Clasificación Automática**: Sistema de riesgo (alto/medio) según tipo de incidencia
+- **Actas Oficiales**: Generación automática de actas circunstanciadas con IA
+- **Flujo Completo**: Workflow desde generación hasta cierre (generado → abierta → firmado → cerrado)
+- **Impresión con Membrete**: Documentos oficiales con logo y hoja membretada del plantel
+- **Upload de PDFs**: Carga de actas escaneadas firmadas
+- **Protocolos de Acción**: Checklist automático de acciones urgentes
+- **Integración Total**: Vinculación con expedientes de alumnos y comunicaciones con familia
+
+### 📊 Dashboard Pulse - Monitoreo Directivo en Tiempo Real
+
+Panel ejecutivo para directores con métricas actualizadas del plantel:
+
+- **Widgets de Cumplimiento**: Seguimiento de planeaciones de profesores
+- **Asistencia en Vivo**: Promedio diario actualizado del plantel
+- **Semáforo de Seguridad**: Indicador visual de incidencias activas (verde/amarillo/rojo)
+- **Lista de Atención Urgente**: Alumnos de alto riesgo identificados automáticamente
+- **Contacto Rápido**: Diálogo para registrar comunicaciones con familias
+- **Métricas en Tiempo Real**: Dashboard actualizado para toma de decisiones
+
+### 📞 Sistema de Seguimiento de Comunicaciones con Familias
+
+Registro completo de interacciones con padres y tutores:
+
+- **Registro de Contactos**: Log de llamadas, WhatsApp, reuniones y correos
+- **Historial Completo**: Vista de todas las comunicaciones por alumno
+- **Integración con Incidencias**: Vinculación automática con reportes de seguridad
+- **Acceso desde Dashboard Pulse**: Diálogo rápido de contacto para directores
+
 ### Plan Analítico (Nuevo Marco Curricular 2023)
 
 Sistema completo de diseño de Plan Analítico alineado al NMCM:
@@ -481,6 +578,16 @@ Sistema completo de diseño de Plan Analítico alineado al NMCM:
 - **Vinculación Curricular**: Integración con campos formativos y contenidos SEP
 - **Planificación Trimestral**: Organización por trimestres del ciclo escolar
 - **Exportación Profesional**: Generación de documentos en DOCX y PDF
+
+### 💬 Widget de Asistente "Edu" - Ayuda IA Contextual
+
+Sistema de ayuda inteligente disponible en toda la plataforma:
+
+- **Widget Flotante**: Asistente siempre disponible con minimización
+- **Búsqueda Semántica Avanzada**: Sistema de embeddings en documentación
+- **Logging de Interacciones**: Registro de consultas visible en panel admin
+- **Contexto Adaptativo**: Respuestas según módulo activo
+- **Mascota Visual**: Diseño amigable con personaje "Edu"
 
 ### Tours Guiados Interactivos
 
