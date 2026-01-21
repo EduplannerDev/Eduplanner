@@ -13,6 +13,7 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { useContextoTrabajo } from '@/hooks/use-contexto-trabajo'
 
 interface NuevoGrupoProps {
   onBack: () => void
@@ -45,18 +46,56 @@ const NuevoGrupo = ({ onBack, onSaveSuccess }: NuevoGrupoProps) => {
     ciclo_escolar: ''
   })
 
-  const niveles = [
-    'Preescolar',
-    'Primaria',
-    'Secundaria',
-    'Preparatoria'
-  ]
+  const { availableContexts, loading: contextsLoading } = useContextoTrabajo()
 
-  const grados = {
-    'Preescolar': ['1°', '2°', '3°'],
-    'Primaria': ['1°', '2°', '3°', '4°', '5°', '6°'],
-    'Secundaria': ['1°', '2°', '3°'],
-    'Preparatoria': ['1°', '2°', '3°']
+  const [selectedContextId, setSelectedContextId] = useState<string>('')
+
+  // Helper function to derive data from context grade (integer)
+  const getContextDetails = (gradoInt: number) => {
+    let nivel = ''
+    let gradoStr = ''
+
+    if (gradoInt < 0) {
+      nivel = 'Preescolar'
+      gradoStr = `${gradoInt + 4}°`
+    } else if (gradoInt <= 6) {
+      nivel = 'Primaria'
+      gradoStr = `${gradoInt}°`
+    } else {
+      nivel = 'Secundaria'
+      gradoStr = `${gradoInt - 6}°`
+    }
+    return { nivel, grado: gradoStr }
+  }
+
+  // Effect to handle context selection
+  useEffect(() => {
+    if (!contextsLoading && availableContexts.length > 0) {
+      // If none selected, or if the user only has one, default to the first one (or the active one)
+      // Usually we want to force the user to pick if multiple, but here we can default to the first/active one.
+      // Let's check if we have one selected.
+      if (!selectedContextId) {
+        // Find active one or first
+        const active = availableContexts.find(c => c.selected) || availableContexts[0]
+        if (active) {
+          handleContextChange(active.id)
+        }
+      }
+    }
+  }, [availableContexts, contextsLoading])
+
+  const handleContextChange = (contextId: string) => {
+    setSelectedContextId(contextId)
+    const context = availableContexts.find(c => c.id === contextId)
+    if (context) {
+      const { nivel, grado } = getContextDetails(context.grado)
+      setFormData(prev => ({
+        ...prev,
+        nivel,
+        grado,
+        ciclo_escolar: context.ciclo_escolar
+      }))
+    }
   }
 
   const grupos = ['A', 'B', 'C', 'D', 'E', 'F']
@@ -87,29 +126,11 @@ const NuevoGrupo = ({ onBack, onSaveSuccess }: NuevoGrupoProps) => {
     checkGroupLimits()
   }, [user?.id])
 
-  const getCurrentSchoolYear = () => {
-    const currentYear = new Date().getFullYear()
-    const currentMonth = new Date().getMonth()
-
-    if (currentMonth >= 7) {
-      return `${currentYear}-${currentYear + 1}`
-    } else {
-      return `${currentYear - 1}-${currentYear}`
-    }
-  }
-
   const handleInputChange = (field: keyof CreateGrupoData, value: string) => {
     setFormData(prev => ({
       ...prev,
       [field]: value
     }))
-
-    if (field === 'nombre' && !formData.ciclo_escolar) {
-      setFormData(prev => ({
-        ...prev,
-        ciclo_escolar: getCurrentSchoolYear()
-      }))
-    }
   }
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -257,46 +278,44 @@ const NuevoGrupo = ({ onBack, onSaveSuccess }: NuevoGrupoProps) => {
                   />
                 </div>
 
-                <div className="space-y-2">
-                  <Label htmlFor="nivel">Nivel Educativo *</Label>
-                  <Select
-                    value={formData.nivel}
-                    onValueChange={(value) => {
-                      handleInputChange('nivel', value)
-                      handleInputChange('grado', '')
-                    }}
-                  >
-                    <SelectTrigger>
-                      <SelectValue placeholder={<span className="notranslate">Selecciona el nivel</span>} />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {niveles.map((nivel) => (
-                        <SelectItem key={nivel} value={nivel}>
-                          {nivel}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
+                <div className="col-span-1 md:col-span-2 space-y-2">
+                  <Label>Contexto Educativo *</Label>
+                  {availableContexts.length === 0 ? (
+                    <div className="p-3 bg-yellow-50 text-yellow-800 rounded-md border border-yellow-200 text-sm">
+                      No tienes contextos educativos configurados. Por favor configura tu grado escolar y ciclo desde tu perfil o el dashboard.
+                    </div>
+                  ) : (
+                    <Select
+                      value={selectedContextId}
+                      onValueChange={handleContextChange}
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder="Selecciona el contexto" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {availableContexts.map((ctx) => {
+                          const info = getContextDetails(ctx.grado)
+                          return (
+                            <SelectItem key={ctx.id} value={ctx.id}>
+                              {info.nivel} {info.grado} - {ctx.ciclo_escolar}
+                            </SelectItem>
+                          )
+                        })}
+                      </SelectContent>
+                    </Select>
+                  )}
                 </div>
 
-                <div className="space-y-2">
-                  <Label htmlFor="grado">Grado *</Label>
-                  <Select
-                    value={formData.grado}
-                    onValueChange={(value) => handleInputChange('grado', value)}
-                    disabled={!formData.nivel}
-                  >
-                    <SelectTrigger>
-                      <SelectValue placeholder={<span className="notranslate">Selecciona el grado</span>} />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {formData.nivel && grados[formData.nivel as keyof typeof grados]?.map((grado) => (
-                        <SelectItem key={grado} value={grado}>
-                          {grado}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
+                {/* Campos de solo lectura para información del contexto */}
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label>Nivel Educativo</Label>
+                    <Input value={formData.nivel} disabled className="bg-gray-100" />
+                  </div>
+                  <div className="space-y-2">
+                    <Label>Grado</Label>
+                    <Input value={formData.grado} disabled className="bg-gray-100" />
+                  </div>
                 </div>
 
                 <div className="space-y-2">
@@ -319,14 +338,12 @@ const NuevoGrupo = ({ onBack, onSaveSuccess }: NuevoGrupoProps) => {
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="ciclo_escolar">Ciclo Escolar *</Label>
+                  <Label htmlFor="ciclo_escolar">Ciclo Escolar</Label>
                   <Input
                     id="ciclo_escolar"
-                    type="text"
-                    placeholder="ej. 2024-2025"
                     value={formData.ciclo_escolar}
-                    onChange={(e) => handleInputChange('ciclo_escolar', e.target.value)}
-                    required
+                    disabled
+                    className="bg-gray-100"
                   />
                 </div>
               </div>

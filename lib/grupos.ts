@@ -36,7 +36,7 @@ export async function getGruposByOwner(userId: string): Promise<Grupo[]> {
   // Filtrar grupos por el usuario específico
   const { data, error } = await supabase
     .from('grupos')
-    .select('*')
+    .select('*, alumnos(count)')
     .eq('user_id', userId)
     .eq('activo', true)
     .order('created_at', { ascending: false })
@@ -46,14 +46,17 @@ export async function getGruposByOwner(userId: string): Promise<Grupo[]> {
     throw new Error('Error al obtener los grupos')
   }
 
-  return data || []
+  return data?.map((g: any) => ({
+    ...g,
+    numero_alumnos: g.alumnos?.[0]?.count || 0
+  })) || []
 }
 
 // Obtener un grupo específico
 export async function getGrupoById(id: string): Promise<Grupo | null> {
   const { data, error } = await supabase
     .from('grupos')
-    .select('*')
+    .select('*, alumnos(count)')
     .eq('id', id)
     .single()
 
@@ -65,7 +68,10 @@ export async function getGrupoById(id: string): Promise<Grupo | null> {
     throw new Error('Error al obtener el grupo')
   }
 
-  return data
+  return {
+    ...data,
+    numero_alumnos: data.alumnos?.[0]?.count || 0
+  }
 }
 
 // Crear un nuevo grupo
@@ -139,6 +145,7 @@ export async function getGruposByPlantel(plantelId: string): Promise<Grupo[]> {
     .from('grupos')
     .select(`
       *,
+      alumnos(count),
       profiles!grupos_user_id_fkey(
         full_name,
         email
@@ -153,14 +160,17 @@ export async function getGruposByPlantel(plantelId: string): Promise<Grupo[]> {
     throw new Error('Error al obtener los grupos del plantel')
   }
 
-  return data || []
+  return data?.map((g: any) => ({
+    ...g,
+    numero_alumnos: g.alumnos?.[0]?.count || 0
+  })) || []
 }
 
 // Obtener grupos del usuario en un plantel específico
 export async function getGruposByUserAndPlantel(userId: string, plantelId: string): Promise<Grupo[]> {
   const { data, error } = await supabase
     .from('grupos')
-    .select('*')
+    .select('*, alumnos(count)')
     .eq('user_id', userId)
     .eq('plantel_id', plantelId)
     .eq('activo', true)
@@ -171,7 +181,10 @@ export async function getGruposByUserAndPlantel(userId: string, plantelId: strin
     throw new Error('Error al obtener los grupos')
   }
 
-  return data || []
+  return data?.map((g: any) => ({
+    ...g,
+    numero_alumnos: g.alumnos?.[0]?.count || 0
+  })) || []
 }
 
 // Desactivar un grupo (soft delete)

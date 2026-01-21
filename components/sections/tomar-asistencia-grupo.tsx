@@ -7,11 +7,11 @@ import { Badge } from "@/components/ui/badge"
 import { Textarea } from "@/components/ui/textarea"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { Skeleton } from "@/components/ui/skeleton"
-import { 
-  ArrowLeft, 
-  CheckCircle, 
-  XCircle, 
-  Clock, 
+import {
+  ArrowLeft,
+  CheckCircle,
+  XCircle,
+  Clock,
   FileText,
   Users,
   Calendar,
@@ -21,12 +21,12 @@ import {
 import { useNotification } from "@/hooks/use-notification"
 import { format } from "date-fns"
 import { es } from "date-fns/locale"
-import { 
-  getAlumnosConAsistencia, 
-  guardarAsistenciaAlumno, 
+import {
+  getAlumnosConAsistencia,
+  guardarAsistenciaAlumno,
   marcarTodosPresentes,
-  type AsistenciaConAlumno, 
-  type EstadoAsistencia 
+  type AsistenciaConAlumno,
+  type EstadoAsistencia
 } from "@/lib/asistencia"
 import { getGrupoById, type Grupo } from "@/lib/grupos"
 
@@ -37,29 +37,29 @@ interface TomarAsistenciaGrupoProps {
 }
 
 const estadosAsistencia = [
-  { 
-    value: 'presente' as EstadoAsistencia, 
-    label: 'Presente', 
+  {
+    value: 'presente' as EstadoAsistencia,
+    label: 'Presente',
     color: 'bg-green-500 hover:bg-green-600 text-white',
-    icon: CheckCircle 
+    icon: CheckCircle
   },
-  { 
-    value: 'ausente' as EstadoAsistencia, 
-    label: 'Ausente', 
+  {
+    value: 'ausente' as EstadoAsistencia,
+    label: 'Ausente',
     color: 'bg-red-500 hover:bg-red-600 text-white',
-    icon: XCircle 
+    icon: XCircle
   },
-  { 
-    value: 'retardo' as EstadoAsistencia, 
-    label: 'Retardo', 
+  {
+    value: 'retardo' as EstadoAsistencia,
+    label: 'Retardo',
     color: 'bg-yellow-500 hover:bg-yellow-600 text-white',
-    icon: Clock 
+    icon: Clock
   },
-  { 
-    value: 'justificado' as EstadoAsistencia, 
-    label: 'Justificado', 
+  {
+    value: 'justificado' as EstadoAsistencia,
+    label: 'Justificado',
     color: 'bg-blue-500 hover:bg-blue-600 text-white',
-    icon: FileText 
+    icon: FileText
   }
 ]
 
@@ -82,15 +82,15 @@ export default function TomarAsistenciaGrupo({ grupoId, fecha, onBack }: TomarAs
     try {
       setLoading(true)
       setErrorMsg(null)
-      
+
       const [grupoData, alumnosData] = await Promise.all([
         getGrupoById(grupoId),
         getAlumnosConAsistencia(grupoId, fecha)
       ])
-      
+
       setGrupo(grupoData)
       setAlumnos(alumnosData)
-      
+
       // Inicializar notas temporales
       const notasIniciales: { [key: string]: string } = {}
       alumnosData.forEach(alumno => {
@@ -99,7 +99,7 @@ export default function TomarAsistenciaGrupo({ grupoId, fecha, onBack }: TomarAs
         }
       })
       setNotasTemp(notasIniciales)
-      
+
     } catch (err) {
       console.error('Error loading data:', err)
       setErrorMsg('Error al cargar los datos')
@@ -119,8 +119,8 @@ export default function TomarAsistenciaGrupo({ grupoId, fecha, onBack }: TomarAs
 
   const handleCambiarEstado = (alumnoId: string, nuevoEstado: EstadoAsistencia) => {
     // Solo actualizar estado local, no guardar automáticamente
-    setAlumnos(prev => prev.map(alumno => 
-      alumno.alumno_id === alumnoId 
+    setAlumnos(prev => prev.map(alumno =>
+      alumno.alumno_id === alumnoId
         ? { ...alumno, estado: nuevoEstado }
         : alumno
     ))
@@ -130,36 +130,36 @@ export default function TomarAsistenciaGrupo({ grupoId, fecha, onBack }: TomarAs
   const handleGuardarAsistencia = async () => {
     try {
       setSaving(true)
-      
+
       // Guardar asistencia para todos los alumnos que tienen un estado definido
       const promesas = alumnos
         .filter(alumno => alumno.estado) // Solo alumnos con estado definido
         .map(alumno => {
           const notas = notasTemp[alumno.alumno_id] || alumno.notas
           return guardarAsistenciaAlumno(
-            alumno.alumno_id, 
-            grupoId, 
-            fecha, 
-            alumno.estado, 
+            alumno.alumno_id,
+            grupoId,
+            fecha,
+            alumno.estado,
             notas
           )
         })
-      
+
       await Promise.all(promesas)
-      
+
       // Actualizar notas en el estado local
       setAlumnos(prev => prev.map(alumno => ({
         ...alumno,
         notas: notasTemp[alumno.alumno_id] || alumno.notas
       })))
-      
+
       // Limpiar notas temporales y marcar como guardado
       setNotasTemp({})
       setNotasAbiertas(null)
       setCambiosPendientes(false)
-      
+
       success("Asistencia guardada correctamente para todos los alumnos")
-      
+
       // Regresar al listado principal después de guardar
       setTimeout(() => {
         onBack()
@@ -178,7 +178,7 @@ export default function TomarAsistenciaGrupo({ grupoId, fecha, onBack }: TomarAs
     const ausentes = alumnos.filter(a => a.estado === 'ausente').length
     const retardos = alumnos.filter(a => a.estado === 'retardo').length
     const justificados = alumnos.filter(a => a.estado === 'justificado').length
-    
+
     return { total, presentes, ausentes, retardos, justificados }
   }
 
@@ -236,41 +236,43 @@ export default function TomarAsistenciaGrupo({ grupoId, fecha, onBack }: TomarAs
       )}
 
       {/* Header */}
-      <div className="flex items-center gap-4">
-        <Button variant="outline" onClick={onBack}>
-          <ArrowLeft className="h-4 w-4 mr-2" />
-          Volver
-        </Button>
-        <div className="flex-1">
-          <h1 className="text-3xl font-bold text-foreground">
-            Asistencia - {grupo?.nombre}
-          </h1>
-          <p className="text-muted-foreground mt-1">
-            {format(new Date(fecha), "EEEE, d 'de' MMMM 'de' yyyy", { locale: es })} • 
-            {grupo?.grado} {grupo?.nivel}
-          </p>
+      <div className="flex flex-col md:flex-row md:items-center gap-4">
+        <div className="flex items-center gap-4 w-full md:w-auto min-w-0">
+          <Button variant="outline" onClick={onBack} className="shrink-0">
+            <ArrowLeft className="h-4 w-4 mr-2" />
+            Volver
+          </Button>
+          <div className="flex-1 min-w-0">
+            {/* min-w-0 is critical for truncate to work in flex child */}
+            <h1 className="text-xl sm:text-2xl md:text-3xl font-bold text-foreground truncate leading-tight">
+              Asistencia - {grupo?.nombre}
+            </h1>
+            <p className="text-muted-foreground mt-1 text-sm md:text-base truncate">
+              {format(new Date(fecha), "EEEE, d 'de' MMMM 'de' yyyy", { locale: es })}
+            </p>
+          </div>
         </div>
-        <div className="flex items-center gap-2">
-          <Button 
+
+        <div className="flex flex-col sm:flex-row items-center gap-2 w-full md:w-auto shrink-0">
+          <Button
             onClick={handleMarcarTodosPresentes}
             disabled={saving}
-            className="bg-green-600 hover:bg-green-700 text-white"
+            className="bg-green-600 hover:bg-green-700 text-white w-full sm:w-auto shadow-sm"
           >
             <UserCheck className="h-4 w-4 mr-2" />
-            {saving ? 'Guardando...' : 'Marcar Todos Presentes'}
+            {saving ? 'Guardando...' : 'Todos Presentes'}
           </Button>
-          
+
           <Button
             onClick={handleGuardarAsistencia}
             disabled={saving || !cambiosPendientes}
-            className={`flex items-center gap-2 text-white ${
-              cambiosPendientes 
-                ? 'bg-blue-600 hover:bg-blue-700' 
+            className={`flex items-center gap-2 text-white w-full sm:w-auto shadow-sm ${cambiosPendientes
+                ? 'bg-blue-600 hover:bg-blue-700'
                 : 'bg-gray-400 cursor-not-allowed'
-            }`}
+              }`}
           >
             <Save className="h-4 w-4" />
-            {saving ? 'Guardando...' : cambiosPendientes ? 'Guardar Asistencia' : 'Sin Cambios'}
+            {saving ? 'Guardando...' : cambiosPendientes ? 'Guardar' : 'Sin Cambios'}
           </Button>
         </div>
       </div>
@@ -325,53 +327,54 @@ export default function TomarAsistenciaGrupo({ grupoId, fecha, onBack }: TomarAs
             {alumnos.map((alumno) => {
               const estadoActual = estadosAsistencia.find(e => e.value === alumno.estado)
               const IconoEstado = estadoActual?.icon || CheckCircle
-              
+
               return (
-                <div key={alumno.alumno_id} className="border rounded-lg p-4">
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-3">
+                <div key={alumno.alumno_id} className="border rounded-lg p-3 md:p-4 overflow-hidden shadow-sm">
+                  <div className="flex flex-col gap-3">
+                    <div className="flex items-center gap-3 min-w-0">
                       {alumno.alumno_numero_lista && (
-                        <div className="w-8 h-8 bg-muted rounded-full flex items-center justify-center text-sm font-medium text-muted-foreground">
+                        <div className="w-8 h-8 md:w-10 md:h-10 shrink-0 bg-muted rounded-full flex items-center justify-center text-sm font-medium text-muted-foreground">
                           {alumno.alumno_numero_lista}
                         </div>
                       )}
-                      <div>
-                        <h3 className="font-medium text-foreground">{alumno.alumno_nombre}</h3>
+                      <div className="min-w-0 flex-1">
+                        <h3 className="font-medium text-foreground text-sm md:text-base truncate">{alumno.alumno_nombre}</h3>
                         <div className="flex items-center gap-2 mt-1">
-                          <IconoEstado className="h-4 w-4" />
-                          <Badge variant="outline" className={estadoActual?.color}>
+                          <IconoEstado className="h-4 w-4 shrink-0" />
+                          <Badge variant="outline" className={`${estadoActual?.color} text-xs md:text-sm px-2 py-0.5 whitespace-nowrap`}>
                             {estadoActual?.label}
                           </Badge>
                         </div>
                       </div>
                     </div>
-                    
-                    <div className="flex items-center gap-2">
-                      {/* Botones de estado */}
-                      <div className="flex gap-1">
+
+                    <div className="flex flex-col sm:flex-row gap-2 w-full">
+                      {/* Botones de estado - Grid on Mobile, Flex on Desktop */}
+                      <div className="grid grid-cols-4 gap-1 w-full sm:w-auto sm:flex flex-1">
                         {estadosAsistencia.map((estado) => {
                           const Icono = estado.icon
                           const isActive = alumno.estado === estado.value
-                          
+
                           return (
                             <Button
                               key={estado.value}
                               size="sm"
                               variant={isActive ? "default" : "outline"}
-                              className={isActive ? estado.color : ""}
+                              className={`${isActive ? estado.color : ""} h-9 px-0 sm:px-3 gap-1 sm:gap-2 sm:flex-1 min-w-0`}
                               onClick={() => handleCambiarEstado(alumno.alumno_id, estado.value)}
                             >
-                              <Icono className="h-4 w-4 mr-1" />
-                              {estado.label}
+                              <Icono className="h-4 w-4 shrink-0" />
+                              <span className="text-[10px] sm:text-sm hidden sm:inline truncate">{estado.label}</span>
                             </Button>
                           )
                         })}
                       </div>
-                      
+
                       {/* Botón de notas */}
                       <Button
                         size="sm"
-                        variant="outline"
+                        variant="ghost"
+                        className="shrink-0 h-9 w-full sm:w-auto sm:px-3 border sm:border-transparent mt-1 sm:mt-0"
                         onClick={() => {
                           if (notasAbiertas === alumno.alumno_id) {
                             setNotasAbiertas(null)
@@ -386,14 +389,17 @@ export default function TomarAsistenciaGrupo({ grupoId, fecha, onBack }: TomarAs
                           }
                         }}
                       >
-                        <FileText className="h-4 w-4" />
+                        <div className="flex items-center justify-center gap-2 w-full">
+                          <FileText className={`h-4 w-4 ${notasTemp[alumno.alumno_id] || alumno.notas ? "text-blue-500 fill-blue-500" : "text-gray-500"}`} />
+                          <span className="sm:hidden text-xs text-muted-foreground">Nota</span>
+                        </div>
                       </Button>
                     </div>
                   </div>
-                  
+
                   {/* Campo de notas */}
                   {notasAbiertas === alumno.alumno_id && (
-                    <div className="mt-4 pt-4 border-t">
+                    <div className="mt-4 pt-4 border-t animate-in fade-in slide-in-from-top-2">
                       <div className="space-y-3">
                         <Textarea
                           placeholder="Agregar notas sobre la asistencia..."
@@ -405,23 +411,17 @@ export default function TomarAsistenciaGrupo({ grupoId, fecha, onBack }: TomarAs
                             }))
                             setCambiosPendientes(true)
                           }}
-                          rows={3}
+                          className="min-h-[80px]"
                         />
-                        <div className="flex gap-2">
+                        <div className="flex justify-end gap-2">
                           <Button
                             size="sm"
-                            variant="outline"
+                            variant="secondary"
                             onClick={() => {
                               setNotasAbiertas(null)
-                              // Restaurar notas originales si se cancela
-                              setNotasTemp(prev => {
-                                const newTemp = { ...prev }
-                                newTemp[alumno.alumno_id] = alumno.notas || ''
-                                return newTemp
-                              })
                             }}
                           >
-                            Cerrar
+                            Ocultar
                           </Button>
                         </div>
                       </div>
@@ -431,7 +431,7 @@ export default function TomarAsistenciaGrupo({ grupoId, fecha, onBack }: TomarAs
               )
             })}
           </div>
-          
+
           {alumnos.length === 0 && (
             <div className="text-center py-8">
               <Users className="h-12 w-12 text-gray-400 mx-auto mb-4" />

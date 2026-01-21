@@ -9,6 +9,7 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { useContextoTrabajo } from '@/hooks/use-contexto-trabajo'
 
 interface EditGrupoProps {
   grupoId: string
@@ -23,36 +24,40 @@ const EditGrupo = ({ grupoId, onBack, onSaveSuccess }: EditGrupoProps) => {
   const [error, setError] = useState<string | null>(null)
   const [formData, setFormData] = useState<UpdateGrupoData>({})
 
-  const niveles = [
-    'Preescolar',
-    'Primaria',
-    'Secundaria',
-    'Preparatoria',
-  ]
+  const { availableContexts, loading: contextsLoading } = useContextoTrabajo()
+  const [selectedContextId, setSelectedContextId] = useState<string>('')
 
-  const grados = {
-    'Preescolar': ['1°', '2°', '3°'],
-    'Primaria': ['1°', '2°', '3°', '4°', '5°', '6°'],
-    'Secundaria': ['1°', '2°', '3°'],
-    'Preparatoria': ['1°', '2°', '3°']
+  // Helper function to derive data from context grade (integer)
+  const getContextDetails = (gradoInt: number) => {
+    let nivel = ''
+    let gradoStr = ''
+
+    if (gradoInt < 0) {
+      nivel = 'Preescolar'
+      gradoStr = `${gradoInt + 4}°`
+    } else if (gradoInt <= 6) {
+      nivel = 'Primaria'
+      gradoStr = `${gradoInt}°`
+    } else {
+      nivel = 'Secundaria'
+      gradoStr = `${gradoInt - 6}°`
+    }
+    return { nivel, grado: gradoStr }
   }
 
-  const getCurrentSchoolYear = () => {
-    const currentYear = new Date().getFullYear()
-    const currentMonth = new Date().getMonth()
-
-    if (currentMonth >= 7) {
-      return `${currentYear}-${currentYear + 1}`
-    } else {
-      return `${currentYear - 1}-${currentYear}`
+  const handleContextChange = (contextId: string) => {
+    setSelectedContextId(contextId)
+    const context = availableContexts.find(c => c.id === contextId)
+    if (context) {
+      const { nivel, grado } = getContextDetails(context.grado)
+      setFormData(prev => ({
+        ...prev,
+        nivel,
+        grado,
+        ciclo_escolar: context.ciclo_escolar
+      }))
     }
   }
-
-  const ciclosEscolares = [
-    getCurrentSchoolYear(),
-    `${new Date().getFullYear()}-${new Date().getFullYear() + 1}`,
-    `${new Date().getFullYear() + 1}-${new Date().getFullYear() + 2}`
-  ].filter((ciclo, index, array) => array.indexOf(ciclo) === index) // Eliminar duplicados
 
   useEffect(() => {
     const fetchGrupo = async () => {
@@ -69,7 +74,8 @@ const EditGrupo = ({ grupoId, onBack, onSaveSuccess }: EditGrupoProps) => {
           nombre: grupoData.nombre,
           grado: grupoData.grado,
           nivel: grupoData.nivel,
-          ciclo_escolar: grupoData.ciclo_escolar
+          ciclo_escolar: grupoData.ciclo_escolar,
+          grupo: grupoData.grupo
         })
       } catch (err) {
         console.error('Error fetching grupo:', err)
@@ -81,6 +87,32 @@ const EditGrupo = ({ grupoId, onBack, onSaveSuccess }: EditGrupoProps) => {
 
     fetchGrupo()
   }, [grupoId])
+
+  // Try to match existing group data to a context
+  useEffect(() => {
+    if (!contextsLoading && availableContexts.length > 0 && formData.grado && formData.nivel) {
+      // Try to find a context that matches the current group data
+      // This is a best-effort match since we store strings in 'grupos' and integers in 'contexto_trabajo'
+      const matchedContext = availableContexts.find(c => {
+        const { nivel, grado } = getContextDetails(c.grado)
+        // Check if strings match (e.g. "1°" matches "1°", "Primaria" matches "Primaria")
+        // Note: formData.grado usually comes as "1°", "2°", etc.
+        return nivel === formData.nivel && grado === formData.grado && c.ciclo_escolar === formData.ciclo_escolar
+      })
+
+      if (matchedContext) {
+        setSelectedContextId(matchedContext.id)
+      } else if (!selectedContextId) {
+        // If no exact match found and no context selected yet, maybe select the first active one?
+        // Or leave it empty to force user to choose if they want to change it.
+        // But the prompt says "take automatically", so let's default to active if no match found 
+        // BUT ONLY if we are setting it up initially. 
+        // Actually, if we are editing, we probably want to keep what was there UNLESS the user changes the context status.
+        // If we force valid context, we might change their data.
+        // Let's settle on: if exact match found, select it. If not, user has to select to update context fields.
+      }
+    }
+  }, [contextsLoading, availableContexts, formData.grado, formData.nivel, formData.ciclo_escolar])
 
   const handleInputChange = (field: keyof UpdateGrupoData, value: string | number) => {
     setFormData(prev => ({
@@ -178,64 +210,38 @@ const EditGrupo = ({ grupoId, onBack, onSaveSuccess }: EditGrupoProps) => {
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="nivel">Nivel Educativo *</Label>
+                <Label htmlFor="grupo">Grupo *</Label>
                 <Select
-                  value={formData.nivel || ''}
-                  onValueChange={(value) => {
-                    handleInputChange('nivel', value)
-                    handleInputChange('grado', '') // Reset grado when nivel changes
-                  }}
+                  value={formData.grupo || ''}
+                  onValueChange={(value) => handleInputChange('grupo', value)}
                 >
                   <SelectTrigger>
-                    <SelectValue placeholder={<span className="notranslate">Selecciona el nivel</span>} />
+                    <SelectValue placeholder="Selecciona el grupo" />
                   </SelectTrigger>
                   <SelectContent>
-                    {niveles.map((nivel) => (
-                      <SelectItem key={nivel} value={nivel}>
-                        {nivel}
+                    {['A', 'B', 'C', 'D', 'E', 'F'].map((g) => (
+                      <SelectItem key={g} value={g}>
+                        {g}
                       </SelectItem>
                     ))}
                   </SelectContent>
                 </Select>
               </div>
 
-              <div className="space-y-2">
-                <Label htmlFor="grado">Grado *</Label>
-                <Select
-                  value={formData.grado || ''}
-                  onValueChange={(value) => handleInputChange('grado', value)}
-                  disabled={!formData.nivel}
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder={<span className="notranslate">Selecciona el grado</span>} />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {formData.nivel && grados[formData.nivel as keyof typeof grados]?.map((grado) => (
-                      <SelectItem key={grado} value={grado}>
-                        {grado}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+              <div className="grid grid-cols-2 gap-4 col-span-1 md:col-span-2">
+                <div className="space-y-2">
+                  <Label>Nivel Educativo</Label>
+                  <Input value={formData.nivel || ''} disabled className="bg-gray-100 dark:bg-gray-800" />
+                </div>
+                <div className="space-y-2">
+                  <Label>Grado</Label>
+                  <Input value={formData.grado || ''} disabled className="bg-gray-100 dark:bg-gray-800" />
+                </div>
               </div>
 
-              <div className="space-y-2">
-                <Label htmlFor="ciclo_escolar">Ciclo Escolar *</Label>
-                <Select
-                  value={formData.ciclo_escolar || ''}
-                  onValueChange={(value) => handleInputChange('ciclo_escolar', value)}
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder={<span className="notranslate">Selecciona el ciclo escolar</span>} />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {ciclosEscolares.map((ciclo) => (
-                      <SelectItem key={ciclo} value={ciclo}>
-                        {ciclo}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+              <div className="space-y-2 col-span-1 md:col-span-2">
+                <Label>Ciclo Escolar</Label>
+                <Input value={formData.ciclo_escolar || ''} disabled className="bg-gray-100 dark:bg-gray-800" />
               </div>
 
 

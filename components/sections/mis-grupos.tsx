@@ -177,7 +177,7 @@ const MisGrupos = ({ onNavigateToMensajesPadres, onNavigateToMensajesPadresAlumn
           {error}
         </div>
       )}
-      
+
       <div className="flex justify-between items-center">
         <div>
           <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100">Mis Grupos</h1>
@@ -204,80 +204,91 @@ const MisGrupos = ({ onNavigateToMensajesPadres, onNavigateToMensajesPadresAlumn
       ) : (
         <div className="grid gap-4">
           {grupos.map((grupo) => (
-            <Card 
-              key={grupo.id} 
-              className="hover:shadow-md transition-shadow cursor-pointer" 
+            <Card
+              key={grupo.id}
+              className="hover:shadow-md transition-shadow cursor-pointer"
               onClick={() => handleViewGrupo(grupo.id)}
             >
-              <CardHeader>
+              <CardHeader className="pb-3">
                 <div className="flex justify-between items-start">
-                  <div className="flex-1">
-                    <CardTitle className="text-lg dark:text-gray-100">{grupo.nombre}</CardTitle>
-                    <CardDescription className="flex items-center gap-4 mt-2 dark:text-gray-300">
-                      <span className="flex items-center gap-1">
-                        <Calendar className="h-4 w-4" />
-                        {new Date(grupo.created_at).toLocaleDateString("es-MX")}
-                      </span>
-                      <span>{grupo.grado} de {grupo.nivel}</span>
-                    </CardDescription>
+                  <div>
+                    <CardTitle className="text-xl font-bold text-gray-900 dark:text-gray-100">
+                      {grupo.nombre}
+                    </CardTitle>
+                    <div className="flex items-center gap-2 mt-2">
+                      <Badge variant="secondary" className="font-normal text-xs text-muted-foreground">
+                        {grupo.ciclo_escolar}
+                      </Badge>
+                    </div>
+                  </div>
+                  <div className="flex flex-col items-end gap-1">
+                    <Badge className="text-base px-3 py-1.5 bg-indigo-100 text-indigo-700 hover:bg-indigo-200 border-indigo-200 dark:bg-indigo-900/40 dark:text-indigo-200 dark:border-indigo-700 font-semibold shadow-sm">
+                      {grupo.grado} {grupo.nivel}
+                    </Badge>
                   </div>
                 </div>
               </CardHeader>
               <CardContent>
-                <div className="flex justify-between items-center">
-                  <div className="flex items-center gap-2">
-                    <Badge variant="outline" className="dark:text-gray-100 dark:border-gray-700">
-                      {grupo.ciclo_escolar}
-                    </Badge>
-                    <span className="text-sm text-gray-600 dark:text-gray-300">
-                      {grupo.numero_alumnos} {grupo.numero_alumnos === 1 ? 'alumno' : 'alumnos'}
-                    </span>
+                <div className="flex flex-col sm:flex-row justify-between items-center gap-4">
+
+                  <div className="flex items-center gap-3 bg-gray-50 dark:bg-gray-800/50 px-4 py-2 rounded-lg border border-gray-100 dark:border-gray-800 w-full sm:w-auto">
+                    <div className="bg-white dark:bg-gray-700 p-1.5 rounded-full shadow-sm">
+                      <UsersIcon className="h-4 w-4 text-blue-600 dark:text-blue-400" />
+                    </div>
+                    <div>
+                      <span className="block text-sm font-bold text-gray-900 dark:text-gray-100 leading-none">
+                        {grupo.numero_alumnos || 0}
+                      </span>
+                      <span className="text-xs text-gray-500 font-medium uppercase tracking-wide">
+                        Alumnos
+                      </span>
+                    </div>
                   </div>
-                  <div className="flex gap-2" onClick={(e) => e.stopPropagation()}>
-                    <Button 
-                      size="sm" 
-                      className="bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white border-0"
+                  <div className="grid grid-cols-2 gap-2 w-full sm:flex sm:w-auto" onClick={(e) => e.stopPropagation()}>
+                    <Button
+                      size="sm"
+                      className="col-span-2 sm:w-auto bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white border-0"
                       onClick={() => handleTomarAsistencia(grupo.id)}
                     >
-                      <CheckSquare className="h-4 w-4" />
+                      <CheckSquare className="h-4 w-4 mr-2" />
                       Tomar asistencia
                     </Button>
-                    <Button 
-                      size="sm" 
-                      variant="outline" 
+                    <Button
+                      size="sm"
+                      variant="outline"
                       onClick={() => handleViewGrupo(grupo.id)}
                     >
-                      <Eye className="h-4 w-4" />
+                      <Eye className="h-4 w-4 mr-2" />
                       Ver
                     </Button>
-                    <Button 
-                      size="sm" 
-                      variant="outline" 
+                    <Button
+                      size="sm"
+                      variant="outline"
                       onClick={() => handleGestionarAlumnos(grupo.id)}
                     >
-                      <Users className="h-4 w-4" />
+                      <Users className="h-4 w-4 mr-2" />
                       Alumnos
                     </Button>
-                    <Button 
-                      size="sm" 
-                      variant="outline" 
+                    <Button
+                      size="sm"
+                      variant="outline"
                       onClick={() => handleEditGrupo(grupo.id)}
                     >
-                      <Edit className="h-4 w-4" />
+                      <Edit className="h-4 w-4 mr-2" />
                       Editar
                     </Button>
                     <AlertDialog>
                       <AlertDialogTrigger asChild>
-                        <Button 
-                          size="sm" 
-                          variant="outline" 
+                        <Button
+                          size="sm"
+                          variant="outline"
                           className="text-red-600 hover:text-red-700"
                           disabled={deletingGrupoId === grupo.id}
                         >
                           {deletingGrupoId === grupo.id ? (
-                            <Loader2 className="h-4 w-4 animate-spin" />
+                            <Loader2 className="h-4 w-4 animate-spin mr-2" />
                           ) : (
-                            <Trash2 className="h-4 w-4" />
+                            <Trash2 className="h-4 w-4 mr-2" />
                           )}
                           Eliminar
                         </Button>
@@ -291,7 +302,7 @@ const MisGrupos = ({ onNavigateToMensajesPadres, onNavigateToMensajesPadresAlumn
                         </AlertDialogHeader>
                         <AlertDialogFooter>
                           <AlertDialogCancel>Cancelar</AlertDialogCancel>
-                          <AlertDialogAction 
+                          <AlertDialogAction
                             onClick={() => handleDeleteGrupo(grupo.id)}
                             className="bg-red-600 hover:bg-red-700"
                           >

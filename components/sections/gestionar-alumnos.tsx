@@ -7,14 +7,17 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
-import { ArrowLeft, Plus, Edit, Trash2, Users, BookOpen, TrendingUp, FileText, User } from 'lucide-react';
+import { ArrowLeft, Plus, Edit, Trash2, Users, BookOpen, TrendingUp, FileText, User, MessageSquare, Calendar, Upload } from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
-import { getAlumnosByGrupo, createAlumno, updateAlumno, deleteAlumno, type Alumno, type CreateAlumnoData, type UpdateAlumnoData } from '@/lib/alumnos';
+import { getAlumnosByGrupo, createAlumno, updateAlumno, deleteAlumno, createSeguimiento, type Alumno, type CreateAlumnoData, type UpdateAlumnoData, type CreateSeguimientoData } from '@/lib/alumnos';
 import { getGrupoById, type Grupo } from '@/lib/grupos';
+
 import { ExpedienteAlumno } from './expediente-alumno';
+import { ImportAlumnosDialog } from '@/components/alumnos/import-alumnos-dialog';
 
 interface GestionarAlumnosProps {
   grupoId: string;
@@ -53,6 +56,17 @@ export default function GestionarAlumnos({ grupoId, onBack, onNavigateToMensajes
   const [submitting, setSubmitting] = useState(false);
   const [viewState, setViewState] = useState<ViewState>({ mode: 'list' });
 
+  // Estado para Agregar Nota (Seguimiento) desde el listado
+  const [isAddNoteDialogOpen, setIsAddNoteDialogOpen] = useState(false);
+  const [selectedAlumnoForNote, setSelectedAlumnoForNote] = useState<Alumno | null>(null);
+  const [noteForm, setNoteForm] = useState({
+    nota: '',
+    tipo: 'general' as 'general' | 'academico' | 'comportamiento' | 'logro',
+    fecha: new Date().toISOString().split('T')[0]
+  });
+  const [submittingNote, setSubmittingNote] = useState(false);
+  const [isImportDialogOpen, setIsImportDialogOpen] = useState(false);
+
   useEffect(() => {
     fetchData();
   }, [grupoId]);
@@ -61,12 +75,12 @@ export default function GestionarAlumnos({ grupoId, onBack, onNavigateToMensajes
     try {
       setLoading(true);
       setError(null);
-      
+
       const [grupoData, alumnosData] = await Promise.all([
         getGrupoById(grupoId),
         getAlumnosByGrupo(grupoId)
       ]);
-      
+
       setGrupo(grupoData);
       setAlumnos(alumnosData);
     } catch (err) {
@@ -94,7 +108,7 @@ export default function GestionarAlumnos({ grupoId, onBack, onNavigateToMensajes
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
-    
+
     // Validación específica para teléfonos - solo permitir números y espacios
     if (name.includes('telefono')) {
       const cleanValue = value.replace(/[^\d\s]/g, '');
@@ -106,7 +120,7 @@ export default function GestionarAlumnos({ grupoId, onBack, onNavigateToMensajes
       }
       return;
     }
-    
+
     setFormData(prev => ({
       ...prev,
       [name]: value
@@ -186,7 +200,7 @@ export default function GestionarAlumnos({ grupoId, onBack, onNavigateToMensajes
 
     try {
       setSubmitting(true);
-      
+
       const alumnoData: CreateAlumnoData = {
         grupo_id: grupoId,
         nombre_completo: formData.nombre_completo.trim(),
@@ -211,10 +225,10 @@ export default function GestionarAlumnos({ grupoId, onBack, onNavigateToMensajes
         }
         return a.nombre_completo.localeCompare(b.nombre_completo);
       }));
-      
+
       setIsAddDialogOpen(false);
       resetForm();
-      
+
       toast({
         title: "Éxito",
         description: "Alumno agregado correctamente",
@@ -279,9 +293,9 @@ export default function GestionarAlumnos({ grupoId, onBack, onNavigateToMensajes
       return;
     }
 
-    try{
+    try {
       setSubmitting(true);
-      
+
       const updateData: UpdateAlumnoData = {
         nombre_completo: formData.nombre_completo.trim(),
         notas_generales: formData.notas_generales.trim() || undefined,
@@ -299,7 +313,7 @@ export default function GestionarAlumnos({ grupoId, onBack, onNavigateToMensajes
       }
 
       const updatedAlumno = await updateAlumno(editingAlumno.id, updateData);
-      setAlumnos(prev => prev.map(alumno => 
+      setAlumnos(prev => prev.map(alumno =>
         alumno.id === editingAlumno.id ? updatedAlumno : alumno
       ).sort((a, b) => {
         if (a.numero_lista && b.numero_lista) {
@@ -307,11 +321,11 @@ export default function GestionarAlumnos({ grupoId, onBack, onNavigateToMensajes
         }
         return a.nombre_completo.localeCompare(b.nombre_completo);
       }));
-      
+
       setIsEditDialogOpen(false);
       setEditingAlumno(null);
       resetForm();
-      
+
       toast({
         title: "Éxito",
         description: "Alumno actualizado correctamente",
@@ -332,7 +346,7 @@ export default function GestionarAlumnos({ grupoId, onBack, onNavigateToMensajes
     try {
       await deleteAlumno(alumno.id);
       setAlumnos(prev => prev.filter(a => a.id !== alumno.id));
-      
+
       toast({
         title: "Éxito",
         description: "Alumno eliminado correctamente",
@@ -362,6 +376,70 @@ export default function GestionarAlumnos({ grupoId, onBack, onNavigateToMensajes
       telefono_madre: alumno.telefono_madre || ''
     });
     setIsEditDialogOpen(true);
+  };
+
+  // Funciones para Agregar Nota (Seguimiento)
+  const handleNoteInputChange = (field: string, value: string) => {
+    setNoteForm(prev => ({
+      ...prev,
+      [field]: value
+    }));
+  };
+
+  const resetNoteForm = () => {
+    setNoteForm({
+      nota: '',
+      tipo: 'general',
+      fecha: new Date().toISOString().split('T')[0]
+    });
+  };
+
+  const openAddNoteDialog = (alumno: Alumno) => {
+    setSelectedAlumnoForNote(alumno);
+    resetNoteForm();
+    setIsAddNoteDialogOpen(true);
+  };
+
+  const handleAddNote = async () => {
+    if (!selectedAlumnoForNote || !noteForm.nota.trim()) {
+      toast({
+        title: "Error",
+        description: "La nota es requerida",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    try {
+      setSubmittingNote(true);
+
+      const seguimientoData: CreateSeguimientoData = {
+        alumno_id: selectedAlumnoForNote.id,
+        nota: noteForm.nota.trim(),
+        tipo: noteForm.tipo,
+        fecha: noteForm.fecha
+      };
+
+      await createSeguimiento(seguimientoData);
+
+      setIsAddNoteDialogOpen(false);
+      resetNoteForm();
+      setSelectedAlumnoForNote(null);
+
+      toast({
+        title: "Éxito",
+        description: "Nota agregada correctamente",
+      });
+    } catch (err) {
+      console.error('Error adding note:', err);
+      toast({
+        title: "Error",
+        description: "No se pudo agregar la nota",
+        variant: "destructive",
+      });
+    } finally {
+      setSubmittingNote(false);
+    }
   };
 
   // Mostrar expediente individual si está seleccionado
@@ -401,205 +479,216 @@ export default function GestionarAlumnos({ grupoId, onBack, onNavigateToMensajes
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="flex items-center justify-between">
-        <div className="flex items-center space-x-4">
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+        <div className="flex items-center space-x-4 w-full md:w-auto min-w-0">
           <Button
             variant="outline"
             size="sm"
             onClick={onBack}
-            className="flex items-center space-x-2"
+            className="flex items-center space-x-2 shrink-0"
           >
             <ArrowLeft className="h-4 w-4" />
-            <span>Volver</span>
+            <span className="hidden sm:inline">Volver</span>
           </Button>
-          <div>
-            <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100">
+          <div className="min-w-0 flex-1">
+            <h1 className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-gray-100 truncate leading-tight">
               Alumnos de: {grupo?.nombre || 'Cargando...'}
             </h1>
             {grupo && (
-              <p className="text-gray-600 dark:text-gray-300">
+              <p className="text-sm text-gray-600 dark:text-gray-300 truncate">
                 {grupo.grado} • {grupo.nivel} • {grupo.ciclo_escolar}
               </p>
             )}
           </div>
         </div>
-        
-        <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
-          <DialogTrigger asChild>
-            <Button className="flex items-center space-x-2">
-              <Plus className="h-4 w-4" />
-              <span>Añadir Alumno</span>
-            </Button>
-          </DialogTrigger>
-          <DialogContent className="max-w-4xl max-h-[90vh]">
-            <DialogHeader>
-              <DialogTitle>Añadir Nuevo Alumno</DialogTitle>
-              <DialogDescription>
-                Agrega un nuevo alumno al grupo {grupo?.nombre}
-              </DialogDescription>
-            </DialogHeader>
-            <div className="space-y-6 max-h-[60vh] overflow-y-auto px-1">
-              {/* Información Básica */}
-              <div className="space-y-4">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div>
-                    <Label htmlFor="nombre_completo">Nombre Completo *</Label>
-                    <Input
-                      id="nombre_completo"
-                      name="nombre_completo"
-                      value={formData.nombre_completo}
-                      onChange={handleInputChange}
-                      placeholder="Ej: Ana Sofía Rojas"
-                      className="mt-1"
-                    />
-                  </div>
-                  <div>
-                    <Label htmlFor="numero_lista">Número de Lista</Label>
-                    <Input
-                      id="numero_lista"
-                      name="numero_lista"
-                      type="number"
-                      value={formData.numero_lista}
-                      onChange={handleInputChange}
-                      placeholder="Ej: 15"
-                      className="mt-1"
-                    />
-                  </div>
-                </div>
-              </div>
-              
-              {/* Información de Contacto de Padres */}
-              <div className="border-t border-gray-200 pt-6">
-                <h4 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
-                  <span className="w-2 h-2 bg-blue-500 rounded-full mr-2"></span>
-                  Información de Contacto
-                </h4>
-                
-                {/* Padre */}
-                <div className="mb-6">
-                  <h5 className="text-sm font-medium text-gray-700 mb-3 uppercase tracking-wide">Padre</h5>
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4 px-2">
-                    <div className="space-y-2">
-                      <Label htmlFor="nombre_padre" className="text-sm font-medium">Nombre Completo</Label>
-                      <Input
-                        id="nombre_padre"
-                        name="nombre_padre"
-                        value={formData.nombre_padre}
-                        onChange={handleInputChange}
-                        placeholder="Juan Carlos Rojas"
-                        className="w-full"
-                      />
-                    </div>
-                    <div className="space-y-2">
-                      <Label htmlFor="correo_padre" className="text-sm font-medium">Correo Electrónico</Label>
-                      <Input
-                        id="correo_padre"
-                        name="correo_padre"
-                        type="email"
-                        value={formData.correo_padre}
-                        onChange={handleInputChange}
-                        placeholder="ejemplo@correo.com"
-                        className="w-full"
-                      />
-                      <p className="text-xs text-gray-500">Formato: usuario@dominio.com</p>
-                    </div>
-                    <div className="space-y-2">
-                      <Label htmlFor="telefono_padre" className="text-sm font-medium">Teléfono</Label>
-                      <Input
-                        id="telefono_padre"
-                        name="telefono_padre"
-                        type="tel"
-                        value={formData.telefono_padre}
-                        onChange={handleInputChange}
-                        placeholder="5512345678"
-                        className="w-full"
-                        maxLength={10}
-                      />
-                      <p className="text-xs text-gray-500">Solo números, máximo 10 dígitos</p>
-                    </div>
-                  </div>
-                </div>
-                
-                {/* Madre */}
-                <div>
-                  <h5 className="text-sm font-medium text-gray-700 mb-3 uppercase tracking-wide">Madre</h5>
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4 px-2">
-                    <div className="space-y-2">
-                      <Label htmlFor="nombre_madre" className="text-sm font-medium">Nombre Completo</Label>
-                      <Input
-                        id="nombre_madre"
-                        name="nombre_madre"
-                        value={formData.nombre_madre}
-                        onChange={handleInputChange}
-                        placeholder="María Elena García"
-                        className="w-full"
-                      />
-                    </div>
-                    <div className="space-y-2">
-                      <Label htmlFor="correo_madre" className="text-sm font-medium">Correo Electrónico</Label>
-                      <Input
-                        id="correo_madre"
-                        name="correo_madre"
-                        type="email"
-                        value={formData.correo_madre}
-                        onChange={handleInputChange}
-                        placeholder="ejemplo@correo.com"
-                        className="w-full"
-                      />
-                      <p className="text-xs text-gray-500">Formato: usuario@dominio.com</p>
-                    </div>
-                    <div className="space-y-2">
-                      <Label htmlFor="telefono_madre" className="text-sm font-medium">Teléfono</Label>
-                      <Input
-                        id="telefono_madre"
-                        name="telefono_madre"
-                        type="tel"
-                        value={formData.telefono_madre}
-                        onChange={handleInputChange}
-                        placeholder="5512345678"
-                        className="w-full"
-                        maxLength={10}
-                      />
-                      <p className="text-xs text-gray-500">Solo números, máximo 10 dígitos</p>
-                    </div>
-                  </div>
-                </div>
-              </div>
-              
-              {/* Notas Generales */}
-              <div className="border-t border-gray-200 pt-6">
-                <div className="px-2">
-                  <div className="space-y-2">
-                    <Label htmlFor="notas_generales" className="text-sm font-medium">Notas Generales</Label>
-                    <Textarea
-                      id="notas_generales"
-                      name="notas_generales"
-                      value={formData.notas_generales}
-                      onChange={handleInputChange}
-                      placeholder="Información adicional sobre el alumno..."
-                      className="w-full min-h-[80px]"
-                    />
-                  </div>
-                </div>
-              </div>
-            </div>
-            <DialogFooter>
-              <Button
-                variant="outline"
-                onClick={() => {
-                  setIsAddDialogOpen(false);
-                  resetForm();
-                }}
-                disabled={submitting}
-              >
-                Cancelar
+
+        <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 w-full md:w-auto">
+          <Button
+            variant="outline"
+            className="flex items-center justify-center space-x-2 w-full sm:w-auto"
+            onClick={() => setIsImportDialogOpen(true)}
+          >
+            <Upload className="h-4 w-4" />
+            <span>Importar Lista</span>
+          </Button>
+
+          <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
+            <DialogTrigger asChild>
+              <Button className="flex items-center justify-center space-x-2 w-full sm:w-auto">
+                <Plus className="h-4 w-4" />
+                <span>Añadir Alumno</span>
               </Button>
-              <Button onClick={handleAddAlumno} disabled={submitting}>
-                {submitting ? 'Guardando...' : 'Guardar Alumno'}
-              </Button>
-            </DialogFooter>
-          </DialogContent>
-        </Dialog>
+            </DialogTrigger>
+            <DialogContent className="max-w-4xl max-h-[90vh]">
+              <DialogHeader>
+                <DialogTitle>Añadir Nuevo Alumno</DialogTitle>
+                <DialogDescription>
+                  Agrega un nuevo alumno al grupo {grupo?.nombre}
+                </DialogDescription>
+              </DialogHeader>
+              <div className="space-y-6 max-h-[60vh] overflow-y-auto px-1">
+                {/* Información Básica */}
+                <div className="space-y-4">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                      <Label htmlFor="nombre_completo">Nombre Completo *</Label>
+                      <Input
+                        id="nombre_completo"
+                        name="nombre_completo"
+                        value={formData.nombre_completo}
+                        onChange={handleInputChange}
+                        placeholder="Ej: Ana Sofía Rojas"
+                        className="mt-1"
+                      />
+                    </div>
+                    <div>
+                      <Label htmlFor="numero_lista">Número de Lista</Label>
+                      <Input
+                        id="numero_lista"
+                        name="numero_lista"
+                        type="number"
+                        value={formData.numero_lista}
+                        onChange={handleInputChange}
+                        placeholder="Ej: 15"
+                        className="mt-1"
+                      />
+                    </div>
+                  </div>
+                </div>
+
+                {/* Información de Contacto de Padres */}
+                <div className="border-t border-gray-200 pt-6">
+                  <h4 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
+                    <span className="w-2 h-2 bg-blue-500 rounded-full mr-2"></span>
+                    Información de Contacto
+                  </h4>
+
+                  {/* Padre */}
+                  <div className="mb-6">
+                    <h5 className="text-sm font-medium text-gray-700 mb-3 uppercase tracking-wide">Padre</h5>
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4 px-2">
+                      <div className="space-y-2">
+                        <Label htmlFor="nombre_padre" className="text-sm font-medium">Nombre Completo</Label>
+                        <Input
+                          id="nombre_padre"
+                          name="nombre_padre"
+                          value={formData.nombre_padre}
+                          onChange={handleInputChange}
+                          placeholder="Juan Carlos Rojas"
+                          className="w-full"
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <Label htmlFor="correo_padre" className="text-sm font-medium">Correo Electrónico</Label>
+                        <Input
+                          id="correo_padre"
+                          name="correo_padre"
+                          type="email"
+                          value={formData.correo_padre}
+                          onChange={handleInputChange}
+                          placeholder="ejemplo@correo.com"
+                          className="w-full"
+                        />
+                        <p className="text-xs text-gray-500">Formato: usuario@dominio.com</p>
+                      </div>
+                      <div className="space-y-2">
+                        <Label htmlFor="telefono_padre" className="text-sm font-medium">Teléfono</Label>
+                        <Input
+                          id="telefono_padre"
+                          name="telefono_padre"
+                          type="tel"
+                          value={formData.telefono_padre}
+                          onChange={handleInputChange}
+                          placeholder="5512345678"
+                          className="w-full"
+                          maxLength={10}
+                        />
+                        <p className="text-xs text-gray-500">Solo números, máximo 10 dígitos</p>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Madre */}
+                  <div>
+                    <h5 className="text-sm font-medium text-gray-700 mb-3 uppercase tracking-wide">Madre</h5>
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4 px-2">
+                      <div className="space-y-2">
+                        <Label htmlFor="nombre_madre" className="text-sm font-medium">Nombre Completo</Label>
+                        <Input
+                          id="nombre_madre"
+                          name="nombre_madre"
+                          value={formData.nombre_madre}
+                          onChange={handleInputChange}
+                          placeholder="María Elena García"
+                          className="w-full"
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <Label htmlFor="correo_madre" className="text-sm font-medium">Correo Electrónico</Label>
+                        <Input
+                          id="correo_madre"
+                          name="correo_madre"
+                          type="email"
+                          value={formData.correo_madre}
+                          onChange={handleInputChange}
+                          placeholder="ejemplo@correo.com"
+                          className="w-full"
+                        />
+                        <p className="text-xs text-gray-500">Formato: usuario@dominio.com</p>
+                      </div>
+                      <div className="space-y-2">
+                        <Label htmlFor="telefono_madre" className="text-sm font-medium">Teléfono</Label>
+                        <Input
+                          id="telefono_madre"
+                          name="telefono_madre"
+                          type="tel"
+                          value={formData.telefono_madre}
+                          onChange={handleInputChange}
+                          placeholder="5512345678"
+                          className="w-full"
+                          maxLength={10}
+                        />
+                        <p className="text-xs text-gray-500">Solo números, máximo 10 dígitos</p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Notas Generales */}
+                <div className="border-t border-gray-200 pt-6">
+                  <div className="px-2">
+                    <div className="space-y-2">
+                      <Label htmlFor="notas_generales" className="text-sm font-medium">Notas Generales</Label>
+                      <Textarea
+                        id="notas_generales"
+                        name="notas_generales"
+                        value={formData.notas_generales}
+                        onChange={handleInputChange}
+                        placeholder="Información adicional sobre el alumno..."
+                        className="w-full min-h-[80px]"
+                      />
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <DialogFooter>
+                <Button
+                  variant="outline"
+                  onClick={() => {
+                    setIsAddDialogOpen(false);
+                    resetForm();
+                  }}
+                  disabled={submitting}
+                >
+                  Cancelar
+                </Button>
+                <Button onClick={handleAddAlumno} disabled={submitting}>
+                  {submitting ? 'Guardando...' : 'Guardar Alumno'}
+                </Button>
+              </DialogFooter>
+            </DialogContent>
+          </Dialog>
+        </div>
       </div>
 
       {/* Stats */}
@@ -670,93 +759,219 @@ export default function GestionarAlumnos({ grupoId, onBack, onNavigateToMensajes
               </Button>
             </div>
           ) : (
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead className="w-16">Nº</TableHead>
-                  <TableHead>Nombre Completo</TableHead>
-                  <TableHead>Notas</TableHead>
-                  <TableHead className="text-right">Acciones</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {alumnos.map((alumno) => (
-                  <TableRow key={alumno.id}>
-                    <TableCell className="font-medium">
-                      {alumno.numero_lista ? (
-                        <Badge variant="outline">{alumno.numero_lista}</Badge>
-                      ) : (
-                        <span className="text-gray-400 dark:text-gray-500">-</span>
-                      )}
-                    </TableCell>
-                    <TableCell>
-                      <button
-                        onClick={() => handleViewExpediente(alumno.id)}
-                        className="text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300 hover:underline font-medium text-left"
-                      >
-                        {alumno.nombre_completo}
-                      </button>
-                    </TableCell>
-                    <TableCell>
-                      {alumno.notas_generales ? (
-                        <span className="text-sm text-gray-600 dark:text-gray-300">
-                          {alumno.notas_generales.length > 50
-                            ? `${alumno.notas_generales.substring(0, 50)}...`
-                            : alumno.notas_generales}
-                        </span>
-                      ) : (
-                        <span className="text-gray-400 dark:text-gray-500">Sin notas</span>
-                      )}
-                    </TableCell>
-                    <TableCell className="text-right">
-                      <div className="flex items-center justify-end space-x-2">
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() => handleViewExpediente(alumno.id)}
-                          title="Ver expediente"
-                        >
-                          <FileText className="h-4 w-4" />
-                        </Button>
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() => openEditDialog(alumno)}
-                          title="Editar alumno"
-                        >
-                          <Edit className="h-4 w-4" />
-                        </Button>
-                        <AlertDialog>
-                          <AlertDialogTrigger asChild>
-                            <Button variant="outline" size="sm" title="Eliminar alumno">
-                              <Trash2 className="h-4 w-4" />
+            <>
+              <div className="hidden md:block">
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead className="w-16">Nº</TableHead>
+                      <TableHead>Nombre Completo</TableHead>
+                      <TableHead>Notas</TableHead>
+                      <TableHead className="text-right">Acciones</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {alumnos.map((alumno) => (
+                      <TableRow key={alumno.id}>
+                        <TableCell className="font-medium">
+                          {alumno.numero_lista ? (
+                            <Badge variant="outline">{alumno.numero_lista}</Badge>
+                          ) : (
+                            <span className="text-gray-400 dark:text-gray-500">-</span>
+                          )}
+                        </TableCell>
+                        <TableCell>
+                          <button
+                            onClick={() => handleViewExpediente(alumno.id)}
+                            className="text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300 hover:underline font-medium text-left"
+                          >
+                            {alumno.nombre_completo}
+                          </button>
+                        </TableCell>
+                        <TableCell>
+                          {alumno.notas_generales ? (
+                            <span className="text-sm text-gray-600 dark:text-gray-300">
+                              {alumno.notas_generales.length > 50
+                                ? `${alumno.notas_generales.substring(0, 50)}...`
+                                : alumno.notas_generales}
+                            </span>
+                          ) : (
+                            <span className="text-gray-400 dark:text-gray-500">Sin notas</span>
+                          )}
+                        </TableCell>
+                        <TableCell className="text-right">
+                          <div className="flex items-center justify-end space-x-2">
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => handleViewExpediente(alumno.id)}
+                              title="Ver expediente"
+                              className="text-blue-600 border-blue-200 hover:bg-blue-50 hover:text-blue-700 dark:text-blue-400 dark:border-blue-800 dark:hover:bg-blue-900/20"
+                            >
+                              <FileText className="mr-2 h-4 w-4" />
+                              <span>Expediente</span>
                             </Button>
-                          </AlertDialogTrigger>
-                          <AlertDialogContent>
-                            <AlertDialogHeader>
-                              <AlertDialogTitle>¿Eliminar alumno?</AlertDialogTitle>
-                              <AlertDialogDescription>
-                                ¿Estás seguro de que quieres eliminar a {alumno.nombre_completo}? 
-                                Esta acción no se puede deshacer y se perderán todos los datos asociados.
-                              </AlertDialogDescription>
-                            </AlertDialogHeader>
-                            <AlertDialogFooter>
-                              <AlertDialogCancel>Cancelar</AlertDialogCancel>
-                              <AlertDialogAction
-                                onClick={() => handleDeleteAlumno(alumno)}
-                                className="bg-red-600 hover:bg-red-700"
-                              >
-                                Eliminar
-                              </AlertDialogAction>
-                            </AlertDialogFooter>
-                          </AlertDialogContent>
-                        </AlertDialog>
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => openAddNoteDialog(alumno)}
+                              title="Agregar nota"
+                              className="text-green-600 border-green-200 hover:bg-green-50 hover:text-green-700 dark:text-green-400 dark:border-green-800 dark:hover:bg-green-900/20"
+                            >
+                              <MessageSquare className="mr-2 h-4 w-4" />
+                              <span>Nota</span>
+                            </Button>
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => openEditDialog(alumno)}
+                              title="Editar alumno"
+                              className="text-amber-600 border-amber-200 hover:bg-amber-50 hover:text-amber-700 dark:text-amber-400 dark:border-amber-800 dark:hover:bg-amber-900/20"
+                            >
+                              <Edit className="mr-2 h-4 w-4" />
+                              <span>Editar</span>
+                            </Button>
+                            <AlertDialog>
+                              <AlertDialogTrigger asChild>
+                                <Button
+                                  variant="outline"
+                                  size="sm"
+                                  title="Eliminar alumno"
+                                  className="text-red-600 border-red-200 hover:bg-red-50 hover:text-red-700 dark:text-red-400 dark:border-red-800 dark:hover:bg-red-900/20"
+                                >
+                                  <Trash2 className="mr-2 h-4 w-4" />
+                                  <span>Eliminar</span>
+                                </Button>
+                              </AlertDialogTrigger>
+                              <AlertDialogContent>
+                                <AlertDialogHeader>
+                                  <AlertDialogTitle>¿Eliminar alumno?</AlertDialogTitle>
+                                  <AlertDialogDescription>
+                                    ¿Estás seguro de que quieres eliminar a {alumno.nombre_completo}?
+                                    Esta acción no se puede deshacer y se perderán todos los datos asociados.
+                                  </AlertDialogDescription>
+                                </AlertDialogHeader>
+                                <AlertDialogFooter>
+                                  <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                                  <AlertDialogAction
+                                    onClick={() => handleDeleteAlumno(alumno)}
+                                    className="bg-red-600 hover:bg-red-700"
+                                  >
+                                    Eliminar
+                                  </AlertDialogAction>
+                                </AlertDialogFooter>
+                              </AlertDialogContent>
+                            </AlertDialog>
+                          </div>
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </div>
+
+              {/* Mobile List View */}
+              <div className="md:hidden space-y-4">
+                {alumnos.map((alumno) => (
+                  <div key={alumno.id} className="border rounded-lg p-4 bg-card text-card-foreground shadow-sm">
+                    <div className="flex justify-between items-start gap-4">
+                      <div className="flex gap-3 min-w-0">
+                        <div className="shrink-0 mt-1">
+                          {alumno.numero_lista ? (
+                            <div className="w-8 h-8 rounded-full bg-muted flex items-center justify-center text-sm font-bold text-muted-foreground border">
+                              {alumno.numero_lista}
+                            </div>
+                          ) : (
+                            <div className="w-8 h-8 rounded-full bg-muted flex items-center justify-center text-sm text-muted-foreground border">
+                              -
+                            </div>
+                          )}
+                        </div>
+                        <div className="min-w-0">
+                          <button
+                            onClick={() => handleViewExpediente(alumno.id)}
+                            className="font-semibold text-lg hover:underline text-left truncate w-full block"
+                          >
+                            {alumno.nombre_completo}
+                          </button>
+                          <div className="mt-1">
+                            {alumno.notas_generales ? (
+                              <div className="flex items-start gap-1 text-sm text-muted-foreground bg-muted/30 p-2 rounded">
+                                <FileText className="h-3 w-3 mt-0.5 shrink-0" />
+                                <span className="line-clamp-2">{alumno.notas_generales}</span>
+                              </div>
+                            ) : (
+                              <p className="text-sm text-muted-foreground italic">Sin notas registradas</p>
+                            )}
+                          </div>
+                        </div>
                       </div>
-                    </TableCell>
-                  </TableRow>
+                    </div>
+
+                    <div className="mt-4 pt-3 border-t grid grid-cols-4 gap-2">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => handleViewExpediente(alumno.id)}
+                        className="flex items-center justify-center h-9 w-full border-blue-200 text-blue-700 bg-blue-50/50"
+                        title="Ver Expediente"
+                      >
+                        <FileText className="h-4 w-4" />
+                      </Button>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => openAddNoteDialog(alumno)}
+                        className="flex items-center justify-center h-9 w-full border-green-200 text-green-700 bg-green-50/50"
+                        title="Agregar Nota"
+                      >
+                        <MessageSquare className="h-4 w-4" />
+                      </Button>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => openEditDialog(alumno)}
+                        className="flex items-center justify-center h-9 w-full border-amber-200 text-amber-700 bg-amber-50/50"
+                        title="Editar"
+                      >
+                        <Edit className="h-4 w-4" />
+                      </Button>
+
+                      <AlertDialog>
+                        <AlertDialogTrigger asChild>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            className="flex items-center justify-center h-9 w-full border-red-200 text-red-700 bg-red-50/50"
+                            title="Borrar"
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
+                        </AlertDialogTrigger>
+                        <AlertDialogContent>
+                          <AlertDialogHeader>
+                            <AlertDialogTitle>¿Eliminar alumno?</AlertDialogTitle>
+                            <AlertDialogDescription>
+                              ¿Estás seguro de que quieres eliminar a {alumno.nombre_completo}?
+                              Esta acción no se puede deshacer.
+                            </AlertDialogDescription>
+                          </AlertDialogHeader>
+                          <AlertDialogFooter>
+                            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                            <AlertDialogAction
+                              onClick={() => handleDeleteAlumno(alumno)}
+                              className="bg-red-600 hover:bg-red-700"
+                            >
+                              Eliminar
+                            </AlertDialogAction>
+                          </AlertDialogFooter>
+                        </AlertDialogContent>
+                      </AlertDialog>
+                    </div>
+                  </div>
                 ))}
-              </TableBody>
-            </Table>
+              </div>
+            </>
           )}
         </CardContent>
       </Card>
@@ -799,14 +1014,14 @@ export default function GestionarAlumnos({ grupoId, onBack, onNavigateToMensajes
                 </div>
               </div>
             </div>
-            
+
             {/* Información de Contacto de Padres */}
             <div className="border-t border-gray-200 pt-6">
               <h4 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
                 <span className="w-2 h-2 bg-blue-500 rounded-full mr-2"></span>
                 Información de Contacto
               </h4>
-              
+
               {/* Padre */}
               <div className="mb-6">
                 <h5 className="text-sm font-medium text-gray-700 mb-3 uppercase tracking-wide">Padre</h5>
@@ -848,7 +1063,7 @@ export default function GestionarAlumnos({ grupoId, onBack, onNavigateToMensajes
                   </div>
                 </div>
               </div>
-              
+
               {/* Madre */}
               <div>
                 <h5 className="text-sm font-medium text-gray-700 mb-3 uppercase tracking-wide">Madre</h5>
@@ -891,7 +1106,7 @@ export default function GestionarAlumnos({ grupoId, onBack, onNavigateToMensajes
                 </div>
               </div>
             </div>
-            
+
             <div>
               <Label htmlFor="edit_notas_generales">Notas Generales (opcional)</Label>
               <Textarea
@@ -923,6 +1138,87 @@ export default function GestionarAlumnos({ grupoId, onBack, onNavigateToMensajes
           </DialogFooter>
         </DialogContent>
       </Dialog>
-    </div>
+
+      {/* Dialog para Agregar Nota (Seguimiento) */}
+      <Dialog open={isAddNoteDialogOpen} onOpenChange={setIsAddNoteDialogOpen}>
+        <DialogContent className="max-w-2xl">
+          <DialogHeader>
+            <DialogTitle>Agregar Seguimiento</DialogTitle>
+            <DialogDescription>
+              Registra una nueva observación sobre {selectedAlumnoForNote?.nombre_completo}
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <Label htmlFor="note_tipo">Tipo de Seguimiento</Label>
+                <Select
+                  value={noteForm.tipo}
+                  onValueChange={(value) => handleNoteInputChange('tipo', value)}
+                >
+                  <SelectTrigger className="mt-1">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="general">General</SelectItem>
+                    <SelectItem value="academico">Académico</SelectItem>
+                    <SelectItem value="comportamiento">Comportamiento</SelectItem>
+                    <SelectItem value="logro">Logro</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div>
+                <Label htmlFor="note_fecha">Fecha</Label>
+                <Input
+                  id="note_fecha"
+                  type="date"
+                  value={noteForm.fecha}
+                  onChange={(e) => handleNoteInputChange('fecha', e.target.value)}
+                  className="mt-1"
+                />
+              </div>
+            </div>
+            <div>
+              <Label htmlFor="note_texto">Observación *</Label>
+              <Textarea
+                id="note_texto"
+                value={noteForm.nota}
+                onChange={(e) => handleNoteInputChange('nota', e.target.value)}
+                placeholder="Describe la observación, logro o comportamiento..."
+                className="mt-1"
+                rows={4}
+              />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button
+              variant="outline"
+              onClick={() => {
+                setIsAddNoteDialogOpen(false);
+                resetNoteForm();
+                setSelectedAlumnoForNote(null);
+              }}
+              disabled={submittingNote}
+            >
+              Cancelar
+            </Button>
+            <Button onClick={handleAddNote} disabled={submittingNote}>
+              {submittingNote ? 'Guardando...' : 'Guardar Seguimiento'}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      <ImportAlumnosDialog
+        open={isImportDialogOpen}
+        onOpenChange={setIsImportDialogOpen}
+        grupoId={grupoId}
+        onSuccess={() => {
+          fetchData();
+          // Optional: Close dialog is handled in component, or we can force close here if needed
+          // setIsImportDialogOpen(false); 
+        }}
+      />
+    </div >
   );
 }

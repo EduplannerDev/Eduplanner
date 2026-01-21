@@ -148,9 +148,9 @@ const ViewGrupo = ({ grupoId, onBack, onEdit }: ViewGrupoProps) => {
   // Renderizar gestión de alumnos si está en ese modo
   if (viewMode === 'alumnos') {
     return (
-      <GestionarAlumnos 
-        grupoId={grupoId} 
-        onBack={handleBackToDetails} 
+      <GestionarAlumnos
+        grupoId={grupoId}
+        onBack={handleBackToDetails}
       />
     )
   }
@@ -166,7 +166,7 @@ const ViewGrupo = ({ grupoId, onBack, onEdit }: ViewGrupoProps) => {
           </Button>
           <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100">Historial de Asistencias</h1>
         </div>
-        
+
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
@@ -186,58 +186,58 @@ const ViewGrupo = ({ grupoId, onBack, onEdit }: ViewGrupoProps) => {
                 <p className="text-gray-500">No hay registros de asistencia para este grupo</p>
               </div>
             ) : (
-               <div className="space-y-4">
-                 {historialAsistencia.map((registro, index) => (
-                   <div 
-                     key={`${registro.fecha}-${index}`} 
-                     className="border rounded-lg p-4 cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"
-                     onClick={() => handleVerDetalleAsistencia(registro.fecha)}
-                   >
-                     <div className="flex justify-between items-start mb-2">
-                       <div>
-                         <h3 className="font-semibold">
-                           {format(new Date(registro.fecha), 'EEEE, d MMMM yyyy', { locale: es })}
-                         </h3>
-                         <p className="text-sm text-gray-600">
-                           Total de alumnos: {registro.total_alumnos} • Haz clic para ver detalle
-                         </p>
-                       </div>
-                       <Badge 
-                         variant={registro.porcentaje_asistencia >= 80 ? "default" : "destructive"}
-                       >
-                         {registro.porcentaje_asistencia}% asistencia
-                       </Badge>
-                     </div>
-                     
-                     <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-4">
-                       <div className="text-center p-3 bg-green-50 dark:bg-green-900/20 rounded">
-                         <div className="text-lg font-bold text-green-600 dark:text-green-400">
-                           {registro.presentes}
-                         </div>
-                         <div className="text-sm text-gray-600 dark:text-gray-300">Presentes</div>
-                       </div>
-                       <div className="text-center p-3 bg-red-50 dark:bg-red-900/20 rounded">
-                         <div className="text-lg font-bold text-red-600 dark:text-red-400">
-                           {registro.ausentes}
-                         </div>
-                         <div className="text-sm text-gray-600 dark:text-gray-300">Ausentes</div>
-                       </div>
-                       <div className="text-center p-3 bg-yellow-50 dark:bg-yellow-900/20 rounded">
-                         <div className="text-lg font-bold text-yellow-600 dark:text-yellow-400">
-                           {registro.retardos}
-                         </div>
-                         <div className="text-sm text-gray-600 dark:text-gray-300">Retardos</div>
-                       </div>
-                       <div className="text-center p-3 bg-blue-50 dark:bg-blue-900/20 rounded">
-                         <div className="text-lg font-bold text-blue-600 dark:text-blue-400">
-                           {registro.justificados}
-                         </div>
-                         <div className="text-sm text-gray-600 dark:text-gray-300">Justificados</div>
-                       </div>
-                     </div>
-                   </div>
-                 ))}
-               </div>
+              <div className="space-y-4">
+                {historialAsistencia.map((registro, index) => (
+                  <div
+                    key={`${registro.fecha}-${index}`}
+                    className="border rounded-lg p-4 cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"
+                    onClick={() => handleVerDetalleAsistencia(registro.fecha)}
+                  >
+                    <div className="flex justify-between items-start mb-2">
+                      <div>
+                        <h3 className="font-semibold">
+                          {format(new Date(registro.fecha), 'EEEE, d MMMM yyyy', { locale: es })}
+                        </h3>
+                        <p className="text-sm text-gray-600">
+                          Total de alumnos: {registro.total_alumnos} • Haz clic para ver detalle
+                        </p>
+                      </div>
+                      <Badge
+                        variant={registro.porcentaje_asistencia >= 80 ? "default" : "destructive"}
+                      >
+                        {registro.porcentaje_asistencia}% asistencia
+                      </Badge>
+                    </div>
+
+                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-4">
+                      <div className="text-center p-3 bg-green-50 dark:bg-green-900/20 rounded">
+                        <div className="text-lg font-bold text-green-600 dark:text-green-400">
+                          {registro.presentes}
+                        </div>
+                        <div className="text-sm text-gray-600 dark:text-gray-300">Presentes</div>
+                      </div>
+                      <div className="text-center p-3 bg-red-50 dark:bg-red-900/20 rounded">
+                        <div className="text-lg font-bold text-red-600 dark:text-red-400">
+                          {registro.ausentes}
+                        </div>
+                        <div className="text-sm text-gray-600 dark:text-gray-300">Ausentes</div>
+                      </div>
+                      <div className="text-center p-3 bg-yellow-50 dark:bg-yellow-900/20 rounded">
+                        <div className="text-lg font-bold text-yellow-600 dark:text-yellow-400">
+                          {registro.retardos}
+                        </div>
+                        <div className="text-sm text-gray-600 dark:text-gray-300">Retardos</div>
+                      </div>
+                      <div className="text-center p-3 bg-blue-50 dark:bg-blue-900/20 rounded">
+                        <div className="text-lg font-bold text-blue-600 dark:text-blue-400">
+                          {registro.justificados}
+                        </div>
+                        <div className="text-sm text-gray-600 dark:text-gray-300">Justificados</div>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
             )}
           </CardContent>
         </Card>
@@ -251,7 +251,7 @@ const ViewGrupo = ({ grupoId, onBack, onEdit }: ViewGrupoProps) => {
                 Detalle de Asistencia - {fechaSeleccionada && format(new Date(fechaSeleccionada), 'EEEE, d MMMM yyyy', { locale: es })}
               </DialogTitle>
             </DialogHeader>
-            
+
             {loadingDetalle ? (
               <div className="flex items-center justify-center h-32">
                 <Loader2 className="h-8 w-8 animate-spin" />
@@ -336,21 +336,17 @@ const ViewGrupo = ({ grupoId, onBack, onEdit }: ViewGrupoProps) => {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div className="flex items-center gap-4">
           <Button variant="outline" onClick={onBack}>
             <ArrowLeft className="h-4 w-4 mr-2" />
             Volver
           </Button>
-          <div>
-            <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100">{grupo.nombre}</h1>
-            <p className="text-gray-600 mt-2">{grupo.grado} de {grupo.nivel}</p>
+          <div className="overflow-hidden">
+            <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-gray-100 truncate">{grupo.nombre}</h1>
+            <p className="text-gray-600 mt-1 sm:mt-2 text-sm sm:text-base">{grupo.grado} de {grupo.nivel}</p>
           </div>
         </div>
-        <Button onClick={onEdit}>
-          <Edit className="h-4 w-4 mr-2" />
-          Editar Grupo
-        </Button>
       </div>
 
       <div className="space-y-6">
@@ -382,7 +378,7 @@ const ViewGrupo = ({ grupoId, onBack, onEdit }: ViewGrupoProps) => {
                   <p className="text-lg font-semibold text-gray-900 dark:text-gray-100">{grupo.ciclo_escolar}</p>
                 </div>
               </div>
-              
+
 
             </CardContent>
           </Card>
@@ -390,9 +386,9 @@ const ViewGrupo = ({ grupoId, onBack, onEdit }: ViewGrupoProps) => {
           {/* Tarjeta destacada de Ver Asistencias */}
           <Card className="bg-gradient-to-r from-blue-500 to-blue-600 border-0 text-white">
             <CardContent className="p-6">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-4">
-                  <div className="p-3 bg-white/20 rounded-full">
+              <div className="flex flex-col md:flex-row items-center justify-between gap-4">
+                <div className="flex items-center gap-4 w-full md:w-auto">
+                  <div className="p-3 bg-white/20 rounded-full shrink-0">
                     <ClipboardList className="h-8 w-8 text-white" />
                   </div>
                   <div>
@@ -402,9 +398,9 @@ const ViewGrupo = ({ grupoId, onBack, onEdit }: ViewGrupoProps) => {
                     </p>
                   </div>
                 </div>
-                <Button 
+                <Button
                   onClick={handleVerAsistencias}
-                  className="bg-white text-blue-600 hover:bg-blue-50 font-semibold px-6 py-3 h-auto"
+                  className="bg-white text-blue-600 hover:bg-blue-50 font-semibold px-6 py-3 h-auto w-full md:w-auto"
                 >
                   <ClipboardList className="h-5 w-5 mr-2" />
                   Ver Historial

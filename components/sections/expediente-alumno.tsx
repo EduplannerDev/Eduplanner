@@ -51,17 +51,17 @@ export function ExpedienteAlumno({ alumnoId, onBack, onNavigateToMensajesPadres,
     try {
       setLoading(true);
       setError(null);
-      
+
       const alumnoData = await getAlumnoById(alumnoId);
       if (!alumnoData) {
         throw new Error('Alumno no encontrado');
       }
-      
+
       const [grupoData, seguimientosData] = await Promise.all([
         getGrupoById(alumnoData.grupo_id),
         getSeguimientoByAlumno(alumnoId)
       ]);
-      
+
       setAlumno(alumnoData);
       setGrupo(grupoData);
       setSeguimientos(seguimientosData);
@@ -105,7 +105,7 @@ export function ExpedienteAlumno({ alumnoId, onBack, onNavigateToMensajesPadres,
 
     try {
       setSubmitting(true);
-      
+
       const seguimientoData: CreateSeguimientoData = {
         alumno_id: alumnoId,
         nota: seguimientoForm.nota.trim(),
@@ -115,10 +115,10 @@ export function ExpedienteAlumno({ alumnoId, onBack, onNavigateToMensajesPadres,
 
       const newSeguimiento = await createSeguimiento(seguimientoData);
       setSeguimientos(prev => [newSeguimiento, ...prev]);
-      
+
       setIsAddSeguimientoOpen(false);
       resetSeguimientoForm();
-      
+
       toast({
         title: "Éxito",
         description: "Seguimiento agregado correctamente",
@@ -147,21 +147,21 @@ export function ExpedienteAlumno({ alumnoId, onBack, onNavigateToMensajesPadres,
 
     try {
       setSubmitting(true);
-      
+
       const updatedSeguimiento = await updateSeguimiento(
         editingSeguimiento.id,
         seguimientoForm.nota.trim(),
         seguimientoForm.tipo
       );
-      
-      setSeguimientos(prev => prev.map(seg => 
+
+      setSeguimientos(prev => prev.map(seg =>
         seg.id === editingSeguimiento.id ? updatedSeguimiento : seg
       ));
-      
+
       setIsEditSeguimientoOpen(false);
       setEditingSeguimiento(null);
       resetSeguimientoForm();
-      
+
       toast({
         title: "Éxito",
         description: "Seguimiento actualizado correctamente",
@@ -182,7 +182,7 @@ export function ExpedienteAlumno({ alumnoId, onBack, onNavigateToMensajesPadres,
     try {
       await deleteSeguimiento(seguimiento.id);
       setSeguimientos(prev => prev.filter(seg => seg.id !== seguimiento.id));
-      
+
       toast({
         title: "Éxito",
         description: "Seguimiento eliminado correctamente",
@@ -288,93 +288,93 @@ export function ExpedienteAlumno({ alumnoId, onBack, onNavigateToMensajesPadres,
       {/* Perfil del Alumno */}
       <Card>
         <CardContent className="p-6">
-          <div className="flex items-start space-x-6">
-            <Avatar className="h-20 w-20">
+          <div className="flex flex-col items-center text-center md:flex-row md:items-start md:text-left md:space-x-6 space-y-4 md:space-y-0">
+            <Avatar className="h-24 w-24 md:h-20 md:w-20">
               <AvatarImage src={alumno.foto_url} alt={alumno.nombre_completo} />
-              <AvatarFallback className="text-lg">
+              <AvatarFallback className="text-2xl md:text-lg">
                 {getInitials(alumno.nombre_completo)}
               </AvatarFallback>
             </Avatar>
-            <div className="flex-1">
-              <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100 mb-2">
+            <div className="flex-1 w-full">
+              <h1 className="text-2xl md:text-3xl font-bold text-gray-900 dark:text-gray-100 mb-2">
                 {alumno.nombre_completo}
               </h1>
-              <div className="flex items-center space-x-4 text-gray-600 dark:text-gray-300 mb-4">
-                <span className="flex items-center space-x-1">
-                  <User className="h-4 w-4" />
-                  <span>Grupo: {grupo?.nombre}</span>
+              <div className="flex flex-wrap justify-center md:justify-start items-center gap-2 text-gray-600 dark:text-gray-300 mb-4">
+                <span className="flex items-center space-x-1 border rounded-full px-3 py-0.5 bg-gray-50 dark:bg-gray-800">
+                  <User className="h-3.5 w-3.5" />
+                  <span className="text-sm">Grupo: {grupo?.nombre}</span>
                 </span>
                 {alumno.numero_lista && (
-                  <Badge variant="outline">Nº {alumno.numero_lista}</Badge>
+                  <Badge variant="outline" className="h-6">Nº {alumno.numero_lista}</Badge>
                 )}
               </div>
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
+              <div className="grid grid-cols-3 gap-4 text-sm border-t border-b py-4 md:border-0 md:py-0 bg-gray-50/50 md:bg-transparent rounded-lg md:rounded-none">
                 <div>
-                  <p className="text-gray-500 dark:text-gray-400">Grado</p>
-                  <p className="font-medium dark:text-gray-200">{grupo?.grado}</p>
+                  <p className="text-xs text-gray-500 dark:text-gray-400 uppercase tracking-wider">Grado</p>
+                  <p className="font-semibold dark:text-gray-200 text-lg md:text-base">{grupo?.grado}</p>
                 </div>
                 <div>
-                  <p className="text-gray-500 dark:text-gray-400">Nivel</p>
-                  <p className="font-medium dark:text-gray-200">{grupo?.nivel}</p>
+                  <p className="text-xs text-gray-500 dark:text-gray-400 uppercase tracking-wider">Nivel</p>
+                  <p className="font-semibold dark:text-gray-200 text-lg md:text-base">{grupo?.nivel}</p>
                 </div>
                 <div>
-                  <p className="text-gray-500 dark:text-gray-400">Ciclo Escolar</p>
-                  <p className="font-medium dark:text-gray-200">{grupo?.ciclo_escolar}</p>
+                  <p className="text-xs text-gray-500 dark:text-gray-400 uppercase tracking-wider">Ciclo</p>
+                  <p className="font-semibold dark:text-gray-200 text-lg md:text-base">{grupo?.ciclo_escolar}</p>
                 </div>
               </div>
-              
+
               {/* Información de Contacto de los Padres */}
               {(alumno.nombre_padre || alumno.nombre_madre || alumno.correo_padre || alumno.correo_madre || alumno.telefono_padre || alumno.telefono_madre) && (
-                <div className="mt-6 border-t pt-4">
-                  <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-3 flex items-center">
+                <div className="mt-6 border-t pt-6 text-left">
+                  <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4 flex items-center">
                     <User className="h-5 w-5 mr-2" />
                     Información de Contacto
                   </h3>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6 bg-gray-50 dark:bg-gray-900/20 p-4 rounded-lg">
                     {/* Información del Padre */}
                     {(alumno.nombre_padre || alumno.correo_padre || alumno.telefono_padre) && (
-                      <div className="space-y-2">
-                        <h4 className="font-medium text-gray-700 dark:text-gray-300 border-b border-gray-200 dark:border-gray-600 pb-1">PADRE</h4>
+                      <div className="space-y-3">
+                        <h4 className="font-medium text-xs text-gray-500 dark:text-gray-400 uppercase tracking-wider border-b border-gray-200 dark:border-gray-700 pb-2 mb-2">PADRE</h4>
                         {alumno.nombre_padre && (
                           <div>
-                            <p className="text-gray-500 dark:text-gray-400 text-sm">Nombre Completo</p>
+                            <p className="text-gray-500 dark:text-gray-400 text-xs mb-0.5">Nombre Completo</p>
                             <p className="font-medium dark:text-gray-200">{alumno.nombre_padre}</p>
                           </div>
                         )}
                         {alumno.correo_padre && (
                           <div>
-                            <p className="text-gray-500 dark:text-gray-400 text-sm">Correo Electrónico</p>
-                            <p className="font-medium text-blue-600 dark:text-blue-400">{alumno.correo_padre}</p>
+                            <p className="text-gray-500 dark:text-gray-400 text-xs mb-0.5">Correo Electrónico</p>
+                            <p className="font-medium text-blue-600 dark:text-blue-400 truncate">{alumno.correo_padre}</p>
                           </div>
                         )}
                         {alumno.telefono_padre && (
                           <div>
-                            <p className="text-gray-500 dark:text-gray-400 text-sm">Teléfono</p>
+                            <p className="text-gray-500 dark:text-gray-400 text-xs mb-0.5">Teléfono</p>
                             <p className="font-medium dark:text-gray-200">{alumno.telefono_padre}</p>
                           </div>
                         )}
                       </div>
                     )}
-                    
+
                     {/* Información de la Madre */}
                     {(alumno.nombre_madre || alumno.correo_madre || alumno.telefono_madre) && (
-                      <div className="space-y-2">
-                        <h4 className="font-medium text-gray-700 dark:text-gray-300 border-b border-gray-200 dark:border-gray-600 pb-1">MADRE</h4>
+                      <div className="space-y-3">
+                        <h4 className="font-medium text-xs text-gray-500 dark:text-gray-400 uppercase tracking-wider border-b border-gray-200 dark:border-gray-700 pb-2 mb-2">MADRE</h4>
                         {alumno.nombre_madre && (
                           <div>
-                            <p className="text-gray-500 dark:text-gray-400 text-sm">Nombre Completo</p>
+                            <p className="text-gray-500 dark:text-gray-400 text-xs mb-0.5">Nombre Completo</p>
                             <p className="font-medium dark:text-gray-200">{alumno.nombre_madre}</p>
                           </div>
                         )}
                         {alumno.correo_madre && (
                           <div>
-                            <p className="text-gray-500 dark:text-gray-400 text-sm">Correo Electrónico</p>
-                            <p className="font-medium text-blue-600 dark:text-blue-400">{alumno.correo_madre}</p>
+                            <p className="text-gray-500 dark:text-gray-400 text-xs mb-0.5">Correo Electrónico</p>
+                            <p className="font-medium text-blue-600 dark:text-blue-400 truncate">{alumno.correo_madre}</p>
                           </div>
                         )}
                         {alumno.telefono_madre && (
                           <div>
-                            <p className="text-gray-500 dark:text-gray-400 text-sm">Teléfono</p>
+                            <p className="text-gray-500 dark:text-gray-400 text-xs mb-0.5">Teléfono</p>
                             <p className="font-medium dark:text-gray-200">{alumno.telefono_madre}</p>
                           </div>
                         )}
@@ -383,18 +383,18 @@ export function ExpedienteAlumno({ alumnoId, onBack, onNavigateToMensajesPadres,
                   </div>
                 </div>
               )}
-              
+
               {alumno.notas_generales && (
-                <div className="mt-4">
-                  <p className="text-gray-500 dark:text-gray-400 text-sm">Notas Generales</p>
-                  <p className="text-gray-700 dark:text-gray-300">{alumno.notas_generales}</p>
+                <div className="mt-4 text-left bg-yellow-50 dark:bg-yellow-900/10 p-3 rounded-md border border-yellow-100 dark:border-yellow-900/20">
+                  <p className="text-yellow-800 dark:text-yellow-500 text-xs font-medium uppercase mb-1">Nota General</p>
+                  <p className="text-gray-700 dark:text-gray-300 text-sm">{alumno.notas_generales}</p>
                 </div>
               )}
-              
+
               {/* Comunicaciones */}
-              <div className="mt-6 border-t pt-4">
+              <div className="mt-6 border-t pt-4 text-left">
                 <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-3">Comunicaciones</h3>
-                <div className="flex flex-wrap gap-3">
+                <div className="flex flex-col sm:flex-row gap-3">
                   {onNavigateToMensajesPadres && (
                     <Button
                       onClick={() => onNavigateToMensajesPadres({
@@ -405,7 +405,7 @@ export function ExpedienteAlumno({ alumnoId, onBack, onNavigateToMensajesPadres,
                         nivel: grupo?.nivel
                       })}
                       variant="outline"
-                      className="flex items-center space-x-2"
+                      className="w-full sm:w-auto flex items-center justify-center space-x-2"
                     >
                       <MessageSquare className="h-4 w-4" />
                       <span>Generar Mensaje para Padres</span>
@@ -421,7 +421,7 @@ export function ExpedienteAlumno({ alumnoId, onBack, onNavigateToMensajesPadres,
                         nivel: grupo?.nivel
                       })}
                       variant="default"
-                      className="flex items-center space-x-2"
+                      className="w-full sm:w-auto flex items-center justify-center space-x-2"
                     >
                       <FileText className="h-4 w-4" />
                       <span>Ver Mensajes para Padres</span>
@@ -451,8 +451,8 @@ export function ExpedienteAlumno({ alumnoId, onBack, onNavigateToMensajesPadres,
         <TabsContent value="seguimiento" className="space-y-4">
           <Card>
             <CardHeader>
-              <div className="flex items-center justify-between">
-                <div>
+              <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
+                <div className="text-center sm:text-left">
                   <CardTitle>Anecdotario y Seguimiento</CardTitle>
                   <CardDescription>
                     Registro diario de observaciones, logros y comportamientos
@@ -460,7 +460,7 @@ export function ExpedienteAlumno({ alumnoId, onBack, onNavigateToMensajesPadres,
                 </div>
                 <Dialog open={isAddSeguimientoOpen} onOpenChange={setIsAddSeguimientoOpen}>
                   <DialogTrigger asChild>
-                    <Button className="flex items-center space-x-2">
+                    <Button className="w-full sm:w-auto flex items-center justify-center space-x-2">
                       <Plus className="h-4 w-4" />
                       <span>Nueva Nota</span>
                     </Button>
@@ -473,7 +473,7 @@ export function ExpedienteAlumno({ alumnoId, onBack, onNavigateToMensajesPadres,
                       </DialogDescription>
                     </DialogHeader>
                     <div className="space-y-4">
-                      <div className="grid grid-cols-2 gap-4">
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                         <div>
                           <Label htmlFor="tipo">Tipo de Seguimiento</Label>
                           <Select
@@ -554,28 +554,30 @@ export function ExpedienteAlumno({ alumnoId, onBack, onNavigateToMensajesPadres,
               ) : (
                 <div className="space-y-4">
                   {seguimientos.map((seguimiento) => (
-                    <div key={seguimiento.id} className="border rounded-lg p-4">
-                      <div className="flex items-start justify-between mb-2">
-                        <div className="flex items-center space-x-2">
-                          <Badge className={`${getTipoColor(seguimiento.tipo)} flex items-center space-x-1`}>
+                    <div key={seguimiento.id} className="border rounded-lg p-4 bg-card shadow-sm">
+                      <div className="flex flex-col sm:flex-row sm:items-start justify-between mb-3 gap-3">
+                        <div className="flex flex-wrap items-center gap-2">
+                          <Badge className={`${getTipoColor(seguimiento.tipo)} flex items-center space-x-1 px-3 py-1`}>
                             {getTipoIcon(seguimiento.tipo)}
-                            <span>{getTipoLabel(seguimiento.tipo)}</span>
+                            <span className="capitalize">{getTipoLabel(seguimiento.tipo)}</span>
                           </Badge>
-                          <span className="text-sm text-gray-500 dark:text-gray-400">
+                          <span className="text-xs text-gray-500 dark:text-gray-400 flex items-center bg-muted/50 px-2 py-0.5 rounded">
+                            <Calendar className="h-3 w-3 mr-1" />
                             {formatDate(seguimiento.fecha)}
                           </span>
                         </div>
-                        <div className="flex items-center space-x-2">
+                        <div className="flex items-center justify-end space-x-1 bg-gray-50 dark:bg-gray-900/40 p-1 rounded-md self-end sm:self-auto">
                           <Button
-                            variant="outline"
+                            variant="ghost"
                             size="sm"
                             onClick={() => openEditSeguimiento(seguimiento)}
+                            className="h-8 w-8 p-0 text-amber-600 hover:text-amber-700 hover:bg-amber-50 dark:text-amber-500"
                           >
                             <Edit className="h-4 w-4" />
                           </Button>
                           <AlertDialog>
                             <AlertDialogTrigger asChild>
-                              <Button variant="outline" size="sm">
+                              <Button variant="ghost" size="sm" className="h-8 w-8 p-0 text-red-600 hover:text-red-700 hover:bg-red-50 dark:text-red-500">
                                 <Trash2 className="h-4 w-4" />
                               </Button>
                             </AlertDialogTrigger>
@@ -583,7 +585,7 @@ export function ExpedienteAlumno({ alumnoId, onBack, onNavigateToMensajesPadres,
                               <AlertDialogHeader>
                                 <AlertDialogTitle>¿Eliminar seguimiento?</AlertDialogTitle>
                                 <AlertDialogDescription>
-                                  ¿Estás seguro de que quieres eliminar esta nota de seguimiento? 
+                                  ¿Estás seguro de que quieres eliminar esta nota de seguimiento?
                                   Esta acción no se puede deshacer.
                                 </AlertDialogDescription>
                               </AlertDialogHeader>
