@@ -26,9 +26,10 @@ import { VerPlanAnalitico } from './ver-plan-analitico'
 interface ListaPlanesAnaliticosProps {
     onCreateNew: () => void
     onNavigateToProfile?: () => void
+    onNavigateToSubscription?: () => void
 }
 
-export function ListaPlanesAnaliticos({ onCreateNew, onNavigateToProfile }: ListaPlanesAnaliticosProps) {
+export function ListaPlanesAnaliticos({ onCreateNew, onNavigateToProfile, onNavigateToSubscription }: ListaPlanesAnaliticosProps) {
     const { profile, loading: loadingProfile } = useProfile()
     const { obtenerPlanesAnaliticos, eliminarPlanAnalitico, loading } = usePlanAnalitico()
     const [planes, setPlanes] = useState<any[]>([])
@@ -124,7 +125,7 @@ export function ListaPlanesAnaliticos({ onCreateNew, onNavigateToProfile }: List
 
                         <div className="flex justify-center pt-2">
                             <Button
-                                onClick={() => onNavigateToProfile ? onNavigateToProfile() : window.open('/pricing', '_blank')}
+                                onClick={() => onNavigateToSubscription ? onNavigateToSubscription() : (onNavigateToProfile ? onNavigateToProfile() : window.open('/pricing', '_blank'))}
                                 className="bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white px-8 py-6 text-lg shadow-lg transform hover:scale-105 transition-all duration-200"
                             >
                                 Actualizar a PRO

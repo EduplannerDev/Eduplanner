@@ -84,6 +84,12 @@ const menuStructure = {
         description: "Crea presentaciones PowerPoint con IA (Solo PRO)",
       },
       {
+        title: "Fichas Descriptivas",
+        icon: FileText,
+        url: "#fichas-descriptivas",
+        description: "Genera fichas descriptivas con IA",
+      },
+      {
         title: "Plan Analítico",
         icon: BookOpen,
         url: "#plan-analitico",

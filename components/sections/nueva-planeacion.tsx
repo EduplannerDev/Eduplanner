@@ -25,6 +25,7 @@ interface NuevaPlaneacionProps {
     message: string
   }) => void
   onNavigateToCime: () => void
+  onNavigateToSubscription?: () => void
 }
 
 interface ContextoTrabajo {
@@ -45,7 +46,7 @@ interface ContenidoDosificado {
   mes: string
 }
 
-export function NuevaPlaneacion({ onCreateClass, onNavigateToChatWithMessage, onNavigateToChatDosificacion, onNavigateToCime }: NuevaPlaneacionProps) {
+export function NuevaPlaneacion({ onCreateClass, onNavigateToChatWithMessage, onNavigateToChatDosificacion, onNavigateToCime, onNavigateToSubscription }: NuevaPlaneacionProps) {
   const { monthlyCount, getRemainingPlaneaciones, canCreateMore, loading: planeacionesLoading } = usePlaneaciones()
   const { profile, loading: profileLoading } = useProfile()
   const { user } = useAuth()
@@ -217,15 +218,20 @@ export function NuevaPlaneacion({ onCreateClass, onNavigateToChatWithMessage, on
         return
       }
 
-      const contenidos = data?.map(item => ({
-        contenido_id: item.contenido_id,
-        grado: item.curriculo_sep.grado,
-        campo_formativo: item.curriculo_sep.campo_formativo,
-        contenido: item.curriculo_sep.contenido,
-        pda: item.curriculo_sep.pda,
-        ejes_articuladores: item.curriculo_sep.ejes_articuladores,
-        mes: item.mes
-      })) || []
+      const contenidos = data?.map(item => {
+        // Handle explicit any cast to avoid type errors with joined data
+        const curriculo = Array.isArray(item.curriculo_sep) ? item.curriculo_sep[0] : item.curriculo_sep
+
+        return {
+          contenido_id: item.contenido_id,
+          grado: curriculo?.grado,
+          campo_formativo: curriculo?.campo_formativo,
+          contenido: curriculo?.contenido,
+          pda: curriculo?.pda,
+          ejes_articuladores: curriculo?.ejes_articuladores,
+          mes: item.mes
+        }
+      }) || []
 
       setContenidosMesActual(contenidos)
     } catch (error) {
@@ -604,7 +610,11 @@ export function NuevaPlaneacion({ onCreateClass, onNavigateToChatWithMessage, on
                       Has creado {monthlyCount} de 3 planeaciones permitidas este mes con tu plan gratuito.
                     </p>
                     <div className="flex items-center gap-2 pt-2">
-                      <Button size="sm" className="bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700">
+                      <Button
+                        size="sm"
+                        className="bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700"
+                        onClick={() => onNavigateToSubscription ? onNavigateToSubscription() : window.open('/pricing', '_blank')}
+                      >
                         <Crown className="w-4 h-4 mr-2" />
                         Actualizar a PRO
                       </Button>

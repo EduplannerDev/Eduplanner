@@ -22,6 +22,7 @@ export interface UserLimits {
   mensajes_limit: number; // -1 = ilimitado
   proyectos_limit: number; // -1 = ilimitado
   presentaciones_limit: number; // -1 = ilimitado
+  fichas_ai_limit: number; // -1 = ilimitado, Límite de generaciones IA
 }
 
 // Interface para información de suscripción
@@ -63,7 +64,8 @@ export function getUserLimits(profile: Profile): UserLimits {
       examenes_limit: -1, // Ilimitado
       mensajes_limit: -1, // Ilimitado
       proyectos_limit: -1, // Ilimitado
-      presentaciones_limit: -1 // Ilimitado
+      presentaciones_limit: -1, // Ilimitado
+      fichas_ai_limit: -1 // Ilimitado
     };
   }
 
@@ -72,7 +74,8 @@ export function getUserLimits(profile: Profile): UserLimits {
     examenes_limit: -1, // Ilimitado
     mensajes_limit: 10,
     proyectos_limit: 1,
-    presentaciones_limit: 3
+    presentaciones_limit: 3,
+    fichas_ai_limit: 5 // Cambiado a 5 para dar un mejor "sabor de boca" (Usuario pidió 3 o 5, 5 es más generoso)
   };
 }
 
@@ -124,7 +127,7 @@ export function getSubscriptionInfo(profile: Profile): SubscriptionInfo {
  */
 export async function canUserCreate(
   userId: string,
-  type: 'planeaciones' | 'examenes' | 'mensajes' | 'proyectos' | 'presentaciones'
+  type: 'planeaciones' | 'examenes' | 'mensajes' | 'proyectos' | 'presentaciones' | 'fichas_ai'
 ): Promise<{ canCreate: boolean; currentCount: number; limit: number; message?: string }> {
   try {
     // Obtener el perfil del usuario
@@ -205,12 +208,21 @@ export async function canUserCreate(
 
       case 'presentaciones':
         limit = limits.presentaciones_limit;
-        // Contar presentaciones creadas lifetime desde presentation_creations
         const { count: presentacionesCount } = await supabase
           .from('presentation_creations')
           .select('*', { count: 'exact', head: true })
           .eq('user_id', userId);
         currentCount = presentacionesCount || 0;
+        break;
+
+      case 'fichas_ai':
+        limit = limits.fichas_ai_limit;
+        // Contar generaciones totales
+        const { count: fichasCount } = await supabase
+          .from('ficha_ai_generations')
+          .select('*', { count: 'exact', head: true })
+          .eq('user_id', userId);
+        currentCount = fichasCount || 0;
         break;
     }
 
@@ -319,7 +331,7 @@ export async function canUserCreateGroup(userId: string): Promise<{
     }
 
     // Verificar si es usuario Pro
-    const isPro = isUserPro(profile);
+    const isPro = isUserPro(profile as unknown as Profile);
 
     // Si es Pro, puede crear grupos ilimitados
     if (isPro) {
@@ -366,23 +378,29 @@ export async function canUserCreateGroup(userId: string): Promise<{
 /**
  * Obtiene estadísticas de uso de un usuario
  */
+/**
+ * Obtiene estadísticas de uso de un usuario
+ */
 export async function getUserUsageStats(userId: string): Promise<{
   planeaciones: { count: number; limit: number };
   examenes: { count: number; limit: number };
   mensajes: { count: number; limit: number };
   grupos: { count: number; limit: number };
+  fichas_ai: { count: number; limit: number };
 }> {
-  const [planeaciones, examenes, mensajes, grupos] = await Promise.all([
+  const [planeaciones, examenes, mensajes, grupos, fichas_ai] = await Promise.all([
     canUserCreate(userId, 'planeaciones'),
     canUserCreate(userId, 'examenes'),
     canUserCreate(userId, 'mensajes'),
-    canUserCreateGroup(userId)
+    canUserCreateGroup(userId),
+    canUserCreate(userId, 'fichas_ai')
   ]);
 
   return {
     planeaciones: { count: planeaciones.currentCount, limit: planeaciones.limit },
     examenes: { count: examenes.currentCount, limit: examenes.limit },
     mensajes: { count: mensajes.currentCount, limit: mensajes.limit },
-    grupos: { count: grupos.currentCount, limit: grupos.limit }
+    grupos: { count: grupos.currentCount, limit: grupos.limit },
+    fichas_ai: { count: fichas_ai.currentCount, limit: fichas_ai.limit }
   };
 }

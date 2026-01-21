@@ -49,6 +49,7 @@ interface PresentacionIA {
 
 interface PresentacionesIAProps {
     onNavigateToProfile?: () => void
+    onNavigateToSubscription?: () => void
 }
 
 interface PresentationFilters {
@@ -59,7 +60,7 @@ interface PresentationFilters {
     sortOrder: 'asc' | 'desc'
 }
 
-export function PresentacionesIA({ onNavigateToProfile }: PresentacionesIAProps) {
+export function PresentacionesIA({ onNavigateToProfile, onNavigateToSubscription }: PresentacionesIAProps) {
     const { profile, loading: loadingProfile } = useProfile()
     const { toast } = useToast()
     const { availableContexts } = useContextoTrabajo()
@@ -531,7 +532,7 @@ export function PresentacionesIA({ onNavigateToProfile }: PresentacionesIAProps)
                             <Button
                                 size="lg"
                                 className="bg-gradient-to-r from-red-600 to-orange-600 hover:from-red-700 hover:to-orange-700 text-white shadow-lg whitespace-nowrap w-full sm:w-auto transform hover:scale-105 transition-all"
-                                onClick={() => onNavigateToProfile ? onNavigateToProfile() : window.open('/pricing', '_blank')}
+                                onClick={() => onNavigateToSubscription ? onNavigateToSubscription() : (onNavigateToProfile ? onNavigateToProfile() : window.open('/pricing', '_blank'))}
                             >
                                 Actualizar a Ilimitado
                             </Button>
@@ -557,7 +558,7 @@ export function PresentacionesIA({ onNavigateToProfile }: PresentacionesIAProps)
                                 variant="default"
                                 size="sm"
                                 className="bg-purple-600 hover:bg-purple-700 text-white"
-                                onClick={() => onNavigateToProfile ? onNavigateToProfile() : window.open('/pricing', '_blank')}
+                                onClick={() => onNavigateToSubscription ? onNavigateToSubscription() : (onNavigateToProfile ? onNavigateToProfile() : window.open('/pricing', '_blank'))}
                             >
                                 Ver Planes
                             </Button>

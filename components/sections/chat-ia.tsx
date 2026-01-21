@@ -70,9 +70,10 @@ interface ChatIAProps {
   onBack: () => void
   onSaveSuccess: () => void
   initialMessage?: string
+  onNavigateToSubscription?: () => void
 }
 
-export function ChatIA({ onBack, onSaveSuccess, initialMessage }: ChatIAProps) {
+export function ChatIA({ onBack, onSaveSuccess, initialMessage, onNavigateToSubscription }: ChatIAProps) {
   const scrollAreaRef = useRef<HTMLDivElement>(null)
   const messagesEndRef = useRef<HTMLDivElement>(null)
   const [lastPlaneacionContent, setLastPlaneacionContent] = useState<string>("")
@@ -206,7 +207,7 @@ Puedes contarme:
 
     // Verificar límite antes de enviar
     if (hasReachedLimit) {
-      Swal.fire({
+      const result = await Swal.fire({
         icon: 'warning',
         title: 'Límite mensual alcanzado',
         html: `
@@ -219,6 +220,14 @@ Puedes contarme:
         confirmButtonColor: '#f59e0b',
         cancelButtonColor: '#8b5cf6'
       })
+
+      if (result.dismiss === Swal.DismissReason.cancel) {
+        if (onNavigateToSubscription) {
+          onNavigateToSubscription()
+        } else {
+          window.open('/pricing', '_blank')
+        }
+      }
       return
     }
 
@@ -442,7 +451,11 @@ Puedes contarme:
                   No puedes generar nuevas planeaciones hasta el próximo mes.
                 </p>
                 <div className="flex items-center gap-2 pt-2">
-                  <Button size="sm" className="bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700">
+                  <Button
+                    size="sm"
+                    className="bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700"
+                    onClick={() => onNavigateToSubscription ? onNavigateToSubscription() : window.open('/pricing', '_blank')}
+                  >
                     <Crown className="w-4 h-4 mr-2" />
                     Actualizar a PRO
                   </Button>

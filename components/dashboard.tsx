@@ -32,6 +32,7 @@ import { PlaneacionCime } from "./sections/planeacion-cime"
 import { PresentacionesIA } from "./sections/presentaciones-ia"
 import { PlanAnaliticoWizard } from "./sections/plan-analitico/plan-analitico-wizard"
 import { ListaPlanesAnaliticos } from "./sections/plan-analitico/lista-planes-analiticos"
+import { FichasDescriptivas } from "./sections/fichas-descriptivas"
 import { WelcomeMessage } from "./ui/welcome-message"
 import { ClientOnly } from "./client-only"
 import { NotificationsPopover } from "./ui/notifications-popover"
@@ -75,7 +76,8 @@ export default function Dashboard({ children, customContent = false }: Dashboard
       'generar-mensajes-padres', 'mensajes-padres-alumno', 'mis-mensajes', 'ayuda',
       'grupos', 'agenda', 'tomar-asistencia', 'bitacora', 'admin-dashboard',
       'administracion-plantel', 'beta-testers', 'beta-features', 'dosificacion',
-      'presentaciones-ia', 'proyectos', 'crear-proyecto', 'planeacion-cime', 'plan-analitico', 'suscripcion'
+      'presentaciones-ia', 'proyectos', 'crear-proyecto', 'planeacion-cime', 'plan-analitico', 'suscripcion',
+      'fichas-descriptivas'
     ]
 
     if (section && allSections.includes(section)) {
@@ -222,6 +224,8 @@ export default function Dashboard({ children, customContent = false }: Dashboard
         return "Planeación CIME"
       case "suscripcion":
         return "Mi Suscripción"
+      case "fichas-descriptivas":
+        return "Fichas Descriptivas"
       default:
         return "Dashboard"
     }
@@ -249,6 +253,7 @@ export default function Dashboard({ children, customContent = false }: Dashboard
           onNavigateToChatWithMessage={handleNavigateToChatWithMessage}
           onNavigateToChatDosificacion={handleNavigateToChatDosificacion}
           onNavigateToCime={() => setActiveSection("planeacion-cime")}
+          onNavigateToSubscription={() => setActiveSection("suscripcion")}
         />
       case "mis-planeaciones":
         return (
@@ -275,6 +280,7 @@ export default function Dashboard({ children, customContent = false }: Dashboard
             clearChatStates()
           }}
           initialMessage={initialChatMessage}
+          onNavigateToSubscription={() => setActiveSection("suscripcion")}
         />
       case "chat-ia-dosificacion":
         return dosificacionData ? <ChatIADosificacion
@@ -358,7 +364,10 @@ export default function Dashboard({ children, customContent = false }: Dashboard
           onNavigateToChatDosificacion={handleNavigateToChatDosificacion}
         />
       case "presentaciones-ia":
-        return <PresentacionesIA onNavigateToProfile={() => setActiveSection("perfil")} />
+        return <PresentacionesIA
+          onNavigateToProfile={() => setActiveSection("perfil")}
+          onNavigateToSubscription={() => setActiveSection("suscripcion")}
+        />
       case "proyectos":
         return <ListaProyectos />
       case "crear-proyecto":
@@ -372,9 +381,12 @@ export default function Dashboard({ children, customContent = false }: Dashboard
         return <ListaPlanesAnaliticos
           onCreateNew={() => setActiveSection("nuevo-plan-analitico")}
           onNavigateToProfile={() => setActiveSection("perfil")}
+          onNavigateToSubscription={() => setActiveSection("suscripcion")}
         />
       case "nuevo-plan-analitico":
         return <PlanAnaliticoWizard onComplete={() => setActiveSection("plan-analitico")} />
+      case "fichas-descriptivas":
+        return <FichasDescriptivas onNavigateToSubscription={() => setActiveSection("suscripcion")} />
       case "suscripcion":
         return <SubscriptionCard userPlan={profile && isUserPro(profile) ? "pro" : "free"} />
       default:

@@ -3,7 +3,7 @@
 // Función para limpiar contenido markdown
 function cleanMarkdown(text: string): string {
   if (!text) return '';
-  
+
   return text
     .replace(/\*\*(.*?)\*\*/g, '$1') // Remover negritas
     .replace(/\*(.*?)\*/g, '$1')     // Remover cursivas
@@ -19,54 +19,54 @@ function cleanMarkdown(text: string): string {
 // Función para convertir markdown a HTML básico
 function convertMarkdownToHtml(markdown: string): string {
   if (!markdown) return '';
-  
+
   let html = markdown;
-  
+
   // Convertir encabezados
   html = html.replace(/^### (.*$)/gm, '<h3>$1</h3>');
   html = html.replace(/^## (.*$)/gm, '<h2>$1</h2>');
   html = html.replace(/^# (.*$)/gm, '<h1>$1</h1>');
-  
+
   // Convertir texto en negrita
   html = html.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
-  
+
   // Convertir texto en cursiva
   html = html.replace(/\*(.*?)\*/g, '<em>$1</em>');
-  
+
   // Convertir listas no ordenadas
   html = html.replace(/^\s*[-*+]\s+(.*)$/gm, '<li>$1</li>');
   html = html.replace(/((<li>[\s\S]*?<\/li>\s*)+)/g, '<ul>$1</ul>');
-  
+
   // Convertir listas ordenadas
   html = html.replace(/^\s*\d+\.\s+(.*)$/gm, '<li>$1</li>');
-  
+
   // Convertir párrafos
   const paragraphs = html.split(/\n\s*\n/);
   html = paragraphs.map(paragraph => {
     const trimmed = paragraph.trim();
     if (!trimmed) return '';
-    
+
     // No envolver en <p> si ya tiene tags de bloque
     if (trimmed.match(/^<(h[1-6]|ul|ol|li)/)) {
       return trimmed;
     }
-    
+
     return `<p>${trimmed}</p>`;
   }).filter(p => p).join('');
-  
+
   return html;
 }
 
 function markdownToHtml(text: string): string {
   if (!text) return ""
-  
+
   // Procesar línea por línea preservando saltos de línea
   const lines = text.split('\n')
   const processedLines: string[] = []
-  
+
   let inList = false
   let currentParagraph: string[] = []
-  
+
   const flushParagraph = () => {
     if (currentParagraph.length > 0) {
       const paragraphText = currentParagraph.join(' ').trim()
@@ -82,10 +82,10 @@ function markdownToHtml(text: string): string {
       currentParagraph = []
     }
   }
-  
+
   for (const line of lines) {
     const trimmedLine = line.trim()
-    
+
     // Líneas vacías terminan párrafos y crean espacios
     if (!trimmedLine) {
       flushParagraph()
@@ -95,7 +95,7 @@ function markdownToHtml(text: string): string {
       }
       continue
     }
-    
+
     // Títulos
     if (trimmedLine.match(/^### /)) {
       flushParagraph()
@@ -144,15 +144,15 @@ function markdownToHtml(text: string): string {
       }
     }
   }
-  
+
   // Procesar párrafo final
   flushParagraph()
-  
+
   // Cerrar lista si quedó abierta
   if (inList) {
     processedLines.push('</ul>')
   }
-  
+
   return processedLines.join('\n')
 }
 
@@ -163,19 +163,19 @@ function processExamContent(content: string): { examContent: string; answerSheet
   }
 
   // Verificar si el contenido ya está estructurado (contiene separadores específicos)
-  const hasAnswerSheetSeparator = content.includes('--- HOJA DE RESPUESTAS ---') || 
-                                  content.includes('HOJA DE RESPUESTAS') ||
-                                  content.includes('Answer Sheet') ||
-                                  content.includes('Respuestas:');
+  const hasAnswerSheetSeparator = content.includes('--- HOJA DE RESPUESTAS ---') ||
+    content.includes('HOJA DE RESPUESTAS') ||
+    content.includes('Answer Sheet') ||
+    content.includes('Respuestas:');
 
   if (hasAnswerSheetSeparator) {
     // Dividir el contenido en examen y hoja de respuestas
     const parts = content.split(/(?:--- HOJA DE RESPUESTAS ---|HOJA DE RESPUESTAS|Answer Sheet|Respuestas:)/i);
-    
+
     if (parts.length >= 2) {
       const examContent = parts[0].trim();
       const answerSheet = parts.slice(1).join('\n').trim();
-      
+
       return {
         examContent: examContent || content,
         answerSheet: answerSheet || null,
@@ -338,7 +338,7 @@ async function generatePDFFromHTML(content: string, title: string, filename: str
   try {
     // Intentar primero con Puppeteer (alta calidad)
     const htmlContent = createPDFHtml(content, title, isAnswerSheet);
-    
+
     const options = {
       format: 'A4',
       orientation: 'portrait',
@@ -389,7 +389,7 @@ export async function generateExamPDF(examen: any): Promise<void> {
   let examContent: string;
   let answerSheet: string | null = null;
   let isStructured = false;
-  
+
   // Verificar si el contenido es un objeto JSON con la estructura esperada
   if (typeof examen.content === 'object' && examen.content !== null) {
     if (examen.content.examen_contenido && examen.content.hoja_de_respuestas) {
@@ -407,40 +407,40 @@ export async function generateExamPDF(examen: any): Promise<void> {
     answerSheet = processed.answerSheet;
     isStructured = processed.isStructured;
   }
-  
 
-  
+
+
   // Generar PDF del examen
   const examTitle = cleanMarkdown(examen.title || 'Examen');
   const examFilename = `${examTitle.replace(/[^a-zA-Z0-9\s]/g, '').replace(/\s+/g, '_')}_Examen.pdf`;
-  
+
   // Convertir markdown a HTML
   const htmlContent = markdownToHtml(examContent);
-  
+
   // Agregar información de la materia al contenido si existe
   let fullContent = htmlContent;
   if (examen.subject) {
     fullContent = `<p><strong>Materia:</strong> ${cleanMarkdown(examen.subject)}</p>${htmlContent}`;
   }
-  
+
   await generatePDFFromHTML(fullContent, examTitle, examFilename, false);
-  
-  
+
+
 }
 
 export async function generateAnswerSheetPDF(examen: any, answerSheet: string): Promise<void> {
   const answerTitle = `${cleanMarkdown(examen.title || 'Examen')} - Hoja de Respuestas`;
   const answerFilename = `${cleanMarkdown(examen.title || 'Examen').replace(/[^a-zA-Z0-9\s]/g, '').replace(/\s+/g, '_')}_Respuestas.pdf`;
-  
+
   // Convertir markdown a HTML
   const htmlAnswerSheet = markdownToHtml(answerSheet);
-  
+
   // Agregar información de la materia al contenido si existe
   let fullContent = htmlAnswerSheet;
   if (examen.subject) {
     fullContent = `<p><strong>Materia:</strong> ${cleanMarkdown(examen.subject)}</p>${htmlAnswerSheet}`;
   }
-  
+
   await generatePDFFromHTML(fullContent, answerTitle, answerFilename, true);
 }
 
@@ -466,7 +466,7 @@ async function generatePDFWithPuppeteer(htmlContent: string, filename: string, o
 
     // Obtener el PDF como blob
     const pdfBlob = await response.blob();
-    
+
     // Crear URL para descarga
     const url = window.URL.createObjectURL(pdfBlob);
     const link = document.createElement('a');
@@ -476,7 +476,7 @@ async function generatePDFWithPuppeteer(htmlContent: string, filename: string, o
     link.click();
     document.body.removeChild(link);
     window.URL.revokeObjectURL(url);
-    
+
     console.log('PDF generado exitosamente con Puppeteer');
   } catch (error) {
     console.error('Error generando PDF con Puppeteer:', error);
@@ -490,7 +490,7 @@ async function generateRubricaPDFPuppeteer(rubrica: any): Promise<void> {
 
   const { titulo, contenido } = rubrica;
   const { criterios, pda_origen } = contenido;
-  
+
   // Los niveles correctos según el componente
   const niveles = ['Sobresaliente', 'Logrado', 'En Proceso', 'Requiere Apoyo'];
 
@@ -617,7 +617,7 @@ async function generateRubricaPDFPuppeteer(rubrica: any): Promise<void> {
   `;
 
   const filename = `rubrica_${titulo.replace(/[^a-zA-Z0-9]/g, '_')}.pdf`;
-  
+
   const options = {
     format: 'A4',
     orientation: 'landscape',
@@ -694,11 +694,11 @@ async function generateRubricaPDFPuppeteer(rubrica: any): Promise<void> {
 async function generateListaCotejoPDFPuppeteer(instrumento: any): Promise<void> {
   try {
     const { contenido, titulo } = instrumento;
-    
+
     // Verificar si el contenido es de la nueva estructura (con indicadores) o la antigua (con criterios)
     const indicadores = contenido?.indicadores || contenido?.criterios || []
     const tituloInstrumento = contenido?.titulo_instrumento || titulo || "Lista de Cotejo"
-    
+
     if (!contenido || indicadores.length === 0) {
       throw new Error('Datos de lista de cotejo inválidos');
     }
@@ -833,7 +833,7 @@ async function generateListaCotejoPDFPuppeteer(instrumento: any): Promise<void> 
     `;
 
     const filename = `lista_cotejo_${tituloInstrumento.replace(/\s+/g, '_').toLowerCase()}_${Date.now()}.pdf`;
-    
+
     const options = {
       format: 'A4',
       orientation: 'landscape',
@@ -958,7 +958,7 @@ async function generatePlaneacionPDFPuppeteer(planeacion: any): Promise<void> {
 
   const title = planeacion.titulo;
   const filename = `${title.replace(/[^a-zA-Z0-9\s]/g, '').replace(/\s+/g, '_')}_Planeacion.pdf`;
-  
+
   const options = {
     format: 'A4',
     orientation: 'portrait',
@@ -1020,7 +1020,7 @@ async function generateProyectoPDFPuppeteer(proyecto: any): Promise<void> {
     htmlContent += `
       <div style="margin-bottom: 30px;">
         <h3 style="color: #8B5CF6; margin-bottom: 15px;">PDAs SELECCIONADOS</h3>`;
-    
+
     proyecto.proyecto_curriculo.forEach((pc: any) => {
       htmlContent += `
         <div style="margin-bottom: 20px; background-color: #f8f9fa; padding: 15px; border-radius: 8px;">
@@ -1029,7 +1029,7 @@ async function generateProyectoPDFPuppeteer(proyecto: any): Promise<void> {
           ${pc.curriculo_sep?.contenido ? `<p>${pc.curriculo_sep.contenido}</p>` : ''}
         </div>`;
     });
-    
+
     htmlContent += `</div>`;
   }
 
@@ -1038,7 +1038,7 @@ async function generateProyectoPDFPuppeteer(proyecto: any): Promise<void> {
     htmlContent += `
       <div style="margin-bottom: 30px;">
         <h3 style="color: #8B5CF6; margin-bottom: 15px;">FASES Y MOMENTOS DEL PROYECTO</h3>`;
-    
+
     proyecto.proyecto_fases
       .sort((a: any, b: any) => a.orden - b.orden)
       .forEach((fase: any) => {
@@ -1049,7 +1049,7 @@ async function generateProyectoPDFPuppeteer(proyecto: any): Promise<void> {
             <div>${fase.contenido}</div>
           </div>`;
       });
-    
+
     htmlContent += `</div>`;
   } else {
     htmlContent += `
@@ -1067,7 +1067,7 @@ async function generateProyectoPDFPuppeteer(proyecto: any): Promise<void> {
 
   const title = proyecto.nombre;
   const filename = `${title.replace(/[^a-zA-Z0-9\s]/g, '').replace(/\s+/g, '_')}_Proyecto.pdf`;
-  
+
   const options = {
     format: 'A4',
     orientation: 'portrait',
@@ -1091,11 +1091,11 @@ export async function generateRubricaPDF(rubrica: any): Promise<void> {
     console.log('PDF generado exitosamente con Puppeteer');
   } catch (error) {
     console.warn('Puppeteer falló, usando fallback html2canvas:', error);
-    
+
     // Fallback a html2canvas
     const { titulo, contenido } = rubrica;
     const { criterios, pda_origen } = contenido;
-    
+
     const tableRows = criterios.map((criterio: any) => `
       <tr>
         <td style="border: 1px solid #ddd; padding: 12px; font-weight: bold; background-color: #f8f9fa; vertical-align: top; width: 20%;">
@@ -1188,13 +1188,13 @@ function generateRubricaPDFLandscape(content: string, title: string, filename: s
     </body>
     </html>
   `;
-  
+
   // Configuración para orientación horizontal
   const options = {
     margin: [10, 10, 10, 10],
     filename: filename,
     image: { type: 'jpeg', quality: 0.95 },
-    html2canvas: { 
+    html2canvas: {
       scale: 2,
       useCORS: true,
       allowTaint: true,
@@ -1208,14 +1208,14 @@ function generateRubricaPDFLandscape(content: string, title: string, filename: s
       windowWidth: 1400,
       windowHeight: 900
     },
-    jsPDF: { 
-      unit: 'mm', 
-      format: 'a4', 
+    jsPDF: {
+      unit: 'mm',
+      format: 'a4',
       orientation: 'landscape', // Orientación horizontal
       compress: false,
       precision: 2
     },
-    pagebreak: { 
+    pagebreak: {
       mode: ['avoid-all', 'css', 'legacy'],
       before: '.page-break-before',
       after: '.page-break-after',
@@ -1234,11 +1234,11 @@ function generateRubricaPDFLandscape(content: string, title: string, filename: s
   element.style.maxWidth = '100%';
   element.style.wordWrap = 'break-word';
   element.style.overflowWrap = 'break-word';
-  
+
   // Importación dinámica de html2pdf para evitar errores SSR
   import('html2pdf.js').then((html2pdfModule) => {
     const html2pdf = html2pdfModule.default;
-    
+
     // Generar PDF
     html2pdf()
       .set(options)
@@ -1265,14 +1265,14 @@ export async function generateListaCotejoPDF(instrumento: any) {
     console.log('PDF de lista de cotejo generado exitosamente con Puppeteer');
   } catch (error) {
     console.warn('Puppeteer falló para lista de cotejo, usando fallback html2canvas:', error);
-    
+
     // Fallback a html2canvas
     const { contenido, titulo } = instrumento;
-    
+
     // Verificar si el contenido es de la nueva estructura (con indicadores) o la antigua (con criterios)
     const indicadores = contenido?.indicadores || contenido?.criterios || []
     const tituloInstrumento = contenido?.titulo_instrumento || titulo || "Lista de Cotejo"
-    
+
     if (!contenido || indicadores.length === 0) {
       throw new Error('Datos de lista de cotejo inválidos');
     }
@@ -1326,7 +1326,7 @@ export async function generateListaCotejoPDF(instrumento: any) {
     `;
 
     const filename = `lista_cotejo_${tituloInstrumento.replace(/\s+/g, '_').toLowerCase()}_${Date.now()}.pdf`;
-    
+
     // Usar html2canvas como fallback
     await generateListaCotejoPDFLandscape(content, tituloInstrumento, filename);
   }
@@ -1338,13 +1338,13 @@ async function generateListaCotejoPDFLandscape(htmlContent: string, title: strin
     console.error('generateListaCotejoPDFLandscape solo puede ejecutarse en el cliente');
     return;
   }
-  
+
   // Configuración para orientación horizontal
   const options = {
     margin: [10, 10, 10, 10],
     filename: filename,
     image: { type: 'jpeg', quality: 0.95 },
-    html2canvas: { 
+    html2canvas: {
       scale: 2,
       useCORS: true,
       allowTaint: true,
@@ -1358,14 +1358,14 @@ async function generateListaCotejoPDFLandscape(htmlContent: string, title: strin
       windowWidth: 1400,
       windowHeight: 900
     },
-    jsPDF: { 
-      unit: 'mm', 
-      format: 'a4', 
+    jsPDF: {
+      unit: 'mm',
+      format: 'a4',
       orientation: 'landscape', // Orientación horizontal
       compress: false,
       precision: 2
     },
-    pagebreak: { 
+    pagebreak: {
       mode: ['avoid-all', 'css', 'legacy'],
       before: '.page-break-before',
       after: '.page-break-after',
@@ -1384,23 +1384,229 @@ async function generateListaCotejoPDFLandscape(htmlContent: string, title: strin
   element.style.maxWidth = '100%';
   element.style.wordWrap = 'break-word';
   element.style.overflowWrap = 'break-word';
-  
+
   // Importación dinámica de html2pdf para evitar errores SSR
   try {
     const html2pdfModule = await import('html2pdf.js');
     const html2pdf = html2pdfModule.default;
-    
+
     // Generar PDF
     await html2pdf()
       .set(options)
       .from(element)
       .save();
-      
+
     // Limpiar elemento temporal
     element.remove();
   } catch (error) {
     console.error('Error generando PDF:', error);
     element.remove();
+    throw error;
+  }
+}
+
+// Función para generar PDF de Ficha Descriptiva
+export async function generateFichaPDF(ficha: any): Promise<void> {
+  if (typeof window === 'undefined') return;
+
+  // Importar html2pdf dinámicamente
+  const html2pdf = (await import('html2pdf.js')).default;
+
+  const { alumno_id, logros, dificultades, recomendaciones, estado_promocion, isPro } = ficha;
+  const nombreAlumno = ficha.alumno_nombre || ficha.nombre_completo || "Alumno";
+
+  // Mapear estado de promoción a texto legible
+  const checkMark = (state: string) => estado_promocion === state ? '( X )' : '(   )';
+
+  // Marca de agua HTML (estilo fijo para evitar problemas de CSS externo)
+  const watermarkHtml = !isPro ? `
+    <div style="
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%) rotate(-45deg);
+      font-size: 60px;
+      color: rgba(0, 0, 0, 0.1);
+      z-index: 0;
+      white-space: nowrap;
+      pointer-events: none;
+      font-weight: bold;
+      width: 100%;
+      text-align: center;
+    ">
+      Generado con EduPlanner Free
+    </div>
+  ` : '';
+
+  const htmlContent = `
+    <!DOCTYPE html>
+    <html>
+    <head>
+      <meta charset="UTF-8">
+      <title>Ficha Descriptiva - ${nombreAlumno}</title>
+      <style>
+        body {
+          font-family: 'Arial', sans-serif;
+          margin: 0;
+          padding: 20px;
+          color: #000;
+          line-height: 1.3;
+          font-size: 11px;
+          background: white;
+          position: relative;
+        }
+        .header-table {
+          width: 100%;
+          border-collapse: collapse;
+          margin-bottom: 5px;
+          border: 1px solid #000;
+          position: relative;
+          z-index: 10;
+        }
+        .header-table td {
+          border: 1px solid #000;
+          padding: 5px 8px;
+          background-color: #e0e0e0;
+          font-weight: bold;
+        }
+        .status-table {
+          width: 100%;
+          border-collapse: collapse;
+          margin-bottom: 10px;
+          position: relative;
+          z-index: 10;
+        }
+        .status-table td {
+          border: 1px solid #000;
+          padding: 5px;
+          width: 50%;
+          font-size: 10px;
+        }
+        .section-title {
+          text-align: center;
+          margin: 5px 0;
+          font-style: italic;
+          font-size: 10px;
+          position: relative;
+          z-index: 10;
+        }
+        .main-table {
+          width: 100%;
+          border-collapse: collapse;
+          margin-bottom: 0;
+          position: relative;
+          z-index: 10;
+        }
+        .main-table th {
+          border: 1px solid #000;
+          padding: 5px;
+          background-color: #e0e0e0;
+          text-align: center;
+          font-weight: bold;
+          width: 50%;
+        }
+        .main-table td {
+          border: 1px solid #000;
+          padding: 8px;
+          vertical-align: top;
+          text-align: justify;
+          height: 350px; /* Altura fija para mantener estructura */
+        }
+        .recommendations-box {
+          border: 1px solid #000;
+          border-top: none; /* Se une con la tabla de arriba */
+          padding: 10px;
+          min-height: 150px;
+          position: relative;
+          z-index: 10;
+        }
+        .rec-title {
+          font-weight: bold;
+          margin-bottom: 5px;
+        }
+        p { margin-top: 5px; margin-bottom: 5px; }
+        ul { margin-top: 5px; margin-bottom: 5px; padding-left: 20px; }
+        li { margin-bottom: 2px; }
+      </style>
+    </head>
+    <body>
+      ${watermarkHtml}
+      <div id="ficha-content">
+          <!-- Encabezado con Nombre -->
+          <table class="header-table">
+            <tr>
+              <td>FICHA DESCRIPTIVA DEL ALUMNO: ${nombreAlumno}</td>
+            </tr>
+          </table>
+
+          <!-- Estado de Promoción -->
+          <table class="status-table">
+            <tr>
+              <td>No promovido ${checkMark('no_promovido')}</td>
+              <td>Promovido con condiciones ${checkMark('condicionado')}   Promovido ${checkMark('promovido')}</td>
+            </tr>
+          </table>
+
+          <div class="section-title">Durante el ciclo escolar</div>
+
+          <!-- Tabla Principal: Logros y Dificultades -->
+          <table class="main-table">
+            <thead>
+              <tr>
+                <th>Logros</th>
+                <th>Dificultades</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>
+                  ${markdownToHtml(logros || '')}
+                </td>
+                <td>
+                  ${markdownToHtml(dificultades || '')}
+                </td>
+              </tr>
+            </tbody>
+          </table>
+
+          <!-- Recomendaciones -->
+          <div class="recommendations-box">
+            <div class="rec-title">Recomendaciones para la intervención docente el próximo año:</div>
+            ${markdownToHtml(recomendaciones || '')}
+          </div>
+      </div>
+    </body>
+    </html>
+  `;
+
+  const filename = `Ficha_${nombreAlumno.replace(/[^a-zA-Z0-9]/g, '_')}.pdf`;
+
+  const opt = {
+    margin: [10, 10, 10, 10], // mm
+    filename: filename,
+    image: { type: 'jpeg', quality: 0.98 },
+    html2canvas: { scale: 2, useCORS: true },
+    jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
+  };
+
+  try {
+    // Crear elemento temporal
+    const element = document.createElement('div');
+    element.innerHTML = htmlContent;
+    // Hack: html2pdf necesita que el elemento esté en el DOM para renderizar estilos correctamente a veces, 
+    // pero funciona con string/element suelto si los estilos son inline.
+    // Para mayor seguridad con tablas complejas:
+    document.body.appendChild(element);
+
+    // Simular entorno de impresión
+    // @ts-ignore
+    await html2pdf().from(element).set(opt).save();
+
+    document.body.removeChild(element);
+    console.log('PDF generado exitosamente con html2pdf');
+
+  } catch (error) {
+    console.error('Error generando PDF de ficha CLI:', error);
     throw error;
   }
 }
