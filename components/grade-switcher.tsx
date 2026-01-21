@@ -1,7 +1,7 @@
 "use client"
 
 import { useState } from 'react'
-import { Check, ChevronsUpDown, Plus, Settings } from 'lucide-react'
+import { ChevronsUpDown, Plus, Settings } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import {
     DropdownMenu,
@@ -51,53 +51,50 @@ export function GradeSwitcher() {
             <DropdownMenu>
                 <DropdownMenuTrigger asChild>
                     <Button
-                        variant="ghost"
-                        size="sm"
-                        className="w-full justify-between gap-2 px-2 hover:bg-sidebar-accent hover:text-sidebar-accent-foreground group"
+                        variant="outline"
+                        className="w-full justify-between gap-2 px-3 h-14 border-primary/20 bg-background/50 hover:bg-accent hover:text-accent-foreground shadow-sm group"
                     >
-                        <div className="flex flex-col items-start text-left text-sm leading-tight">
-                            <span className="font-semibold text-foreground/80 group-hover:text-foreground">
+                        <div className="flex flex-col items-start text-left leading-tight">
+                            <span className="font-bold text-base text-primary">
                                 {formatGrado(contexto.grado)}
                             </span>
-                            <span className="text-xs text-muted-foreground">{contexto.ciclo_escolar}</span>
+                            <span className="text-xs font-medium text-muted-foreground group-hover:text-accent-foreground/80">{contexto.ciclo_escolar}</span>
                         </div>
-                        <ChevronsUpDown className="ml-auto h-4 w-4 shrink-0 opacity-50" />
+                        <ChevronsUpDown className="ml-auto h-5 w-5 shrink-0 opacity-50 text-muted-foreground" />
                     </Button>
                 </DropdownMenuTrigger>
-                <DropdownMenuContent className="w-[200px]" align="start">
-                    <DropdownMenuLabel className="text-xs text-muted-foreground">
+                <DropdownMenuContent
+                    className="w-[--radix-dropdown-menu-trigger-width] min-w-56 rounded-lg"
+                    align="start"
+                    sideOffset={4}
+                >
+                    <DropdownMenuLabel className="text-xs font-medium text-muted-foreground px-2 py-1.5">
                         Grados Activos
                     </DropdownMenuLabel>
                     {availableContexts.map((ctx) => (
                         <DropdownMenuItem
                             key={ctx.id}
                             onClick={() => handleSwitch(ctx.id)}
-                            className="gap-2 p-2"
+                            className={`p-3 cursor-pointer mb-1 rounded-md ${ctx.id === contexto.id
+                                ? "bg-accent text-accent-foreground border-l-4 border-primary"
+                                : "text-muted-foreground hover:bg-muted/50 hover:text-foreground"
+                                }`}
                             disabled={isSwitching}
                         >
-                            <div className="flex h-6 w-6 items-center justify-center rounded-sm border">
-                                {ctx.id === contexto.id ? (
-                                    <Check className="h-4 w-4 text-primary" />
-                                ) : (
-                                    <span className="text-xs font-medium text-muted-foreground">
-                                        {formatGrado(ctx.grado).charAt(0)}
-                                    </span>
-                                )}
+                            <div className="flex flex-col gap-1 w-full text-left">
+                                <span className={`text-sm leading-none ${ctx.id === contexto.id ? "font-bold" : "font-medium"}`}>
+                                    {formatGrado(ctx.grado)}
+                                </span>
+                                <span className="text-xs opacity-80">
+                                    {ctx.ciclo_escolar}
+                                </span>
                             </div>
-                            <span className="flex-1 truncate text-sm">
-                                {formatGrado(ctx.grado)}
-                            </span>
-                            {ctx.id === contexto.id && (
-                                <Badge variant="outline" className="text-[10px] h-5 px-1">Actual</Badge>
-                            )}
                         </DropdownMenuItem>
                     ))}
                     <DropdownMenuSeparator />
-                    <DropdownMenuItem onClick={() => setShowManageModal(true)} className="gap-2">
-                        <div className="flex h-6 w-6 items-center justify-center rounded-md border bg-background">
-                            <Settings className="h-4 w-4" />
-                        </div>
-                        <div className="font-medium text-muted-foreground">Gestionar Grados</div>
+                    <DropdownMenuItem onClick={() => setShowManageModal(true)} className="flex items-center gap-2 p-3 cursor-pointer text-muted-foreground hover:text-foreground">
+                        <Plus className="h-4 w-4" />
+                        <span className="text-sm font-medium">Gestionar Grados</span>
                     </DropdownMenuItem>
                 </DropdownMenuContent>
             </DropdownMenu>

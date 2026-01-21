@@ -237,10 +237,7 @@ export function AppSidebar({ activeSection, onSectionChange, ...props }: AppSide
           )}
         </div>
 
-        {/* Grade Switcher - Solo visible expandido para evitar clutter en collapsed */}
-        {state === "expanded" && (
-          <GradeSwitcher />
-        )}
+
       </SidebarHeader>
 
       <SidebarContent>
@@ -263,6 +260,13 @@ export function AppSidebar({ activeSection, onSectionChange, ...props }: AppSide
             </SidebarMenu>
           </SidebarGroupContent>
         </SidebarGroup>
+
+        {/* Grade Switcher - Movido debajo del dashboard */}
+        {state === "expanded" && (
+          <div className="px-2 mb-4">
+            <GradeSwitcher />
+          </div>
+        )}
 
         {/* PLANIFICACIÓN Y EVALUACIÓN */}
         <SidebarGroup>
