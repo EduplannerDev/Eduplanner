@@ -130,7 +130,7 @@ export function FichasDescriptivas({ onNavigateToSubscription }: FichasDescripti
                         <SelectContent>
                             {grupos.map((grupo) => (
                                 <SelectItem key={grupo.id} value={grupo.id}>
-                                    {grupo.grado}° {grupo.grupo} ({grupo.turno})
+                                    {grupo.grado}° {grupo.grupo} ({grupo.nivel})
                                 </SelectItem>
                             ))}
                         </SelectContent>
