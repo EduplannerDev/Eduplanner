@@ -93,23 +93,19 @@ export function SubscriptionCard({ userPlan }: SubscriptionCardProps) {
 
   const freeFeatures = [
     { name: "3 planeaciones por mes", included: true },
-    { name: "2 exámenes", included: true },
-    { name: "Mensajes ilimitados", included: true },
+    { name: "10 mensajes por día", included: true },
+    { name: "Exámenes ilimitados", included: true },
+    { name: "5 fichas descriptivas con IA", included: true },
     { name: "1 grupo", included: true },
     { name: "1 proyecto", included: true },
-    { name: "Descarga en formato PDF", included: true },
-    { name: "Planeaciones ilimitadas", included: false },
-    { name: "Exámenes ilimitados", included: false },
-    { name: "Grupos ilimitados", included: false },
-    { name: "Proyectos ilimitados", included: false },
-    { name: "Descarga en formato Word (.docx) editable", included: false },
-    { name: "Soporte prioritario", included: false },
+    { name: "Descarga en formato PDF", included: true }
   ]
 
   const proFeatures = [
     { name: "Todo lo del plan Gratis, más:", included: true },
     { name: "Planeaciones ilimitadas", included: true },
-    { name: "Exámenes ilimitados", included: true },
+    { name: "Mensajes ilimitados", included: true },
+    { name: "Fichas descriptivas ilimitadas con IA", included: true },
     { name: "Grupos ilimitados", included: true },
     { name: "Proyectos ilimitados", included: true },
     { name: "Planeaciones con IA", included: true },

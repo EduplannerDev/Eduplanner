@@ -47,6 +47,14 @@ EduPlanner es una plataforma web moderna diseñada para ayudar a educadores mexi
 - **Múltiples Formatos**: Exporta en DOCX y PDF
 - **Personalización**: Ajusta nivel de dificultad y tipo de preguntas
 
+### 📄 Fichas Descriptivas con IA
+
+- **Generación Automatizada**: Crea fichas descriptivas cualitativas con asistencia de IA
+- **Evaluación Personalizada**: Genera textos descriptivos por dimensiones y áreas del NMCM
+- **Límite Freemium**: 5 generaciones incluidas en plan gratuito
+- **Gestión de Fichas**: Administra y consulta fichas por grupo y alumno
+- **Exportación Profesional**: Descarga en formato DOCX y PDF
+
 ### 💬 Comunicación con Padres
 
 - **Generar Mensajes**: Crea mensajes personalizados para padres de familia
@@ -173,14 +181,37 @@ EduPlanner es una plataforma web moderna diseñada para ayudar a educadores mexi
 - **Modal de Bienvenida**: Video introductorio para nuevos usuarios
 - **Persistencia Cross-Device**: Estado de bienvenida sincronizado entre dispositivos
 
-### 👑 Suscripciones PRO
+### 👑 Planes de Suscripción
 
-- **Planeaciones CIME**: Acceso exclusivo a metodología constructivista
+EduPlanner ofrece dos planes de suscripción diseñados para diferentes necesidades:
+
+#### Comparación de Planes
+
+| Característica | Plan Gratuito | Plan PRO |
+|----------------|---------------|----------|
+| **Planeaciones** | 3 por mes | ✅ Ilimitadas |
+| **Exámenes** | ✅ Ilimitados | ✅ Ilimitados |
+| **Mensajes diarios** | 10 por día | ✅ Ilimitados |
+| **Grupos** | 1 grupo | ✅ Ilimitados |
+| **Proyectos** | 1 proyecto | ✅ Ilimitados |
+| **Presentaciones IA** | 3 lifetime | ✅ Ilimitadas |
+| **Fichas Descriptivas IA** | 5 generaciones | ✅ Ilimitadas |
+| **Exportación PDF** | ✅ Incluido | ✅ Incluido |
+| **Exportación Word (.docx)** | ❌ | ✅ Incluido |
+| **Planeaciones CIME** | ❌ | ✅ Incluido |
+| **Planeaciones desde Dosificación** | ❌ | ✅ Incluido |
+| **Plan Analítico** | ❌ | ✅ Incluido |
+| **Soporte Prioritario** | ❌ | ✅ Incluido |
+
+#### Funcionalidades Exclusivas PRO
+
+- **Planeaciones CIME**: Acceso exclusivo a metodología constructivista con materiales concretos
 - **Planeaciones por Dosificación**: Generación automática desde dosificación curricular
-- **Límites Ampliados**: Sin restricciones en creación de contenido (ilimitadas planeaciones)
-- **Estadísticas Avanzadas**: Dashboard con métricas detalladas de suscriptores PRO
-- **Gestión de Ventas**: Herramientas de administración para seguimiento de ingresos
-- **Acceso a Todas las Funciones**: Presentaciones IA, Plan Analítico avanzado
+- **Plan Analítico Completo**: Diseño integral del Plan Analítico según NMCM 2023
+- **Exportación Word**: Descarga documentos en formato DOCX editable
+- **Sin Límites de Creación**: Crea contenido ilimitado sin restricciones mensuales
+- **Estadísticas Avanzadas**: Dashboard con métricas detalladas
+- **Soporte Prioritario**: Atención preferencial y resolución rápida de consultas
 
 ### 🧪 Sistema de Beta Testers
 
