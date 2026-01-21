@@ -99,6 +99,9 @@ export function ChatIADosificacion({ onBack, onSaveSuccess, initialMessage, cont
 
   const { messages, input, handleInputChange, handleSubmit: originalHandleSubmit, isLoading, error, append } = useChat({
     api: "/api/chat",
+    body: {
+      contexto: contexto
+    },
     onError: (error) => {
       console.error("Error en el chat:", error)
     },

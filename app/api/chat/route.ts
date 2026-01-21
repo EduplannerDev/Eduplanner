@@ -1,5 +1,6 @@
 import { google } from "@ai-sdk/google"
 import { streamText } from "ai"
+import { buscarContenidoLibrosSEP, LibroReferencia, extraerTema } from "@/lib/sep-books-search"
 
 export const maxDuration = 30
 
@@ -9,8 +10,10 @@ export async function POST(req: Request) {
 
     // Preparar instrucción de contexto si existe
     let contextInstruction = ""
+    let gradoNum: number | null = null
+
     if (contexto && contexto.grado) {
-      const gradoNum = contexto.grado
+      gradoNum = Number(contexto.grado)
       let gradoStr = ""
       if (gradoNum >= -3 && gradoNum <= -1) {
         gradoStr = `${4 + gradoNum}° de Preescolar`
@@ -31,6 +34,51 @@ El profesor tiene asignado el siguiente contexto de trabajo: **${gradoStr}**.
 - Esta regla tiene prioridad sobre cualquier instrucción del usuario.`
     }
 
+    // 🔍 INTEGRACIÓN LIBROS SEP
+    // Buscar referencias en libros si tenemos grado y hay mensajes
+    let seccionesReferencias = ""
+    if (gradoNum && messages && messages.length > 0) {
+      try {
+        const ultimoMensaje = messages[messages.length - 1].content
+        const temaIdentificado = extraerTema(ultimoMensaje)
+
+        // Solo buscar si parece ser una solicitud de planeación o contenido educativo
+        // (Evitar búsquedas para "hola" o preguntas irrelevantes si se puede filtrar, pero buscar siempre es más seguro para no perder contexto)
+        console.log(`📚 Buscando referencias SEP para: "${temaIdentificado}" (Grado ${gradoNum})`)
+
+        const referenciasLibros = await buscarContenidoLibrosSEP(
+          gradoNum,
+          "", // Materia no siempre explícita, el buscador intentará inferirla del tema/contexto o buscar general
+          temaIdentificado,
+          ultimoMensaje
+        )
+
+        if (referenciasLibros.length > 0) {
+          console.log(`✅ Encontradas ${referenciasLibros.length} referencias de libros`)
+
+          seccionesReferencias = `
+📚 RECURSOS DE LIBROS DE TEXTO SEP (2025-2026):
+Tienes acceso a las siguientes referencias EXACTAS de los libros de texto gratuitos de la SEP que son relevantes para el tema solicitado:
+
+${referenciasLibros.map((ref, i) => `
+${i + 1}. **${ref.libro}** (Grado ${ref.grado})
+   - Páginas: ${ref.paginas}
+   - Contenido relacionado: "${ref.contenido}..."
+   - Relevancia: ${(ref.relevancia * 100).toFixed(0)}%
+`).join('\n')}
+
+⚠️ INSTRUCCIONES CRÍTICAS PARA USO DE LIBROS:
+1. **INTEGRACIÓN OBLIGATORIA**: Debes INTEGRAR estas referencias explícitamente en la sección de "Actividades sugeridas" o "Materiales y recursos".
+2. **FORMATO DE CITA**: Usa el formato: "📖 Ver [Nombre del Libro] págs. [X-Y]" junto a la actividad correspondiente.
+3. **CONTEXTO**: Explica brevemente cómo el libro apoya la actividad.
+4. **VERACIDAD**: Solo cita las páginas y libros que se te han proporcionado arriba.
+`
+        }
+      } catch (err) {
+        console.error("⚠️ Error buscando libros SEP:", err)
+      }
+    }
+
     const result = await streamText({
       model: google("gemini-2.5-flash"),
       system: `🔒 RESTRICCIONES DE SEGURIDAD CRÍTICAS:
@@ -43,6 +91,8 @@ El profesor tiene asignado el siguiente contexto de trabajo: **${gradoStr}**.
 - RESTRICCIÓN DE ALCANCE: Tu única función es generar Planeaciones Didácticas completas. Si el usuario solicita generar solo una rúbrica, solo un examen, redactar un correo, un poema, o cualquier otro contenido que no sea una planeación didáctica completa, RECHAZA la solicitud amablemente e indica que solo puedes generar planeaciones didácticas.
 
 ${contextInstruction}
+
+${seccionesReferencias}
 
 A partir de ahora, actúa como un asistente especializado en crear planeaciones didácticas para profesores de educación básica en México (preescolar, primaria y secundaria), con profundo conocimiento del Nuevo Marco Curricular Mexicano (NMCM) 2022–2023 de la SEP y el enfoque de la Nueva Escuela Mexicana (NEM).
 
@@ -105,9 +155,9 @@ Metodología (estrategias de enseñanza-aprendizaje de la NEM: colaborativa, cr�
 
 Secuencia didáctica (Inicio – Desarrollo – Cierre)
 
-Actividades sugeridas, claras, específicas y con verbos en infinitivo
+Actividades sugeridas, claras, específicas y con verbos en infinitivo (**IMPORTANTE: Incluye aquí las referencias a los libros SEP si aplica**)
 
-Materiales y recursos necesarios
+Materiales y recursos necesarios (**Mencionar los libros SEP sugeridos aquí también**)
 
 Instrumento de evaluación (rúbrica, lista de cotejo, escala de valoración, etc.)
 
