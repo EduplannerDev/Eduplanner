@@ -50,6 +50,7 @@ import { useRoles } from "@/hooks/use-roles"
 import { useProfile } from "@/hooks/use-profile"
 import { isUserPro } from "@/lib/subscription-utils"
 import { SubscriptionCard } from "@/components/sections/subscription-card"
+import { MuroLogros } from "@/components/sections/muro-logros"
 
 interface DashboardProps {
   children?: React.ReactNode
@@ -77,7 +78,7 @@ export default function Dashboard({ children, customContent = false }: Dashboard
       'grupos', 'agenda', 'tomar-asistencia', 'bitacora', 'admin-dashboard',
       'administracion-plantel', 'beta-testers', 'beta-features', 'dosificacion',
       'presentaciones-ia', 'proyectos', 'crear-proyecto', 'planeacion-cime', 'plan-analitico', 'suscripcion',
-      'fichas-descriptivas'
+      'fichas-descriptivas', 'muro-logros'
     ]
 
     if (section && allSections.includes(section)) {
@@ -224,6 +225,8 @@ export default function Dashboard({ children, customContent = false }: Dashboard
         return "Planeación CIME"
       case "suscripcion":
         return "Mi Suscripción"
+      case "muro-logros":
+        return "Muro de Logros"
       case "fichas-descriptivas":
         return "Fichas Descriptivas"
       default:
@@ -389,6 +392,8 @@ export default function Dashboard({ children, customContent = false }: Dashboard
         return <FichasDescriptivas onNavigateToSubscription={() => setActiveSection("suscripcion")} />
       case "suscripcion":
         return <SubscriptionCard userPlan={profile && isUserPro(profile) ? "pro" : "free"} />
+      case "muro-logros":
+        return <MuroLogros />
       default:
         return <DashboardHome onSectionChange={setActiveSection} />
     }

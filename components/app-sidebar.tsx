@@ -3,7 +3,7 @@
 import type React from "react";
 import { useState } from "react";
 
-import { FileText, User, LogOut, GraduationCap, Plus, MessageSquare, HelpCircle, Users, BookOpen, Calendar, Bot, Shield, Home, ChevronDown, ChevronRight, Notebook, BarChart3, Sparkles, Presentation, CreditCard } from "lucide-react"
+import { FileText, User, LogOut, GraduationCap, Plus, MessageSquare, HelpCircle, Users, BookOpen, Calendar, Bot, Shield, Home, ChevronDown, ChevronRight, Notebook, BarChart3, Sparkles, Presentation, CreditCard, Trophy } from "lucide-react"
 
 import {
   Sidebar,
@@ -30,8 +30,10 @@ import { useUserData } from "@/hooks/use-user-data"
 import { useRoles } from "@/hooks/use-roles"
 import { useIsMobile } from "@/hooks/use-mobile"
 import { useBetaTesterCheck } from "@/hooks/use-beta-features"
+import { useAchievementNotifications } from "@/hooks/use-achievement-notifications"
 import { GradeSwitcher } from "@/components/grade-switcher"
 import { FeedbackButton } from "@/components/ui/feedback-button"
+import { Badge } from "@/components/ui/badge"
 
 // Estructura del menú con secciones desplegables
 const menuStructure = {
@@ -143,6 +145,12 @@ const menuStructure = {
         url: "#suscripcion",
         description: "Administrar tu plan y facturación",
       },
+      {
+        title: "Muro de Logros",
+        icon: Trophy,
+        url: "#muro-logros",
+        description: "Desbloquea medallas y celebra tus logros",
+      },
     ],
   },
   ayuda: {
@@ -170,6 +178,7 @@ export function AppSidebar({ activeSection, onSectionChange, ...props }: AppSide
   const { isAdmin, isDirector } = useRoles()
   const { isBetaTester } = useBetaTesterCheck()
   const { state, setOpenMobile } = useSidebar()
+  const { hasNearAchievements, nearAchievements } = useAchievementNotifications()
 
   const isMobile = useIsMobile()
 
@@ -462,11 +471,21 @@ export function AppSidebar({ activeSection, onSectionChange, ...props }: AppSide
                   <SidebarMenuButton
                     asChild
                     isActive={activeSection === section.url?.replace("#", "")}
-                    tooltip={section.description}
+                    tooltip={
+                      section.title === "Muro de Logros" && hasNearAchievements
+                        ? `¡Estás cerca! ${nearAchievements[0]?.remaining === 1 ? `¡Solo ${nearAchievements[0].remaining} más para ${nearAchievements[0].title}!` : `${nearAchievements.length} logro${nearAchievements.length > 1 ? 's' : ''} por desbloquear`}`
+                        : section.description
+                    }
                   >
-                    <button onClick={() => handleNavigation(section.url?.replace("#", "") || "")} className="w-full">
+                    <button onClick={() => handleNavigation(section.url?.replace("#", "") || "")} className="w-full flex items-center gap-2">
                       <section.icon className="h-4 w-4" />
-                      <span className="notranslate">{section.title}</span>
+                      <span className="notranslate flex-1 text-left">{section.title}</span>
+                      {/* Badge de notificación para Muro de Logros */}
+                      {section.title === "Muro de Logros" && hasNearAchievements && (
+                        <Badge className="bg-gradient-to-r from-yellow-500 to-orange-500 text-white text-xs px-2 py-0.5 animate-pulse font-bold">
+                          {nearAchievements.length} 🎯
+                        </Badge>
+                      )}
                     </button>
                   </SidebarMenuButton>
                 </SidebarMenuItem>

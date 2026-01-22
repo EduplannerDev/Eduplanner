@@ -20,7 +20,8 @@ import {
   Bot,
   BarChart3,
   GraduationCap,
-  NotebookPen
+  NotebookPen,
+  ShieldCheck
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { ContactForm } from "@/components/contact-form"
@@ -228,9 +229,10 @@ export function Ayuda() {
       </div>
 
       <Tabs defaultValue="faq" className="w-full">
-        <TabsList className="grid w-full grid-cols-3">
+        <TabsList className="grid w-full grid-cols-4">
           <TabsTrigger value="faq">Preguntas Frecuentes</TabsTrigger>
           <TabsTrigger value="videos">Videos Tutoriales</TabsTrigger>
+          <TabsTrigger value="politicas">Políticas de Uso</TabsTrigger>
           <TabsTrigger value="contacto">Contacto</TabsTrigger>
         </TabsList>
 
@@ -396,6 +398,131 @@ export function Ayuda() {
               )
             })}
           </div>
+        </TabsContent>
+
+        <TabsContent value="politicas" className="space-y-6">
+          <Card className="border-green-200 dark:border-green-800 bg-gradient-to-br from-green-50 to-emerald-50 dark:from-green-950/20 dark:to-emerald-950/20">
+            <CardHeader>
+              <div className="flex items-center gap-3">
+                <div className="p-3 rounded-lg bg-green-600 text-white">
+                  <ShieldCheck className="h-6 w-6" />
+                </div>
+                <div>
+                  <CardTitle className="text-2xl">Política de Uso Justo de EduPlanner</CardTitle>
+                  <CardDescription className="text-base">
+                    Garantizando estabilidad, seguridad y accesibilidad para toda la comunidad educativa
+                  </CardDescription>
+                </div>
+              </div>
+            </CardHeader>
+            <CardContent className="prose dark:prose-invert max-w-none">
+              <p className="text-gray-700 dark:text-gray-300 leading-relaxed">
+                En EduPlanner, nuestra misión es potenciar la labor docente con IA de última generación.
+                Para garantizar la estabilidad del servicio, la seguridad de los datos y un precio accesible
+                para toda la comunidad, aplicamos una Política de Uso Justo en nuestras funciones "Profesionales":
+              </p>
+            </CardContent>
+          </Card>
+
+          <div className="grid gap-6">
+            {/* Finalidad del Servicio */}
+            <Card>
+              <CardHeader className="bg-blue-50 dark:bg-blue-950/30 border-b">
+                <CardTitle className="flex items-center gap-2 text-lg">
+                  <Users className="h-5 w-5 text-blue-600" />
+                  Finalidad del Servicio
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="pt-6">
+                <p className="text-gray-700 dark:text-gray-300 leading-relaxed">
+                  Las cuentas PRO son <strong className="text-blue-600 dark:text-blue-400">personales e intransferibles</strong>.
+                  El uso de herramientas de automatización, bots o el acceso compartido de una misma cuenta por múltiples usuarios
+                  está estrictamente prohibido y es causa de suspensión inmediata.
+                </p>
+              </CardContent>
+            </Card>
+
+            {/* Límites de Generación */}
+            <Card>
+              <CardHeader className="bg-purple-50 dark:bg-purple-950/30 border-b">
+                <CardTitle className="flex items-center gap-2 text-lg">
+                  <Bot className="h-5 w-5 text-purple-600" />
+                  Límites de Generación (IA)
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="pt-6 space-y-4">
+                <p className="text-gray-700 dark:text-gray-300 leading-relaxed">
+                  Para asegurar un rendimiento óptimo de la infraestructura (Google Gemini API),
+                  el "Uso Profesional" comprende un volumen de:
+                </p>
+                <div className="grid gap-3 md:grid-cols-3">
+                  <div className="p-4 rounded-lg bg-gradient-to-br from-blue-50 to-blue-100 dark:from-blue-950/50 dark:to-blue-900/50 border border-blue-200 dark:border-blue-800">
+                    <div className="text-3xl font-bold text-blue-600 dark:text-blue-400">50</div>
+                    <div className="text-sm text-gray-700 dark:text-gray-300 mt-1">Planeaciones mensuales</div>
+                  </div>
+                  <div className="p-4 rounded-lg bg-gradient-to-br from-purple-50 to-purple-100 dark:from-purple-950/50 dark:to-purple-900/50 border border-purple-200 dark:border-purple-800">
+                    <div className="text-3xl font-bold text-purple-600 dark:text-purple-400">100</div>
+                    <div className="text-sm text-gray-700 dark:text-gray-300 mt-1">Fichas descriptivas por ciclo</div>
+                  </div>
+                  <div className="p-4 rounded-lg bg-gradient-to-br from-green-50 to-green-100 dark:from-green-950/50 dark:to-green-900/50 border border-green-200 dark:border-green-800">
+                    <div className="text-3xl font-bold text-green-600 dark:text-green-400">300</div>
+                    <div className="text-sm text-gray-700 dark:text-gray-300 mt-1">Mensajes diarios</div>
+                  </div>
+                </div>
+                <p className="text-sm text-gray-600 dark:text-gray-400 italic">
+                  Estos límites están diseñados para exceder las necesidades de un docente de tiempo completo.
+                </p>
+              </CardContent>
+            </Card>
+
+            {/* Monitoreo de Recursos */}
+            <Card>
+              <CardHeader className="bg-orange-50 dark:bg-orange-950/30 border-b">
+                <CardTitle className="flex items-center gap-2 text-lg">
+                  <BarChart3 className="h-5 w-5 text-orange-600" />
+                  Monitoreo de Recursos
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="pt-6">
+                <p className="text-gray-700 dark:text-gray-300 leading-relaxed">
+                  EduPlanner se reserva el derecho de <strong className="text-orange-600 dark:text-orange-400">limitar temporalmente
+                    el acceso</strong> a funciones de IA si se detecta un patrón de uso atípico que ponga en riesgo la estabilidad
+                  del servidor o los costos operativos de la plataforma.
+                </p>
+              </CardContent>
+            </Card>
+
+            {/* Almacenamiento */}
+            <Card>
+              <CardHeader className="bg-cyan-50 dark:bg-cyan-950/30 border-b">
+                <CardTitle className="flex items-center gap-2 text-lg">
+                  <FileText className="h-5 w-5 text-cyan-600" />
+                  Almacenamiento
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="pt-6">
+                <p className="text-gray-700 dark:text-gray-300 leading-relaxed">
+                  El uso de la Bitácora Profesional y la carga de documentos (PDF/DOCX) están sujetos a un
+                  <strong className="text-cyan-600 dark:text-cyan-400"> límite razonable de almacenamiento</strong> en
+                  la base de datos (Supabase).
+                </p>
+              </CardContent>
+            </Card>
+          </div>
+
+          {/* Footer informativo */}
+          <Card className="bg-gradient-to-r from-gray-50 to-gray-100 dark:from-gray-900 dark:to-gray-800 border-gray-300 dark:border-gray-700">
+            <CardContent className="pt-6">
+              <div className="text-center space-y-3">
+                <p className="text-sm text-gray-600 dark:text-gray-400">
+                  Estas políticas nos permiten mantener el servicio accesible y de alta calidad para todos nuestros usuarios.
+                </p>
+                <p className="text-sm text-gray-600 dark:text-gray-400">
+                  Para consultas sobre las políticas de uso, contacta a <strong>soporte@eduplanner.mx</strong>
+                </p>
+              </div>
+            </CardContent>
+          </Card>
         </TabsContent>
 
         <TabsContent value="contacto" className="space-y-6">
