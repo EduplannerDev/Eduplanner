@@ -176,37 +176,37 @@ export function SubscriptionCard({ userPlan }: SubscriptionCardProps) {
               {!isPro && (
                 <div className="w-full max-w-md space-y-4">
                   {/* Selector de Plan */}
-                  <div className="grid grid-cols-2 gap-2 p-1 bg-muted rounded-lg">
+                  <div className="grid grid-cols-2 gap-3 p-2 bg-gradient-to-r from-blue-50 to-purple-50 dark:from-blue-950 dark:to-purple-950 rounded-xl border-2 border-blue-200 dark:border-blue-800">
                     <button
                       onClick={() => setSelectedPlan('monthly')}
-                      className={`py-2 px-4 rounded-md text-sm font-medium transition-colors ${selectedPlan === 'monthly'
-                        ? 'bg-background shadow-sm text-foreground'
-                        : 'text-muted-foreground hover:text-foreground'
+                      className={`py-4 px-5 rounded-lg text-sm font-semibold transition-all ${selectedPlan === 'monthly'
+                        ? 'bg-white dark:bg-gray-800 shadow-lg scale-105 text-blue-600 dark:text-blue-400 border-2 border-blue-500'
+                        : 'bg-white/50 dark:bg-gray-800/50 text-gray-600 dark:text-gray-400 hover:bg-white dark:hover:bg-gray-800 hover:scale-102'
                         }`}
                     >
-                      Mensual
-                      <div className="text-xs mt-1 font-bold">$200/mes</div>
+                      💳 Mensual
+                      <div className={`text-lg mt-1 font-bold ${selectedPlan === 'monthly' ? 'text-blue-600 dark:text-blue-400' : 'text-gray-700 dark:text-gray-300'}`}>$200/mes</div>
                     </button>
                     <button
                       onClick={() => setSelectedPlan('annual')}
-                      className={`py-2 px-4 rounded-md text-sm font-medium transition-colors relative ${selectedPlan === 'annual'
-                        ? 'bg-background shadow-sm text-foreground'
-                        : 'text-muted-foreground hover:text-foreground'
+                      className={`py-4 px-5 rounded-lg text-sm font-semibold transition-all relative ${selectedPlan === 'annual'
+                        ? 'bg-white dark:bg-gray-800 shadow-lg scale-105 text-green-600 dark:text-green-400 border-2 border-green-500'
+                        : 'bg-white/50 dark:bg-gray-800/50 text-gray-600 dark:text-gray-400 hover:bg-white dark:hover:bg-gray-800 hover:scale-102'
                         }`}
                     >
-                      Anual
-                      <div className="text-xs mt-1 font-bold">$1,990/año</div>
-                      <Badge className="absolute -top-2 -right-2 bg-green-600 text-white text-[10px] px-1 py-0">
-                        Ahorra $410
+                      🎯 Anual
+                      <div className={`text-lg mt-1 font-bold ${selectedPlan === 'annual' ? 'text-green-600 dark:text-green-400' : 'text-gray-700 dark:text-gray-300'}`}>$1,990/año</div>
+                      <Badge className="absolute -top-3 -right-2 bg-gradient-to-r from-green-500 to-emerald-600 text-white text-[11px] px-2 py-1 shadow-md">
+                        💰 Ahorra $410
                       </Badge>
                     </button>
                   </div>
 
                   <Button
-                    className="w-full bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700"
+                    className="w-full bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-lg font-bold py-6 shadow-xl hover:shadow-2xl transition-all"
                     onClick={() => handleClickSubsButton()}
                   >
-                    <Crown className="mr-2 h-4 w-4" />
+                    <Crown className="mr-2 h-5 w-5" />
                     Actualizar a PRO {selectedPlan === 'annual' ? '(Anual)' : '(Mensual)'}
                   </Button>
                 </div>
@@ -307,9 +307,17 @@ export function SubscriptionCard({ userPlan }: SubscriptionCardProps) {
                   <Crown className="h-6 w-6 text-foreground" />
                   <h3 className="text-xl font-semibold text-foreground">Plan PRO</h3>
                 </div>
-                <p className="text-3xl font-bold mt-2 text-foreground">
-                  $200<span className="text-lg font-normal text-muted-foreground"> / mes</span>
-                </p>
+                <div className="mt-2 space-y-1">
+                  <p className="text-3xl font-bold text-foreground">
+                    $200<span className="text-lg font-normal text-muted-foreground"> / mes</span>
+                  </p>
+                  <div className="text-sm text-muted-foreground flex items-center justify-center gap-1">
+                    <span>o <span className="font-semibold text-foreground">$1,990 / año</span></span>
+                    <Badge className="bg-green-600 text-white text-[10px] px-1.5 py-0.5">
+                      Ahorra $410
+                    </Badge>
+                  </div>
+                </div>
               </div>
               <div className="space-y-3 text-left">
                 {proFeatures.map((feature, index) => (
@@ -318,16 +326,6 @@ export function SubscriptionCard({ userPlan }: SubscriptionCardProps) {
                     <span className="text-foreground">{feature.name}</span>
                   </div>
                 ))}
-              </div>
-              <div className="pt-4">
-                {isPro ? (
-                  <Badge className="w-full py-2 bg-foreground text-background">Plan Actual</Badge>
-                ) : (
-                  <Button className="w-full bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700">
-                    <Crown className="mr-2 h-4 w-4" />
-                    Actualizar a PRO
-                  </Button>
-                )}
               </div>
             </div>
           </div>
