@@ -1,31 +1,32 @@
 type Props = {
-    userId: string;
-    email?: string;
+  userId: string;
+  email?: string;
+  plan?: 'monthly' | 'annual'; // Añadido para soportar plan anual
 }
 
-export const subscribestripe = async ({ userId, email }: Props): Promise<string | null> => {
-    try {
-        const response = await fetch('/api/stripe/create-checkout-session', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({ userId, email }),
-        });
+export const subscribestripe = async ({ userId, email, plan = 'monthly' }: Props): Promise<string | null> => {
+  try {
+    const response = await fetch('/api/stripe/create-checkout-session', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ userId, email, plan }),
+    });
 
-        if (!response.ok) {
-            throw new Error('Failed to create checkout session');
-        }
+    if (!response.ok) {
+      throw new Error('Failed to create checkout session');
+    }
 
-        const { url } = await response.json();
-        
-        // En desarrollo, agregar un listener para cuando regrese del pago
-        if (url && process.env.NODE_ENV === 'development') {
-            // Guardar userId en localStorage para usarlo cuando regrese
-            localStorage.setItem('pendingSubscriptionUserId', userId);
-        }
-        
-        return url;
+    const { url } = await response.json();
+
+    // En desarrollo, agregar un listener para cuando regrese del pago
+    if (url && process.env.NODE_ENV === 'development') {
+      // Guardar userId en localStorage para usarlo cuando regrese
+      localStorage.setItem('pendingSubscriptionUserId', userId);
+    }
+
+    return url;
   } catch (err: any) {
     return null;
   }
@@ -34,7 +35,7 @@ export const subscribestripe = async ({ userId, email }: Props): Promise<string 
 // Función para simular webhook en desarrollo
 export const simulateWebhookInDevelopment = async (userId: string) => {
   if (process.env.NODE_ENV !== 'development') return;
-  
+
   try {
     // Usar los datos reales que ya tienes en tu perfil
     const mockEvent = {

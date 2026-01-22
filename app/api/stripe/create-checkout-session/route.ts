@@ -3,7 +3,7 @@ import stripe from '@/lib/stripe';
 
 export async function POST(request: NextRequest) {
   try {
-    const { userId, email } = await request.json();
+    const { userId, email, plan = 'monthly' } = await request.json();
 
 
     if (!userId) {
@@ -13,9 +13,14 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    if (!process.env.NEXT_PUBLIC_STRIPE_PRO_PLAN_PRICE_ID) {
+    // Seleccionar Price ID según el plan
+    const priceId = plan === 'annual'
+      ? process.env.NEXT_PUBLIC_STRIPE_PRO_ANNUAL_PRICE_ID
+      : process.env.NEXT_PUBLIC_STRIPE_PRO_PLAN_PRICE_ID;
+
+    if (!priceId) {
       return NextResponse.json(
-        { error: 'Price ID not configured' },
+        { error: `Price ID for ${plan} plan not configured` },
         { status: 500 }
       );
     }
@@ -30,7 +35,7 @@ export async function POST(request: NextRequest) {
       mode: 'subscription',
       line_items: [
         {
-          price: process.env.NEXT_PUBLIC_STRIPE_PRO_PLAN_PRICE_ID,
+          price: priceId,
           quantity: 1,
         },
       ],

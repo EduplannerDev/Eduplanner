@@ -60,12 +60,12 @@ export function getUserLimits(profile: Profile): UserLimits {
 
   if (isPro) {
     return {
-      planeaciones_limit: -1, // Ilimitado
-      examenes_limit: -1, // Ilimitado
-      mensajes_limit: -1, // Ilimitado
-      proyectos_limit: -1, // Ilimitado
-      presentaciones_limit: -1, // Ilimitado
-      fichas_ai_limit: -1 // Ilimitado
+      planeaciones_limit: 50, // 50 por mes - Uso Profesional
+      examenes_limit: -1, // Uso Profesional sin límite estricto
+      mensajes_limit: 300, // 300 por día - Uso Profesional
+      proyectos_limit: -1, // Uso Profesional sin límite estricto
+      presentaciones_limit: -1, // Uso Profesional sin límite estricto
+      fichas_ai_limit: 100 // 100 por mes - Uso Profesional
     };
   }
 

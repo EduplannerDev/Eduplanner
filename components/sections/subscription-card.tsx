@@ -28,6 +28,7 @@ export function SubscriptionCard({ userPlan }: SubscriptionCardProps) {
   const subscriptionInfo = profile ? getSubscriptionInfo(profile) : null
   const [isPending, startTransition] = useTransition()
   const [showCancelModal, setShowCancelModal] = useState(false)
+  const [selectedPlan, setSelectedPlan] = useState<'monthly' | 'annual'>('monthly')
 
   // Detectar cuando regresa del pago en desarrollo
   useEffect(() => {
@@ -40,7 +41,7 @@ export function SubscriptionCard({ userPlan }: SubscriptionCardProps) {
     }
   }, [userId]);
   const handleClickSubsButton = async () => {
-    const url = await subscribestripe({ userId, email });
+    const url = await subscribestripe({ userId, email, plan: selectedPlan });
 
     if (url) {
       window.location.href = url;
@@ -103,13 +104,13 @@ export function SubscriptionCard({ userPlan }: SubscriptionCardProps) {
 
   const proFeatures = [
     { name: "Todo lo del plan Gratis, más:", included: true },
-    { name: "Planeaciones ilimitadas", included: true },
-    { name: "Mensajes ilimitados", included: true },
-    { name: "Fichas descriptivas ilimitadas con IA", included: true },
-    { name: "Grupos ilimitados", included: true },
-    { name: "Proyectos ilimitados", included: true },
-    { name: "Planeaciones con IA", included: true },
-    { name: "Plan Analítico", included: true },
+    { name: "Plan Analítico NMCM 2023", included: true },
+    { name: "Planeaciones CIME con IA", included: true },
+    { name: "Planeaciones con Uso Profesional", included: true },
+    { name: "Mensajes con Uso Profesional", included: true },
+    { name: "Fichas Descriptivas con Uso Profesional", included: true },
+    { name: "Grupos con Uso Profesional", included: true },
+    { name: "Proyectos con Uso Profesional", included: true },
     { name: "Descarga en formato Word (.docx) editable", included: true },
     { name: "Soporte prioritario", included: true },
   ]
@@ -173,11 +174,42 @@ export function SubscriptionCard({ userPlan }: SubscriptionCardProps) {
 
             <div className="flex justify-center pt-2">
               {!isPro && (
-                <Button className="w-full max-w-md bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700"
-                  onClick={() => handleClickSubsButton()}>
-                  <Crown className="mr-2 h-4 w-4" />
-                  Actualizar a PRO
-                </Button>
+                <div className="w-full max-w-md space-y-4">
+                  {/* Selector de Plan */}
+                  <div className="grid grid-cols-2 gap-2 p-1 bg-muted rounded-lg">
+                    <button
+                      onClick={() => setSelectedPlan('monthly')}
+                      className={`py-2 px-4 rounded-md text-sm font-medium transition-colors ${selectedPlan === 'monthly'
+                        ? 'bg-background shadow-sm text-foreground'
+                        : 'text-muted-foreground hover:text-foreground'
+                        }`}
+                    >
+                      Mensual
+                      <div className="text-xs mt-1 font-bold">$200/mes</div>
+                    </button>
+                    <button
+                      onClick={() => setSelectedPlan('annual')}
+                      className={`py-2 px-4 rounded-md text-sm font-medium transition-colors relative ${selectedPlan === 'annual'
+                        ? 'bg-background shadow-sm text-foreground'
+                        : 'text-muted-foreground hover:text-foreground'
+                        }`}
+                    >
+                      Anual
+                      <div className="text-xs mt-1 font-bold">$1,990/año</div>
+                      <Badge className="absolute -top-2 -right-2 bg-green-600 text-white text-[10px] px-1 py-0">
+                        Ahorra $410
+                      </Badge>
+                    </button>
+                  </div>
+
+                  <Button
+                    className="w-full bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700"
+                    onClick={() => handleClickSubsButton()}
+                  >
+                    <Crown className="mr-2 h-4 w-4" />
+                    Actualizar a PRO {selectedPlan === 'annual' ? '(Anual)' : '(Mensual)'}
+                  </Button>
+                </div>
               )}
 
               {isPro && subscriptionInfo && (
