@@ -15,9 +15,12 @@ interface ReportesTabProps {
     plantel: Plantel | null
 }
 
+type TipoReporte = 'mensual' | 'trimestral' | 'cuatrimestral' | 'semestral' | 'anual'
+
 export function ReportesTab({ plantel }: ReportesTabProps) {
     const [loading, setLoading] = useState(false)
-    const [mes, setMes] = useState<string>(new Date().getMonth().toString())
+    const [tipoReporte, setTipoReporte] = useState<TipoReporte>('mensual')
+    const [periodo, setPeriodo] = useState<string>(new Date().getMonth().toString())
     const [anio, setAnio] = useState<string>(new Date().getFullYear().toString())
     const { toast } = useToast()
 
@@ -32,13 +35,15 @@ export function ReportesTab({ plantel }: ReportesTabProps) {
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
                     plantelId: plantel.id,
-                    mes: parseInt(mes),
+                    tipoReporte,
+                    periodo,
                     anio: parseInt(anio)
                 })
             })
 
             if (!response.ok) {
-                throw new Error('Error al obtener datos del reporte')
+                const errorData = await response.text()
+                throw new Error(errorData || 'Error al obtener datos del reporte')
             }
 
             const data = await response.json()
@@ -62,6 +67,14 @@ export function ReportesTab({ plantel }: ReportesTabProps) {
         }
     }
 
+    const tiposReporte = [
+        { value: 'mensual', label: 'Mensual' },
+        { value: 'trimestral', label: 'Trimestral' },
+        { value: 'cuatrimestral', label: 'Cuatrimestral' },
+        { value: 'semestral', label: 'Semestral' },
+        { value: 'anual', label: 'Anual' },
+    ]
+
     const meses = [
         { value: "0", label: "Enero" },
         { value: "1", label: "Febrero" },
@@ -77,10 +90,28 @@ export function ReportesTab({ plantel }: ReportesTabProps) {
         { value: "11", label: "Diciembre" },
     ]
 
+    const trimestres = [
+        { value: "1", label: "1º Trimestre (Ago-Oct)" },
+        { value: "2", label: "2º Trimestre (Nov-Ene)" },
+        { value: "3", label: "3º Trimestre (Feb-Abr)" },
+    ]
+
+    const cuatrimestres = [
+        { value: "1", label: "1º Cuatrimestre (Sep-Dic)" },
+        { value: "2", label: "2º Cuatrimestre (Ene-Abr)" },
+        { value: "3", label: "3º Cuatrimestre (May-Ago)" },
+    ]
+
+    const semestres = [
+        { value: "1", label: "1º Semestre (Ago-Ene)" },
+        { value: "2", label: "2º Semestre (Feb-Jul)" },
+    ]
+
     const anios = [
         { value: "2024", label: "2024" },
         { value: "2025", label: "2025" },
         { value: "2026", label: "2026" },
+        { value: "2027", label: "2027" },
     ]
 
     return (
@@ -92,29 +123,64 @@ export function ReportesTab({ plantel }: ReportesTabProps) {
                         Reportes de Cumplimiento Institucional
                     </CardTitle>
                     <CardDescription>
-                        Genera un "chequeo de salud" mensual de tu plantel. Incluye métricas de asistencia, productividad docente e incidencias.
+                        Genera un informe detallado con indicadores de salud escolar.
                     </CardDescription>
                 </CardHeader>
                 <CardContent>
                     <div className="flex flex-col md:flex-row gap-4 items-end bg-muted/30 p-6 rounded-lg border">
-                        <div className="space-y-2 flex-1">
-                            <label className="text-sm font-medium">Mes del Reporte</label>
-                            <Select value={mes} onValueChange={setMes}>
+
+                        {/* Tipo de Reporte */}
+                        <div className="space-y-2 w-full md:w-48">
+                            <label className="text-sm font-medium">Tipo</label>
+                            <Select
+                                value={tipoReporte}
+                                onValueChange={(v: TipoReporte) => {
+                                    setTipoReporte(v)
+                                    // Resetear periodo por defecto al cambiar tipo
+                                    if (v === 'mensual') setPeriodo(new Date().getMonth().toString())
+                                    else setPeriodo('1')
+                                }}
+                            >
                                 <SelectTrigger>
-                                    <SelectValue placeholder="Selecciona mes" />
+                                    <SelectValue placeholder="Tipo" />
                                 </SelectTrigger>
                                 <SelectContent>
-                                    {meses.map((m) => (
-                                        <SelectItem key={m.value} value={m.value}>
-                                            {m.label}
-                                        </SelectItem>
+                                    {tiposReporte.map((t) => (
+                                        <SelectItem key={t.value} value={t.value}>{t.label}</SelectItem>
                                     ))}
                                 </SelectContent>
                             </Select>
                         </div>
 
+                        {/* Selector de Periodo (Dinámico) */}
+                        {tipoReporte !== 'anual' && (
+                            <div className="space-y-2 flex-1">
+                                <label className="text-sm font-medium">Periodo</label>
+                                <Select value={periodo} onValueChange={setPeriodo}>
+                                    <SelectTrigger>
+                                        <SelectValue placeholder="Selecciona periodo" />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        {tipoReporte === 'mensual' && meses.map((m) => (
+                                            <SelectItem key={m.value} value={m.value}>{m.label}</SelectItem>
+                                        ))}
+                                        {tipoReporte === 'trimestral' && trimestres.map((t) => (
+                                            <SelectItem key={t.value} value={t.value}>{t.label}</SelectItem>
+                                        ))}
+                                        {tipoReporte === 'cuatrimestral' && cuatrimestres.map((c) => (
+                                            <SelectItem key={c.value} value={c.value}>{c.label}</SelectItem>
+                                        ))}
+                                        {tipoReporte === 'semestral' && semestres.map((s) => (
+                                            <SelectItem key={s.value} value={s.value}>{s.label}</SelectItem>
+                                        ))}
+                                    </SelectContent>
+                                </Select>
+                            </div>
+                        )}
+
+                        {/* Selector de Año */}
                         <div className="space-y-2 w-full md:w-32">
-                            <label className="text-sm font-medium">Año</label>
+                            <label className="text-sm font-medium">Año / Ciclo</label>
                             <Select value={anio} onValueChange={setAnio}>
                                 <SelectTrigger>
                                     <SelectValue placeholder="Año" />
@@ -122,7 +188,7 @@ export function ReportesTab({ plantel }: ReportesTabProps) {
                                 <SelectContent>
                                     {anios.map((a) => (
                                         <SelectItem key={a.value} value={a.value}>
-                                            {a.label}
+                                            {tipoReporte === 'anual' || tipoReporte === 'semestral' || tipoReporte === 'trimestral' ? `${a.label}-${parseInt(a.label) + 1}` : a.label}
                                         </SelectItem>
                                     ))}
                                 </SelectContent>
@@ -148,19 +214,19 @@ export function ReportesTab({ plantel }: ReportesTabProps) {
                         <div className="border rounded-md p-4">
                             <h4 className="font-semibold mb-2 flex items-center gap-2">
                                 <Calendar className="h-4 w-4 text-muted-foreground" />
-                                ¿Qué incluye este reporte?
+                                Contenido del Reporte
                             </h4>
                             <ul className="text-sm text-muted-foreground space-y-1 list-disc pl-4">
-                                <li>Resumen ejecutivo con semáforo de salud escolar.</li>
-                                <li>Gráficas de asistencia promedio por grupo.</li>
-                                <li>Estatus de planeaciones entregadas vs esperadas.</li>
-                                <li>Desglose de incidencias por tipo y resolución.</li>
+                                <li>Semáforo de salud escolar y KPIs clave.</li>
+                                <li>Comparativas de asistencia por grupo.</li>
+                                <li>Productividad docente y entrega de planeaciones.</li>
+                                <li>Incidencias acumuladas en el periodo seleccionado.</li>
                             </ul>
                         </div>
-                        <div className="border rounded-md p-4 bg-yellow-50 border-yellow-100">
-                            <h4 className="font-semibold mb-2 text-yellow-800">Nota Importante</h4>
-                            <p className="text-sm text-yellow-700">
-                                Para obtener mejores resultados, asegúrese de haber subido el <strong>Logo Institucional</strong> en la pestaña de Configuración antes de generar el reporte.
+                        <div className="border rounded-md p-4 bg-blue-50 border-blue-100">
+                            <h4 className="font-semibold mb-2 text-blue-800">Nota sobre Periodos</h4>
+                            <p className="text-sm text-blue-700">
+                                Los reportes Trimestrales y Semestrales se basan en el ciclo escolar estándar que inicia en Agosto. El reporte Anual cubre el ciclo completo (Ago-Jul).
                             </p>
                         </div>
                     </div>

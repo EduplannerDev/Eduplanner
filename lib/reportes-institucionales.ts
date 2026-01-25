@@ -32,12 +32,10 @@ export interface ReporteInstitucionalData {
     }
 }
 
-export async function getReporteMensual(plantelId: string, fecha: Date): Promise<ReporteInstitucionalData> {
+export async function getReportePorRango(plantelId: string, fechaInicio: Date, fechaFin: Date, tituloPeriodo: string): Promise<ReporteInstitucionalData> {
     const supabase = createClient()
-    const start = startOfMonth(fecha)
-    const end = endOfMonth(fecha)
-    const startStr = start.toISOString()
-    const endStr = end.toISOString()
+    const startStr = formatISO(fechaInicio)
+    const endStr = formatISO(fechaFin)
 
     // 1. Asistencia Global
     const { data: asistenciaData } = await supabase
@@ -137,10 +135,10 @@ export async function getReporteMensual(plantelId: string, fecha: Date): Promise
 
     return {
         periodo: {
-            mes: start.toLocaleDateString('es-MX', { month: 'long' }),
-            anio: start.getFullYear(),
-            inicio: start.toLocaleDateString('es-MX'),
-            fin: end.toLocaleDateString('es-MX')
+            mes: tituloPeriodo,
+            anio: fechaInicio.getFullYear(),
+            inicio: fechaInicio.toLocaleDateString('es-MX'),
+            fin: fechaFin.toLocaleDateString('es-MX')
         },
         kpis: {
             asistencia: {

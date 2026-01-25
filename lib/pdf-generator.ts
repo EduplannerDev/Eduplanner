@@ -1624,6 +1624,24 @@ export async function generateReporteInstitucionalPDF(data: any, plantelInfo: an
   const healthColor = score >= 90 ? '#10B981' : score >= 80 ? '#F59E0B' : '#EF4444';
   const healthText = score >= 90 ? 'Excelente' : score >= 80 ? 'Bueno' : 'Atención Requerida';
 
+  // Convertir logo a Base64 para evitar problemas de CORS/Loading
+  let logoBase64 = '';
+  if (plantelInfo?.logo_url) {
+    try {
+      const response = await fetch(plantelInfo.logo_url);
+      const blob = await response.blob();
+      logoBase64 = await new Promise<string>((resolve) => {
+        const reader = new FileReader();
+        reader.onloadend = () => resolve(reader.result as string);
+        reader.readAsDataURL(blob);
+      });
+    } catch (e) {
+      console.error('Error convirtiendo logo a base64:', e);
+      // Fallback: usar url original si falla, aunque probablemente no se vea
+      logoBase64 = plantelInfo.logo_url;
+    }
+  }
+
   const htmlContent = `
     <!DOCTYPE html>
     <html>
@@ -1791,7 +1809,7 @@ export async function generateReporteInstitucionalPDF(data: any, plantelInfo: an
       <!-- Header -->
       <div class="header">
         <div class="logo-container">
-          ${plantelInfo?.logo_url ? `<img src="${plantelInfo.logo_url}" class="logo" />` : ''}
+          ${logoBase64 ? `<img src="${logoBase64}" class="logo" />` : ''}
           <div>
             <h1 class="school-name">${plantelInfo?.nombre || 'Institución Educativa'}</h1>
             <div class="period-badge">${mesTitulo} ${periodo.anio}</div>
