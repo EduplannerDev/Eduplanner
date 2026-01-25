@@ -461,8 +461,6 @@ export function AdministracionPlantel({ isOpen, onClose }: AdministracionPlantel
   const handleDeleteAsset = async (type: 'logo' | 'hoja_membretada') => {
     if (!plantel) return
 
-    if (!confirm('¿Estás seguro de que quieres eliminar este archivo?')) return
-
     try {
       const updateData = type === 'logo'
         ? { logo_url: null }
@@ -746,7 +744,7 @@ export function AdministracionPlantel({ isOpen, onClose }: AdministracionPlantel
 
       {/* Tabs de Gestión */}
       <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-4">
-        <TabsList className="grid w-full grid-cols-1">
+        <TabsList className="grid w-full grid-cols-2">
           <TabsTrigger value="profesores" className="flex items-center gap-2">
             <Users className="h-4 w-4" />
             Profesores
@@ -957,10 +955,31 @@ export function AdministracionPlantel({ isOpen, onClose }: AdministracionPlantel
                         className="max-h-[180px] object-contain"
                       />
                       <div className="absolute inset-0 bg-black/50 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity rounded-lg">
-                        <Button variant="destructive" size="sm" onClick={() => handleDeleteAsset('logo')}>
-                          <Trash2 className="h-4 w-4 mr-2" />
-                          Eliminar
-                        </Button>
+                        <AlertDialog>
+                          <AlertDialogTrigger asChild>
+                            <Button variant="destructive" size="sm">
+                              <Trash2 className="h-4 w-4 mr-2" />
+                              Eliminar
+                            </Button>
+                          </AlertDialogTrigger>
+                          <AlertDialogContent>
+                            <AlertDialogHeader>
+                              <AlertDialogTitle>¿Eliminar logo?</AlertDialogTitle>
+                              <AlertDialogDescription>
+                                ¿Estás seguro de que quieres eliminar el logo institucional? Esta acción no se puede deshacer.
+                              </AlertDialogDescription>
+                            </AlertDialogHeader>
+                            <AlertDialogFooter>
+                              <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                              <AlertDialogAction
+                                onClick={() => handleDeleteAsset('logo')}
+                                className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                              >
+                                Eliminar
+                              </AlertDialogAction>
+                            </AlertDialogFooter>
+                          </AlertDialogContent>
+                        </AlertDialog>
                       </div>
                     </div>
                   ) : (

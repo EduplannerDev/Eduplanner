@@ -105,10 +105,6 @@ export function DirectorDashboard({ onSectionChange, initialTab = "pulso" }: Dir
             <TrendingDown className="h-4 w-4" />
             Riesgo
           </TabsTrigger>
-          <TabsTrigger value="configuracion" className="flex items-center gap-2">
-            <Settings className="h-4 w-4" />
-            Configuración
-          </TabsTrigger>
           <TabsTrigger value="reportes" className="flex items-center gap-2">
             <FileText className="h-4 w-4" />
             Reportes
@@ -181,9 +177,6 @@ export function DirectorDashboard({ onSectionChange, initialTab = "pulso" }: Dir
         </TabsContent>
 
         {/* --- TAB: CONFIGURACIÓN --- */}
-        <TabsContent value="configuracion">
-          <ConfiguracionTab plantel={plantel} />
-        </TabsContent>
 
         {/* --- TAB: REPORTES --- */}
         <TabsContent value="reportes">

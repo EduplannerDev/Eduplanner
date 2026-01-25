@@ -1621,6 +1621,32 @@ export async function generateReporteInstitucionalPDF(data: any, plantelInfo: an
   const isSpecialPeriod = mesTitulo.includes('Ciclo') || mesTitulo.includes('Trimestre') || mesTitulo.includes('Semestre') || mesTitulo.includes('Cuatrimestre');
   const titulo = isSpecialPeriod ? mesTitulo : `Reporte de Cumplimiento - ${mesTitulo} ${periodo.anio}`;
 
+  // Obtener nombre del director
+  let directorNombre = '';
+  if (plantelInfo?.id) {
+    try {
+      const { createClient } = await import('@supabase/supabase-js');
+      const supabase = createClient(
+        process.env.NEXT_PUBLIC_SUPABASE_URL!,
+        process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+      );
+
+      const { data: director } = await supabase
+        .from('profiles')
+        .select('full_name')
+        .eq('plantel_id', plantelInfo.id)
+        .eq('role', 'director')
+        .eq('activo', true)
+        .single();
+
+      if (director?.full_name) {
+        directorNombre = director.full_name;
+      }
+    } catch (e) {
+      console.warn('No se pudo obtener nombre del director:', e);
+    }
+  }
+
   // Calcular color de salud global
   const score = (kpis.asistencia.promedio + kpis.planeaciones.progreso_porcentaje + kpis.incidencias.resolucion_porcentaje) / 3;
   const healthColor = score >= 90 ? '#10B981' : score >= 80 ? '#F59E0B' : '#EF4444';
@@ -1915,6 +1941,35 @@ export async function generateReporteInstitucionalPDF(data: any, plantelInfo: an
           </div>
         </div>
 
+      </div>
+
+      <!-- Signature Section -->
+      <div style="margin-top: 60px; padding: 30px 40px; page-break-inside: avoid;">
+        <div style="text-align: center; margin-bottom: 40px;">
+          <strong style="font-size: 14px; color: #374151;">FIRMA DE VALIDACIÓN</strong>
+        </div>
+        
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 60px; margin-top: 40px;">
+          <!-- Director Signature -->
+          <div style="text-align: center;">
+            <div style="border-top: 2px solid #1F2937; padding-top: 10px; margin-bottom: 8px;">
+              <strong style="font-size: 13px; color: #374151;">${directorNombre || 'Director(a)'}</strong>
+            </div>
+            <div style="font-size: 11px; color: #6B7280;">Nombre y Firma</div>
+          </div>
+          
+          <!-- Official Seal -->
+          <div style="text-align: center;">
+            <div style="border: 2px dashed #D1D5DB; height: 100px; display: flex; align-items: center; justify-content: center; border-radius: 8px; margin-bottom: 8px;">
+              <span style="font-size: 11px; color: #9CA3AF;">Sello Oficial</span>
+            </div>
+            <div style="font-size: 11px; color: #6B7280;">${plantelInfo?.nombre || ''}</div>
+          </div>
+        </div>
+        
+        <div style="margin-top: 30px; text-align: center; font-size: 10px; color: #9CA3AF;">
+          Fecha de emisión: ${new Date().toLocaleDateString('es-MX', { year: 'numeric', month: 'long', day: 'numeric' })}
+        </div>
       </div>
 
       <div class="footer">
