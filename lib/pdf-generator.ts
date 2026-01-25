@@ -1886,6 +1886,111 @@ export async function generateReporteInstitucionalPDF(data: any, plantelInfo: an
         </div>
       </div>
 
+      <!-- NUEVA SECCIÓN: Análisis de Riesgo de Deserción -->
+      ${data.tendencia_riesgo ? `
+      <div style="background: linear-gradient(135deg, #FEF3C7 0%, #FDE68A 100%); padding: 20px; border-radius: 12px; margin-bottom: 30px; border-left: 6px solid #F59E0B;">
+        <div style="display: flex; align-items: center; margin-bottom: 12px;">
+          <div style="font-size: 18px; margin-right: 10px;">📊</div>
+          <div style="font-size: 16px; font-weight: bold; color: #92400E;">Análisis de Riesgo de Deserción</div>
+        </div>
+        <div style="font-size: 14px; color: #78350F; line-height: 1.6; margin-bottom: 12px;">
+          ${data.tendencia_riesgo.insight}
+        </div>
+        <div style="display: flex; gap: 20px; margin-top: 15px;">
+          <div style="flex: 1; background: rgba(255,255,255,0.6); padding: 12px; border-radius: 8px;">
+            <div style="font-size: 11px; color: #92400E; text-transform: uppercase; margin-bottom: 4px;">Cambio vs. Periodo Anterior</div>
+            <div style="font-size: 24px; font-weight: bold; color: ${data.tendencia_riesgo.direccion === 'incremento' ? '#DC2626' : '#059669'};">
+              ${data.tendencia_riesgo.cambio_porcentaje > 0 ? '+' : ''}${data.tendencia_riesgo.cambio_porcentaje}%
+              ${data.tendencia_riesgo.direccion === 'incremento' ? '↑' : data.tendencia_riesgo.direccion === 'reduccion' ? '↓' : '→'}
+            </div>
+          </div>
+          <div style="flex: 1; background: rgba(255,255,255,0.6); padding: 12px; border-radius: 8px;">
+            <div style="font-size: 11px; color: #92400E; text-transform: uppercase; margin-bottom: 4px;">Incidencias Alto Impacto</div>
+            <div style="font-size: 24px; font-weight: bold; color: #DC2626;">
+              ${data.tendencia_riesgo.incidencias_alto_impacto}
+            </div>
+          </div>
+        </div>
+      </div>
+      ` : ''}
+
+      <!-- NUEVA SECCIÓN: Salud Docente -->
+      ${data.salud_docente ? `
+      <div style="background: linear-gradient(135deg, #DBEAFE 0%, #BFDBFE 100%); padding: 20px; border-radius: 12px; margin-bottom: 30px; border-left: 6px solid #3B82F6;">
+        <div style="display: flex; align-items: center; margin-bottom: 12px;">
+          <div style="font-size: 18px; margin-right: 10px;">👨‍🏫</div>
+          <div style="font-size: 16px; font-weight: bold; color: #1E40AF;">Estado de Productividad Docente</div>
+        </div>
+        <div style="font-size: 14px; color: #1E3A8A; line-height: 1.6; margin-bottom: 12px;">
+          ${data.salud_docente.resumen}
+        </div>
+        <div style="display: flex; gap: 20px; margin-top: 15px;">
+          <div style="flex: 1; background: rgba(255,255,255,0.7); padding: 12px; border-radius: 8px;">
+            <div style="font-size: 11px; color: #1E40AF; text-transform: uppercase; margin-bottom: 4px;">Productividad</div>
+            <div style="font-size: 20px; font-weight: bold; color: ${data.salud_docente.productividad === 'alta' ? '#059669' : data.salud_docente.productividad === 'media' ? '#F59E0B' : '#DC2626'};">
+              ${data.salud_docente.productividad === 'alta' ? '🌟 ALTA' : data.salud_docente.productividad === 'media' ? '✓ MEDIA' : '⚠ BAJA'}
+            </div>
+          </div>
+          <div style="flex: 1; background: rgba(255,255,255,0.7); padding: 12px; border-radius: 8px;">
+            <div style="font-size: 11px; color: #1E40AF; text-transform: uppercase; margin-bottom: 4px;">Alineación NEM</div>
+            <div style="font-size: 20px; font-weight: bold; color: ${data.salud_docente.alineacion_nem ? '#059669' : '#DC2626'};">
+              ${data.salud_docente.alineacion_nem ? '✅ CUMPLE' : '❌ NO CUMPLE'}
+            </div>
+          </div>
+          <div style="flex: 1; background: rgba(255,255,255,0.7); padding: 12px; border-radius: 8px;">
+            <div style="font-size: 11px; color: #1E40AF; text-transform: uppercase; margin-bottom: 4px;">Docentes Activos</div>
+            <div style="font-size: 20px; font-weight: bold; color: #3B82F6;">
+              ${data.salud_docente.profesores_activos}/${data.salud_docente.profesores_total}
+            </div>
+          </div>
+        </div>
+      </div>
+      ` : ''}
+
+      <!-- NUEVA SECCIÓN: Casos Críticos -->
+      ${data.casos_criticos && data.casos_criticos.length > 0 ? `
+      <div style="background: linear-gradient(135deg, #FEE2E2 0%, #FECACA 100%); padding: 20px; border-radius: 12px; margin-bottom: 30px; border-left: 6px solid #DC2626;">
+        <div style="display: flex; align-items: center; margin-bottom: 16px;">
+          <div style="font-size: 18px; margin-right: 10px;">🚨</div>
+          <div style="font-size: 16px; font-weight: bold; color: #991B1B;">Casos Críticos del Periodo</div>
+        </div>
+        <div style="font-size: 13px; color: #7F1D1D; margin-bottom: 15px;">
+          Estudiantes que requieren atención inmediata por alto riesgo de deserción o problemas de conducta:
+        </div>
+        <table style="width: 100%; border-collapse: collapse;">
+          <thead>
+            <tr style="background: rgba(255,255,255,0.7);">
+              <th style="padding: 10px; text-align: left; font-size: 12px; color: #991B1B; border-bottom: 2px solid #DC2626;">Estudiante</th>
+              <th style="padding: 10px; text-align: left; font-size: 12px; color: #991B1B; border-bottom: 2px solid #DC2626;">Grupo</th>
+              <th style="padding: 10px; text-align: left; font-size: 12px; color: #991B1B; border-bottom: 2px solid #DC2626;">Motivo</th>
+              <th style="padding: 10px; text-align: left; font-size: 12px; color: #991B1B; border-bottom: 2px solid #DC2626;">Acción Recomendada</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${data.casos_criticos.map((caso, idx) => `
+              <tr style="background: ${idx % 2 === 0 ? 'rgba(255,255,255,0.5)' : 'transparent'};">
+                <td style="padding: 10px; font-size: 13px; color: #7F1D1D; border-bottom: 1px solid rgba(220,38,38,0.2);">
+                  <div style="font-weight: 600;">${caso.nombre}</div>
+                </td>
+                <td style="padding: 10px; font-size: 12px; color: #7F1D1D; border-bottom: 1px solid rgba(220,38,38,0.2);">
+                  ${caso.grupo}
+                </td>
+                <td style="padding: 10px; font-size: 12px; color: #7F1D1D; border-bottom: 1px solid rgba(220,38,38,0.2);">
+                  <div style="display: inline-block; background: ${caso.nivel_riesgo === 'alto' ? '#DC2626' : caso.nivel_riesgo === 'medio' ? '#F59E0B' : '#10B981'}; color: white; padding: 3px 8px; border-radius: 4px; font-size: 10px; font-weight: 600; margin-bottom: 4px;">
+                    ${caso.nivel_riesgo.toUpperCase()}
+                  </div>
+                  <div>${caso.motivo}</div>
+                </td>
+                <td style="padding: 10px; font-size: 11px; color: #7F1D1D; border-bottom: 1px solid rgba(220,38,38,0.2);">
+                  ${caso.accion_recomendada}
+                </td>
+              </tr>
+            `).join('')}
+          </tbody>
+        </table>
+      </div>
+      ` : ''}
+
       <!-- Detail Sections -->
       <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 40px;">
         

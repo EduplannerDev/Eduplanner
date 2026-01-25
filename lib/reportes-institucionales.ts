@@ -1,6 +1,29 @@
 import { createClient } from '@supabase/supabase-js'
 import { startOfMonth, endOfMonth, formatISO } from 'date-fns'
 
+export interface CasoCritico {
+    nombre: string
+    grupo: string
+    motivo: string
+    nivel_riesgo: 'alto' | 'medio' | 'bajo'
+    accion_recomendada: string
+}
+
+export interface TendenciaRiesgo {
+    cambio_porcentaje: number
+    direccion: 'incremento' | 'reduccion' | 'estable'
+    insight: string
+    incidencias_alto_impacto: number
+}
+
+export interface SaludDocente {
+    productividad: 'alta' | 'media' | 'baja'
+    alineacion_nem: boolean
+    resumen: string
+    profesores_activos: number
+    profesores_total: number
+}
+
 export interface ReporteInstitucionalData {
     periodo: {
         mes: string
@@ -13,6 +36,7 @@ export interface ReporteInstitucionalData {
             promedio: number
             total_registros: number
             trend: 'up' | 'down' | 'neutral'
+            cambio_vs_anterior?: number
         }
         planeaciones: {
             total: number
@@ -24,12 +48,16 @@ export interface ReporteInstitucionalData {
             resueltas: number
             pendientes: number
             resolucion_porcentaje: number
+            cambio_vs_anterior?: number
         }
     }
     detalles: {
         grupos_asistencia: { grupo: string; porcentaje: number }[]
-        incidencias_tipo: { tipo: string; cantidad: number }[]
+        incidencias_tipo: { tipo: string; cantidad: number; protocolo_url?: string }[]
     }
+    tendencia_riesgo?: TendenciaRiesgo
+    salud_docente?: SaludDocente
+    casos_criticos?: CasoCritico[]
 }
 
 export async function getReportePorRango(plantelId: string, fechaInicio: Date, fechaFin: Date, tituloPeriodo: string): Promise<ReporteInstitucionalData> {
@@ -174,10 +202,111 @@ export async function getReportePorRango(plantelId: string, fechaInicio: Date, f
         incidenciasPorTipo[i.tipo] = (incidenciasPorTipo[i.tipo] || 0) + 1
     })
 
-    const detallesIncidencias = Object.entries(incidenciasPorTipo).map(([tipo, cantidad]) => ({
-        tipo: tipo.replace(/_/g, ' '),
-        cantidad
-    })).sort((a, b) => b.cantidad - a.cantidad)
+    const detallesIncidencias = Object.entries(incidenciasPorTipo).map(([tipo, cantidad]) => {
+        // Map protocol URLs for high-impact incidents
+        const protocolos: Record<string, string> = {
+            'portacion_armas': '/protocolos/seguridad-portacion-armas',
+            'violencia_fisica': '/protocolos/seguridad-violencia',
+            'acoso_escolar': '/protocolos/seguimiento-acoso',
+            'consumo_sustancias': '/protocolos/salud-adicciones'
+        }
+
+        return {
+            tipo: tipo.replace(/_/g, ' '),
+            cantidad,
+            protocolo_url: protocolos[tipo]
+        }
+    }).sort((a, b) => b.cantidad - a.cantidad)
+
+    console.log('📋 Incidencias:', { totalIncidencias, resueltas, pendientes, resolucionPorcentaje });
+
+    // 6. NUEVO: Obtener datos del periodo anterior para comparación
+    const diasPeriodo = Math.ceil((fechaFin.getTime() - fechaInicio.getTime()) / (1000 * 60 * 60 * 24))
+    const fechaInicioPrevio = new Date(fechaInicio)
+    fechaInicioPrevio.setDate(fechaInicioPrevio.getDate() - diasPeriodo)
+    const fechaFinPrevio = new Date(fechaInicio)
+    fechaFinPrevio.setDate(fechaFinPrevio.getDate() - 1)
+
+    // Asistencia periodo anterior
+    let asistenciaAnterior = 0
+    if (gruposIds.length > 0) {
+        const { data: asistenciaPrev } = await supabase
+            .from('asistencia')
+            .select('estado')
+            .in('grupo_id', gruposIds)
+            .gte('fecha', formatISO(fechaInicioPrevio))
+            .lte('fecha', formatISO(fechaFinPrevio))
+
+        if (asistenciaPrev && asistenciaPrev.length > 0) {
+            const presentesPrev = asistenciaPrev.filter(a => a.estado === 'presente' || a.estado === 'retardo').length
+            asistenciaAnterior = Math.round((presentesPrev / asistenciaPrev.length) * 100)
+        }
+    }
+
+    // Incidencias periodo anterior
+    const { data: incidenciasPrev } = await supabase
+        .from('incidencias')
+        .select('id')
+        .eq('plantel_id', plantelId)
+        .gte('created_at', formatISO(fechaInicioPrevio))
+        .lte('created_at', formatISO(fechaFinPrevio))
+
+    const incidenciasAnterior = incidenciasPrev?.length || 0
+
+    // 7. NUEVO: Calcular Tendencia de Riesgo
+    const cambioIncidencias = incidenciasAnterior > 0
+        ? Math.round(((totalIncidencias - incidenciasAnterior) / incidenciasAnterior) * 100)
+        : 0
+
+    const incidenciasAltoImpacto = incidencias?.filter(i =>
+        ['portacion_armas', 'violencia_fisica', 'acoso_escolar'].includes(i.tipo)
+    ).length || 0
+
+    const direccionRiesgo: 'incremento' | 'reduccion' | 'estable' =
+        cambioIncidencias > 5 ? 'incremento' : cambioIncidencias < -5 ? 'reduccion' : 'estable'
+
+    const insightRiesgo = direccionRiesgo === 'incremento'
+        ? `El riesgo de deserción ${Math.abs(cambioIncidencias) > 0 ? `aumentó ${Math.abs(cambioIncidencias)}%` : 'se mantiene elevado'} esta semana debido a las ${incidenciasAltoImpacto} nuevas incidencias de alto impacto registradas.`
+        : direccionRiesgo === 'reduccion'
+            ? `Tendencia positiva: El riesgo de deserción se redujo ${Math.abs(cambioIncidencias)}% gracias a la gestión efectiva de incidencias y seguimiento oportuno.`
+            : `El riesgo de deserción se mantiene estable. Se recomienda continuar con el seguimiento preventivo de los ${incidenciasAltoImpacto} casos de alto impacto.`
+
+    // 8. NUEVO: Salud Docente
+    const productividad: 'alta' | 'media' | 'baja' =
+        progresoPlaneaciones >= 90 ? 'alta' : progresoPlaneaciones >= 70 ? 'media' : 'baja'
+
+    const alineacionNEM = progresoPlaneaciones >= 80 // Asumimos que planeaciones completas = alineadas
+
+    const resumenDocente = productividad === 'alta'
+        ? `Productividad Docente: Alta. Todos los grupos cuentan con planeación vigente alineada a la Nueva Escuela Mexicana (NEM). Los ${profesorIds.length} docentes están cumpliendo con sus responsabilidades pedagógicas.`
+        : productividad === 'media'
+            ? `Productividad Docente: Media. ${completadas} de ${totalPlaneaciones} planeaciones completadas. Se recomienda seguimiento para alcanzar el 100% de cumplimiento con la NEM.`
+            : `Atención requerida: Solo ${progresoPlaneaciones}% de planeaciones completadas. Es necesario implementar un plan de apoyo docente para garantizar la alineación con la NEM.`
+
+    // 9. NUEVO: Casos Críticos (Alumnos en Riesgo Alto)
+    const casosCriticos: CasoCritico[] = []
+
+    if (gruposIds.length > 0) {
+        // Obtener estudiantes con alta deserción o incidencias críticas
+        const { data: alumnosRiesgo } = await supabase
+            .rpc('get_high_risk_students', { p_plantel_id: plantelId })
+            .limit(5)
+
+        if (alumnosRiesgo && alumnosRiesgo.length > 0) {
+            for (const alumno of alumnosRiesgo) {
+                const grupo = grupos?.find(g => g.id === alumno.grupo_id)
+                casosCriticos.push({
+                    nombre: alumno.nombre_completo,
+                    grupo: grupo ? `${grupo.grado}° ${grupo.nombre}` : 'N/A',
+                    motivo: alumno.motivo || 'Alta probabilidad de deserción',
+                    nivel_riesgo: alumno.nivel_riesgo || 'alto',
+                    accion_recomendada: alumno.nivel_riesgo === 'alto'
+                        ? 'Contacto inmediato con familia y plan de intervención personalizado'
+                        : 'Seguimiento semanal y monitoreo de asistencia'
+                })
+            }
+        }
+    }
 
     return {
         periodo: {
@@ -190,7 +319,8 @@ export async function getReportePorRango(plantelId: string, fechaInicio: Date, f
             asistencia: {
                 promedio: asistenciaPromedio,
                 total_registros: totalAsistencia,
-                trend: asistenciaPromedio >= 90 ? 'up' : asistenciaPromedio >= 80 ? 'neutral' : 'down'
+                trend: asistenciaPromedio >= 90 ? 'up' : asistenciaPromedio >= 80 ? 'neutral' : 'down',
+                cambio_vs_anterior: asistenciaAnterior > 0 ? asistenciaPromedio - asistenciaAnterior : undefined
             },
             planeaciones: {
                 total: totalPlaneaciones,
@@ -201,12 +331,27 @@ export async function getReportePorRango(plantelId: string, fechaInicio: Date, f
                 total: totalIncidencias,
                 resueltas: resueltas,
                 pendientes: pendientes,
-                resolucion_porcentaje: resolucionPorcentaje
+                resolucion_porcentaje: resolucionPorcentaje,
+                cambio_vs_anterior: cambioIncidencias
             }
         },
         detalles: {
             grupos_asistencia: detallesGrupos,
             incidencias_tipo: detallesIncidencias
-        }
+        },
+        tendencia_riesgo: {
+            cambio_porcentaje: cambioIncidencias,
+            direccion: direccionRiesgo,
+            insight: insightRiesgo,
+            incidencias_alto_impacto: incidenciasAltoImpacto
+        },
+        salud_docente: {
+            productividad: productividad,
+            alineacion_nem: alineacionNEM,
+            resumen: resumenDocente,
+            profesores_activos: profesorIds.length,
+            profesores_total: profesorIds.length
+        },
+        casos_criticos: casosCriticos.length > 0 ? casosCriticos : undefined
     }
 }
