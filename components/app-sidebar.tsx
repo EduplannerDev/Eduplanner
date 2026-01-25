@@ -178,7 +178,7 @@ export function AppSidebar({ activeSection, onSectionChange, ...props }: AppSide
   const { isAdmin, isDirector } = useRoles()
   const { isBetaTester } = useBetaTesterCheck()
   const { state, setOpenMobile } = useSidebar()
-  const { hasNearAchievements, nearAchievements } = useAchievementNotifications()
+  // const { hasNearAchievements, nearAchievements } = useAchievementNotifications()
 
   const isMobile = useIsMobile()
 
@@ -471,21 +471,17 @@ export function AppSidebar({ activeSection, onSectionChange, ...props }: AppSide
                   <SidebarMenuButton
                     asChild
                     isActive={activeSection === section.url?.replace("#", "")}
-                    tooltip={
-                      section.title === "Muro de Logros" && hasNearAchievements
-                        ? `¡Estás cerca! ${nearAchievements[0]?.remaining === 1 ? `¡Solo ${nearAchievements[0].remaining} más para ${nearAchievements[0].title}!` : `${nearAchievements.length} logro${nearAchievements.length > 1 ? 's' : ''} por desbloquear`}`
-                        : section.description
-                    }
+                    tooltip={section.description}
                   >
                     <button onClick={() => handleNavigation(section.url?.replace("#", "") || "")} className="w-full flex items-center gap-2">
                       <section.icon className="h-4 w-4" />
                       <span className="notranslate flex-1 text-left">{section.title}</span>
                       {/* Badge de notificación para Muro de Logros */}
-                      {section.title === "Muro de Logros" && hasNearAchievements && (
+                      {/* section.title === "Muro de Logros" && hasNearAchievements && (
                         <Badge className="bg-gradient-to-r from-yellow-500 to-orange-500 text-white text-xs px-2 py-0.5 animate-pulse font-bold">
                           {nearAchievements.length} 🎯
                         </Badge>
-                      )}
+                      ) */}
                     </button>
                   </SidebarMenuButton>
                 </SidebarMenuItem>
@@ -651,6 +647,6 @@ export function AppSidebar({ activeSection, onSectionChange, ...props }: AppSide
         </SidebarMenu>
       </SidebarFooter>
       <SidebarRail />
-    </Sidebar>
+    </Sidebar >
   )
 }

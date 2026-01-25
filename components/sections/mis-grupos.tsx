@@ -3,7 +3,7 @@
 import { useState, useEffect, useCallback, useMemo } from 'react'
 import { useAuth } from '@/hooks/use-auth'
 import { getGruposByOwner, deleteGrupo, type Grupo } from '@/lib/grupos'
-import { Loader2, Users as UsersIcon, Calendar, Plus, Edit, Trash2, Eye, Users, CheckSquare } from 'lucide-react'
+import { Loader2, Users as UsersIcon, Calendar, Plus, Edit, Trash2, Eye, Users, CheckSquare, BookOpen } from 'lucide-react'
 import { Button } from "@/components/ui/button"
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
@@ -19,22 +19,34 @@ import TomarAsistenciaGrupo from './tomar-asistencia-grupo'
 interface MisGruposProps {
   onNavigateToMensajesPadres?: (studentData: any) => void;
   onNavigateToMensajesPadresAlumno?: (studentData: any) => void;
+  initialGrupoId?: string | null;
+  initialViewMode?: "list" | "view" | "edit" | "new" | "gestionar-alumnos" | "tomar-asistencia" | "evaluaciones";
 }
 
-const MisGrupos = ({ onNavigateToMensajesPadres, onNavigateToMensajesPadresAlumno }: MisGruposProps = {}) => {
+const MisGrupos = ({
+  onNavigateToMensajesPadres,
+  onNavigateToMensajesPadresAlumno,
+  initialGrupoId = null,
+  initialViewMode = "list"
+}: MisGruposProps = {}) => {
   const { user } = useAuth()
   const [grupos, setGrupos] = useState<Grupo[]>([])
-  const [loading, setLoading] = useState(true)
+  const [loading, setLoading] = useState(initialViewMode === 'list')
   const [error, setError] = useState<string | null>(null)
   const [showNuevoGrupo, setShowNuevoGrupo] = useState(false)
-  const [selectedGrupoId, setSelectedGrupoId] = useState<string | null>(null)
-  const [viewMode, setViewMode] = useState<"list" | "view" | "edit" | "new" | "gestionar-alumnos" | "tomar-asistencia">("list")
+  const [selectedGrupoId, setSelectedGrupoId] = useState<string | null>(initialGrupoId)
+  const [viewMode, setViewMode] = useState<"list" | "view" | "edit" | "new" | "gestionar-alumnos" | "tomar-asistencia" | "evaluaciones">(initialViewMode)
   const [deletingGrupoId, setDeletingGrupoId] = useState<string | null>(null)
 
 
   const handleTomarAsistencia = (grupoId: string) => {
     setSelectedGrupoId(grupoId)
     setViewMode('tomar-asistencia')
+  }
+
+  const handleEvaluaciones = (grupoId: string) => {
+    setSelectedGrupoId(grupoId)
+    setViewMode('evaluaciones')
   }
 
   // Usar useMemo para evitar que la fecha cambie en cada render
@@ -129,12 +141,13 @@ const MisGrupos = ({ onNavigateToMensajesPadres, onNavigateToMensajesPadresAlumn
     )
   }
 
-  if (viewMode === "view" && selectedGrupoId) {
+  if ((viewMode === "view" || viewMode === "evaluaciones") && selectedGrupoId) {
     return (
       <ViewGrupo
         grupoId={selectedGrupoId}
         onBack={handleBackToList}
         onEdit={() => handleEditGrupo(selectedGrupoId)}
+        initialViewMode={viewMode === 'evaluaciones' ? 'evaluaciones' : 'details'}
       />
     )
   }
@@ -247,7 +260,7 @@ const MisGrupos = ({ onNavigateToMensajesPadres, onNavigateToMensajesPadresAlumn
                   <div className="grid grid-cols-2 gap-2 w-full sm:flex sm:w-auto" onClick={(e) => e.stopPropagation()}>
                     <Button
                       size="sm"
-                      className="col-span-2 sm:w-auto bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white border-0"
+                      className="col-span-2 sm:w-auto bg-green-50 text-green-700 hover:bg-green-100 border border-green-200"
                       onClick={() => handleTomarAsistencia(grupo.id)}
                     >
                       <CheckSquare className="h-4 w-4 mr-2" />
@@ -255,7 +268,15 @@ const MisGrupos = ({ onNavigateToMensajesPadres, onNavigateToMensajesPadresAlumn
                     </Button>
                     <Button
                       size="sm"
-                      variant="outline"
+                      className="col-span-2 sm:w-auto bg-purple-50 text-purple-700 hover:bg-purple-100 border border-purple-200"
+                      onClick={() => handleEvaluaciones(grupo.id)}
+                    >
+                      <BookOpen className="h-4 w-4 mr-2" />
+                      Evaluaciones
+                    </Button>
+                    <Button
+                      size="sm"
+                      className="col-span-2 sm:w-auto bg-blue-50 text-blue-700 hover:bg-blue-100 border border-blue-200 shadow-sm"
                       onClick={() => handleViewGrupo(grupo.id)}
                     >
                       <Eye className="h-4 w-4 mr-2" />
@@ -263,7 +284,7 @@ const MisGrupos = ({ onNavigateToMensajesPadres, onNavigateToMensajesPadresAlumn
                     </Button>
                     <Button
                       size="sm"
-                      variant="outline"
+                      className="col-span-2 sm:w-auto bg-indigo-50 text-indigo-700 hover:bg-indigo-100 border border-indigo-200 shadow-sm"
                       onClick={() => handleGestionarAlumnos(grupo.id)}
                     >
                       <Users className="h-4 w-4 mr-2" />
@@ -271,7 +292,7 @@ const MisGrupos = ({ onNavigateToMensajesPadres, onNavigateToMensajesPadresAlumn
                     </Button>
                     <Button
                       size="sm"
-                      variant="outline"
+                      className="col-span-2 sm:w-auto bg-orange-50 text-orange-700 hover:bg-orange-100 border border-orange-200 shadow-sm"
                       onClick={() => handleEditGrupo(grupo.id)}
                     >
                       <Edit className="h-4 w-4 mr-2" />
@@ -281,8 +302,7 @@ const MisGrupos = ({ onNavigateToMensajesPadres, onNavigateToMensajesPadresAlumn
                       <AlertDialogTrigger asChild>
                         <Button
                           size="sm"
-                          variant="outline"
-                          className="text-red-600 hover:text-red-700"
+                          className="text-red-700 bg-red-50 hover:bg-red-100 border border-red-200 shadow-sm"
                           disabled={deletingGrupoId === grupo.id}
                         >
                           {deletingGrupoId === grupo.id ? (

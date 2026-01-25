@@ -51,7 +51,13 @@ export default function GestionarAlumnos({ grupoId, onBack, onNavigateToMensajes
     telefono_padre: '',
     nombre_madre: '',
     correo_madre: '',
-    telefono_madre: ''
+    telefono_madre: '',
+    // Información Médica y de Emergencia
+    alergias: '',
+    tipo_sangre: '',
+    condicion_medica: '',
+    contacto_emergencia_nombre: '',
+    contacto_emergencia_telefono: ''
   });
   const [submitting, setSubmitting] = useState(false);
   const [viewState, setViewState] = useState<ViewState>({ mode: 'list' });
@@ -138,7 +144,13 @@ export default function GestionarAlumnos({ grupoId, onBack, onNavigateToMensajes
       telefono_padre: '',
       nombre_madre: '',
       correo_madre: '',
-      telefono_madre: ''
+      telefono_madre: '',
+      // Información Médica y de Emergencia
+      alergias: '',
+      tipo_sangre: '',
+      condicion_medica: '',
+      contacto_emergencia_nombre: '',
+      contacto_emergencia_telefono: ''
     });
   };
 
@@ -373,7 +385,13 @@ export default function GestionarAlumnos({ grupoId, onBack, onNavigateToMensajes
       telefono_padre: alumno.telefono_padre || '',
       nombre_madre: alumno.nombre_madre || '',
       correo_madre: alumno.correo_madre || '',
-      telefono_madre: alumno.telefono_madre || ''
+      telefono_madre: alumno.telefono_madre || '',
+      // Información Médica y de Emergencia
+      alergias: alumno.alergias || '',
+      tipo_sangre: alumno.tipo_sangre || '',
+      condicion_medica: alumno.condicion_medica || '',
+      contacto_emergencia_nombre: alumno.contacto_emergencia_nombre || '',
+      contacto_emergencia_telefono: alumno.contacto_emergencia_telefono || ''
     });
     setIsEditDialogOpen(true);
   };
@@ -552,6 +570,85 @@ export default function GestionarAlumnos({ grupoId, onBack, onNavigateToMensajes
                         placeholder="Ej: 15"
                         className="mt-1"
                       />
+                    </div>
+                  </div>
+                </div>
+
+                {/* Información Médica y de Emergencia */}
+                <div className="border-t border-gray-200 pt-6">
+                  <h4 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
+                    <span className="w-2 h-2 bg-red-500 rounded-full"></span>
+                    Salud y Emergencias
+                  </h4>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                      <Label htmlFor="tipo_sangre">Tipo de Sangre</Label>
+                      <Select
+                        value={formData.tipo_sangre}
+                        onValueChange={(val) => setFormData(prev => ({ ...prev, tipo_sangre: val }))}
+                      >
+                        <SelectTrigger className="mt-1">
+                          <SelectValue placeholder="Selecciona..." />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {['O+', 'O-', 'A+', 'A-', 'B+', 'B-', 'AB+', 'AB-'].map(tipo => (
+                            <SelectItem key={tipo} value={tipo}>{tipo}</SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <div>
+                      <Label htmlFor="alergias">Alergias</Label>
+                      <Input
+                        id="alergias"
+                        name="alergias"
+                        value={formData.alergias}
+                        onChange={handleInputChange}
+                        placeholder="Ej: Penicilina, Nueces, etc (Ninguna si no aplica)"
+                        className="mt-1"
+                      />
+                    </div>
+                    <div className="md:col-span-2">
+                      <Label htmlFor="condicion_medica">Condiciones Médicas / Tratamientos</Label>
+                      <Input
+                        id="condicion_medica"
+                        name="condicion_medica"
+                        value={formData.condicion_medica}
+                        onChange={handleInputChange}
+                        placeholder="Diabetes, Asma, TDAH, etc..."
+                        className="mt-1"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="mt-4 p-4 bg-red-50 rounded-lg border border-red-100">
+                    <h5 className="text-sm font-medium text-red-800 mb-3 uppercase tracking-wide flex items-center gap-2">
+                      En caso de Emergencia
+                    </h5>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div>
+                        <Label htmlFor="contacto_emergencia_nombre">Contacto de Emergencia</Label>
+                        <Input
+                          id="contacto_emergencia_nombre"
+                          name="contacto_emergencia_nombre"
+                          value={formData.contacto_emergencia_nombre}
+                          onChange={handleInputChange}
+                          placeholder="Nombre completo"
+                          className="mt-1 bg-white"
+                        />
+                      </div>
+                      <div>
+                        <Label htmlFor="contacto_emergencia_telefono">Teléfono de Emergencia</Label>
+                        <Input
+                          id="contacto_emergencia_telefono"
+                          name="contacto_emergencia_telefono"
+                          value={formData.contacto_emergencia_telefono}
+                          onChange={handleInputChange}
+                          placeholder="10 dígitos"
+                          className="mt-1 bg-white"
+                          maxLength={10}
+                        />
+                      </div>
                     </div>
                   </div>
                 </div>

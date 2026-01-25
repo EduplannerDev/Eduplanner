@@ -52,11 +52,11 @@ export interface EstadisticasAsistencia {
  * Obtiene la asistencia de un grupo en una fecha específica
  */
 export async function getAsistenciaByGrupoFecha(
-  grupoId: string, 
+  grupoId: string,
   fecha: string
 ): Promise<AsistenciaConAlumno[]> {
   const supabase = createClient();
-  
+
   const { data, error } = await supabase
     .rpc('get_asistencia_by_grupo_fecha', {
       p_grupo_id: grupoId,
@@ -76,7 +76,7 @@ export async function getAsistenciaByGrupoFecha(
  */
 export async function createAsistencia(asistenciaData: CreateAsistenciaData): Promise<RegistroAsistencia> {
   const supabase = createClient();
-  
+
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) {
     throw new Error('Usuario no autenticado');
@@ -103,11 +103,11 @@ export async function createAsistencia(asistenciaData: CreateAsistenciaData): Pr
  * Actualiza un registro de asistencia existente
  */
 export async function updateAsistencia(
-  id: string, 
+  id: string,
   asistenciaData: UpdateAsistenciaData
 ): Promise<RegistroAsistencia> {
   const supabase = createClient();
-  
+
   const { data, error } = await supabase
     .from('asistencia')
     .update(asistenciaData)
@@ -128,7 +128,7 @@ export async function updateAsistencia(
  */
 export async function deleteAsistencia(id: string): Promise<void> {
   const supabase = createClient();
-  
+
   const { error } = await supabase
     .from('asistencia')
     .delete()
@@ -144,11 +144,11 @@ export async function deleteAsistencia(id: string): Promise<void> {
  * Marca a todos los alumnos de un grupo como presentes
  */
 export async function marcarTodosPresentes(
-  grupoId: string, 
+  grupoId: string,
   fecha: string
 ): Promise<number> {
   const supabase = createClient();
-  
+
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) {
     throw new Error('Usuario no autenticado');
@@ -178,7 +178,7 @@ export async function getEstadisticasAsistencia(
   fechaFin: string
 ): Promise<EstadisticasAsistencia> {
   const supabase = createClient();
-  
+
   const { data, error } = await supabase
     .rpc('get_asistencia_stats', {
       p_grupo_id: grupoId,
@@ -211,7 +211,7 @@ export async function getAlumnosConAsistencia(
   fecha: string
 ): Promise<AsistenciaConAlumno[]> {
   const supabase = createClient();
-  
+
   // Primero obtenemos todos los alumnos del grupo
   const { data: alumnos, error: alumnosError } = await supabase
     .from('alumnos')
@@ -240,7 +240,7 @@ export async function getAlumnosConAsistencia(
   // Combinamos los datos
   const resultado: AsistenciaConAlumno[] = alumnos.map(alumno => {
     const registroAsistencia = asistencia?.find(a => a.alumno_id === alumno.id);
-    
+
     return {
       id: registroAsistencia?.id || '',
       alumno_id: alumno.id,
@@ -263,7 +263,7 @@ export async function verificarAsistenciaExiste(
   fecha: string
 ): Promise<boolean> {
   const supabase = createClient();
-  
+
   try {
     const { data, error } = await supabase
       .from('asistencia')
@@ -271,7 +271,7 @@ export async function verificarAsistenciaExiste(
       .eq('grupo_id', grupoId)
       .eq('fecha', fecha)
       .limit(1);
-    
+
     if (error) throw error;
     return data && data.length > 0;
   } catch (error) {
@@ -298,16 +298,16 @@ export async function getHistorialAsistenciaGrupo(
   limite: number = 30
 ): Promise<AsistenciaHistorial[]> {
   const supabase = createClient();
-  
+
   try {
     const { data, error } = await supabase
       .from('asistencia')
       .select('fecha, estado')
       .eq('grupo_id', grupoId)
       .order('fecha', { ascending: false });
-    
+
     if (error) throw error;
-    
+
     // Agrupar por fecha y calcular estadísticas
     const fechasMap = new Map<string, {
       presentes: number;
@@ -316,7 +316,7 @@ export async function getHistorialAsistenciaGrupo(
       justificados: number;
       total: number;
     }>();
-    
+
     data?.forEach(registro => {
       const fecha = registro.fecha;
       if (!fechasMap.has(fecha)) {
@@ -328,10 +328,10 @@ export async function getHistorialAsistenciaGrupo(
           total: 0
         });
       }
-      
+
       const stats = fechasMap.get(fecha)!;
       stats.total++;
-      
+
       switch (registro.estado) {
         case 'presente':
           stats.presentes++;
@@ -347,7 +347,7 @@ export async function getHistorialAsistenciaGrupo(
           break;
       }
     });
-    
+
     // Convertir a array y calcular porcentajes
     const historial: AsistenciaHistorial[] = Array.from(fechasMap.entries())
       .map(([fecha, stats]) => ({
@@ -357,13 +357,13 @@ export async function getHistorialAsistenciaGrupo(
         ausentes: stats.ausentes,
         retardos: stats.retardos,
         justificados: stats.justificados,
-        porcentaje_asistencia: stats.total > 0 
+        porcentaje_asistencia: stats.total > 0
           ? Math.round(((stats.presentes + stats.retardos) / stats.total) * 100)
           : 0
       }))
       .sort((a, b) => new Date(b.fecha).getTime() - new Date(a.fecha).getTime())
       .slice(0, limite);
-    
+
     return historial;
   } catch (error) {
     console.error('Error fetching attendance history:', error);
@@ -382,7 +382,7 @@ export async function guardarAsistenciaAlumno(
   notas?: string
 ): Promise<RegistroAsistencia> {
   const supabase = createClient();
-  
+
   try {
     // Verificar si ya existe un registro
     const { data: existingRecord } = await supabase
@@ -392,7 +392,7 @@ export async function guardarAsistenciaAlumno(
       .eq('grupo_id', grupoId)
       .eq('fecha', fecha)
       .single();
-    
+
     if (existingRecord) {
       // Actualizar registro existente
       const { data, error } = await supabase
@@ -405,7 +405,7 @@ export async function guardarAsistenciaAlumno(
         .eq('id', existingRecord.id)
         .select()
         .single();
-      
+
       if (error) throw error;
       return data;
     } else {
@@ -422,4 +422,29 @@ export async function guardarAsistenciaAlumno(
     console.error('Error saving attendance:', error);
     throw error;
   }
+}
+
+/**
+ * Obtiene el porcentaje de asistencia de un alumno específico
+ */
+export async function getPorcentajeAsistenciaAlumno(alumnoId: string): Promise<number | null> {
+  const supabase = createClient();
+
+  const { data, error } = await supabase
+    .from('asistencia')
+    .select('estado')
+    .eq('alumno_id', alumnoId);
+
+  if (error) {
+    console.error('Error fetching alumno attendance:', error);
+    return null;
+  }
+
+  if (!data || data.length === 0) return null;
+
+  const total = data.length;
+  // Consideramos presente y retardo como asistencia válida para el porcentaje
+  const presentes = data.filter(r => r.estado === 'presente' || r.estado === 'retardo').length;
+
+  return Math.round((presentes / total) * 100);
 }

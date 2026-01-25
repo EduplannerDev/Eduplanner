@@ -30,6 +30,7 @@ import { ListaProyectos } from "./sections/lista-proyectos"
 import { ProyectoWizard } from "./sections/proyecto-wizard"
 import { PlaneacionCime } from "./sections/planeacion-cime"
 import { PresentacionesIA } from "./sections/presentaciones-ia"
+import { FileText, Users, Calendar, MessageSquare, Plus, BookOpen, Presentation, CheckCircle, Clock, ArrowRight, Star, GraduationCap, X } from 'lucide-react'
 import { PlanAnaliticoWizard } from "./sections/plan-analitico/plan-analitico-wizard"
 import { ListaPlanesAnaliticos } from "./sections/plan-analitico/lista-planes-analiticos"
 import { FichasDescriptivas } from "./sections/fichas-descriptivas"
@@ -101,6 +102,9 @@ export default function Dashboard({ children, customContent = false }: Dashboard
     if (activeSection !== 'mis-planeaciones') {
       setSelectedPlaneacionFromHome(null)
     }
+    if (activeSection !== 'grupos') {
+      setSelectedGrupoForActivities(null)
+    }
   }, [activeSection])
   const [preselectedStudent, setPreselectedStudent] = useState<any>(null)
   const [selectedStudentForMessages, setSelectedStudentForMessages] = useState<any>(null)
@@ -112,6 +116,7 @@ export default function Dashboard({ children, customContent = false }: Dashboard
   } | null>(null)
   const [previousSection, setPreviousSection] = useState<string>("grupos")
   const [selectedPlaneacionFromHome, setSelectedPlaneacionFromHome] = useState<string | null>(null)
+  const [selectedGrupoForActivities, setSelectedGrupoForActivities] = useState<string | null>(null)
   const { isDirector } = useRoles()
   const { profile } = useProfile()
 
@@ -245,6 +250,10 @@ export default function Dashboard({ children, customContent = false }: Dashboard
               setSelectedPlaneacionFromHome(planeacionId)
               setActiveSection("mis-planeaciones")
             }}
+            onOpenGroupActivities={(grupoId) => {
+              setSelectedGrupoForActivities(grupoId)
+              setActiveSection("grupos")
+            }}
           />
         )
       case "nueva-planeacion":
@@ -332,6 +341,8 @@ export default function Dashboard({ children, customContent = false }: Dashboard
         return <MisGrupos
           onNavigateToMensajesPadres={handleNavigateToMensajesPadres}
           onNavigateToMensajesPadresAlumno={handleNavigateToMensajesPadresAlumno}
+          initialGrupoId={selectedGrupoForActivities}
+          initialViewMode={selectedGrupoForActivities ? 'evaluaciones' : 'list'}
         />
       case "agenda":
         return <Agenda onSectionChange={setActiveSection} />

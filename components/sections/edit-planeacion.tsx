@@ -74,7 +74,7 @@ export function EditPlaneacion({ planeacionId, onBack }: EditPlaneacionProps) {
 
           // Si intentamos enviar y ya existe (409), intentamos reenviar
           if (!response.ok && response.status === 409 && initialEndpoint === '/api/planeaciones/enviar') {
-            console.log("Planeación ya enviada, intentando reenviar/actualizar...")
+
             response = await fetch('/api/planeaciones/reenviar', {
               method: 'POST',
               headers: { 'Content-Type': 'application/json' },

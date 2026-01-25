@@ -184,8 +184,7 @@ export function IncidenciasSection({ plantelId, autoStart = false, onAutoStartRe
     const handlePrint = () => {
         if (!selectedIncident) return
 
-        console.log('🖨️ handlePrint initiated for incident:', selectedIncident.id)
-        console.log('Current state:', selectedIncident.estado)
+
 
         // Generate suggested filename
         const folio = selectedIncident.id.slice(0, 8).toUpperCase()
@@ -252,46 +251,26 @@ export function IncidenciasSection({ plantelId, autoStart = false, onAutoStartRe
             `)
             windowPrint.document.close()
 
-            // Update status to 'abierta' after printing (only if currently 'generado')
             if (selectedIncident.estado === 'generado') {
-                console.log('⏰ Scheduling status update in 500ms...')
                 setTimeout(async () => {
-                    console.log('⏰ Timeout fired! Starting update...')
                     try {
-                        console.log('📤 Sending UPDATE to Supabase...')
                         const { error } = await supabase
                             .from('incidencias')
                             .update({ estado: 'abierta' })
                             .eq('id', selectedIncident.id)
 
-                        if (error) {
-                            console.error('❌ Supabase UPDATE error:', error)
-                            toast({
-                                variant: "destructive",
-                                title: "Error al actualizar estado",
-                                description: "No se pudo cambiar el estado a ABIERTA",
-                            })
-                            return
-                        }
+                        if (error) throw error
 
-                        console.log('✅ Update successful! Closing modal...')
-                        // Success! Close modal and refresh
-                        setSelectedIncident(null) // Close the modal
-                        console.log('🔔 Showing success toast...')
+                        setSelectedIncident(null)
                         toast({
-                            title: "✅ Impresión exitosa",
+                            title: "Impresión exitosa",
                             description: "La incidencia ahora está en estado ABIERTA",
                         })
-                        console.log('🔄 Refreshing incidencias list...')
-                        fetchIncidencias() // Refresh to show new status
-                        console.log('✅ All done!')
+                        fetchIncidencias()
                     } catch (err) {
-                        console.error('❌ Caught error:', err)
-                        // Don't show toast for minor errors if update succeeded
+                        // Error silencioso
                     }
-                }, 500) // Wait 500ms for print dialog to initialize
-            } else {
-                console.log('⚠️ Status is not generated, skipping update. Current status:', selectedIncident.estado)
+                }, 500)
             }
         }
     }
@@ -683,7 +662,7 @@ export function IncidenciasSection({ plantelId, autoStart = false, onAutoStartRe
                             </CardHeader>
                             <CardContent>
                                 <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                                    <AlertCircle className={`h-4 w-4 ${incidencia.nivel_riesgo === 'alto' ? 'text-red-500' : 'text-yellow-500'}`} />
+                                    <AlertCircle className={`h - 4 w - 4 ${incidencia.nivel_riesgo === 'alto' ? 'text-red-500' : 'text-yellow-500'}`} />
                                     <span className="capitalize font-medium">Riesgo {incidencia.nivel_riesgo}</span>
                                 </div>
                             </CardContent>

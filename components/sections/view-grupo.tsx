@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { getGrupoById, type Grupo } from '@/lib/grupos'
-import { ArrowLeft, Edit, Users, Calendar, GraduationCap, FileText, Loader2, ClipboardList, X, CheckCircle, XCircle, Clock } from 'lucide-react'
+import { ArrowLeft, Edit, Users, Calendar, GraduationCap, FileText, Loader2, ClipboardList, X, CheckCircle, XCircle, Clock, BookOpen } from 'lucide-react'
 import { Button } from "@/components/ui/button"
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
@@ -10,6 +10,7 @@ import { Separator } from "@/components/ui/separator"
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { getHistorialAsistenciaGrupo, AsistenciaHistorial, getAlumnosConAsistencia, AsistenciaConAlumno } from '@/lib/asistencia'
 import GestionarAlumnos from './gestionar-alumnos'
+import { EvaluacionesTab } from './grupos/evaluaciones-tab'
 import { format } from 'date-fns'
 import { es } from 'date-fns/locale'
 
@@ -17,15 +18,16 @@ interface ViewGrupoProps {
   grupoId: string
   onBack: () => void
   onEdit: () => void
+  initialViewMode?: ViewMode
 }
 
-type ViewMode = 'details' | 'alumnos' | 'asistencias'
+type ViewMode = 'details' | 'alumnos' | 'asistencias' | 'evaluaciones'
 
-const ViewGrupo = ({ grupoId, onBack, onEdit }: ViewGrupoProps) => {
+const ViewGrupo = ({ grupoId, onBack, onEdit, initialViewMode = 'details' }: ViewGrupoProps) => {
   const [grupo, setGrupo] = useState<Grupo | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
-  const [viewMode, setViewMode] = useState<ViewMode>('details')
+  const [viewMode, setViewMode] = useState<ViewMode>(initialViewMode)
   const [historialAsistencia, setHistorialAsistencia] = useState<AsistenciaHistorial[]>([])
   const [loadingAsistencia, setLoadingAsistencia] = useState(false)
   const [showDetalleModal, setShowDetalleModal] = useState(false)
@@ -152,6 +154,21 @@ const ViewGrupo = ({ grupoId, onBack, onEdit }: ViewGrupoProps) => {
         grupoId={grupoId}
         onBack={handleBackToDetails}
       />
+    )
+  }
+
+  // Renderizar vista de asistencias si está en ese modo
+  if (viewMode === 'evaluaciones') {
+    return (
+      <div className="space-y-6">
+        <div className="flex items-center gap-4">
+          <Button variant="outline" onClick={handleBackToDetails}>
+            <ArrowLeft className="h-4 w-4 mr-2" />
+            Volver a Detalles
+          </Button>
+        </div>
+        <EvaluacionesTab grupoId={grupoId} />
+      </div>
     )
   }
 
@@ -404,6 +421,32 @@ const ViewGrupo = ({ grupoId, onBack, onEdit }: ViewGrupoProps) => {
                 >
                   <ClipboardList className="h-5 w-5 mr-2" />
                   Ver Historial
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Tarjeta destacada de Evaluaciones */}
+          <Card className="bg-gradient-to-r from-purple-500 to-purple-600 border-0 text-white">
+            <CardContent className="p-6">
+              <div className="flex flex-col md:flex-row items-center justify-between gap-4">
+                <div className="flex items-center gap-4 w-full md:w-auto">
+                  <div className="p-3 bg-white/20 rounded-full shrink-0">
+                    <GraduationCap className="h-8 w-8 text-white" />
+                  </div>
+                  <div>
+                    <h3 className="text-xl font-bold text-white mb-1">Actividades y Evaluación</h3>
+                    <p className="text-purple-100 text-sm">
+                      Gestiona tareas, portafolio de evidencias y calificaciones
+                    </p>
+                  </div>
+                </div>
+                <Button
+                  onClick={() => setViewMode('evaluaciones')}
+                  className="bg-white text-purple-600 hover:bg-purple-50 font-semibold px-6 py-3 h-auto w-full md:w-auto"
+                >
+                  <BookOpen className="h-5 w-5 mr-2" />
+                  Ir a Actividades
                 </Button>
               </div>
             </CardContent>

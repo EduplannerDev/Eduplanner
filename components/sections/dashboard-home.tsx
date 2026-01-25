@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Progress } from "@/components/ui/progress"
@@ -22,7 +23,8 @@ import {
   Play,
   X,
   HelpCircle,
-  Presentation
+  Presentation,
+  Star
 } from "lucide-react"
 import { useAuth } from "@/hooks/use-auth"
 import { useUserData } from "@/hooks/use-user-data"
@@ -39,6 +41,7 @@ import { useTourGuide } from "@/components/ui/tour-guide"
 interface DashboardHomeProps {
   onSectionChange: (section: string) => void
   onOpenPlaneacion?: (planeacionId: string) => void
+  onOpenGroupActivities?: (grupoId: string) => void
 }
 
 interface Stats {
@@ -56,14 +59,15 @@ interface RecentActivity {
   status?: string
 }
 
-export function DashboardHome({ onSectionChange, onOpenPlaneacion }: DashboardHomeProps) {
-  console.log('Rendering DashboardHome')
+export function DashboardHome({ onSectionChange, onOpenPlaneacion, onOpenGroupActivities }: DashboardHomeProps) {
   const { user } = useAuth()
   const { userData } = useUserData(user?.id)
   const { profile } = useProfile()
   const [stats, setStats] = useState<Stats>({ planeaciones: 0, examenes: 0, grupos: 0, mensajes: 0 })
   const [recentActivity, setRecentActivity] = useState<RecentActivity[]>([])
   const [monthlyPlaneaciones, setMonthlyPlaneaciones] = useState(0)
+  const [myGrupos, setMyGrupos] = useState<any[]>([])
+  const [showGroupModal, setShowGroupModal] = useState(false)
   const [loading, setLoading] = useState(true)
   const [estadisticasCiclo, setEstadisticasCiclo] = useState({
     totalPDAs: 0,
@@ -129,7 +133,7 @@ export function DashboardHome({ onSectionChange, onOpenPlaneacion }: DashboardHo
       const [planeacionesRes, examenesRes, gruposRes, mensajesRes, monthlyCount] = await Promise.all([
         supabase.from('planeacion_creations').select('id').eq('user_id', user?.id),
         supabase.from('examenes').select('id').eq('owner_id', user?.id),
-        supabase.from('grupos').select('id').eq('user_id', user?.id),
+        supabase.from('grupos').select('*').eq('user_id', user?.id).order('created_at', { ascending: false }),
         supabase.from('messages').select('id').eq('user_id', user?.id),
         getMonthlyPlaneacionesCount(user?.id || '')
       ])
@@ -141,6 +145,10 @@ export function DashboardHome({ onSectionChange, onOpenPlaneacion }: DashboardHo
         grupos: gruposRes.data?.length || 0,
         mensajes: mensajesRes.data?.length || 0
       })
+
+      if (gruposRes.data) {
+        setMyGrupos(gruposRes.data)
+      }
 
       setMonthlyPlaneaciones(monthlyCount)
 
@@ -564,99 +572,138 @@ export function DashboardHome({ onSectionChange, onOpenPlaneacion }: DashboardHo
       </Card>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 md:gap-6">
-        {/* Acciones rápidas */}
-        {/* Tarjeta de Tomar Asistencia (Reubicada) */}
-        <Card id="attendance-card" className="bg-gradient-to-br from-emerald-500 to-emerald-700 border-0 text-white overflow-hidden relative">
-          {/* Decoración de fondo */}
-          <div className="absolute top-0 right-0 -mt-4 -mr-4 w-24 h-24 bg-white/10 rounded-full blur-xl"></div>
-
-          <CardHeader className="px-4 md:px-6 pt-4 md:pt-6 relative z-10">
-            <CardTitle className="text-lg md:text-xl flex items-center gap-2 text-white">
-              <ClipboardCheck className="h-5 w-5" />
-              Asistencia
-            </CardTitle>
-            <CardDescription className="text-emerald-100 text-sm">
-              Registra la asistencia de hoy
-            </CardDescription>
-          </CardHeader>
-
-          <CardContent className="px-4 md:px-6 pb-4 md:pb-6 relative z-10">
-            <div className="flex flex-col gap-4">
-              <div className="flex items-center gap-3">
-                <div className="p-2 bg-white/20 rounded-lg">
-                  <Clock className="h-5 w-5 text-white" />
-                </div>
-                <div>
-                  <p className="text-white font-bold text-sm">
-                    <span className="notranslate">{format(new Date(), "d 'de' MMMM", { locale: es })}</span>
-                  </p>
-                  <p className="text-emerald-100 text-xs">
-                    <span className="notranslate">{stats.grupos}</span> grupos activos
-                  </p>
-                </div>
+        {/* Acciones rápidas (columna izquierda) */}
+        <div className="lg:col-span-2 space-y-4 md:space-y-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {/* Tarjeta de Asistencia */}
+            <Card id="attendance-card" className="bg-gradient-to-br from-emerald-500 to-emerald-700 border-0 text-white overflow-hidden relative">
+              <div className="absolute top-0 right-0 p-4 opacity-10">
+                <Clock className="w-24 h-24" />
               </div>
-
-              <Button
-                onClick={() => onSectionChange('tomar-asistencia')}
-                className="bg-white text-emerald-600 hover:bg-emerald-50 font-bold w-full shadow-lg"
-              >
-                Comenzar Asistencia
-              </Button>
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* Actividad reciente */}
-        <Card id="recent-activity">
-          <CardHeader>
-            <CardTitle>Actividad Reciente</CardTitle>
-            <CardDescription className="text-sm">
-              Tus últimas creaciones y modificaciones
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="px-4 md:px-6 pb-4 md:pb-6">
-            {recentActivity.length > 0 ? (
-              <div className="space-y-3">
-                {recentActivity.map((activity) => {
-                  const isPlaneacion = activity.type === "planeacion"
-
-                  return (
-                    <div
-                      key={activity.id}
-                      className={`flex items-center gap-3 p-2 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-800 ${isPlaneacion ? "cursor-pointer" : ""
-                        }`}
-                      onClick={
-                        isPlaneacion && onOpenPlaneacion
-                          ? () => onOpenPlaneacion(activity.id)
-                          : undefined
-                      }
-                    >
-                      <div className={`p-2 rounded-full ${getActivityColor(activity.type)}`}>
-                        {getActivityIcon(activity.type)}
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <p className="text-sm font-medium truncate notranslate">{activity.title}</p>
-                        <p className="text-xs text-muted-foreground notranslate">{activity.date}</p>
-                      </div>
-                      <Badge variant="secondary" className="text-xs">
-                        {activity.type}
-                      </Badge>
+              <CardHeader className="px-4 md:px-6 pt-4 md:pt-6 relative z-10 pb-2">
+                <CardTitle className="text-lg flex items-center gap-2 text-white">
+                  <ClipboardCheck className="h-5 w-5" />
+                  Asistencia
+                </CardTitle>
+                <CardDescription className="text-emerald-100 text-xs">
+                  Registra la asistencia de hoy
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="px-4 md:px-6 pb-4 md:pb-6 relative z-10 pt-0">
+                <div className="flex flex-col gap-3">
+                  <div className="flex items-center gap-3 mb-2">
+                    <div className="p-2 bg-white/20 rounded-lg backdrop-blur-sm">
+                      <Clock className="h-5 w-5 text-white" />
                     </div>
-                  )
-                })}
+                    <div>
+                      <p className="text-white font-bold text-sm">
+                        <span className="notranslate">{format(new Date(), "d 'de' MMMM", { locale: es })}</span>
+                      </p>
+                      <p className="text-emerald-100 text-xs">
+                        <span className="notranslate">{stats.grupos}</span> grupos activos
+                      </p>
+                    </div>
+                  </div>
+                  <Button
+                    onClick={() => onSectionChange('tomar-asistencia')}
+                    className="bg-white text-emerald-600 hover:bg-emerald-50 font-bold w-full shadow-sm text-sm h-9"
+                  >
+                    Comenzar
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Tarjeta de Actividades (Nuevo) */}
+            <Card className="bg-gradient-to-br from-purple-500 to-purple-700 border-0 text-white overflow-hidden relative">
+              <div className="absolute top-0 right-0 p-4 opacity-10">
+                <GraduationCap className="w-24 h-24" />
               </div>
-            ) : (
-              <div className="text-center py-6 text-muted-foreground">
-                <FileText className="h-12 w-12 mx-auto mb-2 opacity-50" />
-                <p>No hay actividad reciente</p>
-                <p className="text-xs">Comienza creando tu primera planeación</p>
-              </div>
-            )}
-          </CardContent>
-        </Card>
+              <CardHeader className="px-4 md:px-6 pt-4 md:pt-6 relative z-10 pb-2">
+                <CardTitle className="text-lg flex items-center gap-2 text-white">
+                  <BookOpen className="h-5 w-5" />
+                  Actividades
+                </CardTitle>
+                <CardDescription className="text-purple-100 text-xs">
+                  Portafolio y Calificaciones
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="px-4 md:px-6 pb-4 md:pb-6 relative z-10 pt-0">
+                <div className="flex flex-col gap-3">
+                  <div className="flex items-center gap-3 mb-2">
+                    <div className="p-2 bg-white/20 rounded-lg backdrop-blur-sm">
+                      <Star className="h-5 w-5 text-white" />
+                    </div>
+                    <div>
+                      <p className="text-white font-bold text-sm">Gestión Escolar</p>
+                      <p className="text-purple-100 text-xs">
+                        Tareas y evidencias
+                      </p>
+                    </div>
+                  </div>
+                  <Button
+                    onClick={() => setShowGroupModal(true)}
+                    className="bg-white text-purple-600 hover:bg-purple-50 font-bold w-full shadow-sm text-sm h-9"
+                  >
+                    Ir a Actividades
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+
+          {/* Actividad Reciente */}
+          <Card id="recent-activity">
+            <CardHeader>
+              <CardTitle>Actividad Reciente</CardTitle>
+              <CardDescription className="text-sm">
+                Tus últimas creaciones y modificaciones
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="px-4 md:px-6 pb-4 md:pb-6">
+              {recentActivity.length > 0 ? (
+                <div className="space-y-3">
+                  {recentActivity.map((activity) => {
+                    const isPlaneacion = activity.type === "planeacion"
+
+                    return (
+                      <div
+                        key={activity.id}
+                        className={`flex items-center gap-3 p-2 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-800 ${isPlaneacion ? "cursor-pointer" : ""
+                          }`}
+                        onClick={
+                          isPlaneacion && onOpenPlaneacion
+                            ? () => onOpenPlaneacion(activity.id)
+                            : undefined
+                        }
+                      >
+                        <div className={`p-2 rounded-full ${getActivityColor(activity.type)}`}>
+                          {getActivityIcon(activity.type)}
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <p className="text-sm font-medium truncate notranslate">{activity.title}</p>
+                          <p className="text-xs text-muted-foreground notranslate">{activity.date}</p>
+                        </div>
+                        <Badge variant="secondary" className="text-xs">
+                          {activity.type}
+                        </Badge>
+                      </div>
+                    )
+                  })}
+                </div>
+              ) : (
+                <div className="text-center py-6 text-muted-foreground">
+                  <FileText className="h-12 w-12 mx-auto mb-2 opacity-50" />
+                  <p>No hay actividad reciente</p>
+                  <p className="text-xs">Comienza creando tu primera planeación</p>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        </div>
 
         {/* Resumen General del Ciclo Escolar */}
-        <Card id="school-year-summary">
+        < Card id="school-year-summary" >
           <CardHeader className="px-4 md:px-6 pt-4 md:pt-6">
             <CardTitle className="text-lg md:text-xl flex items-center gap-2">
               <TrendingUp className="h-5 w-5 text-blue-600" />
@@ -750,11 +797,11 @@ export function DashboardHome({ onSectionChange, onOpenPlaneacion }: DashboardHo
               </div>
             )}
           </CardContent>
-        </Card>
-      </div>
+        </Card >
+      </div >
 
       {/* Progreso del mes */}
-      <Card>
+      < Card >
         <CardHeader className="px-4 md:px-6 pt-4 md:pt-6">
           <CardTitle className="text-lg md:text-xl">Progreso del Mes</CardTitle>
           <CardDescription className="text-sm">
@@ -799,9 +846,54 @@ export function DashboardHome({ onSectionChange, onOpenPlaneacion }: DashboardHo
             </div>
           </div>
         </CardContent>
-      </Card>
+      </Card >
+
+      {/* Modal Selección de Grupo */}
+      < Dialog open={showGroupModal} onOpenChange={setShowGroupModal} >
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Selecciona un Grupo</DialogTitle>
+            <DialogDescription>
+              Elige el grupo para gestionar sus actividades y evidencias.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="grid gap-2 py-4 max-h-[60vh] overflow-y-auto">
+            {myGrupos.length === 0 ? (
+              <div className="text-center py-8 text-gray-500">
+                <Users className="h-12 w-12 mx-auto mb-2 opacity-50" />
+                <p>No tienes grupos creados.</p>
+                <Button variant="link" onClick={() => onSectionChange('grupos')}>Crear Grupo</Button>
+              </div>
+            ) : (
+              myGrupos.map((grupo) => (
+                <div
+                  key={grupo.id}
+                  className="flex items-center justify-between p-3 rounded-lg border hover:bg-purple-50 hover:border-purple-200 cursor-pointer transition-colors"
+                  onClick={() => {
+                    if (onOpenGroupActivities) {
+                      onOpenGroupActivities(grupo.id)
+                    }
+                    setShowGroupModal(false)
+                  }}
+                >
+                  <div className="flex items-center gap-3">
+                    <div className="bg-purple-100 p-2 rounded-full">
+                      <Users className="h-4 w-4 text-purple-600" />
+                    </div>
+                    <div>
+                      <h4 className="font-semibold text-sm">{grupo.nombre}</h4>
+                      <p className="text-xs text-gray-500">{grupo.grado} {grupo.nivel}</p>
+                    </div>
+                  </div>
+                  <BookOpen className="h-4 w-4 text-gray-400" />
+                </div>
+              ))
+            )}
+          </div>
+        </DialogContent>
+      </Dialog >
 
       <WelcomeModal open={showModal} onClose={closeModal} />
-    </div>
+    </div >
   )
 }

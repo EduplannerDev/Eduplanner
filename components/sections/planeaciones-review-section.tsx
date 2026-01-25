@@ -53,7 +53,7 @@ export function PlaneacionesReviewSection({ plantelId }: PlaneacionesReviewSecti
     const [comentarios, setComentarios] = useState("")
     const [reviewing, setReviewing] = useState(false)
 
-    console.log('🔍 PlaneacionesReviewSection: Renderizando', { plantelId, loading })
+
 
     useEffect(() => {
         if (plantelId) {

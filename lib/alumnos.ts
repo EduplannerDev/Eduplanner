@@ -15,6 +15,12 @@ export interface Alumno {
   nombre_madre?: string;
   correo_madre?: string;
   telefono_madre?: string;
+  // Información Médica y de Emergencia
+  alergias?: string;
+  tipo_sangre?: string;
+  condicion_medica?: string;
+  contacto_emergencia_nombre?: string;
+  contacto_emergencia_telefono?: string;
   created_at: string;
   updated_at: string;
 }
@@ -32,6 +38,12 @@ export interface CreateAlumnoData {
   nombre_madre?: string;
   correo_madre?: string;
   telefono_madre?: string;
+  // Información Médica y de Emergencia
+  alergias?: string;
+  tipo_sangre?: string;
+  condicion_medica?: string;
+  contacto_emergencia_nombre?: string;
+  contacto_emergencia_telefono?: string;
 }
 
 export interface UpdateAlumnoData {
@@ -46,6 +58,12 @@ export interface UpdateAlumnoData {
   nombre_madre?: string;
   correo_madre?: string;
   telefono_madre?: string;
+  // Información Médica y de Emergencia
+  alergias?: string;
+  tipo_sangre?: string;
+  condicion_medica?: string;
+  contacto_emergencia_nombre?: string;
+  contacto_emergencia_telefono?: string;
 }
 
 export interface SeguimientoDiario {
@@ -71,7 +89,7 @@ export interface CreateSeguimientoData {
  */
 export async function getAlumnosByGrupo(grupoId: string): Promise<Alumno[]> {
   const supabase = createClient();
-  
+
   const { data, error } = await supabase
     .from('alumnos')
     .select('*')
@@ -92,7 +110,7 @@ export async function getAlumnosByGrupo(grupoId: string): Promise<Alumno[]> {
  */
 export async function getAlumnoById(id: string): Promise<Alumno | null> {
   const supabase = createClient();
-  
+
   const { data, error } = await supabase
     .from('alumnos')
     .select('*')
@@ -112,7 +130,7 @@ export async function getAlumnoById(id: string): Promise<Alumno | null> {
  */
 export async function createAlumno(alumnoData: CreateAlumnoData): Promise<Alumno> {
   const supabase = createClient();
-  
+
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) {
     throw new Error('Usuario no autenticado');
@@ -128,9 +146,9 @@ export async function createAlumno(alumnoData: CreateAlumnoData): Promise<Alumno
       .not('numero_lista', 'is', null)
       .order('numero_lista', { ascending: false })
       .limit(1);
-    
-    numeroLista = existingAlumnos && existingAlumnos.length > 0 
-      ? (existingAlumnos[0].numero_lista || 0) + 1 
+
+    numeroLista = existingAlumnos && existingAlumnos.length > 0
+      ? (existingAlumnos[0].numero_lista || 0) + 1
       : 1;
   }
 
@@ -157,7 +175,7 @@ export async function createAlumno(alumnoData: CreateAlumnoData): Promise<Alumno
  */
 export async function updateAlumno(id: string, alumnoData: UpdateAlumnoData): Promise<Alumno> {
   const supabase = createClient();
-  
+
   const { data, error } = await supabase
     .from('alumnos')
     .update(alumnoData)
@@ -178,7 +196,7 @@ export async function updateAlumno(id: string, alumnoData: UpdateAlumnoData): Pr
  */
 export async function deleteAlumno(id: string): Promise<void> {
   const supabase = createClient();
-  
+
   const { error } = await supabase
     .from('alumnos')
     .delete()
@@ -195,7 +213,7 @@ export async function deleteAlumno(id: string): Promise<void> {
  */
 export async function getSeguimientoByAlumno(alumnoId: string): Promise<SeguimientoDiario[]> {
   const supabase = createClient();
-  
+
   const { data, error } = await supabase
     .from('seguimiento_diario')
     .select('*')
@@ -216,7 +234,7 @@ export async function getSeguimientoByAlumno(alumnoId: string): Promise<Seguimie
  */
 export async function createSeguimiento(seguimientoData: CreateSeguimientoData): Promise<SeguimientoDiario> {
   const supabase = createClient();
-  
+
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) {
     throw new Error('Usuario no autenticado');
@@ -245,7 +263,7 @@ export async function createSeguimiento(seguimientoData: CreateSeguimientoData):
  */
 export async function updateSeguimiento(id: string, nota: string, tipo?: string): Promise<SeguimientoDiario> {
   const supabase = createClient();
-  
+
   const updateData: any = { nota };
   if (tipo) updateData.tipo = tipo;
 
@@ -269,7 +287,7 @@ export async function updateSeguimiento(id: string, nota: string, tipo?: string)
  */
 export async function deleteSeguimiento(id: string): Promise<void> {
   const supabase = createClient();
-  
+
   const { error } = await supabase
     .from('seguimiento_diario')
     .delete()
@@ -286,7 +304,7 @@ export async function deleteSeguimiento(id: string): Promise<void> {
  */
 export async function getAlumnosStats(grupoId: string) {
   const supabase = createClient();
-  
+
   const { data: alumnos, error: alumnosError } = await supabase
     .from('alumnos')
     .select('id')
@@ -302,7 +320,7 @@ export async function getAlumnosStats(grupoId: string) {
   // Obtener seguimientos de la última semana
   const fechaLimite = new Date();
   fechaLimite.setDate(fechaLimite.getDate() - 7);
-  
+
   const { data: seguimientos, error: seguimientosError } = await supabase
     .from('seguimiento_diario')
     .select('alumno_id')
