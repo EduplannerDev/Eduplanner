@@ -600,6 +600,17 @@ Registro completo de interacciones con padres y tutores:
 - **Integración con Incidencias**: Vinculación automática con reportes de seguridad
 - **Acceso desde Dashboard Pulse**: Diálogo rápido de contacto para directores
 
+### 🚦 Semáforo de Deserción Escolar
+
+Algoritmo inteligente de detección temprana de estudiantes en riesgo:
+
+- **Análisis Multidimensional**: Cruce automático de asistencia, calificaciones e incidencias
+- **Niveles de Riesgo**: Clasificación visual en 3 niveles (Alto, Medio, Bajo)
+- **Alertas Automáticas**: Identificación inmediata de factores de riesgo (reprobación, ausentismo)
+- **Dashboard Directivo**: Panel exclusivo para seguimiento prioritario
+- **Filtros Avanzados**: Búsqueda por grupo, grado o nivel de severidad
+- **Reportes Detallados**: Vista desglosada de los motivos de alerta por alumno
+
 ### Plan Analítico (Nuevo Marco Curricular 2023)
 
 Sistema completo de diseño de Plan Analítico alineado al NMCM:

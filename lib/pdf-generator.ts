@@ -1610,3 +1610,320 @@ export async function generateFichaPDF(ficha: any): Promise<void> {
     throw error;
   }
 }
+
+// Función para generar Reporte Institucional PDF
+export async function generateReporteInstitucionalPDF(data: any, plantelInfo: any): Promise<void> {
+  if (typeof window === 'undefined') return;
+
+  const { periodo, kpis, detalles } = data;
+  const mesTitulo = periodo.mes.charAt(0).toUpperCase() + periodo.mes.slice(1);
+  const titulo = `Reporte de Cumplimiento - ${mesTitulo} ${periodo.anio}`;
+
+  // Calcular color de salud global
+  const score = (kpis.asistencia.promedio + kpis.planeaciones.progreso_porcentaje + kpis.incidencias.resolucion_porcentaje) / 3;
+  const healthColor = score >= 90 ? '#10B981' : score >= 80 ? '#F59E0B' : '#EF4444';
+  const healthText = score >= 90 ? 'Excelente' : score >= 80 ? 'Bueno' : 'Atención Requerida';
+
+  const htmlContent = `
+    <!DOCTYPE html>
+    <html>
+    <head>
+      <meta charset="UTF-8">
+      <title>${titulo}</title>
+      <style>
+        @page { size: A4; margin: 0; }
+        body {
+          font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+          margin: 0;
+          padding: 40px;
+          color: #1F2937;
+          background: #fff;
+          line-height: 1.5;
+        }
+        .header {
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          margin-bottom: 40px;
+          border-bottom: 2px solid #E5E7EB;
+          padding-bottom: 20px;
+        }
+        .logo-container {
+          display: flex;
+          align-items: center;
+          gap: 15px;
+        }
+        .logo {
+          height: 60px;
+          width: auto;
+          object-fit: contain;
+        }
+        .school-name {
+          font-size: 24px;
+          font-weight: bold;
+          color: #111827;
+          margin: 0;
+        }
+        .report-meta {
+          text-align: right;
+          font-size: 12px;
+          color: #6B7280;
+        }
+        .period-badge {
+          background: #F3F4F6;
+          padding: 5px 12px;
+          border-radius: 20px;
+          font-weight: 600;
+          color: #374151;
+          display: inline-block;
+          margin-top: 5px;
+        }
+        
+        .section-title {
+          font-size: 18px;
+          font-weight: bold;
+          color: #374151;
+          margin-bottom: 15px;
+          display: flex;
+          align-items: center;
+          gap: 10px;
+          border-left: 4px solid #3B82F6;
+          padding-left: 10px;
+        }
+
+        /* KPI Cards */
+        .kpi-container {
+          display: grid;
+          grid-template-columns: repeat(3, 1fr);
+          gap: 20px;
+          margin-bottom: 40px;
+        }
+        .kpi-card {
+          border: 1px solid #E5E7EB;
+          border-radius: 12px;
+          padding: 20px;
+          text-align: center;
+          background: #FAFAFA;
+        }
+        .kpi-value {
+          font-size: 32px;
+          font-weight: bold;
+          margin: 10px 0;
+        }
+        .kpi-label {
+          font-size: 14px;
+          color: #6B7280;
+          text-transform: uppercase;
+          letter-spacing: 0.5px;
+        }
+        .kpi-sub {
+          font-size: 12px;
+          color: #9CA3AF;
+        }
+
+        /* Health Status */
+        .status-box {
+          background: ${healthColor}15;
+          border: 1px solid ${healthColor};
+          padding: 15px;
+          border-radius: 8px;
+          margin-bottom: 40px;
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+        }
+        .status-text {
+          color: ${healthColor};
+          font-weight: bold;
+          font-size: 18px;
+        }
+
+        /* Tables */
+        table {
+          width: 100%;
+          border-collapse: collapse;
+          margin-bottom: 30px;
+          font-size: 14px;
+        }
+        th {
+          text-align: left;
+          padding: 12px;
+          background: #F9FAFB;
+          color: #4B5563;
+          font-weight: 600;
+          border-bottom: 1px solid #E5E7EB;
+        }
+        td {
+          padding: 12px;
+          border-bottom: 1px solid #F3F4F6;
+          color: #374151;
+        }
+        tr:last-child td {
+          border-bottom: none;
+        }
+        
+        .footer {
+          margin-top: 60px;
+          text-align: center;
+          color: #9CA3AF;
+          font-size: 12px;
+          border-top: 1px solid #E5E7EB;
+          padding-top: 20px;
+        }
+
+        /* Charts placeholders (since we can't easily render JS charts in pdf yet without canvas) */
+        .bar-container {
+          width: 100%;
+          background: #E5E7EB;
+          height: 8px;
+          border-radius: 4px;
+          margin-top: 5px;
+          overflow: hidden;
+        }
+        .bar-fill {
+          height: 100%;
+          border-radius: 4px;
+          transition: width 0.3s;
+        }
+      </style>
+    </head>
+    <body>
+      <!-- Header -->
+      <div class="header">
+        <div class="logo-container">
+          ${plantelInfo?.logo_url ? `<img src="${plantelInfo.logo_url}" class="logo" />` : ''}
+          <div>
+            <h1 class="school-name">${plantelInfo?.nombre || 'Institución Educativa'}</h1>
+            <div class="period-badge">${mesTitulo} ${periodo.anio}</div>
+          </div>
+        </div>
+        <div class="report-meta">
+          <strong>REPORTE EJECUTIVO</strong><br>
+          Generado: ${new Date().toLocaleDateString('es-MX')}<br>
+          Folio: RCI-${periodo.mes.substring(0, 3).toUpperCase()}-${new Date().getFullYear()}
+        </div>
+      </div>
+
+      <!-- General Health -->
+      <div class="status-box">
+        <div>
+          <div style="font-size: 12px; text-transform: uppercase; color: #666; margin-bottom: 4px;">Estado General del Plantel</div>
+          <div class="status-text">${healthText} (Score: ${Math.round(score)}/100)</div>
+        </div>
+        <div style="text-align: right; font-size: 32px;">
+           ${score >= 90 ? '🌟' : score >= 80 ? '✅' : '⚠️'}
+        </div>
+      </div>
+
+      <!-- KPIs -->
+      <div class="kpi-container">
+        <div class="kpi-card">
+          <div class="kpi-label">Asistencia Promedio</div>
+          <div class="kpi-value" style="color: ${kpis.asistencia.promedio >= 90 ? '#10B981' : '#F59E0B'}">
+            ${kpis.asistencia.promedio}%
+          </div>
+          <div class="kpi-sub">${kpis.asistencia.total_registros} registros analizados</div>
+        </div>
+        <div class="kpi-card">
+          <div class="kpi-label">Planeaciones</div>
+          <div class="kpi-value" style="color: #3B82F6">
+            ${kpis.planeaciones.progreso_porcentaje}%
+          </div>
+          <div class="kpi-sub">${kpis.planeaciones.completadas} de ${kpis.planeaciones.total} esperadas</div>
+        </div>
+        <div class="kpi-card">
+          <div class="kpi-label">Resolución Incidencias</div>
+          <div class="kpi-value" style="color: ${kpis.incidencias.resolucion_porcentaje >= 80 ? '#10B981' : '#EF4444'}">
+            ${kpis.incidencias.resolucion_porcentaje}%
+          </div>
+          <div class="kpi-sub">${kpis.incidencias.resueltas} cerradas de ${kpis.incidencias.total}</div>
+        </div>
+      </div>
+
+      <!-- Detail Sections -->
+      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 40px;">
+        
+        <!-- Attendance Table -->
+        <div>
+          <div class="section-title">📉 Asistencia por Grupo</div>
+          <table>
+            <thead>
+              <tr>
+                <th>Grupo</th>
+                <th style="text-align: right;">% Asistencia</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${detalles.grupos_asistencia.slice(0, 10).map((g: any) => `
+                <tr>
+                  <td>${g.grupo}</td>
+                  <td style="text-align: right;">
+                    <strong>${g.porcentaje}%</strong>
+                    <div class="bar-container">
+                      <div class="bar-fill" style="width: ${g.porcentaje}%; background: ${g.porcentaje >= 90 ? '#10B981' : g.porcentaje >= 80 ? '#F59E0B' : '#EF4444'};"></div>
+                    </div>
+                  </td>
+                </tr>
+              `).join('')}
+            </tbody>
+          </table>
+        </div>
+
+        <!-- Incidents Table -->
+        <div>
+          <div class="section-title">🛡️ Incidencias por Tipo</div>
+          <table>
+            <thead>
+              <tr>
+                <th>Tipo</th>
+                <th style="text-align: right;">Cantidad</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${detalles.incidencias_tipo.length > 0 ? detalles.incidencias_tipo.map((i: any) => `
+                <tr>
+                  <td style="text-transform: capitalize;">${i.tipo}</td>
+                  <td style="text-align: right; font-weight: bold;">${i.cantidad}</td>
+                </tr>
+              `).join('') : '<tr><td colspan="2" style="text-align: center; color: #9CA3AF;">Sin incidencias reportadas</td></tr>'}
+            </tbody>
+          </table>
+          
+          <div style="margin-top: 20px; padding: 15px; background: #FEF2F2; border-radius: 8px; font-size: 13px;">
+             <strong>⚠️ Alertas Activas:</strong><br>
+             ${kpis.incidencias.pendientes} casos pendientes de resolución.
+          </div>
+        </div>
+
+      </div>
+
+      <div class="footer">
+        <p>Este documento es un reporte generado automáticamente por EduPlanner.</p>
+        <p>Validez interna para la toma de decisiones del plantel ${plantelInfo?.nombre}.</p>
+      </div>
+
+    </body>
+    </html>
+  `;
+
+  // Filename
+  const filename = `Reporte_${periodo.mes}_${periodo.anio}.pdf`;
+
+  // Usar Puppeteer
+  const options = {
+    format: 'A4',
+    margin: {
+      top: '0mm',
+      right: '0mm',
+      bottom: '0mm',
+      left: '0mm'
+    }
+  };
+
+  try {
+    await generatePDFWithPuppeteer(htmlContent, filename, options);
+  } catch (error) {
+    console.error('Error generando reporte institucional:', error);
+    // Fallback logic if needed, but for now we rely on Puppeteer API
+  }
+}

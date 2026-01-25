@@ -19,7 +19,9 @@ import {
   Award,
   Target,
   History,
-  AlertTriangle
+  AlertTriangle,
+  TrendingDown,
+  Settings
 } from "lucide-react"
 import { useRoles } from "@/hooks/use-roles"
 import { format } from "date-fns"
@@ -30,6 +32,10 @@ import { IncidenciasSection } from "./incidencias-section"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { DashboardPulse } from "./dashboard-pulse/dashboard-pulse"
 
+
+import { SemaforoDesercion } from "./director-dashboard/semaforo-desercion"
+import { ConfiguracionTab } from "./director-dashboard/configuracion-tab"
+import { ReportesTab } from "./director-dashboard/reportes-tab"
 
 interface DirectorDashboardProps {
   onSectionChange?: (section: string) => void
@@ -82,7 +88,7 @@ export function DirectorDashboard({ onSectionChange, initialTab = "pulso" }: Dir
 
       {/* Main Tabs Structure */}
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full space-y-6">
-        <TabsList className="grid w-full grid-cols-3 lg:w-[600px]">
+        <TabsList className="grid w-full grid-cols-5 lg:w-[900px]">
           <TabsTrigger value="pulso" className="flex items-center gap-2">
             <Activity className="h-4 w-4" />
             Pulso
@@ -94,6 +100,18 @@ export function DirectorDashboard({ onSectionChange, initialTab = "pulso" }: Dir
           <TabsTrigger value="incidencias" className="flex items-center gap-2">
             <AlertTriangle className="h-4 w-4" />
             Incidencias
+          </TabsTrigger>
+          <TabsTrigger value="riesgo" className="flex items-center gap-2">
+            <TrendingDown className="h-4 w-4" />
+            Riesgo
+          </TabsTrigger>
+          <TabsTrigger value="configuracion" className="flex items-center gap-2">
+            <Settings className="h-4 w-4" />
+            Configuración
+          </TabsTrigger>
+          <TabsTrigger value="reportes" className="flex items-center gap-2">
+            <FileText className="h-4 w-4" />
+            Reportes
           </TabsTrigger>
         </TabsList>
 
@@ -155,6 +173,21 @@ export function DirectorDashboard({ onSectionChange, initialTab = "pulso" }: Dir
             autoStart={autoCreateIncidencia}
             onAutoStartResult={() => setAutoCreateIncidencia(false)}
           />
+        </TabsContent>
+
+        {/* --- TAB: RIESGO --- */}
+        <TabsContent value="riesgo">
+          <SemaforoDesercion plantelId={plantel?.id || ''} />
+        </TabsContent>
+
+        {/* --- TAB: CONFIGURACIÓN --- */}
+        <TabsContent value="configuracion">
+          <ConfiguracionTab plantel={plantel} />
+        </TabsContent>
+
+        {/* --- TAB: REPORTES --- */}
+        <TabsContent value="reportes">
+          <ReportesTab plantel={plantel} />
         </TabsContent>
       </Tabs>
     </div>
