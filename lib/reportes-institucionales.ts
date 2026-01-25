@@ -1,4 +1,4 @@
-import { createClient } from '@/lib/supabase'
+import { createClient } from '@supabase/supabase-js'
 import { startOfMonth, endOfMonth, formatISO } from 'date-fns'
 
 export interface ReporteInstitucionalData {
@@ -33,83 +33,129 @@ export interface ReporteInstitucionalData {
 }
 
 export async function getReportePorRango(plantelId: string, fechaInicio: Date, fechaFin: Date, tituloPeriodo: string): Promise<ReporteInstitucionalData> {
-    const supabase = createClient()
+    console.log('🔍 getReportePorRango called with:', {
+        plantelId,
+        fechaInicio: fechaInicio.toISOString(),
+        fechaFin: fechaFin.toISOString(),
+        tituloPeriodo
+    });
+
+    // Use Service Role client to bypass RLS (authorization checked in API route)
+    const supabase = createClient(
+        process.env.NEXT_PUBLIC_SUPABASE_URL!,
+        process.env.SUPABASE_SERVICE_ROLE_KEY!,
+        {
+            auth: {
+                autoRefreshToken: false,
+                persistSession: false
+            }
+        }
+    )
     const startStr = formatISO(fechaInicio)
     const endStr = formatISO(fechaFin)
 
-    // 1. Asistencia Global
-    const { data: asistenciaData } = await supabase
-        .from('asistencia')
-        .select('estado, alumno:alumnos!inner(grupo_id)') // Join explicito si necesario, o filtrar por alumnos del plantel
-        .gte('fecha', startStr)
-        .lte('fecha', endStr)
-    // Nota: Idealmente filtras por plantel. Si asistencia tiene plantel_id directo mejor, si no via alumnos->grupo->plantel
-    // Asumiendo que podemos filtrar por los grupos del plantel primero
-
-    // Optimización: Primero obtener grupos del plantel
+    // 2. Obtener grupos del plantel (columna plantel_id existe y está poblada)
     const { data: grupos } = await supabase
         .from('grupos')
         .select('id, nombre, grado')
         .eq('plantel_id', plantelId)
 
+    console.log('📦 Grupos found:', grupos?.length || 0)
+
     const gruposIds = grupos?.map(g => g.id) || []
 
-    // Re-query asistencia filtrada
-    const { data: asistencia } = await supabase
-        .from('asistencia')
-        .select(`
-      estado,
-      alumno_id,
-      alumnos!inner(grupo_id)
-    `)
-        .in('alumnos.grupo_id', gruposIds)
-        .gte('fecha', startStr)
-        .lte('fecha', endStr)
-
+    // 3. Asistencia Global (Filtrar por grupos del plantel)
     let asistenciaPromedio = 0
     let totalAsistencia = 0
     const asistenciaPorGrupo: Record<string, { present: number; total: number }> = {}
 
-    if (asistencia && asistencia.length > 0) {
-        totalAsistencia = asistencia.length
-        const presentes = asistencia.filter(a => a.estado === 'presente' || a.estado === 'retardo').length
-        asistenciaPromedio = Math.round((presentes / totalAsistencia) * 100)
+    // CRITICAL: Only query if we have grupos, otherwise skip
+    if (gruposIds.length > 0) {
+        const { data: asistencia } = await supabase
+            .from('asistencia')
+            .select('estado, grupo_id')
+            .in('grupo_id', gruposIds)
+            .gte('fecha', startStr)
+            .lte('fecha', endStr)
 
-        // Agrupar por grupo
-        asistencia.forEach(a => {
-            // @ts-ignore
-            const gId = a.alumnos?.grupo_id
-            if (!asistenciaPorGrupo[gId]) asistenciaPorGrupo[gId] = { present: 0, total: 0 }
-            asistenciaPorGrupo[gId].total++
-            if (a.estado === 'presente' || a.estado === 'retardo') asistenciaPorGrupo[gId].present++
-        })
+        if (asistencia && asistencia.length > 0) {
+            totalAsistencia = asistencia.length
+            const presentes = asistencia.filter(a => a.estado === 'presente' || a.estado === 'retardo').length
+            asistenciaPromedio = Math.round((presentes / totalAsistencia) * 100)
+
+            asistencia.forEach(a => {
+                const gId = a.grupo_id
+                if (!asistenciaPorGrupo[gId]) asistenciaPorGrupo[gId] = { present: 0, total: 0 }
+                asistenciaPorGrupo[gId].total++
+                if (a.estado === 'presente' || a.estado === 'retardo') asistenciaPorGrupo[gId].present++
+            })
+        }
+        console.log('📊 Asistencia:', { totalAsistencia, asistenciaPromedio });
+    } else {
+        console.log('⚠️ No grupos found, skipping asistencia query');
     }
 
     // Mapear detalles grupos
     const detallesGrupos = grupos?.map(g => ({
         grupo: `${g.grado}° ${g.nombre}`,
-        porcentaje: asistenciaPorGrupo[g.id]
+        porcentaje: asistenciaPorGrupo[g.id] && asistenciaPorGrupo[g.id].total > 0
             ? Math.round((asistenciaPorGrupo[g.id].present / asistenciaPorGrupo[g.id].total) * 100)
             : 0
     })).sort((a, b) => b.porcentaje - a.porcentaje) || []
 
+    // 4. Planeaciones (Buscar profesores en profiles Y assignments)
+    // Profiles tiene plantel_id directo
+    const { data: perfilesProfs } = await supabase
+        .from('profiles')
+        .select('id')
+        .eq('plantel_id', plantelId)
+        .eq('role', 'profesor')
 
-    // 2. Planeaciones (Productividad Docente)
-    // Contamos planeaciones creadas o actualizadas en este mes? O activas?
-    // Generalmente interesa cuantas se completaron en el mes.
-    const { data: planeaciones } = await supabase
-        .from('planeaciones')
-        .select('id, estado, created_at')
-        .eq('plantel_id', plantelId) // Si planeaciones tiene plantel_id directo
-        .gte('created_at', startStr)
-        .lte('created_at', endStr)
+    const profileIds = perfilesProfs?.map(p => p.id) || []
 
-    const totalPlaneaciones = planeaciones?.length || 0
-    const completadas = planeaciones?.filter(p => p.estado === 'terminada' || p.estado === 'publicada').length || 0 // Ajustar estados reales
-    const progresoPlaneaciones = totalPlaneaciones > 0 ? Math.round((completadas / totalPlaneaciones) * 100) : 0
+    // Assignments (relaciones múltiples)
+    const { data: asignaciones } = await supabase
+        .from('user_plantel_assignments')
+        .select('user_id')
+        .eq('plantel_id', plantelId)
+        .eq('role', 'profesor')
+        .eq('activo', true)
+
+    const assignedIds = asignaciones?.map(a => a.user_id) || []
+
+    // Merge unique
+    const profesorIds = [...new Set([...profileIds, ...assignedIds])]
+
+    console.log('👥 Professors found:', {
+        fromProfiles: profileIds.length,
+        fromAssignments: assignedIds.length,
+        total: profesorIds.length
+    });
+
+    let totalPlaneaciones = 0
+    let completadas = 0
+    let progresoPlaneaciones = 0
+
+    // CRITICAL: Only query if we have professors, otherwise skip
+    if (profesorIds.length > 0) {
+        const { data: planeaciones } = await supabase
+            .from('planeaciones')
+            .select('id, estado, created_at')
+            .in('user_id', profesorIds)
+            .gte('created_at', startStr)
+            .lte('created_at', endStr)
+
+        totalPlaneaciones = planeaciones?.length || 0
+        completadas = planeaciones?.filter(p => p.estado === 'completada' || p.estado === 'terminada' || p.estado === 'publicada').length || 0
+        progresoPlaneaciones = totalPlaneaciones > 0 ? Math.round((completadas / totalPlaneaciones) * 100) : 0
+
+        console.log('📝 Planeaciones:', { totalPlaneaciones, completadas, progresoPlaneaciones });
+    } else {
+        console.log('⚠️ No professors found, skipping planeaciones query');
+    }
 
 
-    // 3. Incidencias (Seguridad)
+    // 5. Incidencias (directo por plantel_id)
     const { data: incidencias } = await supabase
         .from('incidencias')
         .select('id, estado, tipo, created_at')

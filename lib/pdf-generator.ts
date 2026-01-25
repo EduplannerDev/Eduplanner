@@ -1617,7 +1617,9 @@ export async function generateReporteInstitucionalPDF(data: any, plantelInfo: an
 
   const { periodo, kpis, detalles } = data;
   const mesTitulo = periodo.mes.charAt(0).toUpperCase() + periodo.mes.slice(1);
-  const titulo = `Reporte de Cumplimiento - ${mesTitulo} ${periodo.anio}`;
+  // Si el mesTitulo ya contiene "Ciclo" o "Trimestre", no añadir "Reporte de Cumplimiento - " redundante o el año duplicado
+  const isSpecialPeriod = mesTitulo.includes('Ciclo') || mesTitulo.includes('Trimestre') || mesTitulo.includes('Semestre') || mesTitulo.includes('Cuatrimestre');
+  const titulo = isSpecialPeriod ? mesTitulo : `Reporte de Cumplimiento - ${mesTitulo} ${periodo.anio}`;
 
   // Calcular color de salud global
   const score = (kpis.asistencia.promedio + kpis.planeaciones.progreso_porcentaje + kpis.incidencias.resolucion_porcentaje) / 3;
@@ -1812,7 +1814,7 @@ export async function generateReporteInstitucionalPDF(data: any, plantelInfo: an
           ${logoBase64 ? `<img src="${logoBase64}" class="logo" />` : ''}
           <div>
             <h1 class="school-name">${plantelInfo?.nombre || 'Institución Educativa'}</h1>
-            <div class="period-badge">${mesTitulo} ${periodo.anio}</div>
+            <div class="period-badge">${isSpecialPeriod ? mesTitulo : `${mesTitulo} ${periodo.anio}`}</div>
           </div>
         </div>
         <div class="report-meta">
@@ -1941,7 +1943,35 @@ export async function generateReporteInstitucionalPDF(data: any, plantelInfo: an
   try {
     await generatePDFWithPuppeteer(htmlContent, filename, options);
   } catch (error) {
-    console.error('Error generando reporte institucional:', error);
-    // Fallback logic if needed, but for now we rely on Puppeteer API
+    console.warn('Puppeteer failed, using fallback:', error);
+    await generateReporteInstitucionalPDFFallback(htmlContent, filename);
+  }
+}
+
+async function generateReporteInstitucionalPDFFallback(htmlContent: string, filename: string): Promise<void> {
+  if (typeof window === 'undefined') return;
+
+  const opt = {
+    margin: [0, 0, 0, 0],
+    filename: filename,
+    image: { type: 'jpeg', quality: 0.98 },
+    html2canvas: { scale: 2, useCORS: true, letterRendering: true },
+    jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
+  };
+
+  try {
+    const element = document.createElement('div');
+    element.innerHTML = htmlContent;
+    // Styles adjustment for fallback
+    element.style.width = '210mm';
+    element.style.maxWidth = '100%';
+
+    // Import dynamic
+    const html2pdf = (await import('html2pdf.js')).default;
+
+    await html2pdf().from(element).set(opt).save();
+  } catch (e) {
+    console.error('Fallback generation failed:', e);
+    throw e;
   }
 }
