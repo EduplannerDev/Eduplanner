@@ -15,6 +15,10 @@ Este sistema permite que el asistente de IA "Edu" cite y use contenido oficial d
 
 ## 📊 Catálogo de Libros
 
+### Preescolar (16 libros)
+- 1° a 3° grado
+- Materias: Lenguajes, Exploración, Matemáticas, Arte y Cultura, Guías para Docentes/Familias
+
 ### Primaria (24 libros)
 - 1° a 6° grado
 - Materias: Proyectos de Aula, Lengua Materna, Matemáticas, Nuestros Saberes
@@ -23,7 +27,7 @@ Este sistema permite que el asistente de IA "Edu" cite y use contenido oficial d
 - 1° a 3° grado
 - Materias: Español, Matemáticas, Ciencia y Tecnología, Historia, Geografía
 
-**Total: 37 libros | ~7,400 páginas**
+**Total: 53 libros | ~13,200 páginas**
 
 ## 🏗️ Arquitectura
 
@@ -144,12 +148,12 @@ SUPABASE_SERVICE_ROLE_KEY=your_service_role_key_here
 
 ## 💰 Costos
 
-| Servicio | Costo Unitario | Total (37 libros) |
+| Servicio | Costo Unitario | Total (53 libros) |
 |----------|----------------|-------------------|
-| Google Vision OCR | $0.0015/página | ~$11.10 USD |
-| Google Embeddings | $0.00002/chunk | ~$0.30 USD |
+| Google Vision OCR | $0.0015/página | ~$19.80 USD |
+| Google Embeddings | $0.00002/chunk | ~$0.53 USD |
 | Supabase Storage | Incluido | $0 |
-| **TOTAL** | | **~$11.40 USD** |
+| **TOTAL** | | **~$20.33 USD** |
 
 ## 🔍 Búsqueda Semántica
 
@@ -185,11 +189,11 @@ const { data } = await supabase.rpc('search_sep_books_by_similarity', {
 
 Después del procesamiento completo:
 
-- **Libros procesados**: 37
-- **Páginas totales**: ~7,400
-- **Chunks vectorizados**: ~15,000
+- **Libros procesados**: 53
+- **Páginas totales**: ~13,200
+- **Chunks vectorizados**: ~26,400
 - **Confianza OCR promedio**: 96.5%
-- **Palabras extraídas**: ~1,500,000
+- **Palabras extraídas**: ~2,640,000
 
 ## 🔄 Actualización Anual
 
@@ -199,7 +203,7 @@ Cada ciclo escolar (Julio):
 2. Ejecutar `npm run sep:process-all`
 3. (Opcional) Eliminar libros del ciclo anterior
 
-**Costo anual**: ~$11-15 USD
+**Costo anual**: ~$20 USD
 
 ## 🐛 Troubleshooting
 

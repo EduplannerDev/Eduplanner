@@ -44,4 +44,13 @@ scripts/verify-pdas-data.ts
 # Exports
 exports/
 downloads/
-docs/fichaDesc.pdf 
+docs/fichaDesc.pdf
+
+# SEP Books Processing Scripts
+scripts/process-libros.ps1
+scripts/process-grados-2-6.ps1
+scripts/process-preescolar-secundaria.ps1
+scripts/process-secundaria-2025.ps1
+scripts/scrape-conaliteg-books.ts
+scripts/process-books-ocr.ts
+scripts/vectorize-sep-books.ts 
