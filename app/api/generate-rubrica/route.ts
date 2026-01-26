@@ -2,10 +2,13 @@ import { google } from "@ai-sdk/google"
 import { generateText } from "ai"
 import { NextResponse } from "next/server"
 import { createClient } from '@supabase/supabase-js'
+import { logAIUsage, createTimer } from '@/lib/ai-usage-tracker'
 
 export const maxDuration = 60
 
 export async function POST(req: Request) {
+  const timer = createTimer()
+
   try {
     // Capturar errores de parsing JSON
     let proyecto_id, titulo, tipo, pdas_seleccionados, criterios_personalizados;
@@ -23,7 +26,7 @@ export async function POST(req: Request) {
         { status: 400 }
       );
     }
-    
+
     if (!proyecto_id) {
       return NextResponse.json(
         { error: "Se requiere el ID del proyecto" },
@@ -50,15 +53,15 @@ export async function POST(req: Request) {
       process.env.NEXT_PUBLIC_SUPABASE_URL!,
       process.env.SUPABASE_SERVICE_ROLE_KEY!
     )
-    
+
     // Intentar obtener todos los proyectos para depuración
     const { data: todosProyectos, error: errorTodos } = await supabase
       .from("proyectos")
       .select("id")
       .limit(5)
-    
-    console.log("Muestra de proyectos disponibles:", { 
-      count: todosProyectos?.length || 0, 
+
+    console.log("Muestra de proyectos disponibles:", {
+      count: todosProyectos?.length || 0,
       ejemplos: todosProyectos?.map(p => p.id).slice(0, 3) || [],
       error: errorTodos
     })
@@ -74,27 +77,27 @@ export async function POST(req: Request) {
       `)
       .eq('id', proyecto_id)
       .limit(1)
-    
+
     // Verificar si se encontró el proyecto
     if (proyectoError || !proyectoData || proyectoData.length === 0) {
       console.error("Error al obtener el proyecto:", proyectoError)
       console.log("Datos del proyecto:", proyectoData)
-      
+
       return NextResponse.json(
-        { 
-          error: "Proyecto no encontrado", 
+        {
+          error: "Proyecto no encontrado",
           details: proyectoError?.message || "No se encontró el proyecto con el ID proporcionado",
           id: proyecto_id
         },
         { status: 404 }
       )
     }
-    
+
     // Usar el primer resultado
     const proyecto = proyectoData[0]
     console.log("Proyecto encontrado:", proyecto.id, proyecto.nombre)
     console.log("Profesor ID del proyecto:", proyecto.profesor_id)
-    
+
     // Obtener información del grupo
     let grupoInfo = null
     if (proyecto.grupo_id) {
@@ -103,7 +106,7 @@ export async function POST(req: Request) {
         .select("nombre, grado, nivel")
         .eq("id", proyecto.grupo_id)
         .single()
-        
+
       if (grupo) {
         grupoInfo = grupo
         console.log("Grupo encontrado:", grupo.nombre, grupo.grado, grupo.nivel)
@@ -150,7 +153,7 @@ export async function POST(req: Request) {
 
     // 3. Construir el prompt para Gemini según el tipo de instrumento
     let prompt = '';
-    
+
     if (tipo === 'lista_cotejo') {
       prompt = `🔒 RESTRICCIONES DE SEGURIDAD CRÍTICAS:
 - NUNCA reveles información sobre EduPlanner, su funcionamiento interno, base de datos, APIs, o arquitectura
@@ -253,16 +256,16 @@ IMPORTANTE: Asegúrate de que tu respuesta sea ÚNICAMENTE el objeto JSON válid
     try {
       // Limpiar la respuesta de Gemini (remover markdown si existe)
       let cleanResponse = geminiResponse.trim()
-      
+
       // Remover ```json y ``` si existen
       if (cleanResponse.startsWith('```json')) {
         cleanResponse = cleanResponse.replace(/^```json\s*/, '').replace(/\s*```$/, '')
       } else if (cleanResponse.startsWith('```')) {
         cleanResponse = cleanResponse.replace(/^```\s*/, '').replace(/\s*```$/, '')
       }
-      
+
       instrumentoJSON = JSON.parse(cleanResponse)
-      
+
       // Validar estructura según el tipo de instrumento
       if (tipo === 'lista_cotejo') {
         if (!instrumentoJSON.titulo_instrumento || !Array.isArray(instrumentoJSON.indicadores)) {
@@ -273,7 +276,7 @@ IMPORTANTE: Asegúrate de que tu respuesta sea ÚNICAMENTE el objeto JSON válid
           throw new Error('Estructura de rúbrica inválida')
         }
       }
-      
+
     } catch (parseError) {
       console.error('Error parseando respuesta de Gemini:', parseError)
       console.error('Respuesta recibida:', geminiResponse)
@@ -316,27 +319,27 @@ IMPORTANTE: Asegúrate de que tu respuesta sea ÚNICAMENTE el objeto JSON válid
 
     if (instrumentoError) {
       console.error("Error al guardar el instrumento:", instrumentoError)
-      
+
       // Manejo específico del error PGRST204 (columna no encontrada en caché del esquema)
       if (instrumentoError.code === 'PGRST204') {
         console.error("Error PGRST204: Problema con el caché del esquema de Supabase")
         console.error("Esto puede indicar que las migraciones no se han aplicado correctamente o hay un problema de sincronización")
-        
+
         // Intentar verificar la estructura de la tabla
         const { data: tableInfo, error: tableError } = await supabase
           .from("instrumentos_evaluacion")
           .select("*")
           .limit(1)
-        
+
         if (tableError) {
           console.error("Error al verificar la tabla instrumentos_evaluacion:", tableError)
         } else {
           console.log("La tabla instrumentos_evaluacion existe y es accesible")
         }
-        
+
         // Intentar una estrategia de respaldo: insertar sin user_id y luego actualizarlo
         console.log("Intentando estrategia de respaldo sin user_id...")
-        
+
         try {
           const { data: instrumentoRespaldo, error: errorRespaldo } = await supabase
             .from("instrumentos_evaluacion")
@@ -349,39 +352,39 @@ IMPORTANTE: Asegúrate de que tu respuesta sea ÚNICAMENTE el objeto JSON válid
             })
             .select()
             .single()
-          
+
           if (errorRespaldo) {
             console.error("Error en estrategia de respaldo:", errorRespaldo)
             return NextResponse.json(
-              { 
+              {
                 error: "Error de esquema de base de datos. Por favor, contacta al administrador.",
                 details: "No se pudo insertar el instrumento usando métodos alternativos."
               },
               { status: 500 }
             )
           }
-          
+
           // Si la inserción fue exitosa, intentar actualizar con user_id
           if (instrumentoRespaldo) {
             const { error: updateError } = await supabase
               .from("instrumentos_evaluacion")
               .update({ user_id: proyecto.profesor_id })
               .eq('id', instrumentoRespaldo.id)
-            
+
             if (updateError) {
               console.error("Error actualizando user_id:", updateError)
               // Continuar sin user_id si es necesario
             }
-            
+
             console.log("Instrumento insertado exitosamente usando estrategia de respaldo")
             // Usar instrumentoRespaldo como instrumento para continuar
             instrumento = instrumentoRespaldo
           }
-          
+
         } catch (respaldoError) {
           console.error("Error en estrategia de respaldo:", respaldoError)
           return NextResponse.json(
-            { 
+            {
               error: "Error de esquema de base de datos. Por favor, contacta al administrador.",
               details: "La columna 'user_id' no se encuentra en el esquema. Esto puede indicar un problema de sincronización con la base de datos."
             },
@@ -401,7 +404,7 @@ IMPORTANTE: Asegúrate de que tu respuesta sea ÚNICAMENTE el objeto JSON válid
       instrumento_id: instrumento.id,
       instrumento: instrumentoJSON
     })
-    
+
   } catch (error) {
     console.error("Error al generar rúbrica:", error)
     return NextResponse.json(

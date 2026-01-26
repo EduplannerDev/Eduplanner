@@ -1,9 +1,12 @@
 import { google } from "@ai-sdk/google"
 import { generateText } from "ai"
+import { logAIUsage, createTimer } from '@/lib/ai-usage-tracker'
 
 export const maxDuration = 60
 
 export async function POST(request: Request) {
+  const timer = createTimer()
+
   try {
     const { messages } = await request.json()
 
@@ -158,6 +161,15 @@ Cuando recibas una planeación, analiza el contenido y crea una presentación IN
       textPreview: result.text?.substring(0, 200)
     }))
 
+    // Log AI usage for analytics
+    logAIUsage({
+      endpoint: '/api/generate-presentation',
+      inputTokens: result.usage?.promptTokens,
+      outputTokens: result.usage?.completionTokens,
+      latencyMs: timer.elapsed(),
+      success: true
+    }).catch(() => { })
+
     if (!result.text || result.text.length === 0) {
       console.error('❌ La IA retornó texto vacío. Posible bloqueo de seguridad o error de modelo.')
       return Response.json({
@@ -173,6 +185,14 @@ Cuando recibas una planeación, analiza el contenido y crea una presentación IN
       content: result.text,
     })
   } catch (error) {
+    // Log AI usage failure
+    logAIUsage({
+      endpoint: '/api/generate-presentation',
+      latencyMs: timer.elapsed(),
+      success: false,
+      errorMessage: error instanceof Error ? error.message : 'Unknown error'
+    }).catch(() => { })
+
     console.error("❌ Error en API route generate-presentation:", error)
     return new Response('Error: ' + (error instanceof Error ? error.message : 'Unknown error occurred'), { status: 500 })
   }

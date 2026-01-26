@@ -1,9 +1,12 @@
 import { google } from "@ai-sdk/google"
 import { streamText } from "ai"
+import { logAIUsage, createTimer } from '@/lib/ai-usage-tracker'
 
 export const maxDuration = 30
 
 export async function POST(req: Request) {
+  const timer = createTimer()
+
   try {
     const { messages, tone } = await req.json()
     if (!process.env.GOOGLE_GENERATIVE_AI_API_KEY) {
@@ -69,10 +72,27 @@ Espera las instrucciones del docente, por ejemplo:
 "Quiero felicitar a unos padres por la mejora en el comportamiento de su hijo"
 "Necesito citar a una reunión por problemas de conducta"`,
       messages,
+      onFinish: ({ usage }) => {
+        logAIUsage({
+          endpoint: '/api/generate-messages',
+          inputTokens: usage?.promptTokens,
+          outputTokens: usage?.completionTokens,
+          latencyMs: timer.elapsed(),
+          success: true,
+          metadata: { tone }
+        }).catch(() => { })
+      }
     })
 
     return result.toDataStreamResponse()
   } catch (error) {
+    logAIUsage({
+      endpoint: '/api/generate-messages',
+      latencyMs: timer.elapsed(),
+      success: false,
+      errorMessage: error instanceof Error ? error.message : 'Unknown error'
+    }).catch(() => { })
+
     console.error("Error en API route:", error)
     return new Response(`Error: ${error instanceof Error ? error.message : 'Unknown error occurred'}`, { status: 500 })
   }

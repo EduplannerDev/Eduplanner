@@ -1,9 +1,13 @@
 import { google } from '@ai-sdk/google'
 import { generateText } from 'ai'
 import { buscarContenidoLibrosSEP, LibroReferencia, extraerTema } from '@/lib/sep-books-search'
+import { logAIUsage, createTimer } from '@/lib/ai-usage-tracker'
 
 export async function POST(request: Request) {
+  const timer = createTimer()
+
   try {
+
     const { messages, grado, materia } = await request.json()
 
     if (!messages || messages.length === 0) {
@@ -182,6 +186,16 @@ Aquí tienes un borrador de tu planeación. Si quieres, puedes pedirme que **'mo
     console.log('📊 Usage:', JSON.stringify(result.usage))
     console.log('📝 Longitud de respuesta:', result.text?.length || 0)
 
+    // Log AI usage for analytics
+    logAIUsage({
+      endpoint: '/api/generate-nem',
+      inputTokens: result.usage?.promptTokens,
+      outputTokens: result.usage?.completionTokens,
+      latencyMs: timer.elapsed(),
+      success: true,
+      metadata: { grado, materia }
+    }).catch(() => { })
+
     if (!result.text || result.text.length === 0) {
       console.error('❌ La IA retornó texto vacío para NEM.')
     }
@@ -190,6 +204,14 @@ Aquí tienes un borrador de tu planeación. Si quieres, puedes pedirme que **'mo
       content: result.text,
     })
   } catch (error) {
+    // Log AI usage failure
+    logAIUsage({
+      endpoint: '/api/generate-nem',
+      latencyMs: timer.elapsed(),
+      success: false,
+      errorMessage: error instanceof Error ? error.message : 'Unknown error'
+    }).catch(() => { })
+
     console.error("❌ Error en API route generate-nem:", error)
     return Response.json(
       { error: 'No se pudo generar la planeación NEM', details: error instanceof Error ? error.message : String(error) },

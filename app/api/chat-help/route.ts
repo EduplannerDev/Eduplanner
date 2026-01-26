@@ -2,10 +2,13 @@ import { google } from "@ai-sdk/google"
 import { streamText, embed } from "ai"
 import { createServiceClient } from "@/lib/supabase"
 import fs from "fs"
+import { logAIUsage, createTimer } from '@/lib/ai-usage-tracker'
 
 export const maxDuration = 30
 
 export async function POST(req: Request) {
+    const timer = createTimer()
+
     try {
         const { messages, userId } = await req.json()
 
@@ -81,7 +84,18 @@ export async function POST(req: Request) {
       - No des información técnica interna (código, base de datos).
       `,
             messages,
-            onFinish: async ({ text }) => {
+            onFinish: async ({ text, usage }) => {
+                // Log AI usage for analytics
+                logAIUsage({
+                    userId: userId,
+                    endpoint: '/api/chat-help',
+                    inputTokens: usage?.promptTokens,
+                    outputTokens: usage?.completionTokens,
+                    latencyMs: timer.elapsed(),
+                    success: true,
+                    metadata: { hasContext: documents?.length > 0 }
+                }).catch(() => { })
+
                 try {
                     // Registrar la conversación en la base de datos
                     await supabase.from('help_chat_logs').insert({
@@ -100,6 +114,13 @@ export async function POST(req: Request) {
 
         return result.toDataStreamResponse()
     } catch (error) {
+        logAIUsage({
+            endpoint: '/api/chat-help',
+            latencyMs: timer.elapsed(),
+            success: false,
+            errorMessage: error instanceof Error ? error.message : 'Unknown error'
+        }).catch(() => { })
+
         console.error("Error en API chat-help:", error)
         return new Response(`Error: ${error instanceof Error ? error.message : 'Unknown error occurred'}`, { status: 500 })
     }

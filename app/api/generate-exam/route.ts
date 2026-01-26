@@ -1,9 +1,12 @@
 import { google } from "@ai-sdk/google"
 import { streamText } from "ai"
+import { logAIUsage, createTimer } from '@/lib/ai-usage-tracker'
 
 export const maxDuration = 30
 
 export async function POST(req: Request) {
+  const timer = createTimer()
+
   try {
     const { messages } = await req.json()
 
@@ -60,10 +63,28 @@ Cuando estés listo, espera instrucciones como:
 "Crea un examen de matemáticas para quinto grado sobre decimales, usando esta planeación: [Contenido de la planeación]"
 `,
       messages,
+      onFinish: ({ usage }) => {
+        // Log AI usage after stream completes
+        logAIUsage({
+          endpoint: '/api/generate-exam',
+          inputTokens: usage?.promptTokens,
+          outputTokens: usage?.completionTokens,
+          latencyMs: timer.elapsed(),
+          success: true
+        }).catch(() => { })
+      }
     })
 
     return result.toDataStreamResponse()
   } catch (error) {
+    // Log AI usage failure
+    logAIUsage({
+      endpoint: '/api/generate-exam',
+      latencyMs: timer.elapsed(),
+      success: false,
+      errorMessage: error instanceof Error ? error.message : 'Unknown error'
+    }).catch(() => { })
+
     console.error("Error en API route:", error)
     return new Response(`Error: ${error instanceof Error ? error.message : 'Unknown error occurred'}`, { status: 500 })
   }

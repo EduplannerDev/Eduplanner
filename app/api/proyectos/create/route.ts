@@ -3,6 +3,7 @@ import { createClient, SupabaseClient } from '@supabase/supabase-js'
 import { cookies } from 'next/headers'
 import { google } from "@ai-sdk/google"
 import { generateText } from "ai"
+import { logAIUsage, createTimer } from '@/lib/ai-usage-tracker'
 
 // Configuración
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || ""
@@ -25,6 +26,8 @@ interface ProyectoFase {
 }
 
 export async function POST(request: NextRequest) {
+  const timer = createTimer()
+
   try {
     // Validar configuración
     if (!GOOGLE_API_KEY) {
@@ -36,26 +39,26 @@ export async function POST(request: NextRequest) {
 
     let user: any = null
     let supabase: SupabaseClient | null = null
-    
+
     // Intentar autenticación con Bearer token primero
     const authHeader = request.headers.get('authorization')
     if (authHeader?.startsWith('Bearer ')) {
       const token = authHeader.split(' ')[1]
-      
+
       // Crear cliente con service role para verificar token
       const serviceSupabase = createClient(
         process.env.NEXT_PUBLIC_SUPABASE_URL!,
         process.env.SUPABASE_SERVICE_ROLE_KEY!
       )
-      
+
       const { data: { user: tokenUser }, error: tokenError } = await serviceSupabase.auth.getUser(token)
-      
+
       if (!tokenError && tokenUser) {
         user = tokenUser
         supabase = serviceSupabase
       }
     }
-    
+
     // Si no hay Bearer token o falló, intentar con cookies
     if (!user) {
       const cookieStore = await cookies()
@@ -66,16 +69,16 @@ export async function POST(request: NextRequest) {
           },
         },
       })
-      
+
       const { data: { user: cookieUser }, error: authError } = await supabase.auth.getUser()
-      
+
       if (authError || !cookieUser) {
         return NextResponse.json(
           { error: 'No autorizado' },
           { status: 401 }
         )
       }
-      
+
       user = cookieUser
     }
 
@@ -146,7 +149,7 @@ export async function POST(request: NextRequest) {
         .from('proyectos')
         .delete()
         .eq('id', proyectoId)
-      
+
       return NextResponse.json(
         { error: `Error creando relaciones con PDAs: ${relacionesError.message}` },
         { status: 500 }
@@ -183,8 +186,8 @@ export async function POST(request: NextRequest) {
     }
 
     // Construir el prompt
-    
-    const pdasText = pdasData.map(pda => 
+
+    const pdasText = pdasData.map(pda =>
       `- "${pda.contenido}" (PDA: ${pda.pda})`
     ).join('\n')
 
@@ -220,47 +223,58 @@ Ejemplo de la estructura de tu respuesta:
 ]`
 
     // PASO 6: Ejecutar la IA
-    const { text: geminiResponse } = await generateText({
-        model: google("gemini-2.5-flash"),
+    const { text: geminiResponse, usage: aiUsage } = await generateText({
+      model: google("gemini-2.5-flash"),
       prompt,
       temperature: 0.7,
     })
 
+    // Log AI usage for analytics
+    logAIUsage({
+      userId: user?.id,
+      endpoint: '/api/proyectos/create',
+      inputTokens: aiUsage?.promptTokens,
+      outputTokens: aiUsage?.completionTokens,
+      latencyMs: timer.elapsed(),
+      success: true,
+      metadata: { metodologia: metodologia_nem }
+    }).catch(() => { })
+
     // PASO 7: Procesar la Respuesta de la IA
-    
+
     let fasesGeneradas: ProyectoFase[]
     let cleanResponse: string = '' // Declarar cleanResponse fuera del try
     let parseTime: number = 0 // Declarar parseTime fuera del try
-    
+
     try {
-      
+
       // Limpiar la respuesta de Gemini (remover markdown si existe)
       cleanResponse = geminiResponse.trim()
-      
+
       // Función para extraer JSON válido de la respuesta
       function extractJSON(response: string): string {
         // Buscar el primer [ y el último ] para extraer el array JSON
         const firstBracket = response.indexOf('[')
         const lastBracket = response.lastIndexOf(']')
-        
+
         if (firstBracket !== -1 && lastBracket !== -1 && lastBracket > firstBracket) {
           return response.substring(firstBracket, lastBracket + 1)
         }
-        
+
         // Si no encuentra brackets, intentar limpiar markdown
         if (response.startsWith('```json')) {
           response = response.replace(/^```json\s*/, '').replace(/\s*```$/, '')
         } else if (response.startsWith('```')) {
           response = response.replace(/^```\s*/, '').replace(/\s*```$/, '')
         }
-        
+
         return response
       }
-      
+
       cleanResponse = extractJSON(cleanResponse)
-      
+
       fasesGeneradas = JSON.parse(cleanResponse)
-      
+
       if (!Array.isArray(fasesGeneradas)) {
         throw new Error('La respuesta no es un array')
       }
@@ -271,10 +285,10 @@ Ejemplo de la estructura de tu respuesta:
           throw new Error(`Estructura de fase inválida: ${JSON.stringify(fase)}`)
         }
       }
-      
+
     } catch (parseError) {
       return NextResponse.json(
-        { 
+        {
           error: 'Error procesando respuesta de la IA',
           details: parseError instanceof Error ? parseError.message : 'Error desconocido',
           geminiResponse: geminiResponse.substring(0, 1000) // Solo los primeros 1000 caracteres para debug
@@ -319,7 +333,7 @@ Ejemplo de la estructura de tu respuesta:
     }
 
     // PASO 10: Finalizar y Responder al Frontend
-    
+
     return NextResponse.json({
       success: true,
       proyecto_id: proyectoId,
@@ -329,6 +343,13 @@ Ejemplo de la estructura de tu respuesta:
     })
 
   } catch (error) {
+    logAIUsage({
+      endpoint: '/api/proyectos/create',
+      latencyMs: timer.elapsed(),
+      success: false,
+      errorMessage: error instanceof Error ? error.message : 'Unknown error'
+    }).catch(() => { })
+
     return NextResponse.json(
       {
         error: 'Error interno del servidor al crear el proyecto',

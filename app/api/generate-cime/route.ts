@@ -1,18 +1,21 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { google } from "@ai-sdk/google"
 import { generateText } from "ai"
+import { logAIUsage, createTimer } from '@/lib/ai-usage-tracker'
 
 export const maxDuration = 30
 
 export async function POST(request: NextRequest) {
+  const timer = createTimer()
+
   try {
     console.log('API generate-cime: Iniciando request')
-    
+
     const { prompt, maxTokens = 2000, temperature = 0.7 } = await request.json()
-    console.log('API generate-cime: Datos recibidos:', { 
-      promptLength: prompt?.length, 
-      maxTokens, 
-      temperature 
+    console.log('API generate-cime: Datos recibidos:', {
+      promptLength: prompt?.length,
+      maxTokens,
+      temperature
     })
 
     if (!prompt) {
@@ -24,11 +27,11 @@ export async function POST(request: NextRequest) {
     }
 
     console.log('API generate-cime: Llamando a Google Gemini...')
-    
+
     // Usar el mismo patrón que proyectos/create con generateText
     const { text: geminiResponse } = await generateText({
       model: google("gemini-2.5-flash"),
-        system: `Eres un pedagogo experto en la metodología CIME para la enseñanza de las matemáticas. Tu conocimiento se basa en el constructivismo y el uso de materiales concretos.
+      system: `Eres un pedagogo experto en la metodología CIME para la enseñanza de las matemáticas. Tu conocimiento se basa en el constructivismo y el uso de materiales concretos.
 
 Genera planeaciones didácticas completas siguiendo estrictamente la secuencia de 3 etapas del método CIME: Etapa Concreta, Etapa de Registro y Etapa Formal.
 
@@ -91,6 +94,13 @@ NUNCA uses --- como separadores en el contenido. Usa solo doble salto de línea 
 
     console.log('API generate-cime: Respuesta recibida, longitud:', geminiResponse?.length)
 
+    // Log AI usage for analytics
+    logAIUsage({
+      endpoint: '/api/generate-cime',
+      latencyMs: timer.elapsed(),
+      success: !!geminiResponse
+    }).catch(() => { })
+
     if (!geminiResponse) {
       console.error('API generate-cime: Contenido vacío de Gemini')
       return NextResponse.json(
@@ -106,6 +116,13 @@ NUNCA uses --- como separadores en el contenido. Usa solo doble salto de línea 
     })
 
   } catch (error) {
+    logAIUsage({
+      endpoint: '/api/generate-cime',
+      latencyMs: timer.elapsed(),
+      success: false,
+      errorMessage: error instanceof Error ? error.message : 'Unknown error'
+    }).catch(() => { })
+
     console.error('Error en API de Google Gemini:', error)
     console.error('Stack trace:', error instanceof Error ? error.stack : 'No stack trace')
     return NextResponse.json(

@@ -1,10 +1,13 @@
 import { createClient } from '@supabase/supabase-js'
 import { google } from '@ai-sdk/google'
 import { embed, generateText } from 'ai'
+import { logAIUsage, createTimer } from '@/lib/ai-usage-tracker'
 
 
 
 export async function POST(req: Request) {
+    const timer = createTimer()
+
     try {
         const { descripcion, plantel_id, alumno_id, user_id } = await req.json()
 
@@ -225,6 +228,15 @@ export async function POST(req: Request) {
                 parsedResult.tipo_incidencia = 'otro'
             }
 
+            // Log AI usage for analytics
+            logAIUsage({
+                userId: user_id,
+                endpoint: '/api/incidencias/analizar',
+                latencyMs: timer.elapsed(),
+                success: true,
+                metadata: { clasificacion: parsedResult.clasificacion }
+            }).catch(() => { })
+
             return Response.json(parsedResult)
         } catch (e) {
             console.error("Error parsing JSON from AI:", e)
@@ -233,6 +245,13 @@ export async function POST(req: Request) {
         }
 
     } catch (error) {
+        logAIUsage({
+            endpoint: '/api/incidencias/analizar',
+            latencyMs: timer.elapsed(),
+            success: false,
+            errorMessage: error instanceof Error ? error.message : 'Unknown error'
+        }).catch(() => { })
+
         console.error('Error en análisis legal:', error)
         return new Response(JSON.stringify({ error: 'Error procesando solicitud' }), {
             status: 500,

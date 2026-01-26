@@ -34,7 +34,8 @@ import {
   FolderKanban,
   FileSpreadsheet,
   File,
-  LineChart
+  LineChart,
+  Brain
 } from 'lucide-react'
 import {
   getPlatformStats,
@@ -51,6 +52,7 @@ import { AdminReports } from './admin-reports'
 import { AdminProUsers } from './admin-pro-users'
 import { AdminChatLogs } from './admin-chat-logs'
 import { AnalyticsCharts } from '@/components/admin/analytics-charts'
+import { AIUsageWidget } from '@/components/admin/ai-usage-widget'
 
 export function AdminDashboard() {
   const { isAdmin, isDirector, plantel, role, loading } = useRoles()
@@ -143,10 +145,14 @@ export function AdminDashboard() {
 
       {/* Tabs de navegación */}
       <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-        <TabsList className="grid w-full grid-cols-8">
+        <TabsList className="grid w-full grid-cols-9">
           <TabsTrigger value="overview" className="flex items-center gap-2">
             <BarChart3 className="h-4 w-4" />
             Resumen
+          </TabsTrigger>
+          <TabsTrigger value="ai-usage" className="flex items-center gap-2">
+            <Brain className="h-4 w-4" />
+            Uso IA
           </TabsTrigger>
           <TabsTrigger value="analytics" className="flex items-center gap-2">
             <LineChart className="h-4 w-4" />
@@ -427,6 +433,22 @@ export function AdminDashboard() {
 
 
             </>
+          )}
+        </TabsContent>
+
+        <TabsContent value="ai-usage" className="space-y-6">
+          {isAdmin ? (
+            <AIUsageWidget />
+          ) : (
+            <Card>
+              <CardContent className="p-8 text-center">
+                <Brain className="mx-auto h-12 w-12 text-muted-foreground mb-4" />
+                <h3 className="text-lg font-semibold mb-2">Acceso Restringido</h3>
+                <p className="text-muted-foreground">
+                  Solo los administradores pueden ver el uso de IA.
+                </p>
+              </CardContent>
+            </Card>
           )}
         </TabsContent>
 
