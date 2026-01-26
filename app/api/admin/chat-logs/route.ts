@@ -65,3 +65,31 @@ export async function GET(req: Request) {
         return NextResponse.json({ error: "Internal Server Error" }, { status: 500 });
     }
 }
+
+export async function DELETE(req: Request) {
+    try {
+        const { searchParams } = new URL(req.url);
+        const logId = searchParams.get('id');
+
+        if (!logId) {
+            return NextResponse.json({ error: "ID is required" }, { status: 400 });
+        }
+
+        const supabase = createServiceClient();
+
+        const { error } = await supabase
+            .from('help_chat_logs')
+            .delete()
+            .eq('id', logId);
+
+        if (error) {
+            console.error("Error deleting chat log:", error);
+            return NextResponse.json({ error: error.message }, { status: 500 });
+        }
+
+        return NextResponse.json({ success: true });
+    } catch (error) {
+        console.error("Critical error in DELETE /api/admin/chat-logs:", error);
+        return NextResponse.json({ error: "Internal Server Error" }, { status: 500 });
+    }
+}

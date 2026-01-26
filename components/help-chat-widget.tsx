@@ -25,7 +25,7 @@ export function HelpChatWidget() {
             {
                 id: "welcome",
                 role: "assistant",
-                content: "¡Hola! Soy Edu de EduPlanner 🤖. Estoy aquí para ayudarte a crear planeaciones, exámenes y mucho más. ¿En qué te ayudo hoy?",
+                content: "¡Hola! Soy Edu 🦉, tu guía dentro de EduPlanner. Estoy aquí para resolver tus dudas sobre cómo usar la plataforma: dónde encontrar opciones, cómo funcionan los módulos, y cualquier pregunta sobre el sistema.\n\n**¿Quieres crear una planeación, examen o proyecto?** Usa los menús en el panel izquierdo. ¡Yo te guío paso a paso si lo necesitas!\n\n¿En qué puedo ayudarte hoy?",
             }
         ]
     })
@@ -94,7 +94,7 @@ export function HelpChatWidget() {
                             </div>
                             <div>
                                 <CardTitle className="text-base font-bold">Edu de EduPlanner</CardTitle>
-                                {!isMinimized && <p className="text-xs text-purple-100 opacity-90">Tu asistente virtual experto</p>}
+                                {!isMinimized && <p className="text-xs text-purple-100 opacity-90">Soporte y ayuda de la plataforma</p>}
                             </div>
                         </div>
                         <div className="flex gap-1">
