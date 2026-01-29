@@ -108,7 +108,7 @@ if (!contextText) {
 // Actualizar el system prompt para mencionar los libros:
 
 const result = await streamText({
-    model: google("gemini-2.0-flash-exp"),
+    model: google("gemini-2.5-flash"),
     system: `Eres EduPlanner Bot, el asistente de ayuda oficial de la plataforma EduPlanner.
       
 TU OBJETIVO:

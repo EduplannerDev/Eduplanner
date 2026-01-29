@@ -209,7 +209,7 @@ export async function createPlaneacion(userId: string, planeacion: PlaneacionCre
       .single()
 
     if (error) {
-      console.error("Error creating planeacion:", error)
+      console.error("Error creating planeacion FULL:", JSON.stringify(error, null, 2))
       return null
     }
 

@@ -29,6 +29,7 @@ import { BetaFeaturesDemo } from "./sections/beta-features-demo"
 import { ListaProyectos } from "./sections/lista-proyectos"
 import { ProyectoWizard } from "./sections/proyecto-wizard"
 import { PlaneacionCime } from "./sections/planeacion-cime"
+import { PlaneacionTutorias } from "./sections/planeacion-tutorias"
 import { PresentacionesIA } from "./sections/presentaciones-ia"
 import { FileText, Users, Calendar, MessageSquare, Plus, BookOpen, Presentation, CheckCircle, Clock, ArrowRight, Star, GraduationCap, X } from 'lucide-react'
 import { PlanAnaliticoWizard } from "./sections/plan-analitico/plan-analitico-wizard"
@@ -78,7 +79,7 @@ export default function Dashboard({ children, customContent = false }: Dashboard
       'generar-mensajes-padres', 'mensajes-padres-alumno', 'mis-mensajes', 'ayuda',
       'grupos', 'agenda', 'tomar-asistencia', 'bitacora', 'admin-dashboard',
       'administracion-plantel', 'beta-testers', 'beta-features', 'dosificacion',
-      'presentaciones-ia', 'proyectos', 'crear-proyecto', 'planeacion-cime', 'plan-analitico', 'suscripcion',
+      'presentaciones-ia', 'proyectos', 'crear-proyecto', 'planeacion-cime', 'planeacion-tutorias', 'plan-analitico', 'suscripcion',
       'fichas-descriptivas', 'muro-logros'
     ]
 
@@ -228,6 +229,8 @@ export default function Dashboard({ children, customContent = false }: Dashboard
         return "Proyectos"
       case "planeacion-cime":
         return "Planeación CIME"
+      case "planeacion-tutorias":
+        return "Planeación de Tutoría"
       case "suscripcion":
         return "Mi Suscripción"
       case "muro-logros":
@@ -265,6 +268,7 @@ export default function Dashboard({ children, customContent = false }: Dashboard
           onNavigateToChatWithMessage={handleNavigateToChatWithMessage}
           onNavigateToChatDosificacion={handleNavigateToChatDosificacion}
           onNavigateToCime={() => setActiveSection("planeacion-cime")}
+          onNavigateToTutoria={() => setActiveSection("planeacion-tutorias")}
           onNavigateToSubscription={() => setActiveSection("suscripcion")}
         />
       case "mis-planeaciones":
@@ -388,6 +392,11 @@ export default function Dashboard({ children, customContent = false }: Dashboard
         return <ProyectoWizard onComplete={() => setActiveSection("proyectos")} onSectionChange={setActiveSection} />
       case "planeacion-cime":
         return <PlaneacionCime
+          onBack={() => setActiveSection("nueva-planeacion")}
+          onSuccess={() => setActiveSection("mis-planeaciones")}
+        />
+      case "planeacion-tutorias":
+        return <PlaneacionTutorias
           onBack={() => setActiveSection("nueva-planeacion")}
           onSuccess={() => setActiveSection("mis-planeaciones")}
         />

@@ -4,7 +4,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button"
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
 import { Badge } from "@/components/ui/badge"
-import { Plus, BookOpen, Clock, Calendar, Crown, AlertTriangle, ArrowLeft, Check, Loader2, ChevronLeft, ChevronRight, Calculator } from "lucide-react"
+import { Plus, BookOpen, Clock, Calendar, Crown, AlertTriangle, ArrowLeft, Check, Loader2, ChevronLeft, ChevronRight, Calculator, Users } from "lucide-react"
 import { usePlaneaciones } from "@/hooks/use-planeaciones"
 import { useProfile } from "@/hooks/use-profile"
 import { isUserPro } from "@/lib/subscription-utils"
@@ -25,6 +25,7 @@ interface NuevaPlaneacionProps {
     message: string
   }) => void
   onNavigateToCime: () => void
+  onNavigateToTutoria: () => void
   onNavigateToSubscription?: () => void
 }
 
@@ -46,7 +47,7 @@ interface ContenidoDosificado {
   mes: string
 }
 
-export function NuevaPlaneacion({ onCreateClass, onNavigateToChatWithMessage, onNavigateToChatDosificacion, onNavigateToCime, onNavigateToSubscription }: NuevaPlaneacionProps) {
+export function NuevaPlaneacion({ onCreateClass, onNavigateToChatWithMessage, onNavigateToChatDosificacion, onNavigateToCime, onNavigateToTutoria, onNavigateToSubscription }: NuevaPlaneacionProps) {
   const { monthlyCount, getRemainingPlaneaciones, canCreateMore, loading: planeacionesLoading } = usePlaneaciones()
   const { profile, loading: profileLoading } = useProfile()
   const { user } = useAuth()
@@ -357,6 +358,16 @@ export function NuevaPlaneacion({ onCreateClass, onNavigateToChatWithMessage, on
       comingSoon: false,
       requiresPro: true,
     },
+    {
+      id: "tutoria",
+      title: "Planeación de Tutoría",
+      description: "Diseña sesiones de tutoría y educación socioemocional",
+      icon: Users,
+      color: "text-purple-600",
+      enabled: isPro,
+      comingSoon: false,
+      requiresPro: true,
+    },
   ]
 
 
@@ -640,7 +651,9 @@ export function NuevaPlaneacion({ onCreateClass, onNavigateToChatWithMessage, on
                 ? handlePlaneacionDesdeDosificacion
                 : planType.id === "cime"
                   ? onNavigateToCime
-                  : onCreateClass
+                  : planType.id === "tutoria"
+                    ? onNavigateToTutoria
+                    : onCreateClass
 
               return (
                 <Card
